@@ -16,6 +16,8 @@ public static class PermissionCodes
     public const string PetsCatalogRead = "pets.catalog.read";
     public const string CatalogRead = "catalog.read";
     public const string CatalogWrite = "catalog.write";
+    public const string StaffRead = "staff.read";
+    public const string StaffWrite = "staff.write";
     public const string AdminAppAccess = "app.admin.access";
     public const string GroomerAppAccess = "app.groomer.access";
     public const string ClientPortalAccess = "app.client.access";

@@ -23,6 +23,7 @@ public sealed class CatalogModule : IModuleDefinition
         services.AddScoped<CatalogPricingQueries>();
         services.AddScoped<ICatalogAccessPolicy, CatalogAccessPolicy>();
         services.AddScoped<ICatalogQuoteResolver, CatalogQuoteResolver>();
+        services.AddScoped<IOfferReferenceValidationService, CatalogReferenceServices>();
         return services;
     }
 

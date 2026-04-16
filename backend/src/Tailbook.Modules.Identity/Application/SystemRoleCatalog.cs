@@ -20,6 +20,8 @@ public static class SystemRoleCatalog
         new(PermissionCodes.PetsCatalogRead, "Read pet catalogs"),
         new(PermissionCodes.CatalogRead, "Read catalog offers and procedures"),
         new(PermissionCodes.CatalogWrite, "Create and edit catalog offers and procedures"),
+        new(PermissionCodes.StaffRead, "Read groomers, schedules and availability"),
+        new(PermissionCodes.StaffWrite, "Create and edit groomers, schedules and capabilities"),
         new(PermissionCodes.AdminAppAccess, "Access admin application"),
         new(PermissionCodes.GroomerAppAccess, "Access groomer application"),
         new(PermissionCodes.ClientPortalAccess, "Access client portal")
@@ -39,7 +41,9 @@ public static class SystemRoleCatalog
             PermissionCodes.PetsWrite,
             PermissionCodes.PetsCatalogRead,
             PermissionCodes.CatalogRead,
-            PermissionCodes.CatalogWrite
+            PermissionCodes.CatalogWrite,
+            PermissionCodes.StaffRead,
+            PermissionCodes.StaffWrite
         ]),
         new(RoleCodes.Groomer, "Groomer", [PermissionCodes.GroomerAppAccess]),
         new(RoleCodes.Client, "Client", [PermissionCodes.ClientPortalAccess])

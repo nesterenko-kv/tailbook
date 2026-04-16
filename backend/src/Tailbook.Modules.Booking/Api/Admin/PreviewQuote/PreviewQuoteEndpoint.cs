@@ -32,7 +32,7 @@ public sealed class PreviewQuoteEndpoint(ICurrentUser currentUser, IBookingAcces
         try
         {
             var result = await bookingQuoteQueries.PreviewQuoteAsync(
-                new PreviewQuoteCommand(req.PetId, req.Items.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray()),
+                new PreviewQuoteCommand(req.PetId, req.GroomerId, req.Items.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray()),
                 currentUser.UserId,
                 ct);
 
