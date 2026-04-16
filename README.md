@@ -2,6 +2,31 @@
 
 Tailbook as a modular monolith + monorepo foundation.
 
+## Backend auth quickstart (dev token)
+
+When testing protected backend endpoints locally:
+
+1. Issue a development token:
+
+```bash
+curl -k -X POST https://localhost:5001/api/identity/dev-token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "SubjectId": "dev-user-1",
+    "Email": "dev@example.com",
+    "Roles": ["Admin"]
+  }'
+```
+
+2. Call protected endpoints with the token in the `Authorization` header:
+
+```bash
+curl -k https://localhost:5001/api/identity/me \
+  -H "Authorization: Bearer <accessToken>"
+```
+
+If you get `401` while using a valid token, make sure you call `https://localhost:5001` directly. Calling `http://localhost:5000` may redirect to HTTPS and some clients drop the `Authorization` header on redirect.
+
 ## Apps
 - `backend/src/Tailbook.Api.Host` - API host
 - `apps/admin-web` - admin UI shell
