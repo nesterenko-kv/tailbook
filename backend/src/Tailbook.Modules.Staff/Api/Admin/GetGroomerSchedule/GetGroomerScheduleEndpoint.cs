@@ -82,8 +82,8 @@ public sealed class GetGroomerScheduleEndpoint(ICurrentUser currentUser, IStaffA
 public sealed class GetGroomerScheduleRequest
 {
     public Guid GroomerId { get; set; }
-    public DateTime FromUtc { get; set; }
-    public DateTime ToUtc { get; set; }
+    public DateTimeOffset FromUtc { get; set; }
+    public DateTimeOffset ToUtc { get; set; }
 }
 
 public sealed class GetGroomerScheduleRequestValidator : Validator<GetGroomerScheduleRequest>
@@ -99,8 +99,8 @@ public sealed class GetGroomerScheduleResponse
 {
     public Guid GroomerId { get; set; }
     public string GroomerDisplayName { get; set; } = string.Empty;
-    public DateTime FromUtc { get; set; }
-    public DateTime ToUtc { get; set; }
+    public DateTimeOffset FromUtc { get; set; }
+    public DateTimeOffset ToUtc { get; set; }
     public WorkingScheduleItemResponse[] WorkingSchedules { get; set; } = [];
     public TimeBlockItemResponse[] TimeBlocks { get; set; } = [];
     public AvailabilityWindowItemResponse[] AvailabilityWindows { get; set; } = [];
@@ -121,8 +121,8 @@ public sealed class TimeBlockItemResponse
 {
     public Guid Id { get; set; }
     public Guid GroomerId { get; set; }
-    public DateTime StartAtUtc { get; set; }
-    public DateTime EndAtUtc { get; set; }
+    public DateTimeOffset StartAtUtc { get; set; }
+    public DateTimeOffset EndAtUtc { get; set; }
     public string ReasonCode { get; set; } = string.Empty;
     public string? Notes { get; set; }
     public DateTime CreatedAtUtc { get; set; }
@@ -130,6 +130,6 @@ public sealed class TimeBlockItemResponse
 
 public sealed class AvailabilityWindowItemResponse
 {
-    public DateTime StartAtUtc { get; set; }
-    public DateTime EndAtUtc { get; set; }
+    public DateTimeOffset StartAtUtc { get; set; }
+    public DateTimeOffset EndAtUtc { get; set; }
 }

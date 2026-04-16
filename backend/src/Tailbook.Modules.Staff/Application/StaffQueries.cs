@@ -244,7 +244,7 @@ public sealed class StaffQueries(
         return MapTimeBlock(entity);
     }
 
-    public async Task<GroomerScheduleView?> GetScheduleAsync(Guid groomerId, DateTime fromUtc, DateTime toUtc, CancellationToken cancellationToken)
+    public async Task<GroomerScheduleView?> GetScheduleAsync(Guid groomerId, DateTimeOffset fromUtc, DateTimeOffset toUtc, CancellationToken cancellationToken)
     {
         var groomer = await dbContext.Set<Groomer>().SingleOrDefaultAsync(x => x.Id == groomerId, cancellationToken);
         if (groomer is null)
@@ -292,12 +292,12 @@ public sealed class StaffQueries(
             cancellationToken);
     }
 
-    private IReadOnlyCollection<AvailabilityWindowView> BuildAvailabilityWindows(DateTime fromUtc, DateTime toUtc, IReadOnlyCollection<WorkingSchedule> schedules, IReadOnlyCollection<TimeBlock> timeBlocks)
+    private IReadOnlyCollection<AvailabilityWindowView> BuildAvailabilityWindows(DateTimeOffset fromUtc, DateTimeOffset toUtc, IReadOnlyCollection<WorkingSchedule> schedules, IReadOnlyCollection<TimeBlock> timeBlocks)
     {
         var timeZone = salonTimeZoneProvider.GetTimeZone();
         var windows = new List<AvailabilityWindowView>();
-        var currentLocalDate = TimeZoneInfo.ConvertTimeFromUtc(fromUtc, timeZone).Date;
-        var endLocalDate = TimeZoneInfo.ConvertTimeFromUtc(toUtc, timeZone).Date;
+        var currentLocalDate = TimeZoneInfo.ConvertTime(fromUtc, timeZone).Date;
+        var endLocalDate = TimeZoneInfo.ConvertTime(toUtc, timeZone).Date;
 
         while (currentLocalDate <= endLocalDate)
         {
@@ -324,7 +324,7 @@ public sealed class StaffQueries(
         return windows;
     }
 
-    private static void AppendAvailabilitySegments(List<AvailabilityWindowView> windows, DateTime windowStartUtc, DateTime windowEndUtc, IReadOnlyCollection<TimeBlock> timeBlocks)
+    private static void AppendAvailabilitySegments(List<AvailabilityWindowView> windows, DateTimeOffset windowStartUtc, DateTimeOffset windowEndUtc, IReadOnlyCollection<TimeBlock> timeBlocks)
     {
         var cursor = windowStartUtc;
         var overlappingBlocks = timeBlocks
@@ -413,7 +413,7 @@ public sealed record GroomerDetailView(Guid Id, Guid? UserId, string DisplayName
 public sealed record GroomerCapabilityView(Guid Id, Guid GroomerId, Guid? AnimalTypeId, Guid? BreedId, Guid? BreedGroupId, Guid? CoatTypeId, Guid? SizeCategoryId, Guid? OfferId, string CapabilityMode, int ReservedDurationModifierMinutes, string? Notes, DateTime CreatedAtUtc);
 public sealed record WorkingScheduleView(Guid Id, Guid GroomerId, int Weekday, string StartLocalTime, string EndLocalTime, DateTime CreatedAtUtc, DateTime UpdatedAtUtc);
 public sealed record TimeBlockView(Guid Id, Guid GroomerId, DateTime StartAtUtc, DateTime EndAtUtc, string ReasonCode, string? Notes, DateTime CreatedAtUtc);
-public sealed record AvailabilityWindowView(DateTime StartAtUtc, DateTime EndAtUtc);
-public sealed record GroomerScheduleView(Guid GroomerId, string GroomerDisplayName, DateTime FromUtc, DateTime ToUtc, IReadOnlyCollection<WorkingScheduleView> WorkingSchedules, IReadOnlyCollection<TimeBlockView> TimeBlocks, IReadOnlyCollection<AvailabilityWindowView> AvailabilityWindows);
+public sealed record AvailabilityWindowView(DateTimeOffset StartAtUtc, DateTimeOffset EndAtUtc);
+public sealed record GroomerScheduleView(Guid GroomerId, string GroomerDisplayName, DateTimeOffset FromUtc, DateTimeOffset ToUtc, IReadOnlyCollection<WorkingScheduleView> WorkingSchedules, IReadOnlyCollection<TimeBlockView> TimeBlocks, IReadOnlyCollection<AvailabilityWindowView> AvailabilityWindows);
 public sealed record AddGroomerCapabilityCommand(Guid GroomerId, Guid? AnimalTypeId, Guid? BreedId, Guid? BreedGroupId, Guid? CoatTypeId, Guid? SizeCategoryId, Guid? OfferId, string CapabilityMode, int ReservedDurationModifierMinutes, string? Notes);
 public sealed record CheckGroomerAvailabilityCommand(Guid GroomerId, Guid PetId, DateTime StartAtUtc, int ReservedMinutes, IReadOnlyCollection<Guid> OfferIds);
