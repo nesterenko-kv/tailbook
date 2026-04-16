@@ -8,6 +8,8 @@ public interface IModuleDefinition
 {
     string ModuleCode { get; }
 
+    void ConfigurePersistence();
+
     IServiceCollection Register(IServiceCollection services, IConfiguration configuration);
 
     IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints);

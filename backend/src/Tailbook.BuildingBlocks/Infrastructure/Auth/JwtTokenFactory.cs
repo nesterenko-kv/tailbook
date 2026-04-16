@@ -8,28 +8,35 @@ namespace Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 public sealed class JwtTokenFactory(IOptions<JwtOptions> options)
 {
-    public string CreateToken(string subjectId, string email, IEnumerable<string> roles)
+    public GeneratedToken CreateToken(string userId, string subjectId, string email, string displayName, IEnumerable<string> roles, IEnumerable<string> permissions)
     {
         var settings = options.Value;
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SigningKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var now = DateTime.UtcNow;
+        var expiresAtUtc = now.AddMinutes(settings.ExpirationMinutes);
 
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, subjectId),
-            new(ClaimTypes.Email, email)
+            new(ClaimTypes.Email, email),
+            new(TailbookClaimTypes.DisplayName, displayName),
+            new(TailbookClaimTypes.UserId, userId)
         };
 
-        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+        claims.AddRange(roles.Distinct(StringComparer.OrdinalIgnoreCase).Select(role => new Claim(ClaimTypes.Role, role)));
+        claims.AddRange(permissions.Distinct(StringComparer.OrdinalIgnoreCase).Select(permission => new Claim(TailbookClaimTypes.Permission, permission)));
 
         var token = new JwtSecurityToken(
             settings.Issuer,
             settings.Audience,
             claims,
-            DateTime.UtcNow,
-            DateTime.UtcNow.AddMinutes(settings.ExpirationMinutes),
+            now,
+            expiresAtUtc,
             credentials);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return new GeneratedToken(new JwtSecurityTokenHandler().WriteToken(token), expiresAtUtc);
     }
 }
+
+public sealed record GeneratedToken(string AccessToken, DateTime ExpiresAtUtc);

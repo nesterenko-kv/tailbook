@@ -9,6 +9,10 @@ public sealed class NotificationsModule : IModuleDefinition
 {
     public string ModuleCode => "notifications";
 
+    public void ConfigurePersistence()
+    {
+    }
+
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
         return services;

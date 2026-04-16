@@ -9,6 +9,10 @@ public sealed class CatalogModule : IModuleDefinition
 {
     public string ModuleCode => "catalog";
 
+    public void ConfigurePersistence()
+    {
+    }
+
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
         return services;

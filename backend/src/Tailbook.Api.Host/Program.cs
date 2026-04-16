@@ -49,14 +49,15 @@ builder.Services.AddCors(options =>
     options.AddPolicy("DevCors", policy =>
     {
         policy
-            .WithOrigins("http://localhost:5000", "https://localhost:5001")
+            .WithOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "https://localhost:5001")
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Main")));
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("Main")));
 
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<AppDbContext>("postgresql");
@@ -67,6 +68,8 @@ builder.Services.AddSingleton<IUtcClock, SystemUtcClock>();
 builder.Services.AddTailbookModules(builder.Configuration);
 
 var app = builder.Build();
+
+await app.InitializeDatabaseAsync();
 
 if (app.Environment.IsDevelopment()) app.UseSwaggerGen();
 
@@ -87,3 +90,5 @@ app.MapGet("/", () => Results.Ok(new
 app.MapTailbookModules();
 
 app.Run();
+
+public partial class Program;

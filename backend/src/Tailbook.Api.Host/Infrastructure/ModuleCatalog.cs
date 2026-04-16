@@ -1,4 +1,6 @@
 using System.Reflection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.Audit;
 using Tailbook.Modules.Booking;
@@ -15,6 +17,20 @@ namespace Tailbook.Api.Host.Infrastructure;
 
 public static class ModuleCatalog
 {
+    private static readonly IModuleDefinition[] Modules =
+    [
+        new IdentityModule(),
+        new CustomerModule(),
+        new PetsModule(),
+        new CatalogModule(),
+        new BookingModule(),
+        new VisitOperationsModule(),
+        new StaffModule(),
+        new NotificationsModule(),
+        new AuditModule(),
+        new ReportingModule()
+    ];
+
     public static readonly Assembly[] EndpointAssemblies =
     [
         typeof(IdentityModule).Assembly,
@@ -29,25 +45,24 @@ public static class ModuleCatalog
         typeof(ReportingModule).Assembly
     ];
 
+    public static void ConfigureModulePersistence()
+    {
+        foreach (var module in Modules)
+        {
+            module.ConfigurePersistence();
+        }
+    }
+
     public static IServiceCollection AddTailbookModules(this IServiceCollection services, IConfiguration configuration)
     {
-        var modules = new IModuleDefinition[]
+        ConfigureModulePersistence();
+
+        foreach (var module in Modules)
         {
-            new IdentityModule(),
-            new CustomerModule(),
-            new PetsModule(),
-            new CatalogModule(),
-            new BookingModule(),
-            new VisitOperationsModule(),
-            new StaffModule(),
-            new NotificationsModule(),
-            new AuditModule(),
-            new ReportingModule()
-        };
+            module.Register(services, configuration);
+        }
 
-        foreach (var module in modules) module.Register(services, configuration);
-
-        services.AddSingleton<IReadOnlyCollection<IModuleDefinition>>(modules);
+        services.AddSingleton<IReadOnlyCollection<IModuleDefinition>>(Modules);
         return services;
     }
 
@@ -55,7 +70,10 @@ public static class ModuleCatalog
     {
         var modules = app.Services.GetRequiredService<IReadOnlyCollection<IModuleDefinition>>();
 
-        foreach (var module in modules) module.MapEndpoints(app);
+        foreach (var module in modules)
+        {
+            module.MapEndpoints(app);
+        }
 
         return app;
     }

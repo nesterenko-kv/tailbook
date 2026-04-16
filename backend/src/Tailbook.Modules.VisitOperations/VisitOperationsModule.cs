@@ -7,7 +7,11 @@ namespace Tailbook.Modules.VisitOperations;
 
 public sealed class VisitOperationsModule : IModuleDefinition
 {
-    public string ModuleCode => "visit_operations";
+    public string ModuleCode => "visitoperations";
+
+    public void ConfigurePersistence()
+    {
+    }
 
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {

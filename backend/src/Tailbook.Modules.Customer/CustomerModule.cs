@@ -9,6 +9,10 @@ public sealed class CustomerModule : IModuleDefinition
 {
     public string ModuleCode => "customer";
 
+    public void ConfigurePersistence()
+    {
+    }
+
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
         return services;

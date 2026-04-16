@@ -7,9 +7,15 @@ public sealed class CurrentUser(IHttpContextAccessor httpContextAccessor) : ICur
 {
     public bool IsAuthenticated => httpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false;
 
+    public string? UserId => httpContextAccessor.HttpContext?.User.FindFirstValue(TailbookClaimTypes.UserId);
+
     public string? SubjectId => httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
     public IReadOnlyCollection<string> Roles =>
         httpContextAccessor.HttpContext?.User.FindAll(ClaimTypes.Role).Select(x => x.Value).ToArray()
+        ?? Array.Empty<string>();
+
+    public IReadOnlyCollection<string> Permissions =>
+        httpContextAccessor.HttpContext?.User.FindAll(TailbookClaimTypes.Permission).Select(x => x.Value).ToArray()
         ?? Array.Empty<string>();
 }

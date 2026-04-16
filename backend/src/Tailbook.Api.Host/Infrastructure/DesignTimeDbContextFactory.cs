@@ -8,6 +8,8 @@ public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<App
 {
     public AppDbContext CreateDbContext(string[] args)
     {
+        ModuleCatalog.ConfigureModulePersistence();
+
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
         optionsBuilder.UseNpgsql(
             "Host=localhost;Port=5432;Database=tailbook;Username=tailbook;Password=tailbook;Include Error Detail=true");

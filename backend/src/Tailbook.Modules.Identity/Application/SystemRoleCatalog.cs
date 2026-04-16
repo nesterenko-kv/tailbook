@@ -1,0 +1,30 @@
+using Tailbook.Modules.Identity.Contracts;
+
+namespace Tailbook.Modules.Identity.Application;
+
+public static class SystemRoleCatalog
+{
+    public static readonly IReadOnlyCollection<SystemPermissionDefinition> Permissions =
+    [
+        new(PermissionCodes.IamUsersRead, "Read IAM users"),
+        new(PermissionCodes.IamUsersWrite, "Create and edit IAM users"),
+        new(PermissionCodes.IamRolesRead, "Read roles and permissions"),
+        new(PermissionCodes.IamRolesAssign, "Assign roles to users"),
+        new(PermissionCodes.AuditAccessRead, "Read access audit entries"),
+        new(PermissionCodes.CrmContactsRead, "Read CRM contact data"),
+        new(PermissionCodes.AdminAppAccess, "Access admin application"),
+        new(PermissionCodes.GroomerAppAccess, "Access groomer application"),
+        new(PermissionCodes.ClientPortalAccess, "Access client portal"),
+    ];
+
+    public static readonly IReadOnlyCollection<SystemRoleDefinition> Roles =
+    [
+        new(RoleCodes.Admin, "Administrator", Permissions.Select(x => x.Code).ToArray()),
+        new(RoleCodes.Manager, "Manager", [PermissionCodes.AdminAppAccess, PermissionCodes.CrmContactsRead]),
+        new(RoleCodes.Groomer, "Groomer", [PermissionCodes.GroomerAppAccess]),
+        new(RoleCodes.Client, "Client", [PermissionCodes.ClientPortalAccess])
+    ];
+}
+
+public sealed record SystemPermissionDefinition(string Code, string DisplayName);
+public sealed record SystemRoleDefinition(string Code, string DisplayName, IReadOnlyCollection<string> PermissionCodes);

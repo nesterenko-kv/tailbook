@@ -9,6 +9,10 @@ public sealed class StaffModule : IModuleDefinition
 {
     public string ModuleCode => "staff";
 
+    public void ConfigurePersistence()
+    {
+    }
+
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
         return services;

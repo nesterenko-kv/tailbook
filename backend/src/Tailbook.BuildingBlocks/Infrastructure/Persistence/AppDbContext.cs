@@ -11,6 +11,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     {
         modelBuilder.HasDefaultSchema("public");
         modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
+        ModelConfigurationRegistry.ApplyAll(modelBuilder);
 
         base.OnModelCreating(modelBuilder);
     }

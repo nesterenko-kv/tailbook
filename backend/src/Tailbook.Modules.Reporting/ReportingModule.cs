@@ -9,6 +9,10 @@ public sealed class ReportingModule : IModuleDefinition
 {
     public string ModuleCode => "reporting";
 
+    public void ConfigurePersistence()
+    {
+    }
+
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
         return services;

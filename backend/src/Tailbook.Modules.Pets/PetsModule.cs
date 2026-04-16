@@ -9,6 +9,10 @@ public sealed class PetsModule : IModuleDefinition
 {
     public string ModuleCode => "pets";
 
+    public void ConfigurePersistence()
+    {
+    }
+
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
         return services;
