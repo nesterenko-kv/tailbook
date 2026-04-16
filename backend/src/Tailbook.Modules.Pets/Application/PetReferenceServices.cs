@@ -8,6 +8,7 @@ namespace Tailbook.Modules.Pets.Application;
 public sealed class PetReferenceServices(AppDbContext dbContext)
     : IPetReferenceValidationService,
       IPetReadModelService,
+      IPetSummaryReadService,
       IPetQuoteProfileService,
       IPetTaxonomyValidationService
 {
@@ -37,6 +38,48 @@ public sealed class PetReferenceServices(AppDbContext dbContext)
                 x.Pet.CoatTypeId is not null && coatTypes.TryGetValue(x.Pet.CoatTypeId.Value, out var coatType) ? coatType.Code : null,
                 x.Pet.SizeCategoryId is not null && sizeCategories.TryGetValue(x.Pet.SizeCategoryId.Value, out var sizeCategory) ? sizeCategory.Code : null))
             .ToArray();
+    }
+
+    public async Task<PetSummaryReadModel?> GetPetSummaryAsync(Guid petId, CancellationToken cancellationToken)
+    {
+        var pet = await dbContext.Set<Pet>()
+            .Where(x => x.Id == petId)
+            .Join(dbContext.Set<AnimalType>(), x => x.AnimalTypeId, y => y.Id, (x, y) => new { Pet = x, AnimalType = y })
+            .Join(dbContext.Set<Breed>(), x => x.Pet.BreedId, y => y.Id, (x, y) => new { x.Pet, x.AnimalType, Breed = y })
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (pet is null)
+        {
+            return null;
+        }
+
+        string? coatTypeCode = null;
+        if (pet.Pet.CoatTypeId is not null)
+        {
+            coatTypeCode = await dbContext.Set<CoatType>()
+                .Where(x => x.Id == pet.Pet.CoatTypeId.Value)
+                .Select(x => x.Code)
+                .SingleOrDefaultAsync(cancellationToken);
+        }
+
+        string? sizeCategoryCode = null;
+        if (pet.Pet.SizeCategoryId is not null)
+        {
+            sizeCategoryCode = await dbContext.Set<SizeCategory>()
+                .Where(x => x.Id == pet.Pet.SizeCategoryId.Value)
+                .Select(x => x.Code)
+                .SingleOrDefaultAsync(cancellationToken);
+        }
+
+        return new PetSummaryReadModel(
+            pet.Pet.Id,
+            pet.Pet.Name,
+            pet.Pet.ClientId,
+            pet.AnimalType.Code,
+            pet.AnimalType.Name,
+            pet.Breed.Name,
+            coatTypeCode,
+            sizeCategoryCode);
     }
 
     public async Task<PetQuoteProfile?> GetPetAsync(Guid petId, CancellationToken cancellationToken)

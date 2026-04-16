@@ -24,6 +24,7 @@ public sealed class CatalogModule : IModuleDefinition
         services.AddScoped<ICatalogAccessPolicy, CatalogAccessPolicy>();
         services.AddScoped<ICatalogQuoteResolver, CatalogQuoteResolver>();
         services.AddScoped<IOfferReferenceValidationService, CatalogReferenceServices>();
+        services.AddScoped<IVisitCatalogReadService, CatalogVisitReadService>();
         return services;
     }
 

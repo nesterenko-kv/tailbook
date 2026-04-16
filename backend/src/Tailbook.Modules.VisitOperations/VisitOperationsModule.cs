@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.BuildingBlocks.Infrastructure.Persistence;
+using Tailbook.Modules.VisitOperations.Application;
+using Tailbook.Modules.VisitOperations.Infrastructure;
 
 namespace Tailbook.Modules.VisitOperations;
 
@@ -11,10 +14,13 @@ public sealed class VisitOperationsModule : IModuleDefinition
 
     public void ConfigurePersistence()
     {
+        ModelConfigurationRegistry.Register(ModuleCode, VisitOperationsModelConfiguration.Apply);
     }
 
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
+        services.AddScoped<IVisitOperationsAccessPolicy, VisitOperationsAccessPolicy>();
+        services.AddScoped<VisitQueries>();
         return services;
     }
 

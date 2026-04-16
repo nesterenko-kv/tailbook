@@ -24,6 +24,8 @@ public static class SystemRoleCatalog
         new(PermissionCodes.StaffWrite, "Create and edit groomers, schedules and capabilities"),
         new(PermissionCodes.BookingRead, "Read booking requests, appointments and quote previews"),
         new(PermissionCodes.BookingWrite, "Create and edit booking requests and appointments"),
+        new(PermissionCodes.VisitRead, "Read visits and execution details"),
+        new(PermissionCodes.VisitWrite, "Check in, execute and finalize visits"),
         new(PermissionCodes.AdminAppAccess, "Access admin application"),
         new(PermissionCodes.GroomerAppAccess, "Access groomer application"),
         new(PermissionCodes.ClientPortalAccess, "Access client portal")
@@ -47,7 +49,9 @@ public static class SystemRoleCatalog
             PermissionCodes.StaffRead,
             PermissionCodes.StaffWrite,
             PermissionCodes.BookingRead,
-            PermissionCodes.BookingWrite
+            PermissionCodes.BookingWrite,
+            PermissionCodes.VisitRead,
+            PermissionCodes.VisitWrite
         ]),
         new(RoleCodes.Groomer, "Groomer", [PermissionCodes.GroomerAppAccess]),
         new(RoleCodes.Client, "Client", [PermissionCodes.ClientPortalAccess])

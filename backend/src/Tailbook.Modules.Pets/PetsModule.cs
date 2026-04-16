@@ -23,6 +23,7 @@ public sealed class PetsModule : IModuleDefinition
         services.AddScoped<IPetsAccessPolicy, PetsAccessPolicy>();
         services.AddScoped<IPetReferenceValidationService, PetReferenceServices>();
         services.AddScoped<IPetReadModelService, PetReferenceServices>();
+        services.AddScoped<IPetSummaryReadService, PetReferenceServices>();
         services.AddScoped<IPetQuoteProfileService, PetReferenceServices>();
         services.AddScoped<IPetTaxonomyValidationService, PetReferenceServices>();
         services.AddSingleton<IPetPhotoStorage, LocalFilesystemPetPhotoStorage>();

@@ -20,6 +20,8 @@ public static class PermissionCodes
     public const string StaffWrite = "staff.write";
     public const string BookingRead = "booking.read";
     public const string BookingWrite = "booking.write";
+    public const string VisitRead = "visit.read";
+    public const string VisitWrite = "visit.write";
     public const string AdminAppAccess = "app.admin.access";
     public const string GroomerAppAccess = "app.groomer.access";
     public const string ClientPortalAccess = "app.client.access";

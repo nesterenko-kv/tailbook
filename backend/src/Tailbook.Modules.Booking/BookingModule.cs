@@ -24,6 +24,7 @@ public sealed class BookingModule : IModuleDefinition
         services.AddScoped<BookingQuoteQueries>();
         services.AddScoped<BookingManagementQueries>();
         services.AddScoped<IAppointmentOverlapReadService, BookingOverlapReadService>();
+        services.AddScoped<IAppointmentVisitService, AppointmentVisitService>();
         return services;
     }
 
