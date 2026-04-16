@@ -16,8 +16,7 @@ public sealed class GetCurrentUserEndpoint(ICurrentUser currentUser) : EndpointW
     {
         if (!currentUser.IsAuthenticated)
         {
-            HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await HttpContext.Response.CompleteAsync();
+            await Send.UnauthorizedAsync(ct);
             return;
         }
 

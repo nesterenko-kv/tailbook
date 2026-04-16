@@ -23,15 +23,13 @@ public sealed class ListAccessAuditEntriesEndpoint(
     {
         if (!currentUser.IsAuthenticated)
         {
-            HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await HttpContext.Response.CompleteAsync();
+            await Send.UnauthorizedAsync(ct);
             return;
         }
 
         if (!currentUser.HasPermission(AuditAccessReadPermission))
         {
-            HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
-            await HttpContext.Response.CompleteAsync();
+            await Send.ForbiddenAsync(ct);
             return;
         }
 

@@ -32,6 +32,6 @@ public static class ApplicationInitializationExtensions
 
     private static bool IsInMemoryProvider(AppDbContext dbContext)
     {
-        return dbContext.Database.ProviderName?.Contains("InMemory", StringComparison.OrdinalIgnoreCase) == true;
+        return !dbContext.Database.IsRelational();
     }
 }

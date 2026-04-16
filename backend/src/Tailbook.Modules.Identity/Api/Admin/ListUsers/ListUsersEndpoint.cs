@@ -18,19 +18,18 @@ public sealed class ListUsersEndpoint(ICurrentUser currentUser, IIdentityAccessP
     {
         if (!currentUser.IsAuthenticated)
         {
-            HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await HttpContext.Response.CompleteAsync();
+            await Send.UnauthorizedAsync(ct);
             return;
         }
 
         if (!accessPolicy.CanReadUsers(currentUser))
         {
-            HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
-            await HttpContext.Response.CompleteAsync();
+            await Send.ForbiddenAsync(ct);
             return;
         }
 
         var result = await identityQueries.ListUsersAsync(req.Page, req.PageSize, ct);
+
         await Send.OkAsync(new ListUsersResponse
         {
             Items = result.Items.Select(x => new UserItemResponse

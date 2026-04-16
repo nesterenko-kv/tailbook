@@ -1,11 +1,18 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.IdentityModel.Tokens;
+using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Identity.Application;
 using Tailbook.Modules.Identity.Contracts;
@@ -15,8 +22,17 @@ namespace Tailbook.Api.Tests;
 
 public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
+    private const string TestJwtIssuer = "tailbook.tests";
+    private const string TestJwtAudience = "tailbook.tests.clients";
+    private const string TestJwtSigningKey = "test-signing-key-that-is-at-least-32chars";
+
+    private readonly string _databaseName = $"tailbook-tests-{Guid.NewGuid():N}";
+    private readonly InMemoryDatabaseRoot _databaseRoot = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseEnvironment("Testing");
+
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
@@ -24,14 +40,59 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 ["BootstrapAdmin:Email"] = "admin@test.local",
                 ["BootstrapAdmin:Password"] = "Admin12345!",
                 ["BootstrapAdmin:DisplayName"] = "Test Admin",
-                ["Jwt:SigningKey"] = "test-signing-key-that-is-at-least-32chars"
+
+                ["Jwt:Issuer"] = TestJwtIssuer,
+                ["Jwt:Audience"] = TestJwtAudience,
+                ["Jwt:SigningKey"] = TestJwtSigningKey,
+                ["Jwt:ExpirationMinutes"] = "120"
             });
         });
 
         builder.ConfigureServices(services =>
         {
+            services.RemoveAll<AppDbContext>();
             services.RemoveAll<DbContextOptions<AppDbContext>>();
-            services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase($"tailbook-tests-{Guid.NewGuid():N}"));
+            services.RemoveAll<DbContextOptions>();
+
+            var dbContextOptionsConfigurationDescriptors = services
+                .Where(x => x.ServiceType.IsGenericType
+                            && x.ServiceType.GetGenericTypeDefinition() == typeof(IDbContextOptionsConfiguration<>)
+                            && x.ServiceType.GenericTypeArguments[0] == typeof(AppDbContext))
+                .ToList();
+
+            foreach (var descriptor in dbContextOptionsConfigurationDescriptors)
+            {
+                services.Remove(descriptor);
+            }
+
+            services.AddDbContext<AppDbContext>(options =>
+            {
+                options.UseInMemoryDatabase(_databaseName, _databaseRoot);
+                options.ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+            });
+
+            services.PostConfigure<JwtOptions>(options =>
+            {
+                options.Issuer = TestJwtIssuer;
+                options.Audience = TestJwtAudience;
+                options.SigningKey = TestJwtSigningKey;
+                options.ExpirationMinutes = 120;
+            });
+
+            services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = TestJwtIssuer,
+                    ValidAudience = TestJwtAudience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestJwtSigningKey)),
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
         });
     }
 
@@ -71,13 +132,17 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         dbContext.Set<IdentityUser>().Add(user);
         await dbContext.SaveChangesAsync();
 
-        var roles = await dbContext.Set<IdentityRole>().Where(x => roleCodes.Contains(x.Code)).ToListAsync();
+        var roles = await dbContext.Set<IdentityRole>()
+            .Where(x => roleCodes.Contains(x.Code))
+            .ToListAsync();
+
         dbContext.Set<UserRoleAssignment>().AddRange(roles.Select(role => new UserRoleAssignment
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,
             RoleId = role.Id,
             ScopeType = "Global",
+            ScopeId = null,
             AssignedAtUtc = DateTime.UtcNow
         }));
 

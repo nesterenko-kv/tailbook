@@ -18,15 +18,13 @@ public sealed class AssignRolesEndpoint(ICurrentUser currentUser, IIdentityAcces
     {
         if (!currentUser.IsAuthenticated)
         {
-            HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await HttpContext.Response.CompleteAsync();
+            await Send.UnauthorizedAsync(ct);
             return;
         }
 
         if (!accessPolicy.CanAssignRoles(currentUser))
         {
-            HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
-            await HttpContext.Response.CompleteAsync();
+            await Send.ForbiddenAsync(ct);
             return;
         }
 
@@ -35,8 +33,7 @@ public sealed class AssignRolesEndpoint(ICurrentUser currentUser, IIdentityAcces
             var user = await identityQueries.AssignRolesAsync(req.Id, req.RoleCodes, ParseActorId(currentUser), ct);
             if (user is null)
             {
-                HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-                await HttpContext.Response.CompleteAsync();
+                await Send.NotFoundAsync(ct);
                 return;
             }
 

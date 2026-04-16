@@ -18,15 +18,13 @@ public sealed class CreateUserEndpoint(ICurrentUser currentUser, IIdentityAccess
     {
         if (!currentUser.IsAuthenticated)
         {
-            HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await HttpContext.Response.CompleteAsync();
+            await Send.UnauthorizedAsync(ct);
             return;
         }
 
         if (!accessPolicy.CanWriteUsers(currentUser) || (req.RoleCodes.Count > 0 && !accessPolicy.CanAssignRoles(currentUser)))
         {
-            HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
-            await HttpContext.Response.CompleteAsync();
+            await Send.ForbiddenAsync(ct);
             return;
         }
 

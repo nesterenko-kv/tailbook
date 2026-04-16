@@ -22,23 +22,20 @@ public sealed class GetUserByIdEndpoint(
     {
         if (!currentUser.IsAuthenticated)
         {
-            HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await HttpContext.Response.CompleteAsync();
+            await Send.UnauthorizedAsync(ct);
             return;
         }
 
         if (!accessPolicy.CanReadUsers(currentUser))
         {
-            HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
-            await HttpContext.Response.CompleteAsync();
+            await Send.ForbiddenAsync(ct);
             return;
         }
 
         var user = await identityQueries.GetUserAsync(req.Id, ct);
         if (user is null)
         {
-            HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            await HttpContext.Response.CompleteAsync();
+            await Send.NotFoundAsync(ct);
             return;
         }
 

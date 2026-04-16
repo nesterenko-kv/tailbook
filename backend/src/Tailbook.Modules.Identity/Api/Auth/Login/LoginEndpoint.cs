@@ -18,8 +18,7 @@ public sealed class LoginEndpoint(IdentityQueries identityQueries) : Endpoint<Lo
         var result = await identityQueries.AuthenticateAsync(req.Email, req.Password, ct);
         if (result is null)
         {
-            HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await HttpContext.Response.CompleteAsync();
+            await Send.UnauthorizedAsync(ct);
             return;
         }
 
