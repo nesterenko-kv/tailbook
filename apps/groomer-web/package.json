@@ -1,0 +1,28 @@
+{
+    "name": "groomer-web",
+    "private": true,
+    "scripts": {
+        "dev": "next dev --port 3003",
+        "build": "next build",
+        "start": "next start --port 3003",
+        "lint": "next lint",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@tanstack/react-query": "^5.99.0",
+        "next": "16.2.4",
+        "react": "19.2.5",
+        "react-dom": "19.2.5",
+        "zod": "^4.3.6"
+    },
+    "devDependencies": {
+        "@tailbook/typescript-config": "workspace:*",
+        "@tailwindcss/postcss": "^4.2.2",
+        "@types/node": "^25.6.0",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "postcss": "^8.5.9",
+        "tailwindcss": "^4.2.2",
+        "typescript": "^6.0.2"
+    }
+}

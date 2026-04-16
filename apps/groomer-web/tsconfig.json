@@ -1,0 +1,10 @@
+{
+    "extends": "@tailbook/typescript-config/nextjs.json",
+    "compilerOptions": {
+        "paths": {
+            "@/*": [
+                "./*"
+            ]
+        }
+    }
+}
