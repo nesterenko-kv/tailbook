@@ -18,9 +18,11 @@ public static class SystemRoleCatalog
         new(PermissionCodes.PetsRead, "Read pets"),
         new(PermissionCodes.PetsWrite, "Create and edit pets"),
         new(PermissionCodes.PetsCatalogRead, "Read pet catalogs"),
+        new(PermissionCodes.CatalogRead, "Read catalog offers and procedures"),
+        new(PermissionCodes.CatalogWrite, "Create and edit catalog offers and procedures"),
         new(PermissionCodes.AdminAppAccess, "Access admin application"),
         new(PermissionCodes.GroomerAppAccess, "Access groomer application"),
-        new(PermissionCodes.ClientPortalAccess, "Access client portal"),
+        new(PermissionCodes.ClientPortalAccess, "Access client portal")
     ];
 
     public static readonly IReadOnlyCollection<SystemRoleDefinition> Roles =
@@ -35,7 +37,9 @@ public static class SystemRoleCatalog
             PermissionCodes.CrmContactsWrite,
             PermissionCodes.PetsRead,
             PermissionCodes.PetsWrite,
-            PermissionCodes.PetsCatalogRead
+            PermissionCodes.PetsCatalogRead,
+            PermissionCodes.CatalogRead,
+            PermissionCodes.CatalogWrite
         ]),
         new(RoleCodes.Groomer, "Groomer", [PermissionCodes.GroomerAppAccess]),
         new(RoleCodes.Client, "Client", [PermissionCodes.ClientPortalAccess])

@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.BuildingBlocks.Infrastructure.Persistence;
+using Tailbook.Modules.Catalog.Application;
+using Tailbook.Modules.Catalog.Infrastructure;
 
 namespace Tailbook.Modules.Catalog;
 
@@ -11,10 +14,13 @@ public sealed class CatalogModule : IModuleDefinition
 
     public void ConfigurePersistence()
     {
+        ModelConfigurationRegistry.Register(ModuleCode, CatalogModelConfiguration.Apply);
     }
 
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
+        services.AddScoped<CatalogQueries>();
+        services.AddScoped<ICatalogAccessPolicy, CatalogAccessPolicy>();
         return services;
     }
 
