@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Notifications</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Notifications</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj"/>
+  </ItemGroup>
+</Project>

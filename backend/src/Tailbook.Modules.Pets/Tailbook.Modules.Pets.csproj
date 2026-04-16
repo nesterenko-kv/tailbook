@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Pets</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Pets</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj"/>
+  </ItemGroup>
+</Project>

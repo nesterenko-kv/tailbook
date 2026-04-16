@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Booking</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Booking</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj"/>
+  </ItemGroup>
+</Project>
