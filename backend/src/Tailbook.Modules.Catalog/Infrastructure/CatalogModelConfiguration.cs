@@ -62,5 +62,68 @@ public static class CatalogModelConfiguration
             builder.HasOne<OfferVersion>().WithMany().HasForeignKey(x => x.OfferVersionId).OnDelete(DeleteBehavior.Cascade);
             builder.HasOne<ProcedureCatalogItem>().WithMany().HasForeignKey(x => x.ProcedureId).OnDelete(DeleteBehavior.Restrict);
         });
+
+        modelBuilder.Entity<PriceRuleSet>(builder =>
+        {
+            builder.ToTable("pricing_rule_sets", "catalog");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Status).HasMaxLength(32).IsRequired();
+            builder.Property(x => x.ValidFromUtc).IsRequired();
+            builder.Property(x => x.CreatedAtUtc).IsRequired();
+            builder.HasIndex(x => x.VersionNo).IsUnique();
+            builder.HasIndex(x => new { x.Status, x.ValidFromUtc });
+        });
+
+        modelBuilder.Entity<PriceRule>(builder =>
+        {
+            builder.ToTable("pricing_rules", "catalog");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.ActionType).HasMaxLength(32).IsRequired();
+            builder.Property(x => x.Currency).HasMaxLength(8).IsRequired();
+            builder.Property(x => x.FixedAmount).HasPrecision(18, 2).IsRequired();
+            builder.Property(x => x.CreatedAtUtc).IsRequired();
+            builder.HasIndex(x => new { x.RuleSetId, x.OfferId, x.Priority });
+            builder.HasOne<PriceRuleSet>().WithMany().HasForeignKey(x => x.RuleSetId).OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne<CommercialOffer>().WithMany().HasForeignKey(x => x.OfferId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PriceRuleCondition>(builder =>
+        {
+            builder.ToTable("pricing_rule_conditions", "catalog");
+            builder.HasKey(x => x.Id);
+            builder.HasIndex(x => x.PriceRuleId).IsUnique();
+            builder.HasIndex(x => new { x.AnimalTypeId, x.BreedId, x.BreedGroupId, x.CoatTypeId, x.SizeCategoryId });
+            builder.HasOne<PriceRule>().WithOne().HasForeignKey<PriceRuleCondition>(x => x.PriceRuleId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<DurationRuleSet>(builder =>
+        {
+            builder.ToTable("duration_rule_sets", "catalog");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Status).HasMaxLength(32).IsRequired();
+            builder.Property(x => x.ValidFromUtc).IsRequired();
+            builder.Property(x => x.CreatedAtUtc).IsRequired();
+            builder.HasIndex(x => x.VersionNo).IsUnique();
+            builder.HasIndex(x => new { x.Status, x.ValidFromUtc });
+        });
+
+        modelBuilder.Entity<DurationRule>(builder =>
+        {
+            builder.ToTable("duration_rules", "catalog");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.CreatedAtUtc).IsRequired();
+            builder.HasIndex(x => new { x.RuleSetId, x.OfferId, x.Priority });
+            builder.HasOne<DurationRuleSet>().WithMany().HasForeignKey(x => x.RuleSetId).OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne<CommercialOffer>().WithMany().HasForeignKey(x => x.OfferId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<DurationRuleCondition>(builder =>
+        {
+            builder.ToTable("duration_rule_conditions", "catalog");
+            builder.HasKey(x => x.Id);
+            builder.HasIndex(x => x.DurationRuleId).IsUnique();
+            builder.HasIndex(x => new { x.AnimalTypeId, x.BreedId, x.BreedGroupId, x.CoatTypeId, x.SizeCategoryId });
+            builder.HasOne<DurationRule>().WithOne().HasForeignKey<DurationRuleCondition>(x => x.DurationRuleId).OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }

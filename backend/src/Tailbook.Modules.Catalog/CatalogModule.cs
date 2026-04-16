@@ -20,7 +20,9 @@ public sealed class CatalogModule : IModuleDefinition
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<CatalogQueries>();
+        services.AddScoped<CatalogPricingQueries>();
         services.AddScoped<ICatalogAccessPolicy, CatalogAccessPolicy>();
+        services.AddScoped<ICatalogQuoteResolver, CatalogQuoteResolver>();
         return services;
     }
 
