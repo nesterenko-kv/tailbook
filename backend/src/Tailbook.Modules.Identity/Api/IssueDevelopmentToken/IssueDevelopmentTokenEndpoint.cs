@@ -11,7 +11,7 @@ public sealed class IssueDevelopmentTokenEndpoint(JwtTokenFactory jwtTokenFactor
 {
     public override void Configure()
     {
-        Post("/api/identity/dev-token");
+        Post("api/identity/dev-token");
         AllowAnonymous();
         Description(x => x.WithTags("Identity"));
     }
@@ -25,6 +25,6 @@ public sealed class IssueDevelopmentTokenEndpoint(JwtTokenFactory jwtTokenFactor
         }
 
         var token = jwtTokenFactory.CreateToken(req.SubjectId, req.Email, req.Roles);
-        await Send.OkAsync(new IssueDevelopmentTokenResponse { AccessToken = token }, cancellation: ct);
+        await Send.OkAsync(new IssueDevelopmentTokenResponse { AccessToken = token }, ct);
     }
 }

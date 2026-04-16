@@ -44,6 +44,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DevCors", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5000", "https://localhost:5001")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Main")));
@@ -61,9 +71,10 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment()) app.UseSwaggerGen();
 
 app.UseHttpsRedirection();
+app.UseCors("DevCors");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseFastEndpoints(c => c.Endpoints.RoutePrefix = string.Empty);
+app.UseFastEndpoints(c => c.Endpoints.RoutePrefix = null);
 
 app.MapHealthChecks("/health");
 app.MapGet("/", () => Results.Ok(new

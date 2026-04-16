@@ -8,7 +8,7 @@ public sealed class GetMeEndpoint(ICurrentUser currentUser) : EndpointWithoutReq
 {
     public override void Configure()
     {
-        Get("/api/identity/me");
+        Get("api/identity/me");
         Roles("Admin", "Manager", "Groomer", "Client");
         Description(x => x.WithTags("Identity"));
     }
@@ -20,6 +20,6 @@ public sealed class GetMeEndpoint(ICurrentUser currentUser) : EndpointWithoutReq
             IsAuthenticated = currentUser.IsAuthenticated,
             SubjectId = currentUser.SubjectId,
             Roles = currentUser.Roles
-        }, cancellation: ct);
+        }, ct);
     }
 }
