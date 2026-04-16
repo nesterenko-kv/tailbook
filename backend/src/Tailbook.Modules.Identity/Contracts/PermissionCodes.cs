@@ -7,7 +7,13 @@ public static class PermissionCodes
     public const string IamRolesRead = "iam.roles.read";
     public const string IamRolesAssign = "iam.roles.assign";
     public const string AuditAccessRead = "audit.access.read";
+    public const string CrmClientsRead = "crm.clients.read";
+    public const string CrmClientsWrite = "crm.clients.write";
     public const string CrmContactsRead = "crm.contacts.read";
+    public const string CrmContactsWrite = "crm.contacts.write";
+    public const string PetsRead = "pets.read";
+    public const string PetsWrite = "pets.write";
+    public const string PetsCatalogRead = "pets.catalog.read";
     public const string AdminAppAccess = "app.admin.access";
     public const string GroomerAppAccess = "app.groomer.access";
     public const string ClientPortalAccess = "app.client.access";

@@ -11,7 +11,13 @@ public static class SystemRoleCatalog
         new(PermissionCodes.IamRolesRead, "Read roles and permissions"),
         new(PermissionCodes.IamRolesAssign, "Assign roles to users"),
         new(PermissionCodes.AuditAccessRead, "Read access audit entries"),
+        new(PermissionCodes.CrmClientsRead, "Read CRM clients"),
+        new(PermissionCodes.CrmClientsWrite, "Create and edit CRM clients"),
         new(PermissionCodes.CrmContactsRead, "Read CRM contact data"),
+        new(PermissionCodes.CrmContactsWrite, "Create and edit CRM contact data"),
+        new(PermissionCodes.PetsRead, "Read pets"),
+        new(PermissionCodes.PetsWrite, "Create and edit pets"),
+        new(PermissionCodes.PetsCatalogRead, "Read pet catalogs"),
         new(PermissionCodes.AdminAppAccess, "Access admin application"),
         new(PermissionCodes.GroomerAppAccess, "Access groomer application"),
         new(PermissionCodes.ClientPortalAccess, "Access client portal"),
@@ -20,7 +26,17 @@ public static class SystemRoleCatalog
     public static readonly IReadOnlyCollection<SystemRoleDefinition> Roles =
     [
         new(RoleCodes.Admin, "Administrator", Permissions.Select(x => x.Code).ToArray()),
-        new(RoleCodes.Manager, "Manager", [PermissionCodes.AdminAppAccess, PermissionCodes.CrmContactsRead]),
+        new(RoleCodes.Manager, "Manager",
+        [
+            PermissionCodes.AdminAppAccess,
+            PermissionCodes.CrmClientsRead,
+            PermissionCodes.CrmClientsWrite,
+            PermissionCodes.CrmContactsRead,
+            PermissionCodes.CrmContactsWrite,
+            PermissionCodes.PetsRead,
+            PermissionCodes.PetsWrite,
+            PermissionCodes.PetsCatalogRead
+        ]),
         new(RoleCodes.Groomer, "Groomer", [PermissionCodes.GroomerAppAccess]),
         new(RoleCodes.Client, "Client", [PermissionCodes.ClientPortalAccess])
     ];

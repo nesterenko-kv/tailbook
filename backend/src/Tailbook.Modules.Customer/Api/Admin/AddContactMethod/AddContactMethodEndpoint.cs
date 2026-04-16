@@ -1,0 +1,91 @@
+using FastEndpoints;
+using FluentValidation;
+using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Auth;
+using Tailbook.Modules.Customer.Application;
+
+namespace Tailbook.Modules.Customer.Api.Admin.AddContactMethod;
+
+public sealed class AddContactMethodEndpoint(ICurrentUser currentUser, ICustomerAccessPolicy accessPolicy, CustomerQueries customerQueries)
+    : Endpoint<AddContactMethodRequest, AddContactMethodResponse>
+{
+    public override void Configure()
+    {
+        Post("/api/admin/contacts/{contactId:guid}/methods");
+        Description(x => x.WithTags("Admin CRM"));
+    }
+
+    public override async Task HandleAsync(AddContactMethodRequest req, CancellationToken ct)
+    {
+        if (!currentUser.IsAuthenticated)
+        {
+            await Send.UnauthorizedAsync(ct);
+            return;
+        }
+
+        if (!accessPolicy.CanWriteContacts(currentUser))
+        {
+            await Send.ForbiddenAsync(ct);
+            return;
+        }
+
+        try
+        {
+            var method = await customerQueries.AddContactMethodAsync(req.ContactId, req.MethodType, req.Value, req.DisplayValue, req.IsPreferred, req.VerificationStatus, req.Notes, ct);
+            if (method is null)
+            {
+                await Send.NotFoundAsync(ct);
+                return;
+            }
+
+            await Send.ResponseAsync(new AddContactMethodResponse
+            {
+                Id = method.Id,
+                MethodType = method.MethodType,
+                DisplayValue = method.DisplayValue,
+                IsPreferred = method.IsPreferred,
+                VerificationStatus = method.VerificationStatus,
+                Notes = method.Notes
+            }, StatusCodes.Status201Created, ct);
+        }
+        catch (InvalidOperationException exception)
+        {
+            AddError(exception.Message);
+            await Send.ErrorsAsync(cancellation: ct);
+        }
+    }
+}
+
+public sealed class AddContactMethodRequest
+{
+    public Guid ContactId { get; set; }
+    public string MethodType { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+    public string? DisplayValue { get; set; }
+    public bool IsPreferred { get; set; }
+    public string? VerificationStatus { get; set; }
+    public string? Notes { get; set; }
+}
+
+public sealed class AddContactMethodRequestValidator : Validator<AddContactMethodRequest>
+{
+    public AddContactMethodRequestValidator()
+    {
+        RuleFor(x => x.ContactId).NotEmpty();
+        RuleFor(x => x.MethodType).NotEmpty().MaximumLength(32);
+        RuleFor(x => x.Value).NotEmpty().MaximumLength(256);
+        RuleFor(x => x.DisplayValue).MaximumLength(256);
+        RuleFor(x => x.VerificationStatus).MaximumLength(32);
+        RuleFor(x => x.Notes).MaximumLength(1000);
+    }
+}
+
+public sealed class AddContactMethodResponse
+{
+    public Guid Id { get; set; }
+    public string MethodType { get; set; } = string.Empty;
+    public string DisplayValue { get; set; } = string.Empty;
+    public bool IsPreferred { get; set; }
+    public string VerificationStatus { get; set; } = string.Empty;
+    public string? Notes { get; set; }
+}
