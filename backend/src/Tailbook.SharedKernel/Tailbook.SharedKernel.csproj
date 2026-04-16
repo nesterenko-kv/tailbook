@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.SharedKernel</AssemblyName>
+    <RootNamespace>Tailbook.SharedKernel</RootNamespace>
+  </PropertyGroup>
+</Project>

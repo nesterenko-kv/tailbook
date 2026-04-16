@@ -1,0 +1,19 @@
+﻿<Solution>
+  <Folder Name="/Tests/">
+    <Project Path="tests/Tailbook.Api.Tests/Tailbook.Api.Tests.csproj"/>
+    <Project Path="tests/Tailbook.Architecture.Tests/Tailbook.Architecture.Tests.csproj"/>
+  </Folder>
+  <Project Path="src/Tailbook.Api.Host/Tailbook.Api.Host.csproj"/>
+  <Project Path="src/Tailbook.BuildingBlocks/Tailbook.BuildingBlocks.csproj"/>
+  <Project Path="src/Tailbook.Modules.Audit/Tailbook.Modules.Audit.csproj"/>
+  <Project Path="src/Tailbook.Modules.Booking/Tailbook.Modules.Booking.csproj"/>
+  <Project Path="src/Tailbook.Modules.Catalog/Tailbook.Modules.Catalog.csproj"/>
+  <Project Path="src/Tailbook.Modules.Customer/Tailbook.Modules.Customer.csproj"/>
+  <Project Path="src/Tailbook.Modules.Identity/Tailbook.Modules.Identity.csproj"/>
+  <Project Path="src/Tailbook.Modules.Notifications/Tailbook.Modules.Notifications.csproj"/>
+  <Project Path="src/Tailbook.Modules.Pets/Tailbook.Modules.Pets.csproj"/>
+  <Project Path="src/Tailbook.Modules.Reporting/Tailbook.Modules.Reporting.csproj"/>
+  <Project Path="src/Tailbook.Modules.Staff/Tailbook.Modules.Staff.csproj"/>
+  <Project Path="src/Tailbook.Modules.VisitOperations/Tailbook.Modules.VisitOperations.csproj"/>
+  <Project Path="src/Tailbook.SharedKernel/Tailbook.SharedKernel.csproj"/>
+</Solution>
