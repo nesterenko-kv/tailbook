@@ -15,6 +15,7 @@ public interface IStaffSchedulingService
         IReadOnlyCollection<Guid> offerIds,
         DateTime startAtUtc,
         int reservedMinutes,
+        Guid? ignoredAppointmentId,
         CancellationToken cancellationToken);
 }
 

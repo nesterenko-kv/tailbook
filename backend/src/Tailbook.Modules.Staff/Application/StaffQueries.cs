@@ -288,6 +288,7 @@ public sealed class StaffQueries(
             command.OfferIds,
             command.StartAtUtc,
             command.ReservedMinutes,
+            null,
             cancellationToken);
     }
 

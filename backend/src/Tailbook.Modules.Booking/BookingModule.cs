@@ -20,7 +20,10 @@ public sealed class BookingModule : IModuleDefinition
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IBookingAccessPolicy, BookingAccessPolicy>();
+        services.AddScoped<BookingSnapshotComposer>();
         services.AddScoped<BookingQuoteQueries>();
+        services.AddScoped<BookingManagementQueries>();
+        services.AddScoped<IAppointmentOverlapReadService, BookingOverlapReadService>();
         return services;
     }
 

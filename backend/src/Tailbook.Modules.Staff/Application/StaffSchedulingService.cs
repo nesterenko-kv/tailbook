@@ -10,7 +10,8 @@ namespace Tailbook.Modules.Staff.Application;
 public sealed class StaffSchedulingService(
     AppDbContext dbContext,
     IPetQuoteProfileService petQuoteProfileService,
-    SalonTimeZoneProvider salonTimeZoneProvider)
+    SalonTimeZoneProvider salonTimeZoneProvider,
+    IAppointmentOverlapReadService appointmentOverlapReadService)
     : IStaffSchedulingService
 {
     public async Task<ReservedDurationResolution> ResolveReservedDurationAsync(
@@ -91,6 +92,7 @@ public sealed class StaffSchedulingService(
         IReadOnlyCollection<Guid> offerIds,
         DateTime startAtUtc,
         int reservedMinutes,
+        Guid? ignoredAppointmentId,
         CancellationToken cancellationToken)
     {
         var durationResolution = await ResolveReservedDurationAsync(groomerId, petId, offerIds, reservedMinutes, cancellationToken);
@@ -124,6 +126,13 @@ public sealed class StaffSchedulingService(
         if (overlappingBlock is not null)
         {
             reasons.Add($"Requested slot overlaps blocked time '{overlappingBlock.ReasonCode}'.");
+            return new GroomerAvailabilityCheckResult(false, endAtUtc, durationResolution.EffectiveReservedMinutes, reasons);
+        }
+
+        var hasOverlap = await appointmentOverlapReadService.HasOverlapAsync(groomerId, startAtUtc, endAtUtc, ignoredAppointmentId, cancellationToken);
+        if (hasOverlap)
+        {
+            reasons.Add("Requested slot overlaps an existing appointment.");
             return new GroomerAvailabilityCheckResult(false, endAtUtc, durationResolution.EffectiveReservedMinutes, reasons);
         }
 
@@ -222,6 +231,15 @@ public sealed class StaffSchedulingService(
 
     private static int ToIsoWeekday(DayOfWeek dayOfWeek)
     {
-        return dayOfWeek == DayOfWeek.Sunday ? 7 : (int)dayOfWeek;
+        return dayOfWeek switch
+        {
+            DayOfWeek.Monday => 1,
+            DayOfWeek.Tuesday => 2,
+            DayOfWeek.Wednesday => 3,
+            DayOfWeek.Thursday => 4,
+            DayOfWeek.Friday => 5,
+            DayOfWeek.Saturday => 6,
+            _ => 7
+        };
     }
 }

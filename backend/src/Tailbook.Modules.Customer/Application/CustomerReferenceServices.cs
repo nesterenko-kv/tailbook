@@ -5,11 +5,19 @@ using Tailbook.Modules.Customer.Domain;
 
 namespace Tailbook.Modules.Customer.Application;
 
-public sealed class CustomerReferenceServices(AppDbContext dbContext) : IClientReferenceValidationService, IPetContactReadModelService
+public sealed class CustomerReferenceServices(AppDbContext dbContext)
+    : IClientReferenceValidationService,
+      IContactReferenceValidationService,
+      IPetContactReadModelService
 {
     public async Task<bool> ExistsAsync(Guid clientId, CancellationToken cancellationToken)
     {
         return await dbContext.Set<Client>().AnyAsync(x => x.Id == clientId, cancellationToken);
+    }
+
+    async Task<bool> IContactReferenceValidationService.ExistsAsync(Guid contactId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<ContactPerson>().AnyAsync(x => x.Id == contactId && x.IsActive, cancellationToken);
     }
 
     public async Task<IReadOnlyCollection<PetContactAdminSummary>> GetPetContactsAsync(Guid petId, CancellationToken cancellationToken)
