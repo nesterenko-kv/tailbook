@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Identity</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Identity</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FastEndpoints"/>
+  </ItemGroup>
+</Project>
