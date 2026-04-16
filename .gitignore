@@ -1,0 +1,36 @@
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Node / frontend
+node_modules/
+.pnpm-store/
+.turbo/
+.next/
+out/
+dist/
+coverage/
+playwright-report/
+test-results/
+
+# .NET / backend
+**/bin/
+**/obj/
+TestResults/
+.artifacts/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+backend/src/Tailbook.Api.Host/appsettings.Local.json
+
+# Docker / volumes
+.pgdata/
+.pgadmin/
+
+# Logs
+*.log
+logs/
