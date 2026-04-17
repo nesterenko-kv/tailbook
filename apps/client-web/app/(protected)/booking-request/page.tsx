@@ -1,5 +1,5 @@
-import { BookingRequestFlow } from "@/components/booking-request-flow";
+import { redirect } from "next/navigation";
 
-export default function BookingRequestPage() {
-    return <BookingRequestFlow variant="portal" />;
+export default function LegacyRedirectPage() {
+  redirect("/booking/services");
 }

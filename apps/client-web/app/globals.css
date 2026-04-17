@@ -1,14 +1,82 @@
 @import "tailwindcss";
 
 :root {
-    color-scheme: dark;
+  --background: #fdfcfb;
+  --foreground: #2d2a26;
+  --card: #ffffff;
+  --card-foreground: #2d2a26;
+  --popover: #ffffff;
+  --popover-foreground: #2d2a26;
+  --primary: #ff9a76;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f3f0;
+  --secondary-foreground: #2d2a26;
+  --muted: #f5f3f0;
+  --muted-foreground: #6b6862;
+  --accent: #fff4ed;
+  --accent-foreground: #2d2a26;
+  --destructive: #d4183d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.08);
+  --input-background: #f9f8f6;
+  --ring: #ff9a76;
+  --radius: 0.75rem;
 }
 
-html,
-body {
-    min-height: 100%;
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-body {
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
     font-family: Arial, Helvetica, sans-serif;
+  }
+
+  a {
+    @apply transition-colors;
+  }
+}
+
+@layer utilities {
+  .container {
+    @apply mx-auto w-full max-w-7xl px-4;
+  }
+
+  .shadow-soft {
+    box-shadow: 0 18px 50px rgba(45, 42, 38, 0.08);
+  }
+
+  .surface-card {
+    @apply rounded-[var(--radius)] border border-border bg-card;
+  }
 }
