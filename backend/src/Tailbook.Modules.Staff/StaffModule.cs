@@ -19,7 +19,10 @@ public sealed class StaffModule : IModuleDefinition
 
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<StaffSchedulingOptions>(configuration.GetSection(StaffSchedulingOptions.SectionName));
+        services.AddOptions<StaffSchedulingOptions>()
+            .Bind(configuration.GetSection(StaffSchedulingOptions.SectionName))
+            .Validate(x => !string.IsNullOrWhiteSpace(x.TimeZoneId), "StaffScheduling:TimeZoneId is required.")
+            .ValidateOnStart();
         services.AddSingleton<SalonTimeZoneProvider>();
         services.AddScoped<StaffQueries>();
         services.AddScoped<IStaffAccessPolicy, StaffAccessPolicy>();

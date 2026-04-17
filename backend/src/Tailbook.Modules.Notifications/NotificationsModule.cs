@@ -20,9 +20,13 @@ public sealed class NotificationsModule : IModuleDefinition
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
         services.AddOptions<NotificationsOptions>()
-            .Bind(configuration.GetSection("Notifications"));
+            .Bind(configuration.GetSection(NotificationsOptions.SectionName))
+            .Validate(x => x.BackgroundPollIntervalSeconds >= 5, "Notifications:BackgroundPollIntervalSeconds must be at least 5 seconds.")
+            .Validate(x => !string.IsNullOrWhiteSpace(x.LocalFilePath), "Notifications:LocalFilePath is required.")
+            .ValidateOnStart();
         services.AddScoped<NotificationQueries>();
         services.AddScoped<INotificationSink, LocalFileNotificationSink>();
+        services.AddHostedService<OutboxProcessorBackgroundService>();
         services.AddScoped<IDataSeeder, NotificationTemplateSeeder>();
         return services;
     }

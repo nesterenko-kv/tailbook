@@ -2,6 +2,7 @@ using System.Text;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -16,6 +17,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
 
+builder.Logging.ClearProviders();
+builder.Logging.AddSimpleConsole(options =>
+{
+    options.SingleLine = true;
+    options.TimestampFormat = "yyyy-MM-dd HH:mm:ss.fff ";
+    options.IncludeScopes = true;
+});
+
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddFastEndpoints(o => o.Assemblies = ModuleCatalog.EndpointAssemblies);
 builder.Services.SwaggerDocument(o =>
@@ -29,7 +39,23 @@ builder.Services.SwaggerDocument(o =>
 
 builder.Services
     .AddOptions<JwtOptions>()
-    .Bind(builder.Configuration.GetSection(JwtOptions.SectionName));
+    .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
+    .Validate(x => !string.IsNullOrWhiteSpace(x.Issuer), "Jwt:Issuer is required.")
+    .Validate(x => !string.IsNullOrWhiteSpace(x.Audience), "Jwt:Audience is required.")
+    .Validate(x => !string.IsNullOrWhiteSpace(x.SigningKey) && x.SigningKey.Length >= 32, "Jwt:SigningKey must be at least 32 characters long.")
+    .Validate(x => x.ExpirationMinutes > 0, "Jwt:ExpirationMinutes must be greater than zero.")
+    .ValidateOnStart();
+
+builder.Services
+    .AddOptions<AppCorsOptions>()
+    .Bind(builder.Configuration.GetSection(AppCorsOptions.SectionName))
+    .Validate(options => options.AllowedOrigins.All(x => Uri.TryCreate(x, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)), "AppCors:AllowedOrigins must contain valid absolute HTTP/HTTPS origins.")
+    .ValidateOnStart();
+
+builder.Services
+    .AddOptions<HttpTransportOptions>()
+    .Bind(builder.Configuration.GetSection(HttpTransportOptions.SectionName))
+    .ValidateOnStart();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -54,14 +80,16 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
     });
 
 builder.Services.AddAuthorization();
+
+var appCorsOptions = builder.Configuration.GetSection(AppCorsOptions.SectionName).Get<AppCorsOptions>() ?? new AppCorsOptions();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("DevCors", policy =>
+    options.AddPolicy("AppCors", policy =>
     {
-        policy
-            .WithOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "https://localhost:5001")
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        if (appCorsOptions.AllowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(appCorsOptions.AllowedOrigins).AllowAnyHeader().AllowAnyMethod();
+        }
     });
 });
 
@@ -81,14 +109,36 @@ var app = builder.Build();
 
 await app.InitializeDatabaseAsync();
 
-if (app.Environment.IsDevelopment()) app.UseSwaggerGen();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwaggerGen();
+}
 
-app.UseHttpsRedirection();
-app.UseCors("DevCors");
+var httpTransportOptions = app.Services.GetRequiredService<IOptions<HttpTransportOptions>>().Value;
+if (!app.Environment.IsDevelopment() && httpTransportOptions.UseHsts && httpTransportOptions.EnforceHttpsRedirection)
+{
+    app.UseHsts();
+}
+if (httpTransportOptions.EnforceHttpsRedirection)
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseMiddleware<ApiSecurityHeadersMiddleware>();
+app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseCors("AppCors");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseFastEndpoints(c => c.Endpoints.RoutePrefix = null);
 
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = _ => true
+});
 app.MapHealthChecks("/health");
 app.MapGet("/", () => Results.Ok(new
 {

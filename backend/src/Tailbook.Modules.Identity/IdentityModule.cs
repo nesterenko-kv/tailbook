@@ -20,7 +20,12 @@ public sealed class IdentityModule : IModuleDefinition
 
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<BootstrapAdminOptions>(configuration.GetSection(BootstrapAdminOptions.SectionName));
+        services.AddOptions<BootstrapAdminOptions>()
+            .Bind(configuration.GetSection(BootstrapAdminOptions.SectionName))
+            .Validate(x => !string.IsNullOrWhiteSpace(x.Email), "BootstrapAdmin:Email is required.")
+            .Validate(x => !string.IsNullOrWhiteSpace(x.Password) && x.Password.Length >= 12, "BootstrapAdmin:Password must be at least 12 characters long.")
+            .Validate(x => !string.IsNullOrWhiteSpace(x.DisplayName), "BootstrapAdmin:DisplayName is required.")
+            .ValidateOnStart();
         services.AddScoped<JwtTokenFactory>();
         services.AddScoped<PasswordHasher>();
         services.AddScoped<IdentityQueries>();
