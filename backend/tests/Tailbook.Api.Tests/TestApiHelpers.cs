@@ -77,7 +77,7 @@ internal static class TestApiHelpers
         response.EnsureSuccessStatusCode();
         var groomer = await response.Content.ReadFromJsonAsync<GroomerEnvelope>();
 
-        foreach (var weekday in new[] { 1, 2, 3, 4, 5 })
+        foreach (var weekday in Enumerable.Range(1, 7))
         {
             (await client.PostAsJsonAsync($"/api/admin/groomers/{groomer!.Id:D}/working-schedules", new { groomerId = groomer.Id, weekday, startLocalTime = "09:00", endLocalTime = "18:00" })).EnsureSuccessStatusCode();
         }

@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.Booking.Domain;
-using Tailbook.Modules.VisitOperations.Domain;
+using Tailbook.Modules.Reporting.Domain;
 
 namespace Tailbook.Modules.Reporting.Application;
 
@@ -92,7 +91,7 @@ public sealed class ReportingQueries(AppDbContext dbContext)
 
     private async Task<IReadOnlyCollection<EstimateAccuracyReportItemView>> GetEstimateAccuracyInMemoryAsync(DateTime? fromUtc, DateTime? toUtc, CancellationToken cancellationToken)
     {
-        var visits = await dbContext.Set<Visit>()
+        var visits = await dbContext.Set<ReportingVisit>()
             .Where(v => v.Status == "Closed")
             .Where(v => !fromUtc.HasValue || (v.ClosedAtUtc.HasValue && v.ClosedAtUtc.Value >= fromUtc.Value))
             .Where(v => !toUtc.HasValue || (v.ClosedAtUtc.HasValue && v.ClosedAtUtc.Value < toUtc.Value))
@@ -101,22 +100,22 @@ public sealed class ReportingQueries(AppDbContext dbContext)
         var appointmentIds = visits.Select(v => v.AppointmentId).Distinct().ToArray();
         var visitIds = visits.Select(v => v.Id).ToArray();
 
-        var appointmentItems = await dbContext.Set<AppointmentItem>()
+        var appointmentItems = await dbContext.Set<ReportingAppointmentItem>()
             .Where(ai => appointmentIds.Contains(ai.AppointmentId))
             .ToListAsync(cancellationToken);
 
         var priceSnapshotIds = appointmentItems.Select(ai => ai.PriceSnapshotId).Distinct().ToArray();
         var durationSnapshotIds = appointmentItems.Select(ai => ai.DurationSnapshotId).Distinct().ToArray();
 
-        var priceSnapshots = await dbContext.Set<PriceSnapshot>()
+        var priceSnapshots = await dbContext.Set<ReportingPriceSnapshot>()
             .Where(ps => priceSnapshotIds.Contains(ps.Id))
             .ToDictionaryAsync(ps => ps.Id, cancellationToken);
 
-        var durationSnapshots = await dbContext.Set<DurationSnapshot>()
+        var durationSnapshots = await dbContext.Set<ReportingDurationSnapshot>()
             .Where(ds => durationSnapshotIds.Contains(ds.Id))
             .ToDictionaryAsync(ds => ds.Id, cancellationToken);
 
-        var adjustmentByVisitId = await dbContext.Set<VisitPriceAdjustment>()
+        var adjustmentByVisitId = await dbContext.Set<ReportingVisitPriceAdjustment>()
             .Where(vpa => visitIds.Contains(vpa.VisitId))
             .GroupBy(vpa => vpa.VisitId)
             .Select(g => new { VisitId = g.Key, Sum = g.Sum(x => x.Amount * x.Sign) })
@@ -171,7 +170,7 @@ public sealed class ReportingQueries(AppDbContext dbContext)
 
     private async Task<IReadOnlyCollection<PackagePerformanceReportItemView>> GetPackagePerformanceInMemoryAsync(DateTime? fromUtc, DateTime? toUtc, CancellationToken cancellationToken)
     {
-        var appointments = await dbContext.Set<Appointment>()
+        var appointments = await dbContext.Set<ReportingAppointment>()
             .Where(a => !fromUtc.HasValue || a.StartAtUtc >= fromUtc.Value)
             .Where(a => !toUtc.HasValue || a.StartAtUtc < toUtc.Value)
             .ToListAsync(cancellationToken);
@@ -179,34 +178,34 @@ public sealed class ReportingQueries(AppDbContext dbContext)
         var appointmentById = appointments.ToDictionary(a => a.Id);
         var appointmentIds = appointmentById.Keys.ToArray();
 
-        var appointmentItems = await dbContext.Set<AppointmentItem>()
+        var appointmentItems = await dbContext.Set<ReportingAppointmentItem>()
             .Where(ai => ai.ItemType == "Package" && appointmentIds.Contains(ai.AppointmentId))
             .ToListAsync(cancellationToken);
 
         var priceSnapshotIds = appointmentItems.Select(ai => ai.PriceSnapshotId).Distinct().ToArray();
-        var priceSnapshots = await dbContext.Set<PriceSnapshot>()
+        var priceSnapshots = await dbContext.Set<ReportingPriceSnapshot>()
             .Where(ps => priceSnapshotIds.Contains(ps.Id))
             .ToDictionaryAsync(ps => ps.Id, cancellationToken);
 
-        var visits = await dbContext.Set<Visit>()
+        var visits = await dbContext.Set<ReportingVisit>()
             .Where(v => appointmentIds.Contains(v.AppointmentId))
             .ToListAsync(cancellationToken);
         var visitByAppointmentId = visits.GroupBy(v => v.AppointmentId).ToDictionary(g => g.Key, g => g.First());
         var visitIds = visits.Select(v => v.Id).ToArray();
 
-        var adjustmentByVisitId = await dbContext.Set<VisitPriceAdjustment>()
+        var adjustmentByVisitId = await dbContext.Set<ReportingVisitPriceAdjustment>()
             .Where(vpa => visitIds.Contains(vpa.VisitId))
             .GroupBy(vpa => vpa.VisitId)
             .Select(g => new { VisitId = g.Key, Sum = g.Sum(x => x.Amount * x.Sign) })
             .ToDictionaryAsync(x => x.VisitId, x => x.Sum, cancellationToken);
 
-        var executionItems = await dbContext.Set<VisitExecutionItem>()
+        var executionItems = await dbContext.Set<ReportingVisitExecutionItem>()
             .Where(vei => visitIds.Contains(vei.VisitId))
             .ToListAsync(cancellationToken);
         var executionItemByVisitAndAppointmentItem = executionItems.ToDictionary(x => (x.VisitId, x.AppointmentItemId), x => x);
         var executionItemIds = executionItems.Select(x => x.Id).ToArray();
 
-        var skippedCountsByExecutionItemId = await dbContext.Set<VisitSkippedComponent>()
+        var skippedCountsByExecutionItemId = await dbContext.Set<ReportingVisitSkippedComponent>()
             .Where(vsc => executionItemIds.Contains(vsc.VisitExecutionItemId))
             .GroupBy(vsc => vsc.VisitExecutionItemId)
             .Select(g => new { ExecutionItemId = g.Key, Count = g.Count() })

@@ -6,8 +6,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj"/>
-    <ProjectReference Include="..\Tailbook.Modules.Booking\Tailbook.Modules.Booking.csproj" />
-    <ProjectReference Include="..\Tailbook.Modules.VisitOperations\Tailbook.Modules.VisitOperations.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FastEndpoints" Version="8.1.0" />
