@@ -52,6 +52,16 @@ export type ClientPetDetail = {
     photos: { id: string; fileName: string; contentType: string; isPrimary: boolean; sortOrder: number }[];
 };
 
+export type ClientBookableOffer = {
+    id: string;
+    offerType: string;
+    displayName: string;
+    currency: string;
+    priceAmount: number;
+    serviceMinutes: number;
+    reservedMinutes: number;
+};
+
 export type ClientAppointmentSummary = {
     id: string;
     petId: string;
