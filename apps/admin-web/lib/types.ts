@@ -91,7 +91,7 @@ export type PetCatalog = {
 
 export type CatalogAnimalType = { id: string; code: string; name: string };
 export type CatalogBreedGroup = { id: string; animalTypeId: string; code: string; name: string };
-export type CatalogBreed = { id: string; animalTypeId: string; breedGroupId?: string | null; code: string; name: string };
+export type CatalogBreed = { id: string; animalTypeId: string; breedGroupId?: string | null; code: string; name: string; allowedCoatTypeIds: string[] };
 export type CatalogCoatType = { id: string; animalTypeId?: string | null; code: string; name: string };
 export type CatalogSizeCategory = { id: string; animalTypeId?: string | null; code: string; name: string; minWeightKg?: number | null; maxWeightKg?: number | null };
 

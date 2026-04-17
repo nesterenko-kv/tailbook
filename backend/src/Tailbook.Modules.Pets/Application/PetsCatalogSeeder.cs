@@ -14,6 +14,7 @@ public sealed class PetsCatalogSeeder : IDataSeeder
         await EnsureBreedGroupsAsync(dbContext, cancellationToken);
         await EnsureBreedsAsync(dbContext, cancellationToken);
         await EnsureCoatTypesAsync(dbContext, cancellationToken);
+        await EnsureBreedAllowedCoatTypesAsync(dbContext, cancellationToken);
         await EnsureSizeCategoriesAsync(dbContext, cancellationToken);
     }
 
@@ -74,7 +75,6 @@ public sealed class PetsCatalogSeeder : IDataSeeder
 
         var breeds = new[]
         {
-            // Dogs: mixed / designer / common salon breeds
             new BreedSeed(dog.Id, groups["DOG_MIXED"].Id, "DOG_MIXED", "Mixed Breed / No Breed"),
             new BreedSeed(dog.Id, groups["DOG_POODLE_DOODLE"].Id, "POODLE_TOY", "Toy Poodle"),
             new BreedSeed(dog.Id, groups["DOG_POODLE_DOODLE"].Id, "POODLE_MINIATURE", "Miniature Poodle"),
@@ -147,7 +147,6 @@ public sealed class PetsCatalogSeeder : IDataSeeder
             new BreedSeed(dog.Id, groups["DOG_WORKING"].Id, "DOBERMAN", "Doberman"),
             new BreedSeed(dog.Id, groups["DOG_WORKING"].Id, "ROTTWEILER", "Rottweiler"),
 
-            // Cats
             new BreedSeed(cat.Id, groups["CAT_MIXED"].Id, "CAT_MIXED", "Mixed Breed / No Breed"),
             new BreedSeed(cat.Id, groups["CAT_SHORT_HAIR"].Id, "BRITISH_SHORTHAIR", "British Shorthair"),
             new BreedSeed(cat.Id, groups["CAT_SHORT_HAIR"].Id, "SCOTTISH_STRAIGHT", "Scottish Straight"),
@@ -191,12 +190,81 @@ public sealed class PetsCatalogSeeder : IDataSeeder
     private static async Task EnsureCoatTypesAsync(AppDbContext dbContext, CancellationToken cancellationToken)
     {
         var dog = await dbContext.Set<AnimalType>().SingleAsync(x => x.Code == "DOG", cancellationToken);
-        var cat = await dbContext.Set<AnimalType>().SingleAsync(x => x.Code == "CAT", cancellationToken);
 
-        await EnsureEntityAsync(dbContext, x => x.Code, new CoatType { Id = Guid.NewGuid(), AnimalTypeId = dog.Id, Code = "DOUBLE_COAT", Name = "Double Coat" }, cancellationToken);
-        await EnsureEntityAsync(dbContext, x => x.Code, new CoatType { Id = Guid.NewGuid(), AnimalTypeId = dog.Id, Code = "CURLY_COAT", Name = "Curly Coat" }, cancellationToken);
-        await EnsureEntityAsync(dbContext, x => x.Code, new CoatType { Id = Guid.NewGuid(), AnimalTypeId = cat.Id, Code = "SHORT_COAT", Name = "Short Coat" }, cancellationToken);
-        await EnsureEntityAsync(dbContext, x => x.Code, new CoatType { Id = Guid.NewGuid(), AnimalTypeId = null, Code = "LONG_COAT", Name = "Long Coat" }, cancellationToken);
+        await EnsureCoatTypeAsync(dbContext, "DOUBLE_COAT", "Double Coat", dog.Id, cancellationToken);
+        await EnsureCoatTypeAsync(dbContext, "CURLY_COAT", "Curly Coat", dog.Id, cancellationToken);
+        await EnsureCoatTypeAsync(dbContext, "SHORT_COAT", "Short Coat", null, cancellationToken);
+        await EnsureCoatTypeAsync(dbContext, "LONG_COAT", "Long Coat", null, cancellationToken);
+    }
+
+    private static async Task EnsureBreedAllowedCoatTypesAsync(AppDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var breeds = await dbContext.Set<Breed>().ToDictionaryAsync(x => x.Code, StringComparer.OrdinalIgnoreCase, cancellationToken);
+        var coatTypes = await dbContext.Set<CoatType>().ToDictionaryAsync(x => x.Code, StringComparer.OrdinalIgnoreCase, cancellationToken);
+        var existingMappings = await dbContext.Set<BreedAllowedCoatType>().ToListAsync(cancellationToken);
+        var existingPairs = existingMappings
+            .Select(x => (x.BreedId, x.CoatTypeId))
+            .ToHashSet();
+
+        var mappings = new List<BreedAllowedCoatTypeSeed>();
+
+        AddMappings(new[] { "DOG_MIXED" }, "SHORT_COAT", "LONG_COAT", "DOUBLE_COAT", "CURLY_COAT");
+        AddMappings(new[] { "POODLE_TOY", "POODLE_MINIATURE", "POODLE_STANDARD", "MALTIPOO_F1", "MALTIPOO_F2", "CAVAPOO_F1", "CAVAPOO_F2", "COCKAPOO", "LABRADOODLE", "GOLDENDOODLE", "YORKIPOO", "SHIH_POO" }, "CURLY_COAT");
+        AddMappings(new[] { "POMERANIAN", "JAPANESE_SPITZ", "SAMOYED", "SHIBA_INU", "AKITA", "HUSKY", "POMSKY" }, "DOUBLE_COAT");
+        AddMappings(new[] { "LABRADOR_RETRIEVER" }, "SHORT_COAT");
+        AddMappings(new[] { "GOLDEN_RETRIEVER" }, "LONG_COAT");
+        AddMappings(new[] { "NOVA_SCOTIA_DUCK_TOLLING_RETRIEVER" }, "DOUBLE_COAT");
+        AddMappings(new[] { "GERMAN_SHEPHERD", "BELGIAN_SHEPHERD", "AUSTRALIAN_SHEPHERD", "BORDER_COLLIE", "WELSH_CORGI_PEMBROKE", "WELSH_CORGI_CARDIGAN" }, "DOUBLE_COAT");
+        AddMappings(new[] { "YORKSHIRE_TERRIER", "WEST_HIGHLAND_WHITE_TERRIER", "SCOTTISH_TERRIER" }, "LONG_COAT");
+        AddMappings(new[] { "JACK_RUSSELL_TERRIER", "FOX_TERRIER" }, "SHORT_COAT");
+        AddMappings(new[] { "CHIHUAHUA", "PUG", "CHINESE_CRESTED", "MINIATURE_PINSCHER" }, "SHORT_COAT");
+        AddMappings(new[] { "PAPILLON", "PEKINGESE", "SHIH_TZU", "CAVALIER_KING_CHARLES_SPANIEL" }, "LONG_COAT");
+        AddMappings(new[] { "MALTESE", "HAVANESE", "COTON_DE_TULEAR" }, "LONG_COAT");
+        AddMappings(new[] { "BICHON_FRISE" }, "CURLY_COAT");
+        AddMappings(new[] { "DACHSHUND_SMOOTH", "FRENCH_BULLDOG", "ENGLISH_BULLDOG", "BOSTON_TERRIER", "CANE_CORSO", "BEAGLE", "BASSET_HOUND", "WHIPPET", "GREYHOUND", "DOBERMAN", "ROTTWEILER" }, "SHORT_COAT");
+        AddMappings(new[] { "DACHSHUND_LONG_HAIRED", "DACHSHUND_WIRE_HAIRED" }, "LONG_COAT");
+        AddMappings(new[] { "BERNESE_MOUNTAIN_DOG", "NEWFOUNDLAND" }, "DOUBLE_COAT");
+
+        AddMappings(new[] { "CAT_MIXED" }, "SHORT_COAT", "LONG_COAT");
+        AddMappings(new[] { "BRITISH_SHORTHAIR", "SCOTTISH_STRAIGHT", "SCOTTISH_FOLD", "BENGAL", "ABYSSINIAN", "BURMESE", "RUSSIAN_BLUE", "EXOTIC_SHORTHAIR", "AMERICAN_SHORTHAIR" }, "SHORT_COAT");
+        AddMappings(new[] { "SIBERIAN_CAT", "MAINE_COON", "PERSIAN", "NORWEGIAN_FOREST_CAT", "RAGDOLL", "NEVA_MASQUERADE", "TURKISH_ANGORA" }, "LONG_COAT");
+
+        var pending = new List<BreedAllowedCoatType>();
+        foreach (var mapping in mappings)
+        {
+            var breed = breeds.TryGetValue(mapping.BreedCode, out var breedValue)
+                ? breedValue
+                : throw new InvalidOperationException($"Seed breed '{mapping.BreedCode}' was not found.");
+            var coatType = coatTypes.TryGetValue(mapping.CoatTypeCode, out var coatTypeValue)
+                ? coatTypeValue
+                : throw new InvalidOperationException($"Seed coat type '{mapping.CoatTypeCode}' was not found.");
+
+            if (existingPairs.Add((breed.Id, coatType.Id)))
+            {
+                pending.Add(new BreedAllowedCoatType
+                {
+                    BreedId = breed.Id,
+                    CoatTypeId = coatType.Id
+                });
+            }
+        }
+
+        if (pending.Count > 0)
+        {
+            dbContext.Set<BreedAllowedCoatType>().AddRange(pending);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        void AddMappings(IEnumerable<string> breedCodes, params string[] coatTypeCodes)
+        {
+            foreach (var breedCode in breedCodes)
+            {
+                foreach (var coatTypeCode in coatTypeCodes)
+                {
+                    mappings.Add(new BreedAllowedCoatTypeSeed(breedCode, coatTypeCode));
+                }
+            }
+        }
     }
 
     private static async Task EnsureSizeCategoriesAsync(AppDbContext dbContext, CancellationToken cancellationToken)
@@ -208,6 +276,33 @@ public sealed class PetsCatalogSeeder : IDataSeeder
         await EnsureEntityAsync(dbContext, x => x.Code, new SizeCategory { Id = Guid.NewGuid(), AnimalTypeId = dog.Id, Code = "MEDIUM", Name = "Medium", MinWeightKg = 10.01m, MaxWeightKg = 25m }, cancellationToken);
         await EnsureEntityAsync(dbContext, x => x.Code, new SizeCategory { Id = Guid.NewGuid(), AnimalTypeId = dog.Id, Code = "LARGE", Name = "Large", MinWeightKg = 25.01m, MaxWeightKg = 100m }, cancellationToken);
         await EnsureEntityAsync(dbContext, x => x.Code, new SizeCategory { Id = Guid.NewGuid(), AnimalTypeId = cat.Id, Code = "CAT_STANDARD", Name = "Cat Standard", MinWeightKg = 0m, MaxWeightKg = 20m }, cancellationToken);
+    }
+
+    private static async Task EnsureCoatTypeAsync(AppDbContext dbContext, string code, string name, Guid? animalTypeId, CancellationToken cancellationToken)
+    {
+        var existing = await dbContext.Set<CoatType>().SingleOrDefaultAsync(x => x.Code == code, cancellationToken);
+        if (existing is null)
+        {
+            dbContext.Set<CoatType>().Add(new CoatType
+            {
+                Id = Guid.NewGuid(),
+                AnimalTypeId = animalTypeId,
+                Code = code,
+                Name = name
+            });
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return;
+        }
+
+        if (existing.AnimalTypeId == animalTypeId && string.Equals(existing.Name, name, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        existing.AnimalTypeId = animalTypeId;
+        existing.Name = name;
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private static async Task EnsureEntityAsync<TEntity>(AppDbContext dbContext, Func<TEntity, string> codeSelector, TEntity entity, CancellationToken cancellationToken)
@@ -226,4 +321,5 @@ public sealed class PetsCatalogSeeder : IDataSeeder
 
     private sealed record BreedGroupSeed(Guid AnimalTypeId, string Code, string Name);
     private sealed record BreedSeed(Guid AnimalTypeId, Guid? BreedGroupId, string Code, string Name);
+    private sealed record BreedAllowedCoatTypeSeed(string BreedCode, string CoatTypeCode);
 }

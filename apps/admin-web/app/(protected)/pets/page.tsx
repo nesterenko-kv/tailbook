@@ -48,14 +48,31 @@ export default function PetsPage() {
 
     const selectedAnimalType = useMemo(() => catalog?.animalTypes.find((item) => item.code === form.animalTypeCode) ?? null, [catalog, form.animalTypeCode]);
     const breedOptions = useMemo(() => catalog?.breeds.filter((breed) => breed.animalTypeId === selectedAnimalType?.id) ?? [], [catalog, selectedAnimalType]);
-    const coatOptions = useMemo(() => catalog?.coatTypes.filter((coat) => !coat.animalTypeId || coat.animalTypeId === selectedAnimalType?.id) ?? [], [catalog, selectedAnimalType]);
+    const selectedBreed = useMemo(() => breedOptions.find((breed) => breed.id === form.breedId) ?? null, [breedOptions, form.breedId]);
+    const coatOptions = useMemo(() => {
+        const allowedCoatTypeIds = new Set(selectedBreed?.allowedCoatTypeIds ?? []);
+        return catalog?.coatTypes.filter((coat) => allowedCoatTypeIds.has(coat.id)) ?? [];
+    }, [catalog, selectedBreed]);
     const sizeOptions = useMemo(() => catalog?.sizeCategories.filter((size) => !size.animalTypeId || size.animalTypeId === selectedAnimalType?.id) ?? [], [catalog, selectedAnimalType]);
 
     useEffect(() => {
-        if (breedOptions.length > 0 && !breedOptions.some((breed) => breed.id === form.breedId)) {
+        if (breedOptions.length === 0) {
+            if (form.breedId) {
+                setForm((current) => ({ ...current, breedId: "" }));
+            }
+            return;
+        }
+
+        if (!breedOptions.some((breed) => breed.id === form.breedId)) {
             setForm((current) => ({ ...current, breedId: breedOptions[0].id }));
         }
     }, [breedOptions, form.breedId]);
+
+    useEffect(() => {
+        if (form.coatTypeCode && !coatOptions.some((coat) => coat.code === form.coatTypeCode)) {
+            setForm((current) => ({ ...current, coatTypeCode: "" }));
+        }
+    }, [coatOptions, form.coatTypeCode]);
 
     async function registerPet(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();

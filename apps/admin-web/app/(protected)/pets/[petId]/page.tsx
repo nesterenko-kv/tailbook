@@ -19,7 +19,7 @@ export default function PetDetailPage() {
     const [client, setClient] = useState<ClientDetail | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-    const [updateForm, setUpdateForm] = useState({ coatTypeCode: "", sizeCategoryCode: "", birthDate: "", weightKg: "", notes: "" });
+    const [updateForm, setUpdateForm] = useState({ animalTypeCode: "", breedId: "", coatTypeCode: "", sizeCategoryCode: "", birthDate: "", weightKg: "", notes: "" });
     const [linkForm, setLinkForm] = useState({ contactId: "", roleCodes: ["owner"] as string[], isPrimary: false, canPickUp: true, canPay: false, receivesNotifications: true });
 
     async function load() {
@@ -34,6 +34,8 @@ export default function PetDetailPage() {
             setCatalog(catalogResponse);
             addRecentPetId(petId);
             setUpdateForm({
+                animalTypeCode: petResponse.animalType.code,
+                breedId: petResponse.breed.id,
                 coatTypeCode: petResponse.coatType?.code ?? "",
                 sizeCategoryCode: petResponse.sizeCategory?.code ?? "",
                 birthDate: petResponse.birthDate ?? "",
@@ -59,9 +61,33 @@ export default function PetDetailPage() {
         void load();
     }, [petId]);
 
-    const selectedAnimalTypeId = useMemo(() => catalog?.animalTypes.find((item) => item.code === pet?.animalType.code)?.id, [catalog, pet]);
-    const coatOptions = useMemo(() => catalog?.coatTypes.filter((item) => !item.animalTypeId || item.animalTypeId === selectedAnimalTypeId) ?? [], [catalog, selectedAnimalTypeId]);
-    const sizeOptions = useMemo(() => catalog?.sizeCategories.filter((item) => !item.animalTypeId || item.animalTypeId === selectedAnimalTypeId) ?? [], [catalog, selectedAnimalTypeId]);
+    const selectedAnimalType = useMemo(() => catalog?.animalTypes.find((item) => item.code === updateForm.animalTypeCode) ?? null, [catalog, updateForm.animalTypeCode]);
+    const breedOptions = useMemo(() => catalog?.breeds.filter((item) => item.animalTypeId === selectedAnimalType?.id) ?? [], [catalog, selectedAnimalType]);
+    const selectedBreed = useMemo(() => breedOptions.find((item) => item.id === updateForm.breedId) ?? null, [breedOptions, updateForm.breedId]);
+    const coatOptions = useMemo(() => {
+        const allowedCoatTypeIds = new Set(selectedBreed?.allowedCoatTypeIds ?? []);
+        return catalog?.coatTypes.filter((item) => allowedCoatTypeIds.has(item.id)) ?? [];
+    }, [catalog, selectedBreed]);
+    const sizeOptions = useMemo(() => catalog?.sizeCategories.filter((item) => !item.animalTypeId || item.animalTypeId === selectedAnimalType?.id) ?? [], [catalog, selectedAnimalType]);
+
+    useEffect(() => {
+        if (breedOptions.length === 0) {
+            if (updateForm.breedId) {
+                setUpdateForm((current) => ({ ...current, breedId: "" }));
+            }
+            return;
+        }
+
+        if (!breedOptions.some((breed) => breed.id === updateForm.breedId)) {
+            setUpdateForm((current) => ({ ...current, breedId: breedOptions[0].id }));
+        }
+    }, [breedOptions, updateForm.breedId]);
+
+    useEffect(() => {
+        if (updateForm.coatTypeCode && !coatOptions.some((coat) => coat.code === updateForm.coatTypeCode)) {
+            setUpdateForm((current) => ({ ...current, coatTypeCode: "" }));
+        }
+    }, [coatOptions, updateForm.coatTypeCode]);
 
     async function updatePet(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -73,8 +99,8 @@ export default function PetDetailPage() {
                 body: JSON.stringify({
                     id: petId,
                     name: pet?.name,
-                    animalTypeCode: pet?.animalType.code,
-                    breedId: pet?.breed.id,
+                    animalTypeCode: updateForm.animalTypeCode,
+                    breedId: updateForm.breedId,
                     coatTypeCode: updateForm.coatTypeCode || null,
                     sizeCategoryCode: updateForm.sizeCategoryCode || null,
                     birthDate: updateForm.birthDate || null,
@@ -154,6 +180,8 @@ export default function PetDetailPage() {
 
                         <Card title="Update pet traits">
                             <form className="space-y-4" onSubmit={updatePet}>
+                                <Field label="Animal type"><Select value={updateForm.animalTypeCode} onChange={(event) => setUpdateForm((current) => ({ ...current, animalTypeCode: event.target.value }))}>{catalog?.animalTypes.map((item) => <option key={item.id} value={item.code}>{item.name}</option>)}</Select></Field>
+                                <Field label="Breed"><Select value={updateForm.breedId} onChange={(event) => setUpdateForm((current) => ({ ...current, breedId: event.target.value }))}>{breedOptions.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></Field>
                                 <Field label="Coat type"><Select value={updateForm.coatTypeCode} onChange={(event) => setUpdateForm((current) => ({ ...current, coatTypeCode: event.target.value }))}><option value="">None</option>{coatOptions.map((item) => <option key={item.id} value={item.code}>{item.name}</option>)}</Select></Field>
                                 <Field label="Size category"><Select value={updateForm.sizeCategoryCode} onChange={(event) => setUpdateForm((current) => ({ ...current, sizeCategoryCode: event.target.value }))}><option value="">None</option>{sizeOptions.map((item) => <option key={item.id} value={item.code}>{item.name}</option>)}</Select></Field>
                                 <Field label="Birth date"><Input type="date" value={updateForm.birthDate} onChange={(event) => setUpdateForm((current) => ({ ...current, birthDate: event.target.value }))} /></Field>
