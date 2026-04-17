@@ -10,7 +10,11 @@ public sealed class LocalFileNotificationSink(IOptions<NotificationsOptions> opt
 
     public async Task SendAsync(NotificationDispatchEnvelope envelope, CancellationToken cancellationToken)
     {
-        var filePath = options.Value.LocalFilePath;
+        var configuredPath = options.Value.LocalFilePath;
+        var filePath = Path.IsPathRooted(configuredPath)
+            ? configuredPath
+            : Path.Combine(AppContext.BaseDirectory, configuredPath);
+
         var directory = Path.GetDirectoryName(filePath);
         if (!string.IsNullOrWhiteSpace(directory))
         {

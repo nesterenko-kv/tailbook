@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Tailbook.Api.Tests;
@@ -59,6 +61,15 @@ public sealed class Stage11FoundationTests : IClassFixture<CustomWebApplicationF
         var jobs = await jobsResponse.Content.ReadFromJsonAsync<NotificationJobsEnvelope>();
         Assert.NotNull(jobs);
         Assert.NotEmpty(jobs!.Items);
+
+        using var scope = _factory.Services.CreateScope();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        var localFilePath = configuration["Notifications:LocalFilePath"];
+        Assert.False(string.IsNullOrWhiteSpace(localFilePath));
+        Assert.True(File.Exists(localFilePath));
+
+        var content = await File.ReadAllTextAsync(localFilePath!);
+        Assert.Contains("Appointment created", content, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -102,3 +113,4 @@ public sealed class Stage11FoundationTests : IClassFixture<CustomWebApplicationF
         public string ActionCode { get; set; } = string.Empty;
     }
 }
+
