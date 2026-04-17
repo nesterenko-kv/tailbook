@@ -575,8 +575,9 @@ export default function GroomerDetailPage() {
 
             {scheduleView ? (
               <div className="mt-4 space-y-3 text-sm">
-                <div>Available windows: {scheduleView.availableWindows.length}</div>
-                {scheduleView.availableWindows.map((x, i) => (
+                <div>Available windows: {scheduleView.availabilityWindows.length}</div>
+
+                {scheduleView.availabilityWindows.map((x, i) => (
                   <div
                     key={i}
                     className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3"
@@ -586,6 +587,7 @@ export default function GroomerDetailPage() {
                 ))}
               </div>
             ) : null}
+            
           </Card>
 
           <Card title="Availability check">

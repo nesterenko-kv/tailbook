@@ -324,12 +324,15 @@ export type GroomerDetail = {
 
 export type GroomerScheduleResult = {
     groomerId: string;
+    groomerDisplayName: string;
     fromUtc: string;
     toUtc: string;
-    workingWindows: Array<{ startAtUtc: string; endAtUtc: string; kind: string; reasonCode?: string | null }>;
-    blockedWindows: Array<{ startAtUtc: string; endAtUtc: string; kind: string; reasonCode?: string | null }>;
-    appointmentWindows: Array<{ startAtUtc: string; endAtUtc: string; kind: string; reasonCode?: string | null }>;
-    availableWindows: Array<{ startAtUtc: string; endAtUtc: string; kind: string; reasonCode?: string | null }>;
+    workingSchedules: WorkingSchedule[];
+    timeBlocks: TimeBlock[];
+    availabilityWindows: Array<{
+        startAtUtc: string;
+        endAtUtc: string;
+    }>;
 };
 
 export type AvailabilityResult = {
