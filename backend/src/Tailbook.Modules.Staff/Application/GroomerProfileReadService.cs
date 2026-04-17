@@ -22,4 +22,13 @@ public sealed class GroomerProfileReadService(AppDbContext dbContext) : IGroomer
             .Select(x => new GroomerProfileReadModel(x.Id, x.UserId, x.DisplayName, x.Active))
             .SingleOrDefaultAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyCollection<GroomerProfileReadModel>> ListActiveAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<Groomer>()
+            .Where(x => x.Active)
+            .OrderBy(x => x.DisplayName)
+            .Select(x => new GroomerProfileReadModel(x.Id, x.UserId, x.DisplayName, x.Active))
+            .ToArrayAsync(cancellationToken);
+    }
 }

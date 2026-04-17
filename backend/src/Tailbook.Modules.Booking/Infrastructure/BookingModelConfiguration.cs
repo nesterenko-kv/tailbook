@@ -54,10 +54,13 @@ public static class BookingModelConfiguration
             builder.HasKey(x => x.Id);
             builder.Property(x => x.Channel).HasMaxLength(32).IsRequired();
             builder.Property(x => x.Status).HasMaxLength(32).IsRequired();
+            builder.Property(x => x.SelectionMode).HasMaxLength(32);
+            builder.Property(x => x.GuestIntakeJson).HasColumnType("jsonb");
             builder.Property(x => x.PreferredTimeJson).HasColumnType("jsonb");
             builder.Property(x => x.Notes).HasMaxLength(2000);
             builder.HasIndex(x => x.PetId);
             builder.HasIndex(x => x.ClientId);
+            builder.HasIndex(x => x.PreferredGroomerId);
             builder.HasIndex(x => new { x.Status, x.CreatedAtUtc });
         });
 

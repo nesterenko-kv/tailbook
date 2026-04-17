@@ -7,4 +7,13 @@ public static class BookingRequestStatusCodes
     public const string Converted = "Converted";
     public const string Rejected = "Rejected";
     public const string Expired = "Expired";
+
+    public static readonly string[] All =
+    [
+        Submitted,
+        NeedsReview,
+        Converted,
+        Rejected,
+        Expired
+    ];
 }

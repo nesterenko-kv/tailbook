@@ -27,7 +27,7 @@ export default function LoginPage() {
             });
 
             storeSession(response.accessToken, response.user.email);
-            router.push("/pets");
+            router.push("/book");
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Unable to sign in.");
         } finally {

@@ -3,7 +3,14 @@ namespace Tailbook.BuildingBlocks.Abstractions;
 public interface IPetQuoteProfileService
 {
     Task<PetQuoteProfile?> GetPetAsync(Guid petId, CancellationToken cancellationToken);
+    Task<PetQuoteProfile> CreateAdHocAsync(PetQuoteProfileInput input, CancellationToken cancellationToken);
 }
+
+public sealed record PetQuoteProfileInput(
+    Guid AnimalTypeId,
+    Guid BreedId,
+    Guid? CoatTypeId,
+    Guid? SizeCategoryId);
 
 public sealed record PetQuoteProfile(
     Guid Id,

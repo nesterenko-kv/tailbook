@@ -345,11 +345,17 @@ export type AvailabilityResult = {
 export type BookingRequestListItem = {
     id: string;
     clientId?: string | null;
-    petId: string;
+    petId?: string | null;
     requestedByContactId?: string | null;
+    preferredGroomerId?: string | null;
+    selectionMode?: string | null;
     channel: string;
     status: string;
     itemCount: number;
+    petDisplayName?: string | null;
+    requesterDisplayName?: string | null;
+    requesterPrimaryContact?: string | null;
+    preferredGroomerName?: string | null;
     createdAtUtc: string;
     updatedAtUtc: string;
 };
@@ -357,10 +363,39 @@ export type BookingRequestListItem = {
 export type BookingRequestDetail = {
     id: string;
     clientId?: string | null;
-    petId: string;
+    petId?: string | null;
     requestedByContactId?: string | null;
+    preferredGroomerId?: string | null;
+    preferredGroomerName?: string | null;
+    selectionMode?: string | null;
     channel: string;
     status: string;
+    subject?: {
+        petDisplayName?: string | null;
+        animalTypeCode?: string | null;
+        breedName?: string | null;
+        requesterDisplayName?: string | null;
+        requesterPrimaryContact?: string | null;
+        preferredGroomerName?: string | null;
+        guestIntake?: {
+            requester?: {
+                displayName?: string | null;
+                phone?: string | null;
+                instagramHandle?: string | null;
+                email?: string | null;
+                preferredContactMethodCode?: string | null;
+            } | null;
+            pet?: {
+                displayName?: string | null;
+                animalTypeName?: string | null;
+                breedName?: string | null;
+                coatTypeName?: string | null;
+                sizeCategoryName?: string | null;
+                weightKg?: number | null;
+                notes?: string | null;
+            } | null;
+        } | null;
+    } | null;
     preferredTimes: Array<{ startAtUtc: string; endAtUtc: string; label?: string | null }>;
     notes?: string | null;
     items: Array<{ id: string; offerId: string; offerVersionId?: string | null; itemType?: string | null; requestedNotes?: string | null }>;

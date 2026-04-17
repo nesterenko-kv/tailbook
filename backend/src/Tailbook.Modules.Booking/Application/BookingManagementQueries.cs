@@ -11,17 +11,27 @@ public sealed class BookingManagementQueries(
     AppDbContext dbContext,
     BookingSnapshotComposer bookingSnapshotComposer,
     IPetQuoteProfileService petQuoteProfileService,
+    IPetSummaryReadService petSummaryReadService,
     IClientReferenceValidationService clientReferenceValidationService,
     IContactReferenceValidationService contactReferenceValidationService,
     IOfferReferenceValidationService offerReferenceValidationService,
     IStaffSchedulingService staffSchedulingService,
+    IGroomerProfileReadService groomerProfileReadService,
     IAuditTrailService auditTrailService,
     IOutboxPublisher outboxPublisher)
 {
     public async Task<BookingRequestDetailView> CreateBookingRequestAsync(CreateBookingRequestCommand command, string? actorUserId, CancellationToken cancellationToken)
     {
-        var pet = await petQuoteProfileService.GetPetAsync(command.PetId, cancellationToken)
-            ?? throw new InvalidOperationException("Pet does not exist.");
+        PetQuoteProfile? pet = null;
+        if (command.PetId.HasValue)
+        {
+            pet = await petQuoteProfileService.GetPetAsync(command.PetId.Value, cancellationToken)
+                ?? throw new InvalidOperationException("Pet does not exist.");
+        }
+        else if (command.GuestIntake is null)
+        {
+            throw new InvalidOperationException("Booking request must reference a saved pet or include guest pet details.");
+        }
 
         if (command.ClientId.HasValue)
         {
@@ -31,7 +41,7 @@ public sealed class BookingManagementQueries(
                 throw new InvalidOperationException("Client does not exist.");
             }
 
-            if (pet.ClientId.HasValue && pet.ClientId.Value != command.ClientId.Value)
+            if (pet?.ClientId.HasValue == true && pet.ClientId.Value != command.ClientId.Value)
             {
                 throw new InvalidOperationException("Selected pet does not belong to the specified client.");
             }
@@ -59,11 +69,14 @@ public sealed class BookingManagementQueries(
         var entity = new BookingRequest
         {
             Id = Guid.NewGuid(),
-            ClientId = command.ClientId ?? pet.ClientId,
+            ClientId = command.ClientId ?? pet?.ClientId,
             PetId = command.PetId,
             RequestedByContactId = command.RequestedByContactId,
+            PreferredGroomerId = command.PreferredGroomerId,
             Channel = string.IsNullOrWhiteSpace(command.Channel) ? BookingChannelCodes.Admin : command.Channel.Trim(),
-            Status = BookingRequestStatusCodes.Submitted,
+            Status = NormalizeStatus(command.InitialStatus, command.PetId.HasValue ? BookingRequestStatusCodes.Submitted : BookingRequestStatusCodes.NeedsReview),
+            SelectionMode = NormalizeSelectionMode(command.SelectionMode),
+            GuestIntakeJson = SerializeGuestIntake(command.GuestIntake),
             PreferredTimeJson = SerializePreferredTimes(command.PreferredTimes),
             Notes = NormalizeOptional(command.Notes),
             CreatedAtUtc = utcNow,
@@ -87,12 +100,73 @@ public sealed class BookingManagementQueries(
             bookingRequestId = entity.Id,
             petId = entity.PetId,
             clientId = entity.ClientId,
-            channel = entity.Channel
+            channel = entity.Channel,
+            status = entity.Status,
+            selectionMode = entity.SelectionMode
         }, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        await auditTrailService.RecordAsync("booking", "booking_request", entity.Id.ToString("D"), "CREATE", ParseGuid(actorUserId), null, JsonSerializer.Serialize(new { entity.Status, entity.Channel }), cancellationToken);
+        await auditTrailService.RecordAsync("booking", "booking_request", entity.Id.ToString("D"), "CREATE", ParseGuid(actorUserId), null,
+            JsonSerializer.Serialize(new { entity.Status, entity.Channel, entity.SelectionMode, entity.PetId, entity.ClientId }), cancellationToken);
+
         return (await GetBookingRequestAsync(entity.Id, cancellationToken))!;
+    }
+
+    public async Task<BookingRequestDetailView?> AttachBookingRequestContextAsync(AttachBookingRequestContextCommand command, string? actorUserId, CancellationToken cancellationToken)
+    {
+        var bookingRequest = await dbContext.Set<BookingRequest>()
+            .SingleOrDefaultAsync(x => x.Id == command.BookingRequestId, cancellationToken);
+        if (bookingRequest is null)
+        {
+            return null;
+        }
+
+        if (bookingRequest.Status == BookingRequestStatusCodes.Converted)
+        {
+            throw new InvalidOperationException("Converted booking requests cannot be relinked.");
+        }
+
+        var pet = await petQuoteProfileService.GetPetAsync(command.PetId, cancellationToken)
+            ?? throw new InvalidOperationException("Pet does not exist.");
+
+        if (command.ClientId.HasValue)
+        {
+            var clientExists = await clientReferenceValidationService.ExistsAsync(command.ClientId.Value, cancellationToken);
+            if (!clientExists)
+            {
+                throw new InvalidOperationException("Client does not exist.");
+            }
+
+            if (pet.ClientId.HasValue && pet.ClientId.Value != command.ClientId.Value)
+            {
+                throw new InvalidOperationException("Selected pet does not belong to the specified client.");
+            }
+        }
+
+        if (command.RequestedByContactId.HasValue)
+        {
+            var contactExists = await contactReferenceValidationService.ExistsAsync(command.RequestedByContactId.Value, cancellationToken);
+            if (!contactExists)
+            {
+                throw new InvalidOperationException("Requested-by contact does not exist.");
+            }
+        }
+
+        bookingRequest.ClientId = command.ClientId ?? pet.ClientId;
+        bookingRequest.PetId = command.PetId;
+        bookingRequest.RequestedByContactId = command.RequestedByContactId;
+        bookingRequest.UpdatedAtUtc = DateTime.UtcNow;
+
+        if (bookingRequest.Status == BookingRequestStatusCodes.NeedsReview)
+        {
+            bookingRequest.Status = BookingRequestStatusCodes.Submitted;
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await auditTrailService.RecordAsync("booking", "booking_request", bookingRequest.Id.ToString("D"), "ATTACH_CONTEXT", ParseGuid(actorUserId), null,
+            JsonSerializer.Serialize(new { bookingRequest.ClientId, bookingRequest.PetId, bookingRequest.RequestedByContactId, bookingRequest.Status }), cancellationToken);
+
+        return await GetBookingRequestAsync(bookingRequest.Id, cancellationToken);
     }
 
     public async Task<PagedResult<BookingRequestListItemView>> ListBookingRequestsAsync(string? status, int page, int pageSize, CancellationToken cancellationToken)
@@ -121,17 +195,29 @@ public sealed class BookingManagementQueries(
             .Select(x => new { BookingRequestId = x.Key, Count = x.Count() })
             .ToDictionaryAsync(x => x.BookingRequestId, x => x.Count, cancellationToken);
 
+        var summaries = await BuildBookingRequestSummariesAsync(items, cancellationToken);
+
         return new PagedResult<BookingRequestListItemView>(
-            items.Select(x => new BookingRequestListItemView(
-                x.Id,
-                x.ClientId,
-                x.PetId,
-                x.RequestedByContactId,
-                x.Channel,
-                x.Status,
-                itemCounts.GetValueOrDefault(x.Id, 0),
-                x.CreatedAtUtc,
-                x.UpdatedAtUtc)).ToArray(),
+            items.Select(x =>
+            {
+                var summary = summaries.GetValueOrDefault(x.Id);
+                return new BookingRequestListItemView(
+                    x.Id,
+                    x.ClientId,
+                    x.PetId,
+                    x.RequestedByContactId,
+                    x.PreferredGroomerId,
+                    x.SelectionMode,
+                    x.Channel,
+                    x.Status,
+                    itemCounts.GetValueOrDefault(x.Id, 0),
+                    summary?.PetDisplayName,
+                    summary?.RequesterDisplayName,
+                    summary?.RequesterPrimaryContact,
+                    summary?.PreferredGroomerName,
+                    x.CreatedAtUtc,
+                    x.UpdatedAtUtc);
+            }).ToArray(),
             safePage,
             safePageSize,
             totalCount);
@@ -150,13 +236,18 @@ public sealed class BookingManagementQueries(
             .OrderBy(x => x.CreatedAtUtc)
             .ToListAsync(cancellationToken);
 
+        var subject = await BuildBookingRequestSummaryAsync(bookingRequest, cancellationToken);
         return new BookingRequestDetailView(
             bookingRequest.Id,
             bookingRequest.ClientId,
             bookingRequest.PetId,
             bookingRequest.RequestedByContactId,
+            bookingRequest.PreferredGroomerId,
+            subject?.PreferredGroomerName,
+            bookingRequest.SelectionMode,
             bookingRequest.Channel,
             bookingRequest.Status,
+            subject,
             DeserializePreferredTimes(bookingRequest.PreferredTimeJson),
             bookingRequest.Notes,
             items.Select(x => new BookingRequestItemView(x.Id, x.OfferId, x.OfferVersionId, x.ItemType, x.RequestedNotes)).ToArray(),
@@ -174,6 +265,11 @@ public sealed class BookingManagementQueries(
             throw new InvalidOperationException("Booking request has already been converted.");
         }
 
+        if (!bookingRequest.PetId.HasValue)
+        {
+            throw new InvalidOperationException("Guest booking requests must be linked to a saved pet before conversion to an appointment.");
+        }
+
         var requestItems = await dbContext.Set<BookingRequestItem>()
             .Where(x => x.BookingRequestId == bookingRequest.Id)
             .OrderBy(x => x.CreatedAtUtc)
@@ -186,7 +282,7 @@ public sealed class BookingManagementQueries(
 
         var result = await CreateAppointmentInternalAsync(
             bookingRequest.Id,
-            bookingRequest.PetId,
+            bookingRequest.PetId.Value,
             command.GroomerId,
             command.StartAtUtc,
             requestItems.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray(),
@@ -491,6 +587,57 @@ public sealed class BookingManagementQueries(
         return await GetAppointmentAsync(appointment.Id, cancellationToken);
     }
 
+    private async Task<Dictionary<Guid, BookingRequestSubjectView>> BuildBookingRequestSummariesAsync(IReadOnlyCollection<BookingRequest> bookingRequests, CancellationToken cancellationToken)
+    {
+        var result = new Dictionary<Guid, BookingRequestSubjectView>();
+        foreach (var request in bookingRequests)
+        {
+            var summary = await BuildBookingRequestSummaryAsync(request, cancellationToken);
+            if (summary is not null)
+            {
+                result[request.Id] = summary;
+            }
+        }
+
+        return result;
+    }
+
+    private async Task<BookingRequestSubjectView?> BuildBookingRequestSummaryAsync(BookingRequest request, CancellationToken cancellationToken)
+    {
+        var guestIntake = DeserializeGuestIntake(request.GuestIntakeJson);
+        string? petDisplayName = guestIntake?.Pet?.DisplayName;
+        string? animalTypeCode = guestIntake?.Pet?.AnimalTypeCode;
+        string? breedName = guestIntake?.Pet?.BreedName;
+        string? requesterDisplayName = guestIntake?.Requester?.DisplayName;
+        string? requesterPrimaryContact = guestIntake?.Requester?.PrimaryContactDisplay;
+
+        if (request.PetId.HasValue)
+        {
+            var petSummary = await petSummaryReadService.GetPetSummaryAsync(request.PetId.Value, cancellationToken);
+            if (petSummary is not null)
+            {
+                petDisplayName = petSummary.Name;
+                animalTypeCode = petSummary.AnimalTypeCode;
+                breedName = petSummary.BreedName;
+            }
+        }
+
+        string? preferredGroomerName = null;
+        if (request.PreferredGroomerId.HasValue)
+        {
+            preferredGroomerName = (await groomerProfileReadService.GetByGroomerIdAsync(request.PreferredGroomerId.Value, cancellationToken))?.DisplayName;
+        }
+
+        return new BookingRequestSubjectView(
+            petDisplayName,
+            animalTypeCode,
+            breedName,
+            requesterDisplayName,
+            requesterPrimaryContact,
+            preferredGroomerName,
+            guestIntake);
+    }
+
     private static void EnsureVersion(Appointment appointment, int expectedVersionNo)
     {
         if (appointment.VersionNo != expectedVersionNo)
@@ -523,6 +670,36 @@ public sealed class BookingManagementQueries(
         return normalized.ToUpperInvariant();
     }
 
+    private static string NormalizeStatus(string? status, string fallback)
+    {
+        var normalized = NormalizeOptional(status);
+        return normalized switch
+        {
+            null => fallback,
+            _ when BookingRequestStatusCodes.All.Contains(normalized, StringComparer.OrdinalIgnoreCase) =>
+                BookingRequestStatusCodes.All.Single(x => string.Equals(x, normalized, StringComparison.OrdinalIgnoreCase)),
+            _ => throw new InvalidOperationException($"Unknown booking request status '{status}'.")
+        };
+    }
+
+    private static string? NormalizeSelectionMode(string? selectionMode)
+    {
+        var normalized = NormalizeOptional(selectionMode);
+        if (normalized is null)
+        {
+            return null;
+        }
+
+        return normalized switch
+        {
+            _ when string.Equals(normalized, BookingRequestSelectionModeCodes.AnySuitableGroomer, StringComparison.OrdinalIgnoreCase) => BookingRequestSelectionModeCodes.AnySuitableGroomer,
+            _ when string.Equals(normalized, BookingRequestSelectionModeCodes.SpecificGroomer, StringComparison.OrdinalIgnoreCase) => BookingRequestSelectionModeCodes.SpecificGroomer,
+            _ when string.Equals(normalized, BookingRequestSelectionModeCodes.ExactSlot, StringComparison.OrdinalIgnoreCase) => BookingRequestSelectionModeCodes.ExactSlot,
+            _ when string.Equals(normalized, BookingRequestSelectionModeCodes.PreferredWindow, StringComparison.OrdinalIgnoreCase) => BookingRequestSelectionModeCodes.PreferredWindow,
+            _ => throw new InvalidOperationException($"Unknown selection mode '{selectionMode}'.")
+        };
+    }
+
     private static string? SerializePreferredTimes(IReadOnlyCollection<PreferredTimeWindowCommand> windows)
     {
         if (windows.Count == 0)
@@ -544,6 +721,52 @@ public sealed class BookingManagementQueries(
         }
 
         return JsonSerializer.Deserialize<PreferredTimeWindowView[]>(json) ?? [];
+    }
+
+    private static string? SerializeGuestIntake(GuestBookingIntakeCommand? guestIntake)
+    {
+        if (guestIntake is null)
+        {
+            return null;
+        }
+
+        return JsonSerializer.Serialize(new GuestBookingIntakeView(
+            guestIntake.Requester is null
+                ? null
+                : new BookingRequesterSnapshotView(
+                    NormalizeOptional(guestIntake.Requester.DisplayName),
+                    NormalizeOptional(guestIntake.Requester.Phone),
+                    NormalizeOptional(guestIntake.Requester.InstagramHandle),
+                    NormalizeOptional(guestIntake.Requester.Email),
+                    NormalizeOptional(guestIntake.Requester.PreferredContactMethodCode)),
+            guestIntake.Pet is null
+                ? null
+                : new BookingGuestPetSnapshotView(
+                    NormalizeOptional(guestIntake.Pet.DisplayName),
+                    guestIntake.Pet.AnimalTypeId,
+                    NormalizeOptional(guestIntake.Pet.AnimalTypeCode),
+                    NormalizeOptional(guestIntake.Pet.AnimalTypeName),
+                    guestIntake.Pet.BreedId,
+                    NormalizeOptional(guestIntake.Pet.BreedCode),
+                    NormalizeOptional(guestIntake.Pet.BreedName),
+                    guestIntake.Pet.CoatTypeId,
+                    NormalizeOptional(guestIntake.Pet.CoatTypeCode),
+                    NormalizeOptional(guestIntake.Pet.CoatTypeName),
+                    guestIntake.Pet.SizeCategoryId,
+                    NormalizeOptional(guestIntake.Pet.SizeCategoryCode),
+                    NormalizeOptional(guestIntake.Pet.SizeCategoryName),
+                    guestIntake.Pet.WeightKg,
+                    NormalizeOptional(guestIntake.Pet.Notes))));
+    }
+
+    private static GuestBookingIntakeView? DeserializeGuestIntake(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return null;
+        }
+
+        return JsonSerializer.Deserialize<GuestBookingIntakeView>(json);
     }
 
     private async Task<Dictionary<Guid, decimal>> GetAppointmentTotalsAsync(Guid[] appointmentIds, CancellationToken cancellationToken)
@@ -569,12 +792,50 @@ public sealed class BookingManagementQueries(
 
 public sealed record CreateBookingRequestCommand(
     Guid? ClientId,
-    Guid PetId,
+    Guid? PetId,
     Guid? RequestedByContactId,
     string? Channel,
     string? Notes,
     IReadOnlyCollection<PreferredTimeWindowCommand> PreferredTimes,
-    IReadOnlyCollection<CreateBookingRequestItemCommand> Items);
+    IReadOnlyCollection<CreateBookingRequestItemCommand> Items,
+    Guid? PreferredGroomerId = null,
+    string? SelectionMode = null,
+    GuestBookingIntakeCommand? GuestIntake = null,
+    string? InitialStatus = null);
+
+public sealed record AttachBookingRequestContextCommand(
+    Guid BookingRequestId,
+    Guid? ClientId,
+    Guid PetId,
+    Guid? RequestedByContactId);
+
+public sealed record GuestBookingIntakeCommand(
+    GuestBookingRequesterCommand? Requester,
+    GuestBookingPetCommand? Pet);
+
+public sealed record GuestBookingRequesterCommand(
+    string? DisplayName,
+    string? Phone,
+    string? InstagramHandle,
+    string? Email,
+    string? PreferredContactMethodCode);
+
+public sealed record GuestBookingPetCommand(
+    string? DisplayName,
+    Guid? AnimalTypeId,
+    string? AnimalTypeCode,
+    string? AnimalTypeName,
+    Guid? BreedId,
+    string? BreedCode,
+    string? BreedName,
+    Guid? CoatTypeId,
+    string? CoatTypeCode,
+    string? CoatTypeName,
+    Guid? SizeCategoryId,
+    string? SizeCategoryCode,
+    string? SizeCategoryName,
+    decimal? WeightKg,
+    string? Notes);
 
 public sealed record PreferredTimeWindowCommand(DateTime StartAtUtc, DateTime EndAtUtc, string? Label);
 public sealed record CreateBookingRequestItemCommand(Guid OfferId, string? ItemType, string? RequestedNotes);
@@ -587,8 +848,83 @@ public sealed record CancelAppointmentCommand(Guid AppointmentId, int ExpectedVe
 public sealed record PagedResult<T>(IReadOnlyCollection<T> Items, int Page, int PageSize, int TotalCount);
 public sealed record PreferredTimeWindowView(DateTime StartAtUtc, DateTime EndAtUtc, string? Label);
 public sealed record BookingRequestItemView(Guid Id, Guid OfferId, Guid? OfferVersionId, string? ItemType, string? RequestedNotes);
-public sealed record BookingRequestListItemView(Guid Id, Guid? ClientId, Guid PetId, Guid? RequestedByContactId, string Channel, string Status, int ItemCount, DateTime CreatedAtUtc, DateTime UpdatedAtUtc);
-public sealed record BookingRequestDetailView(Guid Id, Guid? ClientId, Guid PetId, Guid? RequestedByContactId, string Channel, string Status, IReadOnlyCollection<PreferredTimeWindowView> PreferredTimes, string? Notes, IReadOnlyCollection<BookingRequestItemView> Items, DateTime CreatedAtUtc, DateTime UpdatedAtUtc);
+public sealed record BookingRequestListItemView(
+    Guid Id,
+    Guid? ClientId,
+    Guid? PetId,
+    Guid? RequestedByContactId,
+    Guid? PreferredGroomerId,
+    string? SelectionMode,
+    string Channel,
+    string Status,
+    int ItemCount,
+    string? PetDisplayName,
+    string? RequesterDisplayName,
+    string? RequesterPrimaryContact,
+    string? PreferredGroomerName,
+    DateTime CreatedAtUtc,
+    DateTime UpdatedAtUtc);
+
+public sealed record BookingRequestDetailView(
+    Guid Id,
+    Guid? ClientId,
+    Guid? PetId,
+    Guid? RequestedByContactId,
+    Guid? PreferredGroomerId,
+    string? PreferredGroomerName,
+    string? SelectionMode,
+    string Channel,
+    string Status,
+    BookingRequestSubjectView? Subject,
+    IReadOnlyCollection<PreferredTimeWindowView> PreferredTimes,
+    string? Notes,
+    IReadOnlyCollection<BookingRequestItemView> Items,
+    DateTime CreatedAtUtc,
+    DateTime UpdatedAtUtc);
+
+public sealed record BookingRequestSubjectView(
+    string? PetDisplayName,
+    string? AnimalTypeCode,
+    string? BreedName,
+    string? RequesterDisplayName,
+    string? RequesterPrimaryContact,
+    string? PreferredGroomerName,
+    GuestBookingIntakeView? GuestIntake);
+
+public sealed record GuestBookingIntakeView(
+    BookingRequesterSnapshotView? Requester,
+    BookingGuestPetSnapshotView? Pet);
+
+public sealed record BookingRequesterSnapshotView(
+    string? DisplayName,
+    string? Phone,
+    string? InstagramHandle,
+    string? Email,
+    string? PreferredContactMethodCode)
+{
+    public string? PrimaryContactDisplay =>
+        !string.IsNullOrWhiteSpace(Phone) ? Phone :
+        !string.IsNullOrWhiteSpace(InstagramHandle) ? InstagramHandle :
+        !string.IsNullOrWhiteSpace(Email) ? Email : null;
+}
+
+public sealed record BookingGuestPetSnapshotView(
+    string? DisplayName,
+    Guid? AnimalTypeId,
+    string? AnimalTypeCode,
+    string? AnimalTypeName,
+    Guid? BreedId,
+    string? BreedCode,
+    string? BreedName,
+    Guid? CoatTypeId,
+    string? CoatTypeCode,
+    string? CoatTypeName,
+    Guid? SizeCategoryId,
+    string? SizeCategoryCode,
+    string? SizeCategoryName,
+    decimal? WeightKg,
+    string? Notes);
+
 public sealed record AppointmentPetView(Guid Id, Guid? ClientId, string AnimalTypeCode, string AnimalTypeName, string BreedName);
 public sealed record AppointmentItemView(Guid Id, string ItemType, Guid OfferId, Guid OfferVersionId, string OfferCode, string OfferDisplayName, int Quantity, Guid PriceSnapshotId, Guid DurationSnapshotId, decimal PriceAmount, int ServiceMinutes, int ReservedMinutes);
 public sealed record AppointmentListItemView(Guid Id, Guid? BookingRequestId, Guid PetId, Guid GroomerId, DateTime StartAtUtc, DateTime EndAtUtc, string Status, int VersionNo, int ItemCount, decimal TotalAmount);

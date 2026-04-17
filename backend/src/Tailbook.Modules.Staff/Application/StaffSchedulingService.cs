@@ -21,11 +21,22 @@ public sealed class StaffSchedulingService(
         int baseReservedMinutes,
         CancellationToken cancellationToken)
     {
-        var groomer = await dbContext.Set<Groomer>().SingleOrDefaultAsync(x => x.Id == groomerId && x.Active, cancellationToken)
-            ?? throw new InvalidOperationException("Selected groomer does not exist or is inactive.");
-
         var pet = await petQuoteProfileService.GetPetAsync(petId, cancellationToken)
             ?? throw new InvalidOperationException("Pet does not exist.");
+
+        return await ResolveReservedDurationAsync(groomerId, pet, offerIds, baseReservedMinutes, cancellationToken);
+    }
+
+    public async Task<ReservedDurationResolution> ResolveReservedDurationAsync(
+        Guid groomerId,
+        PetQuoteProfile pet,
+        IReadOnlyCollection<Guid> offerIds,
+        int baseReservedMinutes,
+        CancellationToken cancellationToken)
+    {
+        var groomer = await dbContext.Set<Groomer>()
+            .SingleOrDefaultAsync(x => x.Id == groomerId && x.Active, cancellationToken)
+            ?? throw new InvalidOperationException("Selected groomer does not exist or is inactive.");
 
         var capabilities = await dbContext.Set<GroomerCapability>()
             .Where(x => x.GroomerId == groomer.Id)
@@ -34,13 +45,12 @@ public sealed class StaffSchedulingService(
         var denial = capabilities
             .Where(x => IsMatch(x, pet, offerIds))
             .Where(x => string.Equals(x.CapabilityMode, CapabilityModeCodes.Deny, StringComparison.OrdinalIgnoreCase))
-            .OrderByDescending(x => ComputeSpecificity(x))
+            .OrderByDescending(ComputeSpecificity)
             .FirstOrDefault();
 
         if (denial is not null)
         {
-            var denialReason = BuildCapabilityReason(denial, pet, false);
-            throw new InvalidOperationException(denialReason);
+            throw new InvalidOperationException(BuildCapabilityReason(denial, pet, false));
         }
 
         var modifierReasons = new List<string>();
@@ -53,7 +63,7 @@ public sealed class StaffSchedulingService(
                 .Where(x => x.OfferId is null)
                 .Where(x => string.Equals(x.CapabilityMode, CapabilityModeCodes.Allow, StringComparison.OrdinalIgnoreCase))
                 .Where(x => IsMatch(x, pet, []))
-                .OrderByDescending(x => ComputeSpecificity(x))
+                .OrderByDescending(ComputeSpecificity)
                 .FirstOrDefault();
 
             if (generalRule is not null && generalRule.ReservedDurationModifierMinutes != 0)
@@ -95,8 +105,24 @@ public sealed class StaffSchedulingService(
         Guid? ignoredAppointmentId,
         CancellationToken cancellationToken)
     {
-        var durationResolution = await ResolveReservedDurationAsync(groomerId, petId, offerIds, reservedMinutes, cancellationToken);
-        var endAtUtc = startAtUtc.AddMinutes(durationResolution.EffectiveReservedMinutes);
+        var pet = await petQuoteProfileService.GetPetAsync(petId, cancellationToken)
+            ?? throw new InvalidOperationException("Pet does not exist.");
+
+        return await CheckAvailabilityAsync(groomerId, pet, offerIds, startAtUtc, reservedMinutes, ignoredAppointmentId, cancellationToken);
+    }
+
+    public async Task<GroomerAvailabilityCheckResult> CheckAvailabilityAsync(
+        Guid groomerId,
+        PetQuoteProfile pet,
+        IReadOnlyCollection<Guid> offerIds,
+        DateTime startAtUtc,
+        int reservedMinutes,
+        Guid? ignoredAppointmentId,
+        CancellationToken cancellationToken)
+    {
+        var normalizedStartAtUtc = DateTime.SpecifyKind(startAtUtc, DateTimeKind.Utc);
+        var durationResolution = await ResolveReservedDurationAsync(groomerId, pet, offerIds, reservedMinutes, cancellationToken);
+        var endAtUtc = normalizedStartAtUtc.AddMinutes(durationResolution.EffectiveReservedMinutes);
 
         var reasons = new List<string>(durationResolution.Reasons);
 
@@ -111,7 +137,7 @@ public sealed class StaffSchedulingService(
             .Where(x => x.GroomerId == groomerId)
             .ToListAsync(cancellationToken);
 
-        if (!IsInsideWorkingSchedule(startAtUtc, endAtUtc, schedule))
+        if (!IsInsideWorkingSchedule(normalizedStartAtUtc, endAtUtc, schedule))
         {
             reasons.Add("Requested slot is outside working schedule.");
             return new GroomerAvailabilityCheckResult(false, endAtUtc, durationResolution.EffectiveReservedMinutes, reasons);
@@ -119,7 +145,7 @@ public sealed class StaffSchedulingService(
 
         var overlappingBlock = await dbContext.Set<TimeBlock>()
             .Where(x => x.GroomerId == groomerId)
-            .Where(x => x.StartAtUtc < endAtUtc && x.EndAtUtc > startAtUtc)
+            .Where(x => x.StartAtUtc < endAtUtc && x.EndAtUtc > normalizedStartAtUtc)
             .OrderBy(x => x.StartAtUtc)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -129,7 +155,7 @@ public sealed class StaffSchedulingService(
             return new GroomerAvailabilityCheckResult(false, endAtUtc, durationResolution.EffectiveReservedMinutes, reasons);
         }
 
-        var hasOverlap = await appointmentOverlapReadService.HasOverlapAsync(groomerId, startAtUtc, endAtUtc, ignoredAppointmentId, cancellationToken);
+        var hasOverlap = await appointmentOverlapReadService.HasOverlapAsync(groomerId, normalizedStartAtUtc, endAtUtc, ignoredAppointmentId, cancellationToken);
         if (hasOverlap)
         {
             reasons.Add("Requested slot overlaps an existing appointment.");
@@ -138,6 +164,76 @@ public sealed class StaffSchedulingService(
 
         reasons.Add("Requested slot is available.");
         return new GroomerAvailabilityCheckResult(true, endAtUtc, durationResolution.EffectiveReservedMinutes, reasons);
+    }
+
+    public async Task<IReadOnlyCollection<AvailabilityWindowReadModel>> GetAvailabilityWindowsAsync(
+        Guid groomerId,
+        DateOnly localDate,
+        CancellationToken cancellationToken)
+    {
+        var groomerExists = await dbContext.Set<Groomer>()
+            .AnyAsync(x => x.Id == groomerId && x.Active, cancellationToken);
+        if (!groomerExists)
+        {
+            return [];
+        }
+
+        var timeZone = salonTimeZoneProvider.GetTimeZone();
+        var localStart = DateTime.SpecifyKind(localDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Unspecified);
+        var localEnd = DateTime.SpecifyKind(localDate.AddDays(1).ToDateTime(TimeOnly.MinValue), DateTimeKind.Unspecified);
+        var fromUtc = TimeZoneInfo.ConvertTimeToUtc(localStart, timeZone);
+        var toUtc = TimeZoneInfo.ConvertTimeToUtc(localEnd, timeZone);
+
+        var schedules = await dbContext.Set<WorkingSchedule>()
+            .Where(x => x.GroomerId == groomerId)
+            .OrderBy(x => x.Weekday)
+            .ToListAsync(cancellationToken);
+
+        var timeBlocks = await dbContext.Set<TimeBlock>()
+            .Where(x => x.GroomerId == groomerId)
+            .Where(x => x.StartAtUtc < toUtc && x.EndAtUtc > fromUtc)
+            .OrderBy(x => x.StartAtUtc)
+            .ToListAsync(cancellationToken);
+
+        return BuildAvailabilityWindows(fromUtc, toUtc, schedules, timeBlocks)
+            .Select(x => new AvailabilityWindowReadModel(x.StartAtUtc.UtcDateTime, x.EndAtUtc.UtcDateTime))
+            .ToArray();
+    }
+
+    private IReadOnlyCollection<AvailabilityWindowSegment> BuildAvailabilityWindows(
+        DateTime fromUtc,
+        DateTime toUtc,
+        IReadOnlyCollection<WorkingSchedule> schedules,
+        IReadOnlyCollection<TimeBlock> timeBlocks)
+    {
+        var timeZone = salonTimeZoneProvider.GetTimeZone();
+        var windows = new List<AvailabilityWindowSegment>();
+        var currentLocalDate = TimeZoneInfo.ConvertTimeFromUtc(fromUtc, timeZone).Date;
+        var endLocalDate = TimeZoneInfo.ConvertTimeFromUtc(toUtc, timeZone).Date;
+
+        while (currentLocalDate <= endLocalDate)
+        {
+            var weekday = ToIsoWeekday(currentLocalDate.DayOfWeek);
+            var schedule = schedules.SingleOrDefault(x => x.Weekday == weekday);
+            if (schedule is not null)
+            {
+                var localWindowStart = DateTime.SpecifyKind(currentLocalDate.Add(schedule.StartLocalTime), DateTimeKind.Unspecified);
+                var localWindowEnd = DateTime.SpecifyKind(currentLocalDate.Add(schedule.EndLocalTime), DateTimeKind.Unspecified);
+                var windowStartUtc = TimeZoneInfo.ConvertTimeToUtc(localWindowStart, timeZone);
+                var windowEndUtc = TimeZoneInfo.ConvertTimeToUtc(localWindowEnd, timeZone);
+
+                if (windowEndUtc > fromUtc && windowStartUtc < toUtc)
+                {
+                    var clippedStart = windowStartUtc < fromUtc ? fromUtc : windowStartUtc;
+                    var clippedEnd = windowEndUtc > toUtc ? toUtc : windowEndUtc;
+                    AppendAvailabilitySegments(windows, clippedStart, clippedEnd, timeBlocks);
+                }
+            }
+
+            currentLocalDate = currentLocalDate.AddDays(1);
+        }
+
+        return windows;
     }
 
     private bool IsInsideWorkingSchedule(DateTime startAtUtc, DateTime endAtUtc, IReadOnlyCollection<WorkingSchedule> schedules)
@@ -161,6 +257,37 @@ public sealed class StaffSchedulingService(
         var startTime = startLocal.TimeOfDay;
         var endTime = endLocal.TimeOfDay;
         return startTime >= schedule.StartLocalTime && endTime <= schedule.EndLocalTime;
+    }
+
+    private static void AppendAvailabilitySegments(
+        List<AvailabilityWindowSegment> windows,
+        DateTime windowStartUtc,
+        DateTime windowEndUtc,
+        IReadOnlyCollection<TimeBlock> timeBlocks)
+    {
+        var cursor = windowStartUtc;
+        var overlappingBlocks = timeBlocks
+            .Where(x => x.StartAtUtc < windowEndUtc && x.EndAtUtc > windowStartUtc)
+            .OrderBy(x => x.StartAtUtc)
+            .ToArray();
+
+        foreach (var block in overlappingBlocks)
+        {
+            if (block.StartAtUtc > cursor)
+            {
+                windows.Add(new AvailabilityWindowSegment(cursor, block.StartAtUtc));
+            }
+
+            if (block.EndAtUtc > cursor)
+            {
+                cursor = block.EndAtUtc;
+            }
+        }
+
+        if (cursor < windowEndUtc)
+        {
+            windows.Add(new AvailabilityWindowSegment(cursor, windowEndUtc));
+        }
     }
 
     private static bool IsMatch(GroomerCapability capability, PetQuoteProfile pet, IReadOnlyCollection<Guid> offerIds)
@@ -242,4 +369,6 @@ public sealed class StaffSchedulingService(
             _ => 7
         };
     }
+
+    private sealed record AvailabilityWindowSegment(DateTimeOffset StartAtUtc, DateTimeOffset EndAtUtc);
 }

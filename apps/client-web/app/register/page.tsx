@@ -25,7 +25,7 @@ export default function RegisterPage() {
                 body: JSON.stringify(form)
             });
             storeSession(response.accessToken, response.user.email);
-            router.push("/pets");
+            router.push("/book");
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Unable to register.");
         } finally {
