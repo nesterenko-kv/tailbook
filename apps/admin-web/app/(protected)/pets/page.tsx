@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiRequest, ApiError } from "@/lib/api";
 import { addRecentPetId, getRecentPetIds } from "@/lib/recent";
@@ -16,6 +16,7 @@ export default function PetsPage() {
     const [lookupPetId, setLookupPetId] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const previousBreedIdRef = useRef<string>("");
     const [form, setForm] = useState({
         clientId: "",
         name: "",
@@ -53,7 +54,10 @@ export default function PetsPage() {
         const allowedCoatTypeIds = new Set(selectedBreed?.allowedCoatTypeIds ?? []);
         return catalog?.coatTypes.filter((coat) => allowedCoatTypeIds.has(coat.id)) ?? [];
     }, [catalog, selectedBreed]);
-    const sizeOptions = useMemo(() => catalog?.sizeCategories.filter((size) => !size.animalTypeId || size.animalTypeId === selectedAnimalType?.id) ?? [], [catalog, selectedAnimalType]);
+    const sizeOptions = useMemo(() => {
+        const allowedSizeCategoryIds = new Set(selectedBreed?.allowedSizeCategoryIds ?? []);
+        return catalog?.sizeCategories.filter((size) => allowedSizeCategoryIds.has(size.id) && (!size.animalTypeId || size.animalTypeId === selectedAnimalType?.id)) ?? [];
+    }, [catalog, selectedAnimalType, selectedBreed]);
 
     useEffect(() => {
         if (breedOptions.length === 0) {
@@ -69,10 +73,36 @@ export default function PetsPage() {
     }, [breedOptions, form.breedId]);
 
     useEffect(() => {
-        if (form.coatTypeCode && !coatOptions.some((coat) => coat.code === form.coatTypeCode)) {
-            setForm((current) => ({ ...current, coatTypeCode: "" }));
+        const breedIdChanged = previousBreedIdRef.current !== form.breedId;
+        if (!breedIdChanged) {
+            return;
         }
-    }, [coatOptions, form.coatTypeCode]);
+
+        previousBreedIdRef.current = form.breedId;
+
+        setForm((current) => {
+            const nextCoatTypeCode = coatOptions.some((coat) => coat.code === current.coatTypeCode)
+                ? current.coatTypeCode
+                : coatOptions.length === 1
+                    ? coatOptions[0].code
+                    : "";
+            const nextSizeCategoryCode = sizeOptions.some((size) => size.code === current.sizeCategoryCode)
+                ? current.sizeCategoryCode
+                : sizeOptions.length === 1
+                    ? sizeOptions[0].code
+                    : "";
+
+            if (nextCoatTypeCode === current.coatTypeCode && nextSizeCategoryCode === current.sizeCategoryCode) {
+                return current;
+            }
+
+            return {
+                ...current,
+                coatTypeCode: nextCoatTypeCode,
+                sizeCategoryCode: nextSizeCategoryCode
+            };
+        });
+    }, [form.breedId, coatOptions, sizeOptions]);
 
     async function registerPet(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();

@@ -31,6 +31,14 @@ public sealed class PetsQueries(
                 x => x.Key,
                 x => (IReadOnlyCollection<Guid>)x.Select(y => y.CoatTypeId).OrderBy(y => y).ToArray());
 
+        var breedAllowedSizeCategories = await dbContext.Set<BreedAllowedSizeCategory>()
+            .ToListAsync(cancellationToken);
+        var allowedSizeCategoriesByBreedId = breedAllowedSizeCategories
+            .GroupBy(x => x.BreedId)
+            .ToDictionary(
+                x => x.Key,
+                x => (IReadOnlyCollection<Guid>)x.Select(y => y.SizeCategoryId).OrderBy(y => y).ToArray());
+
         var breeds = (await dbContext.Set<Breed>()
                 .OrderBy(x => x.Name)
                 .Select(x => new { x.Id, x.AnimalTypeId, x.BreedGroupId, x.Code, x.Name })
@@ -41,7 +49,8 @@ public sealed class PetsQueries(
                 x.BreedGroupId,
                 x.Code,
                 x.Name,
-                allowedCoatTypesByBreedId.TryGetValue(x.Id, out var allowedCoatTypeIds) ? allowedCoatTypeIds : Array.Empty<Guid>()))
+                allowedCoatTypesByBreedId.TryGetValue(x.Id, out var allowedCoatTypeIds) ? allowedCoatTypeIds : Array.Empty<Guid>(),
+                allowedSizeCategoriesByBreedId.TryGetValue(x.Id, out var allowedSizeCategoryIds) ? allowedSizeCategoryIds : Array.Empty<Guid>()))
             .ToList();
 
         var coatTypes = await dbContext.Set<CoatType>()
@@ -49,7 +58,13 @@ public sealed class PetsQueries(
             .Select(x => new CoatTypeView(x.Id, x.AnimalTypeId, x.Code, x.Name))
             .ToListAsync(cancellationToken);
 
+        var supportedSizeCategoryIds = allowedSizeCategoriesByBreedId.Values
+            .SelectMany(x => x)
+            .Distinct()
+            .ToArray();
+
         var sizeCategories = await dbContext.Set<SizeCategory>()
+            .Where(x => supportedSizeCategoryIds.Contains(x.Id))
             .OrderBy(x => x.Name)
             .Select(x => new SizeCategoryView(x.Id, x.AnimalTypeId, x.Code, x.Name, x.MinWeightKg, x.MaxWeightKg))
             .ToListAsync(cancellationToken);
@@ -184,6 +199,14 @@ public sealed class PetsQueries(
             {
                 throw new InvalidOperationException("Size category must belong to the selected animal type when scoped by animal type.");
             }
+
+            var isAllowedForBreed = await dbContext.Set<BreedAllowedSizeCategory>()
+                .AnyAsync(x => x.BreedId == breed.Id && x.SizeCategoryId == sizeCategory.Id, cancellationToken);
+
+            if (!isAllowedForBreed)
+            {
+                throw new InvalidOperationException($"Size category '{sizeCategory.Name}' is not allowed for breed '{breed.Name}'.");
+            }
         }
 
         return new ResolvedPetTaxonomy(animalType, breed, coatType, sizeCategory);
@@ -219,7 +242,7 @@ public sealed class PetsQueries(
             pet.Pet.ClientId,
             pet.Pet.Name,
             new AnimalTypeView(pet.AnimalType.Id, pet.AnimalType.Code, pet.AnimalType.Name),
-            new BreedView(pet.Breed.Id, pet.Breed.AnimalTypeId, pet.Breed.BreedGroupId, pet.Breed.Code, pet.Breed.Name, Array.Empty<Guid>()),
+            new BreedView(pet.Breed.Id, pet.Breed.AnimalTypeId, pet.Breed.BreedGroupId, pet.Breed.Code, pet.Breed.Name, Array.Empty<Guid>(), Array.Empty<Guid>()),
             coatType is null ? null : new CoatTypeView(coatType.Id, coatType.AnimalTypeId, coatType.Code, coatType.Name),
             sizeCategory is null ? null : new SizeCategoryView(sizeCategory.Id, sizeCategory.AnimalTypeId, sizeCategory.Code, sizeCategory.Name, sizeCategory.MinWeightKg, sizeCategory.MaxWeightKg),
             pet.Pet.BirthDate,
@@ -241,7 +264,7 @@ public sealed record UpdatePetCommand(string Name, string AnimalTypeCode, Guid B
 public sealed record PetCatalogView(IReadOnlyCollection<AnimalTypeView> AnimalTypes, IReadOnlyCollection<BreedGroupView> BreedGroups, IReadOnlyCollection<BreedView> Breeds, IReadOnlyCollection<CoatTypeView> CoatTypes, IReadOnlyCollection<SizeCategoryView> SizeCategories);
 public sealed record AnimalTypeView(Guid Id, string Code, string Name);
 public sealed record BreedGroupView(Guid Id, Guid AnimalTypeId, string Code, string Name);
-public sealed record BreedView(Guid Id, Guid AnimalTypeId, Guid? BreedGroupId, string Code, string Name, IReadOnlyCollection<Guid> AllowedCoatTypeIds);
+public sealed record BreedView(Guid Id, Guid AnimalTypeId, Guid? BreedGroupId, string Code, string Name, IReadOnlyCollection<Guid> AllowedCoatTypeIds, IReadOnlyCollection<Guid> AllowedSizeCategoryIds);
 public sealed record CoatTypeView(Guid Id, Guid? AnimalTypeId, string Code, string Name);
 public sealed record SizeCategoryView(Guid Id, Guid? AnimalTypeId, string Code, string Name, decimal? MinWeightKg, decimal? MaxWeightKg);
 public sealed record PetPhotoView(Guid Id, string StorageKey, string FileName, string ContentType, bool IsPrimary, int SortOrder, DateTime CreatedAtUtc);

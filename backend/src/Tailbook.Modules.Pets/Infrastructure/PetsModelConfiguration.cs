@@ -56,6 +56,15 @@ public static class PetsModelConfiguration
             builder.HasOne<CoatType>().WithMany().HasForeignKey(x => x.CoatTypeId).OnDelete(DeleteBehavior.Cascade);
         });
 
+        modelBuilder.Entity<BreedAllowedSizeCategory>(builder =>
+        {
+            builder.ToTable("breed_allowed_size_categories", "pets");
+            builder.HasKey(x => new { x.BreedId, x.SizeCategoryId });
+            builder.HasIndex(x => x.SizeCategoryId);
+            builder.HasOne<Breed>().WithMany().HasForeignKey(x => x.BreedId).OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne<SizeCategory>().WithMany().HasForeignKey(x => x.SizeCategoryId).OnDelete(DeleteBehavior.Cascade);
+        });
+
         modelBuilder.Entity<SizeCategory>(builder =>
         {
             builder.ToTable("size_categories", "pets");

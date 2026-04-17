@@ -16,6 +16,7 @@ public sealed class PetsCatalogSeeder : IDataSeeder
         await EnsureCoatTypesAsync(dbContext, cancellationToken);
         await EnsureBreedAllowedCoatTypesAsync(dbContext, cancellationToken);
         await EnsureSizeCategoriesAsync(dbContext, cancellationToken);
+        await EnsureBreedAllowedSizeCategoriesAsync(dbContext, cancellationToken);
     }
 
     private static async Task EnsureAnimalTypesAsync(AppDbContext dbContext, CancellationToken cancellationToken)
@@ -269,13 +270,110 @@ public sealed class PetsCatalogSeeder : IDataSeeder
 
     private static async Task EnsureSizeCategoriesAsync(AppDbContext dbContext, CancellationToken cancellationToken)
     {
-        var dog = await dbContext.Set<AnimalType>().SingleAsync(x => x.Code == "DOG", cancellationToken);
-        var cat = await dbContext.Set<AnimalType>().SingleAsync(x => x.Code == "CAT", cancellationToken);
+        await EnsureSizeCategoryAsync(dbContext, "TEACUP", "Teacup", null, null, 1.8m, cancellationToken);
+        await EnsureSizeCategoryAsync(dbContext, "MINIATURE", "Miniature", null, 1.3m, 5.5m, cancellationToken);
+        await EnsureSizeCategoryAsync(dbContext, "TOY", "Toy", null, 2.2m, 5.5m, cancellationToken);
+        await EnsureSizeCategoryAsync(dbContext, "SMALL", "Small Breeds", null, null, 10m, cancellationToken);
+        await EnsureSizeCategoryAsync(dbContext, "MEDIUM", "Medium Breeds", null, 11m, 26m, cancellationToken);
+        await EnsureSizeCategoryAsync(dbContext, "LARGE", "Large Breeds", null, 26m, 45m, cancellationToken);
+        await EnsureSizeCategoryAsync(dbContext, "GIANT", "Giant Breeds", null, 45m, null, cancellationToken);
+    }
 
-        await EnsureEntityAsync(dbContext, x => x.Code, new SizeCategory { Id = Guid.NewGuid(), AnimalTypeId = dog.Id, Code = "SMALL", Name = "Small", MinWeightKg = 0m, MaxWeightKg = 10m }, cancellationToken);
-        await EnsureEntityAsync(dbContext, x => x.Code, new SizeCategory { Id = Guid.NewGuid(), AnimalTypeId = dog.Id, Code = "MEDIUM", Name = "Medium", MinWeightKg = 10.01m, MaxWeightKg = 25m }, cancellationToken);
-        await EnsureEntityAsync(dbContext, x => x.Code, new SizeCategory { Id = Guid.NewGuid(), AnimalTypeId = dog.Id, Code = "LARGE", Name = "Large", MinWeightKg = 25.01m, MaxWeightKg = 100m }, cancellationToken);
-        await EnsureEntityAsync(dbContext, x => x.Code, new SizeCategory { Id = Guid.NewGuid(), AnimalTypeId = cat.Id, Code = "CAT_STANDARD", Name = "Cat Standard", MinWeightKg = 0m, MaxWeightKg = 20m }, cancellationToken);
+    private static async Task EnsureBreedAllowedSizeCategoriesAsync(AppDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var breeds = await dbContext.Set<Breed>().ToDictionaryAsync(x => x.Code, StringComparer.OrdinalIgnoreCase, cancellationToken);
+        var sizeCategories = await dbContext.Set<SizeCategory>().ToDictionaryAsync(x => x.Code, StringComparer.OrdinalIgnoreCase, cancellationToken);
+        var existingMappings = await dbContext.Set<BreedAllowedSizeCategory>().ToListAsync(cancellationToken);
+        var existingPairs = existingMappings
+            .Select(x => (x.BreedId, x.SizeCategoryId))
+            .ToHashSet();
+
+        var mappings = new List<BreedAllowedSizeCategorySeed>();
+
+        AddMappings(new[] { "DOG_MIXED" }, "TEACUP", "MINIATURE", "TOY", "SMALL", "MEDIUM", "LARGE", "GIANT");
+        AddMappings(new[] { "POODLE_TOY", "POODLE_MINIATURE", "MALTIPOO_F1", "MALTIPOO_F2", "YORKIPOO", "SHIH_POO" }, "MINIATURE", "TOY", "SMALL");
+        AddMappings(new[] { "POODLE_STANDARD" }, "MEDIUM", "LARGE");
+        AddMappings(new[] { "CAVAPOO_F1", "CAVAPOO_F2", "COCKAPOO" }, "SMALL", "MEDIUM");
+        AddMappings(new[] { "LABRADOODLE", "GOLDENDOODLE" }, "MEDIUM", "LARGE");
+
+        AddMappings(new[] { "POMERANIAN" }, "MINIATURE", "TOY", "SMALL");
+        AddMappings(new[] { "JAPANESE_SPITZ" }, "SMALL", "MEDIUM");
+        AddMappings(new[] { "SAMOYED" }, "LARGE");
+        AddMappings(new[] { "SHIBA_INU" }, "MEDIUM");
+        AddMappings(new[] { "AKITA" }, "LARGE");
+        AddMappings(new[] { "HUSKY" }, "MEDIUM", "LARGE");
+        AddMappings(new[] { "POMSKY" }, "SMALL", "MEDIUM");
+
+        AddMappings(new[] { "LABRADOR_RETRIEVER", "GOLDEN_RETRIEVER" }, "LARGE");
+        AddMappings(new[] { "NOVA_SCOTIA_DUCK_TOLLING_RETRIEVER" }, "MEDIUM");
+
+        AddMappings(new[] { "GERMAN_SHEPHERD", "BELGIAN_SHEPHERD" }, "LARGE");
+        AddMappings(new[] { "AUSTRALIAN_SHEPHERD", "BORDER_COLLIE" }, "MEDIUM");
+        AddMappings(new[] { "WELSH_CORGI_PEMBROKE", "WELSH_CORGI_CARDIGAN" }, "MEDIUM");
+
+        AddMappings(new[] { "YORKSHIRE_TERRIER" }, "MINIATURE", "TOY", "SMALL");
+        AddMappings(new[] { "WEST_HIGHLAND_WHITE_TERRIER", "JACK_RUSSELL_TERRIER", "FOX_TERRIER", "SCOTTISH_TERRIER" }, "SMALL");
+
+        AddMappings(new[] { "CHIHUAHUA" }, "TEACUP", "MINIATURE", "TOY", "SMALL");
+        AddMappings(new[] { "PAPILLON", "CHINESE_CRESTED", "MINIATURE_PINSCHER" }, "MINIATURE", "TOY", "SMALL");
+        AddMappings(new[] { "PUG", "PEKINGESE", "SHIH_TZU", "CAVALIER_KING_CHARLES_SPANIEL" }, "SMALL");
+
+        AddMappings(new[] { "MALTESE", "BICHON_FRISE", "HAVANESE", "COTON_DE_TULEAR" }, "MINIATURE", "TOY", "SMALL");
+
+        AddMappings(new[] { "DACHSHUND_SMOOTH", "DACHSHUND_LONG_HAIRED", "DACHSHUND_WIRE_HAIRED", "FRENCH_BULLDOG", "ENGLISH_BULLDOG", "BOSTON_TERRIER", "BEAGLE" }, "SMALL");
+        AddMappings(new[] { "CANE_CORSO" }, "LARGE", "GIANT");
+
+        AddMappings(new[] { "BASSET_HOUND", "WHIPPET" }, "MEDIUM");
+        AddMappings(new[] { "GREYHOUND" }, "LARGE");
+
+        AddMappings(new[] { "BERNESE_MOUNTAIN_DOG" }, "LARGE", "GIANT");
+        AddMappings(new[] { "NEWFOUNDLAND" }, "GIANT");
+        AddMappings(new[] { "DOBERMAN", "ROTTWEILER" }, "LARGE");
+
+        AddMappings(new[] { "CAT_MIXED" }, "SMALL", "MEDIUM", "LARGE");
+        AddMappings(new[] { "BRITISH_SHORTHAIR" }, "MEDIUM", "LARGE");
+        AddMappings(new[] { "SCOTTISH_STRAIGHT", "SCOTTISH_FOLD", "BENGAL", "ABYSSINIAN", "BURMESE", "RUSSIAN_BLUE", "EXOTIC_SHORTHAIR", "AMERICAN_SHORTHAIR" }, "SMALL", "MEDIUM");
+        AddMappings(new[] { "SIBERIAN_CAT" }, "MEDIUM", "LARGE");
+        AddMappings(new[] { "MAINE_COON" }, "LARGE", "GIANT");
+        AddMappings(new[] { "PERSIAN", "TURKISH_ANGORA", "SPHYNX", "DONSKOY" }, "SMALL", "MEDIUM");
+        AddMappings(new[] { "NORWEGIAN_FOREST_CAT", "RAGDOLL", "NEVA_MASQUERADE" }, "LARGE");
+
+        var pending = new List<BreedAllowedSizeCategory>();
+        foreach (var mapping in mappings)
+        {
+            var breed = breeds.TryGetValue(mapping.BreedCode, out var breedValue)
+                ? breedValue
+                : throw new InvalidOperationException($"Seed breed '{mapping.BreedCode}' was not found.");
+            var sizeCategory = sizeCategories.TryGetValue(mapping.SizeCategoryCode, out var sizeCategoryValue)
+                ? sizeCategoryValue
+                : throw new InvalidOperationException($"Seed size category '{mapping.SizeCategoryCode}' was not found.");
+
+            if (existingPairs.Add((breed.Id, sizeCategory.Id)))
+            {
+                pending.Add(new BreedAllowedSizeCategory
+                {
+                    BreedId = breed.Id,
+                    SizeCategoryId = sizeCategory.Id
+                });
+            }
+        }
+
+        if (pending.Count > 0)
+        {
+            dbContext.Set<BreedAllowedSizeCategory>().AddRange(pending);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        void AddMappings(IEnumerable<string> breedCodes, params string[] sizeCategoryCodes)
+        {
+            foreach (var breedCode in breedCodes)
+            {
+                foreach (var sizeCategoryCode in sizeCategoryCodes)
+                {
+                    mappings.Add(new BreedAllowedSizeCategorySeed(breedCode, sizeCategoryCode));
+                }
+            }
+        }
     }
 
     private static async Task EnsureCoatTypeAsync(AppDbContext dbContext, string code, string name, Guid? animalTypeId, CancellationToken cancellationToken)
@@ -305,6 +403,40 @@ public sealed class PetsCatalogSeeder : IDataSeeder
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    private static async Task EnsureSizeCategoryAsync(AppDbContext dbContext, string code, string name, Guid? animalTypeId, decimal? minWeightKg, decimal? maxWeightKg, CancellationToken cancellationToken)
+    {
+        var existing = await dbContext.Set<SizeCategory>().SingleOrDefaultAsync(x => x.Code == code, cancellationToken);
+        if (existing is null)
+        {
+            dbContext.Set<SizeCategory>().Add(new SizeCategory
+            {
+                Id = Guid.NewGuid(),
+                AnimalTypeId = animalTypeId,
+                Code = code,
+                Name = name,
+                MinWeightKg = minWeightKg,
+                MaxWeightKg = maxWeightKg
+            });
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return;
+        }
+
+        if (existing.AnimalTypeId == animalTypeId
+            && string.Equals(existing.Name, name, StringComparison.Ordinal)
+            && existing.MinWeightKg == minWeightKg
+            && existing.MaxWeightKg == maxWeightKg)
+        {
+            return;
+        }
+
+        existing.AnimalTypeId = animalTypeId;
+        existing.Name = name;
+        existing.MinWeightKg = minWeightKg;
+        existing.MaxWeightKg = maxWeightKg;
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     private static async Task EnsureEntityAsync<TEntity>(AppDbContext dbContext, Func<TEntity, string> codeSelector, TEntity entity, CancellationToken cancellationToken)
         where TEntity : class
     {
@@ -322,4 +454,5 @@ public sealed class PetsCatalogSeeder : IDataSeeder
     private sealed record BreedGroupSeed(Guid AnimalTypeId, string Code, string Name);
     private sealed record BreedSeed(Guid AnimalTypeId, Guid? BreedGroupId, string Code, string Name);
     private sealed record BreedAllowedCoatTypeSeed(string BreedCode, string CoatTypeCode);
+    private sealed record BreedAllowedSizeCategorySeed(string BreedCode, string SizeCategoryCode);
 }
