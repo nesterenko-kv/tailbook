@@ -1,0 +1,108 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: tailbook-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tailbook}
+      POSTGRES_USER: ${POSTGRES_USER:-tailbook}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tailbook-change-me}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-prod-data:/var/lib/postgresql/data
+      - ./ops/backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tailbook} -d ${POSTGRES_DB:-tailbook}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/src/Tailbook.Api.Host/Dockerfile
+    container_name: tailbook-api-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Main: Host=postgres;Port=5432;Database=${POSTGRES_DB:-tailbook};Username=${POSTGRES_USER:-tailbook};Password=${POSTGRES_PASSWORD:-tailbook-change-me};Include Error Detail=false
+      Jwt__Issuer: ${Jwt__Issuer:-tailbook.local}
+      Jwt__Audience: ${Jwt__Audience:-tailbook.apps}
+      Jwt__SigningKey: ${Jwt__SigningKey:-change-this-in-production-and-make-it-long-random-secret}
+      BootstrapAdmin__Email: ${BOOTSTRAP_ADMIN_EMAIL:-admin@tailbook.local}
+      BootstrapAdmin__Password: ${BOOTSTRAP_ADMIN_PASSWORD:-ChangeMeNow123!}
+      BootstrapAdmin__DisplayName: ${BOOTSTRAP_ADMIN_DISPLAY_NAME:-Bootstrap Administrator}
+      AppCors__AllowedOrigins__0: ${ADMIN_APP_ORIGIN:-http://localhost:3001}
+      AppCors__AllowedOrigins__1: ${CLIENT_APP_ORIGIN:-http://localhost:3002}
+      AppCors__AllowedOrigins__2: ${GROOMER_APP_ORIGIN:-http://localhost:3003}
+      HttpTransport__EnforceHttpsRedirection: "false"
+      HttpTransport__UseHsts: "false"
+      Notifications__EnableBackgroundProcessing: "true"
+      Notifications__BackgroundPollIntervalSeconds: ${NOTIFICATIONS_POLL_INTERVAL_SECONDS:-15}
+      Notifications__LocalFilePath: /app/data/notifications/notifications.log
+      StaffScheduling__TimeZoneId: ${SALON_TIMEZONE_ID:-Europe/Kyiv}
+      AllowedHosts: localhost;127.0.0.1
+    ports:
+      - "${TAILBOOK_API_PORT:-5001}:8080"
+    volumes:
+      - api-data:/app/data
+
+  admin-web:
+    build:
+      context: .
+      dockerfile: apps/admin-web/Dockerfile
+    container_name: tailbook-admin-web-prod
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:5001}
+      INTERNAL_API_BASE_URL: http://api:8080
+    ports:
+      - "${TAILBOOK_ADMIN_WEB_PORT:-3001}:3000"
+
+  client-web:
+    build:
+      context: .
+      dockerfile: apps/client-web/Dockerfile
+    container_name: tailbook-client-web-prod
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:5001}
+      INTERNAL_API_BASE_URL: http://api:8080
+    ports:
+      - "${TAILBOOK_CLIENT_WEB_PORT:-3002}:3000"
+
+  groomer-web:
+    build:
+      context: .
+      dockerfile: apps/groomer-web/Dockerfile
+    container_name: tailbook-groomer-web-prod
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:5001}
+      INTERNAL_API_BASE_URL: http://api:8080
+    ports:
+      - "${TAILBOOK_GROOMER_WEB_PORT:-3003}:3000"
+
+volumes:
+  postgres-prod-data:
+  api-data:
