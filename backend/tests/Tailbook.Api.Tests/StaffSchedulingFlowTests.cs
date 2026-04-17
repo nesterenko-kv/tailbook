@@ -177,6 +177,24 @@ public sealed class StaffSchedulingFlowTests : IClassFixture<CustomWebApplicatio
         Assert.Equal(HttpStatusCode.BadRequest, availabilityResponse.StatusCode);
     }
 
+    [Fact]
+    public async Task Admin_can_list_groomers_in_items_envelope()
+    {
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
+        using var client = _factory.CreateClient();
+        CustomWebApplicationFactory.SetBearer(client, token);
+
+        var created = await CreateGroomerAsync(client, "Envelope Groomer");
+
+        var response = await client.GetAsync("/api/admin/groomers");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var payload = await response.Content.ReadFromJsonAsync<ListGroomersEnvelope>();
+        Assert.NotNull(payload);
+        Assert.NotEmpty(payload!.Items);
+        Assert.Contains(payload.Items, x => x.Id == created.Id);
+    }
+
     private static async Task<PetCatalogEnvelope> GetPetCatalogAsync(HttpClient client)
     {
         var response = await client.GetAsync("/api/admin/pets/catalog");
@@ -421,5 +439,16 @@ public sealed class StaffSchedulingFlowTests : IClassFixture<CustomWebApplicatio
     private sealed class RuleSetEnvelope
     {
         public Guid Id { get; set; }
+    }
+
+    private sealed class ListGroomersEnvelope
+    {
+        public GroomerListItemEnvelope[] Items { get; set; } = [];
+    }
+
+    private sealed class GroomerListItemEnvelope
+    {
+        public Guid Id { get; set; }
+        public string DisplayName { get; set; } = string.Empty;
     }
 }

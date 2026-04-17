@@ -3,7 +3,21 @@
 import { FormEvent, useEffect, useState } from "react";
 import { apiRequest, ApiError } from "@/lib/api";
 import { formatDateTime, formatMoney } from "@/lib/format";
-import type { ClientDetail, ClientListItem, DurationRuleSet, OfferListItem, PagedResult, PetCatalog, PriceRuleSet, QuotePreview, GroomerListItem } from "@/lib/types";
+import { unwrapItems } from "@/lib/contracts";
+import type {
+    ClientDetail,
+    ClientListItem,
+    DurationRuleSet,
+    DurationRuleSetListResponse,
+    OfferListItem,
+    PagedResult,
+    PetCatalog,
+    PriceRuleSet,
+    PriceRuleSetListResponse,
+    QuotePreview,
+    GroomerListItem,
+    GroomerListResponse
+} from "@/lib/types";
 import { Badge, Card, ErrorBanner, Field, Input, PageHeader, PrimaryButton, Select, SuccessBanner } from "@/components/ui";
 
 export default function PricingPage() {
@@ -28,21 +42,41 @@ export default function PricingPage() {
             const [offerResponse, clientResponse, groomerResponse, catalogResponse, priceResponse, durationResponse] = await Promise.all([
                 apiRequest<OfferListItem[]>("/api/admin/catalog/offers"),
                 apiRequest<PagedResult<ClientListItem>>("/api/admin/clients?page=1&pageSize=100"),
-                apiRequest<{ items: GroomerListItem[] }>("/api/admin/groomers"),
+                apiRequest<GroomerListResponse>("/api/admin/groomers"),
                 apiRequest<PetCatalog>("/api/admin/pets/catalog"),
-                apiRequest<PriceRuleSet[]>("/api/admin/pricing/rule-sets"),
-                apiRequest<DurationRuleSet[]>("/api/admin/duration/rule-sets")
+                apiRequest<PriceRuleSetListResponse>("/api/admin/pricing/rule-sets"),
+                apiRequest<DurationRuleSetListResponse>("/api/admin/duration/rule-sets")
             ]);
-
+    
+            const groomerItems = unwrapItems(groomerResponse);
+            const priceRuleSetItems = unwrapItems(priceResponse);
+            const durationRuleSetItems = unwrapItems(durationResponse);
+    
             setOffers(offerResponse);
             setClients(clientResponse.items);
-            setGroomers(groomerResponse.items);
+            setGroomers(groomerItems);
             setCatalog(catalogResponse);
-            setPriceRuleSets(priceResponse);
-            setDurationRuleSets(durationResponse);
-            setPriceRuleForm((current) => ({ ...current, ruleSetId: current.ruleSetId || priceResponse[0]?.id || "", offerId: current.offerId || offerResponse[0]?.id || "" }));
-            setDurationRuleForm((current) => ({ ...current, ruleSetId: current.ruleSetId || durationResponse[0]?.id || "", offerId: current.offerId || offerResponse[0]?.id || "" }));
-            setQuoteForm((current) => ({ ...current, clientId: current.clientId || clientResponse.items[0]?.id || "", groomerId: current.groomerId || groomerResponse.items[0]?.id || "", offerIds: current.offerIds.length > 0 ? current.offerIds : offerResponse[0] ? [offerResponse[0].id] : [] }));
+            setPriceRuleSets(priceRuleSetItems);
+            setDurationRuleSets(durationRuleSetItems);
+    
+            setPriceRuleForm((current) => ({
+                ...current,
+                ruleSetId: current.ruleSetId || priceRuleSetItems[0]?.id || "",
+                offerId: current.offerId || offerResponse[0]?.id || ""
+            }));
+    
+            setDurationRuleForm((current) => ({
+                ...current,
+                ruleSetId: current.ruleSetId || durationRuleSetItems[0]?.id || "",
+                offerId: current.offerId || offerResponse[0]?.id || ""
+            }));
+    
+            setQuoteForm((current) => ({
+                ...current,
+                clientId: current.clientId || clientResponse.items[0]?.id || "",
+                groomerId: current.groomerId || groomerItems[0]?.id || "",
+                offerIds: current.offerIds.length > 0 ? current.offerIds : offerResponse[0] ? [offerResponse[0].id] : []
+            }));
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Failed to load pricing data.");
         }

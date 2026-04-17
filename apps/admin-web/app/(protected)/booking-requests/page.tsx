@@ -3,7 +3,8 @@
 import { FormEvent, useEffect, useState } from "react";
 import { apiRequest, ApiError } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
-import type { BookingRequestListItem, ClientDetail, GroomerListItem, OfferListItem, PagedResult } from "@/lib/types";
+import { unwrapItems } from "@/lib/contracts";
+import type { BookingRequestListItem, ClientDetail, GroomerListItem, GroomerListResponse, OfferListItem, PagedResult } from "@/lib/types";
 import { Badge, Card, ErrorBanner, Field, Input, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
 
 export default function BookingRequestsPage() {
@@ -25,12 +26,12 @@ export default function BookingRequestsPage() {
         apiRequest<PagedResult<BookingRequestListItem>>("/api/admin/booking-requests?page=1&pageSize=50"),
         apiRequest<OfferListItem[]>("/api/admin/catalog/offers"),
         apiRequest<PagedResult<{ id: string; displayName: string }>>("/api/admin/clients?page=1&pageSize=100"),
-        apiRequest<GroomerListItem[]>("/api/admin/groomers")
+        apiRequest<GroomerListResponse>("/api/admin/groomers")
       ]);
       setRequests(requestResponse.items);
       setOffers(offerResponse);
       setClients(clientResponse.items);
-      setGroomers(groomerResponse);
+      setGroomers(unwrapItems(groomerResponse));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to load booking requests.");
     }

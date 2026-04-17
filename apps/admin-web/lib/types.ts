@@ -28,6 +28,10 @@ export type PagedResult<T> = {
     totalCount: number;
 };
 
+export type ItemsEnvelope<T> = {
+    items: T[];
+};
+
 export type ClientListItem = {
     id: string;
     displayName: string;
@@ -277,6 +281,10 @@ export type GroomerListItem = {
     createdAtUtc: string;
     updatedAtUtc: string;
 };
+
+export type GroomerListResponse = ItemsEnvelope<GroomerListItem>;
+export type PriceRuleSetListResponse = ItemsEnvelope<PriceRuleSet>;
+export type DurationRuleSetListResponse = ItemsEnvelope<DurationRuleSet>;
 
 export type GroomerCapability = {
     id: string;

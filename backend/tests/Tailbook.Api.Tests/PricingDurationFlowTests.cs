@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Booking.Domain;
+using Xunit;
 
 namespace Tailbook.Api.Tests;
 
@@ -25,7 +25,8 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
 
         var catalog = await GetPetCatalogAsync(client);
         var clientId = await CreateClientAsync(client, "Quote Client");
-        var petId = await RegisterPetAsync(client, clientId, catalog.SamoyedBreedId, catalog.DogAnimalTypeCode, catalog.DoubleCoatCode, catalog.LargeSizeCode);
+        var petId = await RegisterPetAsync(client, clientId, catalog.SamoyedBreedId, catalog.DogAnimalTypeCode,
+            catalog.DoubleCoatCode, catalog.LargeSizeCode);
 
         var offer = await CreateOfferAsync(client, "FULL_GROOM_QUOTE", "Package", "Full Groom Quote");
         var procedure = await CreateProcedureAsync(client, "FULL_GROOM_QUOTE_PROC", "Full Groom Quote Procedure");
@@ -38,7 +39,8 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
         await PublishPriceRuleSetAsync(client, priceRuleSet.Id);
 
         var durationRuleSet = await CreateDurationRuleSetAsync(client);
-        await AddDurationRuleAsync(client, durationRuleSet.Id, offer.Id, 100, 120, 10, 15, catalog.SamoyedBreedId, null);
+        await AddDurationRuleAsync(client, durationRuleSet.Id, offer.Id, 100, 120, 10, 15, catalog.SamoyedBreedId,
+            null);
         await PublishDurationRuleSetAsync(client, durationRuleSet.Id);
 
         var previewResponse = await client.PostAsJsonAsync("/api/admin/quotes/preview", new
@@ -76,7 +78,8 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
 
         var catalog = await GetPetCatalogAsync(client);
         var clientId = await CreateClientAsync(client, "Specificity Client");
-        var petId = await RegisterPetAsync(client, clientId, catalog.SamoyedBreedId, catalog.DogAnimalTypeCode, catalog.DoubleCoatCode, catalog.LargeSizeCode);
+        var petId = await RegisterPetAsync(client, clientId, catalog.SamoyedBreedId, catalog.DogAnimalTypeCode,
+            catalog.DoubleCoatCode, catalog.LargeSizeCode);
 
         var offer = await CreateOfferAsync(client, "BREED_RULE_PACKAGE", "Package", "Breed Rule Package");
         var procedure = await CreateProcedureAsync(client, "BREED_RULE_PACKAGE_PROC", "Breed Rule Package Procedure");
@@ -106,7 +109,8 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
         var preview = await previewResponse.Content.ReadFromJsonAsync<PreviewQuoteResponse>();
         Assert.NotNull(preview);
         Assert.Equal(1500m, preview!.PriceSnapshot.TotalAmount);
-        Assert.Contains(preview.PriceSnapshot.Lines, x => x.Label.Contains("Samoyed", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(preview.PriceSnapshot.Lines,
+            x => x.Label.Contains("Samoyed", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -131,6 +135,29 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
         Assert.Equal(HttpStatusCode.Forbidden, previewResponse.StatusCode);
     }
 
+    [Fact]
+    public async Task Admin_can_list_price_and_duration_rule_sets_in_items_envelopes()
+    {
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
+        using var client = _factory.CreateClient();
+        CustomWebApplicationFactory.SetBearer(client, token);
+
+        var priceRuleSet = await CreatePriceRuleSetAsync(client);
+        var durationRuleSet = await CreateDurationRuleSetAsync(client);
+
+        var pricingResponse = await client.GetAsync("/api/admin/pricing/rule-sets");
+        Assert.Equal(HttpStatusCode.OK, pricingResponse.StatusCode);
+        var pricingPayload = await pricingResponse.Content.ReadFromJsonAsync<PriceRuleSetsEnvelope>();
+        Assert.NotNull(pricingPayload);
+        Assert.Contains(pricingPayload!.Items, x => x.Id == priceRuleSet.Id);
+
+        var durationResponse = await client.GetAsync("/api/admin/duration/rule-sets");
+        Assert.Equal(HttpStatusCode.OK, durationResponse.StatusCode);
+        var durationPayload = await durationResponse.Content.ReadFromJsonAsync<DurationRuleSetsEnvelope>();
+        Assert.NotNull(durationPayload);
+        Assert.Contains(durationPayload!.Items, x => x.Id == durationRuleSet.Id);
+    }
+
     private static async Task<PetCatalogEnvelope> GetPetCatalogAsync(HttpClient client)
     {
         var response = await client.GetAsync("/api/admin/pets/catalog");
@@ -147,7 +174,8 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
         return payload!.Id;
     }
 
-    private static async Task<Guid> RegisterPetAsync(HttpClient client, Guid clientId, Guid breedId, string animalTypeCode, string coatTypeCode, string sizeCategoryCode)
+    private static async Task<Guid> RegisterPetAsync(HttpClient client, Guid clientId, Guid breedId,
+        string animalTypeCode, string coatTypeCode, string sizeCategoryCode)
     {
         var response = await client.PostAsJsonAsync("/api/admin/pets", new
         {
@@ -164,7 +192,8 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
         return payload!.Id;
     }
 
-    private static async Task<OfferEnvelope> CreateOfferAsync(HttpClient client, string code, string offerType, string displayName)
+    private static async Task<OfferEnvelope> CreateOfferAsync(HttpClient client, string code, string offerType,
+        string displayName)
     {
         var response = await client.PostAsJsonAsync("/api/admin/catalog/offers", new { code, offerType, displayName });
         response.EnsureSuccessStatusCode();
@@ -200,7 +229,8 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
 
     private static async Task PublishOfferVersionAsync(HttpClient client, Guid versionId)
     {
-        var response = await client.PostAsJsonAsync($"/api/admin/catalog/offer-versions/{versionId:D}/publish", new { versionId });
+        var response = await client.PostAsJsonAsync($"/api/admin/catalog/offer-versions/{versionId:D}/publish",
+            new { versionId });
         response.EnsureSuccessStatusCode();
     }
 
@@ -211,7 +241,8 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
         return (await response.Content.ReadFromJsonAsync<RuleSetEnvelope>())!;
     }
 
-    private static async Task AddPriceRuleAsync(HttpClient client, Guid ruleSetId, Guid offerId, int priority, decimal fixedAmount, Guid? breedId, Guid? animalTypeId)
+    private static async Task AddPriceRuleAsync(HttpClient client, Guid ruleSetId, Guid offerId, int priority,
+        decimal fixedAmount, Guid? breedId, Guid? animalTypeId)
     {
         var response = await client.PostAsJsonAsync($"/api/admin/pricing/rule-sets/{ruleSetId:D}/rules", new
         {
@@ -228,7 +259,8 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
 
     private static async Task PublishPriceRuleSetAsync(HttpClient client, Guid ruleSetId)
     {
-        var response = await client.PostAsJsonAsync($"/api/admin/pricing/rule-sets/{ruleSetId:D}/publish", new { ruleSetId });
+        var response =
+            await client.PostAsJsonAsync($"/api/admin/pricing/rule-sets/{ruleSetId:D}/publish", new { ruleSetId });
         response.EnsureSuccessStatusCode();
     }
 
@@ -239,7 +271,8 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
         return (await response.Content.ReadFromJsonAsync<RuleSetEnvelope>())!;
     }
 
-    private static async Task AddDurationRuleAsync(HttpClient client, Guid ruleSetId, Guid offerId, int priority, int baseMinutes, int before, int after, Guid? breedId, Guid? animalTypeId)
+    private static async Task AddDurationRuleAsync(HttpClient client, Guid ruleSetId, Guid offerId, int priority,
+        int baseMinutes, int before, int after, Guid? breedId, Guid? animalTypeId)
     {
         var response = await client.PostAsJsonAsync($"/api/admin/duration/rule-sets/{ruleSetId:D}/rules", new
         {
@@ -257,16 +290,40 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
 
     private static async Task PublishDurationRuleSetAsync(HttpClient client, Guid ruleSetId)
     {
-        var response = await client.PostAsJsonAsync($"/api/admin/duration/rule-sets/{ruleSetId:D}/publish", new { ruleSetId });
+        var response =
+            await client.PostAsJsonAsync($"/api/admin/duration/rule-sets/{ruleSetId:D}/publish", new { ruleSetId });
         response.EnsureSuccessStatusCode();
     }
 
-    private sealed class CreateClientEnvelope { public Guid Id { get; set; } }
-    private sealed class PetEnvelope { public Guid Id { get; set; } }
-    private sealed class OfferEnvelope { public Guid Id { get; set; } }
-    private sealed class ProcedureEnvelope { public Guid Id { get; set; } }
-    private sealed class OfferVersionEnvelope { public Guid Id { get; set; } }
-    private sealed class RuleSetEnvelope { public Guid Id { get; set; } }
+    private sealed class CreateClientEnvelope
+    {
+        public Guid Id { get; set; }
+    }
+
+    private sealed class PetEnvelope
+    {
+        public Guid Id { get; set; }
+    }
+
+    private sealed class OfferEnvelope
+    {
+        public Guid Id { get; set; }
+    }
+
+    private sealed class ProcedureEnvelope
+    {
+        public Guid Id { get; set; }
+    }
+
+    private sealed class OfferVersionEnvelope
+    {
+        public Guid Id { get; set; }
+    }
+
+    private sealed class RuleSetEnvelope
+    {
+        public Guid Id { get; set; }
+    }
 
     private sealed class PetCatalogEnvelope
     {
@@ -282,10 +339,27 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
         public string LargeSizeCode => SizeCategories.Single(x => x.Code == "LARGE").Code;
     }
 
-    private sealed class AnimalTypeEnvelope { public Guid Id { get; set; } public string Code { get; set; } = string.Empty; }
-    private sealed class BreedEnvelope { public Guid Id { get; set; } public string Code { get; set; } = string.Empty; }
-    private sealed class CoatTypeEnvelope { public string Code { get; set; } = string.Empty; }
-    private sealed class SizeCategoryEnvelope { public string Code { get; set; } = string.Empty; }
+    private sealed class AnimalTypeEnvelope
+    {
+        public Guid Id { get; set; }
+        public string Code { get; } = string.Empty;
+    }
+
+    private sealed class BreedEnvelope
+    {
+        public Guid Id { get; set; }
+        public string Code { get; } = string.Empty;
+    }
+
+    private sealed class CoatTypeEnvelope
+    {
+        public string Code { get; } = string.Empty;
+    }
+
+    private sealed class SizeCategoryEnvelope
+    {
+        public string Code { get; } = string.Empty;
+    }
 
     private sealed class PreviewQuoteResponse
     {
@@ -296,12 +370,12 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
         {
             public Guid Id { get; set; }
             public decimal TotalAmount { get; set; }
-            public PriceLineEnvelope[] Lines { get; set; } = [];
+            public PriceLineEnvelope[] Lines { get; } = [];
         }
 
         public sealed class PriceLineEnvelope
         {
-            public string Label { get; set; } = string.Empty;
+            public string Label { get; } = string.Empty;
         }
 
         public sealed class DurationSnapshotEnvelope
@@ -309,12 +383,27 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
             public Guid Id { get; set; }
             public int ServiceMinutes { get; set; }
             public int ReservedMinutes { get; set; }
-            public DurationLineEnvelope[] Lines { get; set; } = [];
+            public DurationLineEnvelope[] Lines { get; } = [];
         }
 
         public sealed class DurationLineEnvelope
         {
             public string Label { get; set; } = string.Empty;
         }
+    }
+
+    private sealed class PriceRuleSetsEnvelope
+    {
+        public RuleSetListItem[] Items { get; set; } = [];
+    }
+
+    private sealed class DurationRuleSetsEnvelope
+    {
+        public RuleSetListItem[] Items { get; set; } = [];
+    }
+
+    private sealed class RuleSetListItem
+    {
+        public Guid Id { get; set; }
     }
 }

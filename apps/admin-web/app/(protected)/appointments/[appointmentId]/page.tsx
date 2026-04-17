@@ -1,12 +1,13 @@
 "use client";
 
+import { unwrapItems } from "@/lib/contracts";
+import type { AppointmentDetail, GroomerListItem, GroomerListResponse } from "@/lib/types";
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { apiRequest, ApiError } from "@/lib/api";
 import { addRecentVisitId } from "@/lib/recent";
 import { formatDateTime, formatMoney } from "@/lib/format";
-import type { AppointmentDetail, GroomerListItem } from "@/lib/types";
 import { Badge, Card, ErrorBanner, Field, Input, LinkButton, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
 
 export default function AppointmentDetailPage() {
@@ -25,12 +26,14 @@ export default function AppointmentDetailPage() {
     try {
       const [detail, groomerResponse] = await Promise.all([
         apiRequest<AppointmentDetail>(`/api/admin/appointments/${appointmentId}`),
-        apiRequest<GroomerListItem[]>("/api/admin/groomers")
+        apiRequest<GroomerListResponse>("/api/admin/groomers")
       ]);
       setAppointment(detail);
-      setGroomers(groomerResponse);
+      setGroomers(unwrapItems(groomerResponse));
       setRescheduleForm({ groomerId: detail.groomerId, startAtUtc: new Date(detail.startAtUtc).toISOString().slice(0,16) });
-    } catch (err) { setError(err instanceof ApiError ? err.message : "Failed to load appointment."); }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to load appointment.");
+    }
   }
 
   useEffect(() => { void loadAll(); }, [appointmentId]);
@@ -98,15 +101,15 @@ export default function AppointmentDetailPage() {
           <div className="grid gap-6">
             <Card title="Reschedule">
               <form className="grid gap-4" onSubmit={reschedule}>
-                <Field label="Groomer"><Select value={rescheduleForm.groomerId} onChange={(e)=>setRescheduleForm(c=>({...c, groomerId:e.target.value}))}>{groomers.map(x=><option key={x.id} value={x.id}>{x.displayName}</option>)}</Select></Field>
-                <Field label="Start at"><Input type="datetime-local" value={rescheduleForm.startAtUtc} onChange={(e)=>setRescheduleForm(c=>({...c, startAtUtc:e.target.value}))} /></Field>
+                <Field label="Groomer"><Select value={rescheduleForm.groomerId} onChange={(e) => setRescheduleForm(c => ({ ...c, groomerId: e.target.value }))}>{groomers.map(x => <option key={x.id} value={x.id}>{x.displayName}</option>)}</Select></Field>
+                <Field label="Start at"><Input type="datetime-local" value={rescheduleForm.startAtUtc} onChange={(e) => setRescheduleForm(c => ({ ...c, startAtUtc: e.target.value }))} /></Field>
                 <PrimaryButton type="submit">Reschedule</PrimaryButton>
               </form>
             </Card>
             <Card title="Cancel">
               <form className="grid gap-4" onSubmit={cancel}>
-                <Field label="Reason code"><Input value={cancelForm.reasonCode} onChange={(e)=>setCancelForm(c=>({...c, reasonCode:e.target.value}))} /></Field>
-                <Field label="Notes"><TextArea value={cancelForm.notes} onChange={(e)=>setCancelForm(c=>({...c, notes:e.target.value}))} /></Field>
+                <Field label="Reason code"><Input value={cancelForm.reasonCode} onChange={(e) => setCancelForm(c => ({ ...c, reasonCode: e.target.value }))} /></Field>
+                <Field label="Notes"><TextArea value={cancelForm.notes} onChange={(e) => setCancelForm(c => ({ ...c, notes: e.target.value }))} /></Field>
                 <PrimaryButton type="submit" className="bg-rose-500 text-white hover:bg-rose-400">Cancel appointment</PrimaryButton>
               </form>
             </Card>

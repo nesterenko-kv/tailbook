@@ -4,7 +4,8 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { apiRequest, ApiError } from "@/lib/api";
 import { formatDateTime, formatMoney } from "@/lib/format";
-import type { AppointmentListItem, ClientDetail, GroomerListItem, OfferListItem, PagedResult } from "@/lib/types";
+import { unwrapItems } from "@/lib/contracts";
+import type { AppointmentListItem, ClientDetail, GroomerListItem, GroomerListResponse, OfferListItem, PagedResult } from "@/lib/types";
 import { Badge, Card, ErrorBanner, Field, Input, PageHeader, PrimaryButton, Select, SuccessBanner } from "@/components/ui";
 
 export default function AppointmentsPage() {
@@ -24,12 +25,12 @@ export default function AppointmentsPage() {
         apiRequest<PagedResult<AppointmentListItem>>("/api/admin/appointments?page=1&pageSize=50"),
         apiRequest<PagedResult<{ id: string; displayName: string }>>("/api/admin/clients?page=1&pageSize=100"),
         apiRequest<OfferListItem[]>("/api/admin/catalog/offers"),
-        apiRequest<GroomerListItem[]>("/api/admin/groomers")
+        apiRequest<GroomerListResponse>("/api/admin/groomers")
       ]);
       setAppointments(appointmentResponse.items);
       setClients(clientResponse.items);
       setOffers(offerResponse);
-      setGroomers(groomerResponse);
+      setGroomers(unwrapItems(groomerResponse));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to load appointments.");
     }
@@ -47,7 +48,15 @@ export default function AppointmentsPage() {
     e.preventDefault();
     setError(null); setSuccess(null);
     try {
-      await apiRequest("/api/admin/appointments", { method: "POST", body: JSON.stringify({ petId: form.petId, groomerId: form.groomerId, startAtUtc: new Date(form.startAtUtc).toISOString(), items: form.offerId ? [{ offerId: form.offerId, itemType: null, requestedNotes: null }] : [] }) });
+      await apiRequest("/api/admin/appointments", {
+        method: "POST",
+        body: JSON.stringify({
+          petId: form.petId,
+          groomerId: form.groomerId,
+          startAtUtc: new Date(form.startAtUtc).toISOString(),
+          items: form.offerId ? [{ offerId: form.offerId, itemType: null, requestedNotes: null }] : []
+        })
+      });
       setSuccess("Appointment created.");
       await loadBase();
     } catch (err) { setError(err instanceof ApiError ? err.message : "Failed to create appointment."); }
@@ -63,7 +72,13 @@ export default function AppointmentsPage() {
           <div className="grid gap-3">
             {appointments.map((item) => (
               <Link key={item.id} href={`/appointments/${item.id}`} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 transition hover:border-emerald-500/40">
-                <div className="flex items-start justify-between gap-3"><div><div className="font-medium">{item.id}</div><div className="text-sm text-slate-400">{formatDateTime(item.startAtUtc)}</div></div><Badge>{item.status}</Badge></div>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-medium">{item.id}</div>
+                    <div className="text-sm text-slate-400">{formatDateTime(item.startAtUtc)}</div>
+                  </div>
+                  <Badge>{item.status}</Badge>
+                </div>
                 <div className="mt-2 text-sm text-slate-300">{formatMoney(item.totalAmount)} · items {item.itemCount}</div>
               </Link>
             ))}
