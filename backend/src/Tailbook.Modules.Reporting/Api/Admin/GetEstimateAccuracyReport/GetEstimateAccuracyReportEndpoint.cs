@@ -31,7 +31,18 @@ public sealed class GetEstimateAccuracyReportEndpoint(
             return;
         }
 
-        var report = await reportingQueries.GetEstimateAccuracyAsync(req.FromUtc, req.ToUtc, ct);
-        await Send.OkAsync(report, ct);
+        var items = await reportingQueries.GetEstimateAccuracyAsync(req.FromUtc, req.ToUtc, ct);
+        await Send.OkAsync(new EstimateAccuracyReportView { Items = items }, ct);
     }
+}
+
+public sealed class GetEstimateAccuracyReportRequest
+{
+    public DateTime? FromUtc { get; set; }
+    public DateTime? ToUtc { get; set; }
+}
+
+public sealed class EstimateAccuracyReportView
+{
+    public IReadOnlyCollection<EstimateAccuracyReportItemView> Items { get; set; } = [];
 }

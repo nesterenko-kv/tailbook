@@ -14,4 +14,7 @@ public sealed class NotificationJob
     public int AttemptCount { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     public DateTime? SentAtUtc { get; set; }
+    public string EventType { get; set; } = string.Empty;
+    public DateTime? ProcessedAtUtc { get; set; }
+    public Guid? SourceOutboxMessageId { get; set; }
 }

@@ -31,7 +31,18 @@ public sealed class GetPackagePerformanceReportEndpoint(
             return;
         }
 
-        var report = await reportingQueries.GetPackagePerformanceAsync(req.FromUtc, req.ToUtc, ct);
-        await Send.OkAsync(report, ct);
+        var items = await reportingQueries.GetPackagePerformanceAsync(req.FromUtc, req.ToUtc, ct);
+        await Send.OkAsync(new PackagePerformanceReportView { Items = items }, ct);
     }
+}
+
+public sealed class GetPackagePerformanceReportRequest
+{
+    public DateTime? FromUtc { get; set; }
+    public DateTime? ToUtc { get; set; }
+}
+
+public sealed class PackagePerformanceReportView
+{
+    public IReadOnlyCollection<PackagePerformanceReportItemView> Items { get; set; } = [];
 }
