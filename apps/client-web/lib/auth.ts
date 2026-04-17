@@ -1,5 +1,6 @@
 export const CLIENT_TOKEN_KEY = "tailbook.client.accessToken";
 export const CLIENT_EMAIL_KEY = "tailbook.client.email";
+export const CLIENT_UNAUTHORIZED_EVENT = "tailbook:client:unauthorized";
 
 export function getStoredAccessToken(): string | null {
     if (typeof window === "undefined") {
@@ -18,6 +19,14 @@ export function storeSession(accessToken: string, email: string) {
     window.localStorage.setItem(CLIENT_EMAIL_KEY, email);
 }
 
+export function storeEmail(email: string) {
+    if (typeof window === "undefined") {
+        return;
+    }
+
+    window.localStorage.setItem(CLIENT_EMAIL_KEY, email);
+}
+
 export function clearSession() {
     if (typeof window === "undefined") {
         return;
@@ -25,6 +34,15 @@ export function clearSession() {
 
     window.localStorage.removeItem(CLIENT_TOKEN_KEY);
     window.localStorage.removeItem(CLIENT_EMAIL_KEY);
+}
+
+export function notifyUnauthorized() {
+    clearSession();
+    if (typeof window === "undefined") {
+        return;
+    }
+
+    window.dispatchEvent(new CustomEvent(CLIENT_UNAUTHORIZED_EVENT));
 }
 
 export function getStoredEmail(): string | null {

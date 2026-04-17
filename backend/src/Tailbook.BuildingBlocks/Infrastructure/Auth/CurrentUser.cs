@@ -11,11 +11,15 @@ public sealed class CurrentUser(IHttpContextAccessor httpContextAccessor) : ICur
 
     public string? SubjectId => httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+    public string? Email => httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Email);
+
+    public string? DisplayName => httpContextAccessor.HttpContext?.User.FindFirstValue(TailbookClaimTypes.DisplayName);
+
     public IReadOnlyCollection<string> Roles =>
         httpContextAccessor.HttpContext?.User.FindAll(ClaimTypes.Role).Select(x => x.Value).ToArray()
-        ?? Array.Empty<string>();
+        ?? [];
 
     public IReadOnlyCollection<string> Permissions =>
         httpContextAccessor.HttpContext?.User.FindAll(TailbookClaimTypes.Permission).Select(x => x.Value).ToArray()
-        ?? Array.Empty<string>();
+        ?? [];
 }

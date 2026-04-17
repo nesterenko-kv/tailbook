@@ -1,5 +1,5 @@
 import { resolveApiBaseUrl } from "./env";
-import { getStoredAccessToken } from "./auth";
+import { getStoredAccessToken, notifyUnauthorized } from "./auth";
 
 export class ApiError extends Error {
     status: number;
@@ -42,6 +42,10 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
             }
         } catch {
             // ignore parse failures
+        }
+
+        if (response.status === 401 && typeof window !== "undefined") {
+            notifyUnauthorized();
         }
 
         throw new ApiError(response.status, message);

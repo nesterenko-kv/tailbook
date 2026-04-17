@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import { GroomerShell } from "@/components/groomer-shell";
 import { apiRequest, ApiError } from "@/lib/api";
 
 type VisitDetail = {
@@ -128,80 +129,82 @@ export default function VisitDetailPage() {
     }
 
     return (
-        <main className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10">
-            <Link href={visit ? `/appointments/${visit.appointmentId}` : "/appointments"} className="text-sm text-emerald-300">← Back</Link>
-            {error ? <p className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</p> : null}
-            {visit ? (
-                <>
-                    <section className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
-                        <div className="flex flex-wrap items-start justify-between gap-4">
-                            <div>
-                                <h1 className="text-3xl font-semibold">Visit • {visit.pet.name}</h1>
-                                <p className="mt-2 text-sm text-slate-300">{visit.pet.animalTypeName} • {visit.pet.breedName}</p>
-                                <p className="mt-2 text-sm text-slate-400">Checked in {new Date(visit.checkedInAtUtc).toLocaleString()}</p>
-                            </div>
-                            <span className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-200">{visit.status}</span>
-                        </div>
-                    </section>
-
-                    {visit.items.map((item) => (
-                        <section key={item.id} className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6">
-                            <div className="flex items-start justify-between gap-4">
+        <GroomerShell>
+            <section className="flex flex-col gap-6">
+                <Link href={visit ? `/appointments/${visit.appointmentId}` : "/appointments"} className="text-sm text-emerald-300">← Back</Link>
+                {error ? <p className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</p> : null}
+                {visit ? (
+                    <>
+                        <section className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
+                            <div className="flex flex-wrap items-start justify-between gap-4">
                                 <div>
-                                    <h2 className="text-xl font-medium">{item.offerDisplayName}</h2>
-                                    <p className="mt-2 text-sm text-slate-400">Reserved {item.reservedMinutes} min • Service {item.serviceMinutes} min</p>
+                                    <h1 className="text-3xl font-semibold">Visit • {visit.pet.name}</h1>
+                                    <p className="mt-2 text-sm text-slate-300">{visit.pet.animalTypeName} • {visit.pet.breedName}</p>
+                                    <p className="mt-2 text-sm text-slate-400">Checked in {new Date(visit.checkedInAtUtc).toLocaleString()}</p>
                                 </div>
-                                <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">{item.itemType}</span>
-                            </div>
-
-                            <div className="mt-6 grid gap-4">
-                                {item.expectedComponents.map((component) => {
-                                    const noteKey = `${item.id}:${component.id}`;
-                                    const performed = item.performedProcedures.some((x) => x.procedureId === component.procedureId);
-                                    return (
-                                        <article key={component.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                                                <div>
-                                                    <p className="font-medium">{component.procedureName}</p>
-                                                    <p className="text-sm text-slate-400">{component.procedureCode} • #{component.sequenceNo}</p>
-                                                </div>
-                                                <div className="flex flex-wrap gap-2">
-                                                    <button disabled={performed} onClick={() => markPerformed(item.id, component.procedureId, noteKey)} className="rounded-2xl bg-emerald-500 px-3 py-2 text-sm font-medium text-slate-950 disabled:opacity-50">Performed</button>
-                                                    <button disabled={component.isSkipped} onClick={() => markSkipped(item.id, component.id, noteKey)} className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-100 disabled:opacity-50">Skipped</button>
-                                                </div>
-                                            </div>
-                                            <textarea value={noteByProcedure[noteKey] ?? ""} onChange={(event) => setNoteByProcedure((current) => ({ ...current, [noteKey]: event.target.value }))} placeholder="Optional note" className="mt-3 min-h-20 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-emerald-500" />
-                                        </article>
-                                    );
-                                })}
+                                <span className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-200">{visit.status}</span>
                             </div>
                         </section>
-                    ))}
 
-                    {firstExecutionItem ? (
-                        <section className="grid gap-4 md:grid-cols-2">
-                            <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5">
-                                <h3 className="text-lg font-medium">Performed</h3>
-                                <ul className="mt-3 space-y-2 text-sm text-slate-300">
-                                    {visit.items.flatMap((item) => item.performedProcedures).map((entry) => (
-                                        <li key={entry.id}>{entry.procedureName}</li>
-                                    ))}
-                                    {visit.items.every((item) => item.performedProcedures.length === 0) ? <li className="text-slate-500">Nothing recorded yet.</li> : null}
-                                </ul>
-                            </div>
-                            <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5">
-                                <h3 className="text-lg font-medium">Skipped</h3>
-                                <ul className="mt-3 space-y-2 text-sm text-slate-300">
-                                    {visit.items.flatMap((item) => item.skippedComponents).map((entry) => (
-                                        <li key={entry.id}>{entry.procedureName} — {entry.omissionReasonCode}</li>
-                                    ))}
-                                    {visit.items.every((item) => item.skippedComponents.length === 0) ? <li className="text-slate-500">Nothing skipped yet.</li> : null}
-                                </ul>
-                            </div>
-                        </section>
-                    ) : null}
-                </>
-            ) : null}
-        </main>
+                        {visit.items.map((item) => (
+                            <section key={item.id} className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <h2 className="text-xl font-medium">{item.offerDisplayName}</h2>
+                                        <p className="mt-2 text-sm text-slate-400">Reserved {item.reservedMinutes} min • Service {item.serviceMinutes} min</p>
+                                    </div>
+                                    <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">{item.itemType}</span>
+                                </div>
+
+                                <div className="mt-6 grid gap-4">
+                                    {item.expectedComponents.map((component) => {
+                                        const noteKey = `${item.id}:${component.id}`;
+                                        const performed = item.performedProcedures.some((x) => x.procedureId === component.procedureId);
+                                        return (
+                                            <article key={component.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+                                                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                                    <div>
+                                                        <p className="font-medium">{component.procedureName}</p>
+                                                        <p className="text-sm text-slate-400">{component.procedureCode} • #{component.sequenceNo}</p>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        <button disabled={performed} onClick={() => markPerformed(item.id, component.procedureId, noteKey)} className="rounded-2xl bg-emerald-500 px-3 py-2 text-sm font-medium text-slate-950 disabled:opacity-50">Performed</button>
+                                                        <button disabled={component.isSkipped} onClick={() => markSkipped(item.id, component.id, noteKey)} className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-100 disabled:opacity-50">Skipped</button>
+                                                    </div>
+                                                </div>
+                                                <textarea value={noteByProcedure[noteKey] ?? ""} onChange={(event) => setNoteByProcedure((current) => ({ ...current, [noteKey]: event.target.value }))} placeholder="Optional note" className="mt-3 min-h-20 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-emerald-500" />
+                                            </article>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+                        ))}
+
+                        {firstExecutionItem ? (
+                            <section className="grid gap-4 md:grid-cols-2">
+                                <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5">
+                                    <h3 className="text-lg font-medium">Performed</h3>
+                                    <ul className="mt-3 space-y-2 text-sm text-slate-300">
+                                        {visit.items.flatMap((item) => item.performedProcedures).map((entry) => (
+                                            <li key={entry.id}>{entry.procedureName}</li>
+                                        ))}
+                                        {visit.items.every((item) => item.performedProcedures.length === 0) ? <li className="text-slate-500">Nothing recorded yet.</li> : null}
+                                    </ul>
+                                </div>
+                                <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5">
+                                    <h3 className="text-lg font-medium">Skipped</h3>
+                                    <ul className="mt-3 space-y-2 text-sm text-slate-300">
+                                        {visit.items.flatMap((item) => item.skippedComponents).map((entry) => (
+                                            <li key={entry.id}>{entry.procedureName} — {entry.omissionReasonCode}</li>
+                                        ))}
+                                        {visit.items.every((item) => item.skippedComponents.length === 0) ? <li className="text-slate-500">Nothing skipped yet.</li> : null}
+                                    </ul>
+                                </div>
+                            </section>
+                        ) : null}
+                    </>
+                ) : null}
+            </section>
+        </GroomerShell>
     );
 }

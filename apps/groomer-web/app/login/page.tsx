@@ -1,9 +1,9 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiRequest, ApiError } from "@/lib/api";
-import { storeSession } from "@/lib/auth";
+import { getStoredAccessToken, storeSession } from "@/lib/auth";
 
 type LoginResponse = {
     accessToken: string;
@@ -29,6 +29,12 @@ export default function LoginPage() {
         []
     );
 
+    useEffect(() => {
+        if (getStoredAccessToken()) {
+            router.replace("/appointments");
+        }
+    }, [router]);
+
     async function onSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setError(null);
@@ -40,7 +46,7 @@ export default function LoginPage() {
                 body: JSON.stringify({ email, password })
             });
 
-            storeSession(response.accessToken, response.user.email);
+            storeSession(response.accessToken, response.user.email, response.user.displayName);
             router.push("/appointments");
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Login failed.");

@@ -1,6 +1,7 @@
 const ADMIN_TOKEN_KEY = "tailbook_admin_token";
 const ADMIN_EMAIL_KEY = "tailbook_admin_email";
 const ADMIN_DISPLAY_NAME_KEY = "tailbook_admin_display_name";
+export const ADMIN_UNAUTHORIZED_EVENT = "tailbook:admin:unauthorized";
 
 function canUseStorage() {
   return typeof window !== "undefined";
@@ -14,6 +15,11 @@ export function getAdminToken() {
 export function setAdminSession(input: { accessToken: string; email: string; displayName: string }) {
   if (!canUseStorage()) return;
   window.localStorage.setItem(ADMIN_TOKEN_KEY, input.accessToken);
+  setAdminProfile({ email: input.email, displayName: input.displayName });
+}
+
+export function setAdminProfile(input: { email: string; displayName: string }) {
+  if (!canUseStorage()) return;
   window.localStorage.setItem(ADMIN_EMAIL_KEY, input.email);
   window.localStorage.setItem(ADMIN_DISPLAY_NAME_KEY, input.displayName);
 }
@@ -23,6 +29,12 @@ export function clearAdminSession() {
   window.localStorage.removeItem(ADMIN_TOKEN_KEY);
   window.localStorage.removeItem(ADMIN_EMAIL_KEY);
   window.localStorage.removeItem(ADMIN_DISPLAY_NAME_KEY);
+}
+
+export function notifyAdminUnauthorized() {
+  clearAdminSession();
+  if (!canUseStorage()) return;
+  window.dispatchEvent(new CustomEvent(ADMIN_UNAUTHORIZED_EVENT));
 }
 
 export function getAdminEmail() {

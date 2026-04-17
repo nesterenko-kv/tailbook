@@ -1,5 +1,5 @@
 import { resolveApiBaseUrl } from "@/lib/env";
-import { getAdminToken } from "@/lib/auth";
+import { getAdminToken, notifyAdminUnauthorized } from "@/lib/auth";
 
 export class ApiError extends Error {
   status: number;
@@ -44,6 +44,10 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
   const payload = isJson ? await response.json().catch(() => null) : await response.text().catch(() => null);
 
   if (!response.ok) {
+    if (response.status === 401 && typeof window !== "undefined") {
+      notifyAdminUnauthorized();
+    }
+
     const generalErrors = payload && typeof payload === "object" && "errors" in payload && payload.errors && typeof payload.errors === "object" && "generalErrors" in payload.errors
       ? (payload.errors as { generalErrors?: string[] }).generalErrors
       : undefined;

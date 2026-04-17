@@ -1,12 +1,13 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api";
-import { clearSession, CLIENT_UNAUTHORIZED_EVENT, getStoredAccessToken, storeEmail } from "@/lib/auth";
-import type { ClientMeResponse } from "@/lib/types";
+import { clearSession, getStoredAccessToken, GROOMER_UNAUTHORIZED_EVENT, storeProfile } from "@/lib/auth";
+import type { IdentityMeResponse } from "@/lib/types";
 
-export function AuthGuard({ children }: Readonly<{ children: React.ReactNode }>) {
+export function AuthGuard({ children }: { children: ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
     const [ready, setReady] = useState(false);
@@ -16,7 +17,7 @@ export function AuthGuard({ children }: Readonly<{ children: React.ReactNode }>)
 
         function redirectToLogin() {
             clearSession();
-            if (pathname !== "/login" && pathname !== "/register") {
+            if (pathname !== "/login") {
                 router.replace("/login");
             }
         }
@@ -29,12 +30,12 @@ export function AuthGuard({ children }: Readonly<{ children: React.ReactNode }>)
             }
 
             try {
-                const me = await apiRequest<ClientMeResponse>("/api/client/me");
+                const me = await apiRequest<IdentityMeResponse>("/api/identity/me");
                 if (cancelled) {
                     return;
                 }
 
-                storeEmail(me.email);
+                storeProfile(me.email, me.displayName);
                 setReady(true);
             } catch {
                 if (!cancelled) {
@@ -49,17 +50,17 @@ export function AuthGuard({ children }: Readonly<{ children: React.ReactNode }>)
             }
         }
 
-        window.addEventListener(CLIENT_UNAUTHORIZED_EVENT, handleUnauthorized);
+        window.addEventListener(GROOMER_UNAUTHORIZED_EVENT, handleUnauthorized);
         void verifySession();
 
         return () => {
             cancelled = true;
-            window.removeEventListener(CLIENT_UNAUTHORIZED_EVENT, handleUnauthorized);
+            window.removeEventListener(GROOMER_UNAUTHORIZED_EVENT, handleUnauthorized);
         };
     }, [pathname, router]);
 
     if (!ready) {
-        return <div className="p-6 text-sm text-slate-400">Loading portal…</div>;
+        return <div className="p-6 text-sm text-slate-400">Checking groomer session…</div>;
     }
 
     return <>{children}</>;

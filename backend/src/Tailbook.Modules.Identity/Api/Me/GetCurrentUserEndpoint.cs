@@ -21,11 +21,13 @@ public sealed class GetCurrentUserEndpoint(ICurrentUser currentUser, IClientPort
             return;
         }
 
+        Guid? parsedUserId = null;
         Guid? clientId = null;
         Guid? contactPersonId = null;
 
         if (Guid.TryParse(currentUser.UserId, out var userId))
         {
+            parsedUserId = userId;
             var actor = await actorService.GetActorAsync(userId, ct);
             clientId = actor?.ClientId;
             contactPersonId = actor?.ContactPersonId;
@@ -33,7 +35,10 @@ public sealed class GetCurrentUserEndpoint(ICurrentUser currentUser, IClientPort
 
         await Send.OkAsync(new GetCurrentUserResponse
         {
+            UserId = parsedUserId,
             SubjectId = currentUser.SubjectId ?? string.Empty,
+            Email = currentUser.Email ?? string.Empty,
+            DisplayName = currentUser.DisplayName ?? string.Empty,
             ClientId = clientId,
             ContactPersonId = contactPersonId,
             Roles = currentUser.Roles,
