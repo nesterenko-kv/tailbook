@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.Modules.Reporting.Application;
 
 namespace Tailbook.Modules.Reporting;
 
@@ -15,6 +16,8 @@ public sealed class ReportingModule : IModuleDefinition
 
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
+        services.AddScoped<IReportingAccessPolicy, ReportingAccessPolicy>();
+        services.AddScoped<ReportingQueries>();
         return services;
     }
 

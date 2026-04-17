@@ -11,7 +11,9 @@ public sealed class VisitQueries(
     IAppointmentVisitService appointmentVisitService,
     IVisitCatalogReadService visitCatalogReadService,
     IPetSummaryReadService petSummaryReadService,
-    IAccessAuditService accessAuditService)
+    IAccessAuditService accessAuditService,
+    IAuditTrailService auditTrailService,
+    IOutboxPublisher outboxPublisher)
 {
     public async Task<VisitDetailView?> CheckInAppointmentAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
     {
@@ -60,7 +62,14 @@ public sealed class VisitQueries(
             CreatedAtUtc = utcNow
         }));
 
+        await outboxPublisher.PublishAsync("visitops", "VisitCheckedIn", new
+        {
+            visitId = visit.Id,
+            appointmentId = visit.AppointmentId,
+            checkedInAtUtc = visit.CheckedInAtUtc
+        }, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
+        await auditTrailService.RecordAsync("visitops", "visit", visit.Id.ToString("D"), "CHECK_IN", actorUserId, null, System.Text.Json.JsonSerializer.Serialize(new { visit.Status }), cancellationToken);
         return await GetVisitAsync(visit.Id, actorUserId, cancellationToken);
     }
 
@@ -274,7 +283,15 @@ public sealed class VisitQueries(
         visit.UpdatedAtUtc = DateTime.UtcNow;
         visit.UpdatedByUserId = actorUserId;
 
+        await outboxPublisher.PublishAsync("visitops", "FinalPriceAdjusted", new
+        {
+            visitId = visit.Id,
+            sign,
+            amount,
+            reasonCode
+        }, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
+        await auditTrailService.RecordAsync("visitops", "visit", visit.Id.ToString("D"), "APPLY_ADJUSTMENT", actorUserId, null, System.Text.Json.JsonSerializer.Serialize(new { sign, amount, reasonCode }), cancellationToken);
         return await GetVisitAsync(visitId, actorUserId, cancellationToken);
     }
 
@@ -292,7 +309,14 @@ public sealed class VisitQueries(
         visit.UpdatedByUserId = actorUserId;
 
         await appointmentVisitService.MarkCompletedAsync(visit.AppointmentId, actorUserId, cancellationToken);
+        await outboxPublisher.PublishAsync("visitops", "VisitCompleted", new
+        {
+            visitId = visit.Id,
+            appointmentId = visit.AppointmentId,
+            completedAtUtc = visit.CompletedAtUtc
+        }, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
+        await auditTrailService.RecordAsync("visitops", "visit", visit.Id.ToString("D"), "COMPLETE", actorUserId, null, System.Text.Json.JsonSerializer.Serialize(new { visit.Status, visit.CompletedAtUtc }), cancellationToken);
         return await GetVisitAsync(visitId, actorUserId, cancellationToken);
     }
 
@@ -309,8 +333,19 @@ public sealed class VisitQueries(
         visit.UpdatedAtUtc = visit.ClosedAtUtc.Value;
         visit.UpdatedByUserId = actorUserId;
 
+        var detailPreview = await GetVisitAsync(visitId, actorUserId, cancellationToken, recordAccessAudit: false)
+            ?? throw new InvalidOperationException("Visit does not exist.");
+
         await appointmentVisitService.MarkClosedAsync(visit.AppointmentId, actorUserId, cancellationToken);
+        await outboxPublisher.PublishAsync("visitops", "VisitClosed", new
+        {
+            visitId = visit.Id,
+            appointmentId = visit.AppointmentId,
+            finalTotalAmount = detailPreview.FinalTotalAmount,
+            closedAtUtc = visit.ClosedAtUtc
+        }, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
+        await auditTrailService.RecordAsync("visitops", "visit", visit.Id.ToString("D"), "CLOSE", actorUserId, null, System.Text.Json.JsonSerializer.Serialize(new { visit.Status, detailPreview.FinalTotalAmount }), cancellationToken);
         return await GetVisitAsync(visitId, actorUserId, cancellationToken);
     }
 

@@ -11,6 +11,10 @@ public static class SystemRoleCatalog
         new(PermissionCodes.IamRolesRead, "Read roles and permissions"),
         new(PermissionCodes.IamRolesAssign, "Assign roles to users"),
         new(PermissionCodes.AuditAccessRead, "Read access audit entries"),
+        new(PermissionCodes.AuditTrailRead, "Read audit trail entries"),
+        new(PermissionCodes.ReportsRead, "Read reporting endpoints"),
+        new(PermissionCodes.NotificationsRead, "Read notification jobs"),
+        new(PermissionCodes.NotificationsWrite, "Process notification outbox and manage notifications"),
         new(PermissionCodes.CrmClientsRead, "Read CRM clients"),
         new(PermissionCodes.CrmClientsWrite, "Create and edit CRM clients"),
         new(PermissionCodes.CrmContactsRead, "Read CRM contact data"),
@@ -59,7 +63,11 @@ public static class SystemRoleCatalog
             PermissionCodes.BookingRead,
             PermissionCodes.BookingWrite,
             PermissionCodes.VisitRead,
-            PermissionCodes.VisitWrite
+            PermissionCodes.VisitWrite,
+            PermissionCodes.AuditTrailRead,
+            PermissionCodes.ReportsRead,
+            PermissionCodes.NotificationsRead,
+            PermissionCodes.NotificationsWrite
         ]),
         new(RoleCodes.Groomer, "Groomer",
         [

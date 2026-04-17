@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Tailbook.Api.Host.Infrastructure;
+using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.BuildingBlocks.Infrastructure.Time;
@@ -71,6 +72,7 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<AppDbContext>("postgresql");
 
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+builder.Services.AddScoped<IOutboxPublisher, OutboxPublisher>();
 builder.Services.AddSingleton<IUtcClock, SystemUtcClock>();
 
 builder.Services.AddTailbookModules(builder.Configuration);

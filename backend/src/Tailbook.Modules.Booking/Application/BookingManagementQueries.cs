@@ -14,7 +14,9 @@ public sealed class BookingManagementQueries(
     IClientReferenceValidationService clientReferenceValidationService,
     IContactReferenceValidationService contactReferenceValidationService,
     IOfferReferenceValidationService offerReferenceValidationService,
-    IStaffSchedulingService staffSchedulingService)
+    IStaffSchedulingService staffSchedulingService,
+    IAuditTrailService auditTrailService,
+    IOutboxPublisher outboxPublisher)
 {
     public async Task<BookingRequestDetailView> CreateBookingRequestAsync(CreateBookingRequestCommand command, string? actorUserId, CancellationToken cancellationToken)
     {
@@ -80,7 +82,16 @@ public sealed class BookingManagementQueries(
             CreatedAtUtc = utcNow
         }));
 
+        await outboxPublisher.PublishAsync("booking", "BookingRequested", new
+        {
+            bookingRequestId = entity.Id,
+            petId = entity.PetId,
+            clientId = entity.ClientId,
+            channel = entity.Channel
+        }, cancellationToken);
+
         await dbContext.SaveChangesAsync(cancellationToken);
+        await auditTrailService.RecordAsync("booking", "booking_request", entity.Id.ToString("D"), "CREATE", ParseGuid(actorUserId), null, JsonSerializer.Serialize(new { entity.Status, entity.Channel }), cancellationToken);
         return (await GetBookingRequestAsync(entity.Id, cancellationToken))!;
     }
 
@@ -184,7 +195,13 @@ public sealed class BookingManagementQueries(
 
         bookingRequest.Status = BookingRequestStatusCodes.Converted;
         bookingRequest.UpdatedAtUtc = DateTime.UtcNow;
+        await outboxPublisher.PublishAsync("booking", "BookingRequestConverted", new
+        {
+            bookingRequestId = bookingRequest.Id,
+            appointmentId = result.Id
+        }, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
+        await auditTrailService.RecordAsync("booking", "booking_request", bookingRequest.Id.ToString("D"), "CONVERT_TO_APPOINTMENT", ParseGuid(actorUserId), null, JsonSerializer.Serialize(new { appointmentId = result.Id }), cancellationToken);
 
         return result;
     }
@@ -252,7 +269,18 @@ public sealed class BookingManagementQueries(
             CreatedAtUtc = utcNow
         }));
 
+        await outboxPublisher.PublishAsync("booking", "AppointmentCreated", new
+        {
+            appointmentId = appointment.Id,
+            bookingRequestId = appointment.BookingRequestId,
+            petId = appointment.PetId,
+            groomerId = appointment.GroomerId,
+            startAtUtc = appointment.StartAtUtc,
+            endAtUtc = appointment.EndAtUtc
+        }, cancellationToken);
+
         await dbContext.SaveChangesAsync(cancellationToken);
+        await auditTrailService.RecordAsync("booking", "appointment", appointment.Id.ToString("D"), "CREATE", actorGuid, null, JsonSerializer.Serialize(new { appointment.Status, appointment.VersionNo }), cancellationToken);
         return (await GetAppointmentAsync(appointment.Id, cancellationToken))!;
     }
 
@@ -420,7 +448,16 @@ public sealed class BookingManagementQueries(
         appointment.UpdatedAtUtc = DateTime.UtcNow;
         appointment.UpdatedByUserId = ParseGuid(actorUserId);
 
+        await outboxPublisher.PublishAsync("booking", "AppointmentRescheduled", new
+        {
+            appointmentId = appointment.Id,
+            groomerId = appointment.GroomerId,
+            startAtUtc = appointment.StartAtUtc,
+            endAtUtc = appointment.EndAtUtc,
+            versionNo = appointment.VersionNo
+        }, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
+        await auditTrailService.RecordAsync("booking", "appointment", appointment.Id.ToString("D"), "RESCHEDULE", ParseGuid(actorUserId), null, JsonSerializer.Serialize(new { appointment.VersionNo, appointment.StartAtUtc, appointment.EndAtUtc }), cancellationToken);
         return await GetAppointmentAsync(appointment.Id, cancellationToken);
     }
 
@@ -443,7 +480,14 @@ public sealed class BookingManagementQueries(
         appointment.UpdatedAtUtc = DateTime.UtcNow;
         appointment.UpdatedByUserId = ParseGuid(actorUserId);
 
+        await outboxPublisher.PublishAsync("booking", "AppointmentCancelled", new
+        {
+            appointmentId = appointment.Id,
+            reasonCode = appointment.CancellationReasonCode,
+            versionNo = appointment.VersionNo
+        }, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
+        await auditTrailService.RecordAsync("booking", "appointment", appointment.Id.ToString("D"), "CANCEL", ParseGuid(actorUserId), null, JsonSerializer.Serialize(new { appointment.CancellationReasonCode, appointment.VersionNo }), cancellationToken);
         return await GetAppointmentAsync(appointment.Id, cancellationToken);
     }
 

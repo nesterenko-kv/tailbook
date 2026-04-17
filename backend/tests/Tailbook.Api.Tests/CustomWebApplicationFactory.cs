@@ -1,3 +1,4 @@
+using System.IO;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
@@ -44,7 +45,8 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 ["Jwt:Issuer"] = TestJwtIssuer,
                 ["Jwt:Audience"] = TestJwtAudience,
                 ["Jwt:SigningKey"] = TestJwtSigningKey,
-                ["Jwt:ExpirationMinutes"] = "120"
+                ["Jwt:ExpirationMinutes"] = "120",
+                ["Notifications:LocalFilePath"] = Path.Combine(Path.GetTempPath(), $"tailbook-test-notifications-{Guid.NewGuid():N}.log")
             });
         });
 
