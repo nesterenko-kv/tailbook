@@ -1,4 +1,4 @@
-import { env } from "@/lib/env";
+import { resolveApiBaseUrl } from "@/lib/env";
 import { getAdminToken } from "@/lib/auth";
 
 export class ApiError extends Error {
@@ -17,7 +17,7 @@ function normalizeUrl(path: string) {
   if (path.startsWith("http://") || path.startsWith("https://")) {
     return path;
   }
-  return `${env.apiBaseUrl}${path}`;
+  return `${resolveApiBaseUrl()}${path}`;
 }
 
 export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {

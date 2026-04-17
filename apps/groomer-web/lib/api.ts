@@ -1,4 +1,4 @@
-import { env } from "./env";
+import { resolveApiBaseUrl } from "./env";
 import { getStoredAccessToken } from "./auth";
 
 export class ApiError extends Error {
@@ -23,7 +23,7 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
         headers.set("Content-Type", "application/json");
     }
 
-    const response = await fetch(`${env.apiBaseUrl}${path}`, {
+    const response = await fetch(`${resolveApiBaseUrl()}${path}`, {
         ...init,
         headers,
         cache: "no-store"
