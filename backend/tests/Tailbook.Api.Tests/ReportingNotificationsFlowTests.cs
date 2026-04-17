@@ -37,7 +37,7 @@ public sealed class ReportingNotificationsFlowTests : IClassFixture<CustomWebApp
         Assert.Equal(HttpStatusCode.OK, packageResponse.StatusCode);
         var packages = await packageResponse.Content.ReadFromJsonAsync<PackagePerformanceEnvelope>();
         Assert.NotNull(packages);
-        Assert.Contains(packages!.Items, x => x.OfferId == scenario.OfferId && x.Quantity >= 1);
+        Assert.Contains(packages!.Items, x => x.OfferId == scenario.OfferId && x.BookedCount >= 1);
     }
 
     [Fact]
@@ -63,17 +63,17 @@ public sealed class ReportingNotificationsFlowTests : IClassFixture<CustomWebApp
         Assert.Equal(HttpStatusCode.OK, jobsResponse.StatusCode);
         var jobs = await jobsResponse.Content.ReadFromJsonAsync<NotificationJobsEnvelope>();
         Assert.NotNull(jobs);
-        Assert.Contains(jobs!.Items, x => x.EventType == "visit.closed");
+        Assert.Contains(jobs!.Items, x => x.SourceEventType == "VisitClosed");
 
-        var auditResponse = await client.GetAsync("/api/admin/audit/entries?moduleCode=visit&entityType=Visit&entityId=" + scenario.VisitId.ToString("D"));
+        var auditResponse = await client.GetAsync("/api/admin/audit?moduleCode=visitops&entityType=visit&entityId=" + scenario.VisitId.ToString("D"));
         Assert.Equal(HttpStatusCode.OK, auditResponse.StatusCode);
         var audit = await auditResponse.Content.ReadFromJsonAsync<AuditEntriesEnvelope>();
         Assert.NotNull(audit);
-        Assert.Contains(audit!.Items, x => x.ActionCode == "VISIT_CLOSED");
+        Assert.Contains(audit!.Items, x => x.ActionCode == "CLOSE");
 
         using var verifyScope = _factory.Services.CreateScope();
         var verifyDb = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
-        Assert.True(await verifyDb.Set<NotificationJob>().AnyAsync(x => x.EventType == "visit.closed"));
+        Assert.True(await verifyDb.Set<NotificationJob>().AnyAsync(x => x.SourceEventType == "VisitClosed"));
     }
 
     private sealed class EstimateAccuracyEnvelope
@@ -95,7 +95,7 @@ public sealed class ReportingNotificationsFlowTests : IClassFixture<CustomWebApp
     private sealed class PackagePerformanceItem
     {
         public Guid OfferId { get; set; }
-        public int Quantity { get; set; }
+        public int BookedCount { get; set; }
     }
 
     private sealed class NotificationJobsEnvelope
@@ -105,7 +105,7 @@ public sealed class ReportingNotificationsFlowTests : IClassFixture<CustomWebApp
 
     private sealed class NotificationJobItem
     {
-        public string EventType { get; set; } = string.Empty;
+        public string SourceEventType { get; set; } = string.Empty;
     }
 
     private sealed class AuditEntriesEnvelope

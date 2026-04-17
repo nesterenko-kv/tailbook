@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
+using Tailbook.Modules.Booking.Domain;
+using Tailbook.Modules.VisitOperations.Domain;
 
 namespace Tailbook.Modules.Reporting.Application;
 
@@ -9,7 +11,7 @@ public sealed class ReportingQueries(AppDbContext dbContext)
     {
         if (!dbContext.Database.IsRelational())
         {
-            return [];
+            return await GetEstimateAccuracyInMemoryAsync(fromUtc, toUtc, cancellationToken);
         }
 
         const string sql = """
@@ -51,7 +53,7 @@ public sealed class ReportingQueries(AppDbContext dbContext)
     {
         if (!dbContext.Database.IsRelational())
         {
-            return [];
+            return await GetPackagePerformanceInMemoryAsync(fromUtc, toUtc, cancellationToken);
         }
 
         const string sql = """
@@ -86,6 +88,178 @@ public sealed class ReportingQueries(AppDbContext dbContext)
         var toParameter = new Npgsql.NpgsqlParameter("toUtc", toUtc.HasValue ? toUtc.Value : DBNull.Value);
 
         return await dbContext.Database.SqlQueryRaw<PackagePerformanceReportItemView>(sql, fromParameter, toParameter).ToListAsync(cancellationToken);
+    }
+
+    private async Task<IReadOnlyCollection<EstimateAccuracyReportItemView>> GetEstimateAccuracyInMemoryAsync(DateTime? fromUtc, DateTime? toUtc, CancellationToken cancellationToken)
+    {
+        var visits = await dbContext.Set<Visit>()
+            .Where(v => v.Status == "Closed")
+            .Where(v => !fromUtc.HasValue || (v.ClosedAtUtc.HasValue && v.ClosedAtUtc.Value >= fromUtc.Value))
+            .Where(v => !toUtc.HasValue || (v.ClosedAtUtc.HasValue && v.ClosedAtUtc.Value < toUtc.Value))
+            .ToListAsync(cancellationToken);
+
+        var appointmentIds = visits.Select(v => v.AppointmentId).Distinct().ToArray();
+        var visitIds = visits.Select(v => v.Id).ToArray();
+
+        var appointmentItems = await dbContext.Set<AppointmentItem>()
+            .Where(ai => appointmentIds.Contains(ai.AppointmentId))
+            .ToListAsync(cancellationToken);
+
+        var priceSnapshotIds = appointmentItems.Select(ai => ai.PriceSnapshotId).Distinct().ToArray();
+        var durationSnapshotIds = appointmentItems.Select(ai => ai.DurationSnapshotId).Distinct().ToArray();
+
+        var priceSnapshots = await dbContext.Set<PriceSnapshot>()
+            .Where(ps => priceSnapshotIds.Contains(ps.Id))
+            .ToDictionaryAsync(ps => ps.Id, cancellationToken);
+
+        var durationSnapshots = await dbContext.Set<DurationSnapshot>()
+            .Where(ds => durationSnapshotIds.Contains(ds.Id))
+            .ToDictionaryAsync(ds => ds.Id, cancellationToken);
+
+        var adjustmentByVisitId = await dbContext.Set<VisitPriceAdjustment>()
+            .Where(vpa => visitIds.Contains(vpa.VisitId))
+            .GroupBy(vpa => vpa.VisitId)
+            .Select(g => new { VisitId = g.Key, Sum = g.Sum(x => x.Amount * x.Sign) })
+            .ToDictionaryAsync(x => x.VisitId, x => x.Sum, cancellationToken);
+
+        var appointmentItemsByAppointmentId = appointmentItems.GroupBy(ai => ai.AppointmentId).ToDictionary(g => g.Key, g => g.ToArray());
+
+        var report = visits.Select(v =>
+        {
+            appointmentItemsByAppointmentId.TryGetValue(v.AppointmentId, out var items);
+            items ??= [];
+
+            decimal estimatedAmount = 0;
+            var estimatedServiceMinutes = 0;
+            var estimatedReservedMinutes = 0;
+
+            foreach (var item in items)
+            {
+                if (priceSnapshots.TryGetValue(item.PriceSnapshotId, out var ps))
+                    estimatedAmount += ps.TotalAmount * item.Quantity;
+                if (durationSnapshots.TryGetValue(item.DurationSnapshotId, out var ds))
+                {
+                    estimatedServiceMinutes += ds.ServiceMinutes * item.Quantity;
+                    estimatedReservedMinutes += ds.ReservedMinutes * item.Quantity;
+                }
+            }
+
+            adjustmentByVisitId.TryGetValue(v.Id, out var adjustmentSum);
+            var finalAmount = estimatedAmount + adjustmentSum;
+
+            var actualDurationMinutes = v.StartedAtUtc.HasValue && v.CompletedAtUtc.HasValue
+                ? Math.Max(0, (int)(v.CompletedAtUtc.Value - v.StartedAtUtc.Value).TotalMinutes)
+                : 0;
+
+            return new EstimateAccuracyReportItemView(
+                v.Id,
+                v.AppointmentId,
+                v.ClosedAtUtc,
+                estimatedAmount,
+                finalAmount,
+                adjustmentSum,
+                estimatedServiceMinutes,
+                estimatedReservedMinutes,
+                actualDurationMinutes,
+                actualDurationMinutes - estimatedServiceMinutes);
+        })
+            .OrderByDescending(x => x.ClosedAtUtc)
+            .ToArray();
+
+        return report;
+    }
+
+    private async Task<IReadOnlyCollection<PackagePerformanceReportItemView>> GetPackagePerformanceInMemoryAsync(DateTime? fromUtc, DateTime? toUtc, CancellationToken cancellationToken)
+    {
+        var appointments = await dbContext.Set<Appointment>()
+            .Where(a => !fromUtc.HasValue || a.StartAtUtc >= fromUtc.Value)
+            .Where(a => !toUtc.HasValue || a.StartAtUtc < toUtc.Value)
+            .ToListAsync(cancellationToken);
+
+        var appointmentById = appointments.ToDictionary(a => a.Id);
+        var appointmentIds = appointmentById.Keys.ToArray();
+
+        var appointmentItems = await dbContext.Set<AppointmentItem>()
+            .Where(ai => ai.ItemType == "Package" && appointmentIds.Contains(ai.AppointmentId))
+            .ToListAsync(cancellationToken);
+
+        var priceSnapshotIds = appointmentItems.Select(ai => ai.PriceSnapshotId).Distinct().ToArray();
+        var priceSnapshots = await dbContext.Set<PriceSnapshot>()
+            .Where(ps => priceSnapshotIds.Contains(ps.Id))
+            .ToDictionaryAsync(ps => ps.Id, cancellationToken);
+
+        var visits = await dbContext.Set<Visit>()
+            .Where(v => appointmentIds.Contains(v.AppointmentId))
+            .ToListAsync(cancellationToken);
+        var visitByAppointmentId = visits.GroupBy(v => v.AppointmentId).ToDictionary(g => g.Key, g => g.First());
+        var visitIds = visits.Select(v => v.Id).ToArray();
+
+        var adjustmentByVisitId = await dbContext.Set<VisitPriceAdjustment>()
+            .Where(vpa => visitIds.Contains(vpa.VisitId))
+            .GroupBy(vpa => vpa.VisitId)
+            .Select(g => new { VisitId = g.Key, Sum = g.Sum(x => x.Amount * x.Sign) })
+            .ToDictionaryAsync(x => x.VisitId, x => x.Sum, cancellationToken);
+
+        var executionItems = await dbContext.Set<VisitExecutionItem>()
+            .Where(vei => visitIds.Contains(vei.VisitId))
+            .ToListAsync(cancellationToken);
+        var executionItemByVisitAndAppointmentItem = executionItems.ToDictionary(x => (x.VisitId, x.AppointmentItemId), x => x);
+        var executionItemIds = executionItems.Select(x => x.Id).ToArray();
+
+        var skippedCountsByExecutionItemId = await dbContext.Set<VisitSkippedComponent>()
+            .Where(vsc => executionItemIds.Contains(vsc.VisitExecutionItemId))
+            .GroupBy(vsc => vsc.VisitExecutionItemId)
+            .Select(g => new { ExecutionItemId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.ExecutionItemId, x => x.Count, cancellationToken);
+
+        var report = appointmentItems
+            .GroupBy(ai => new { ai.OfferId, ai.OfferCodeSnapshot, ai.OfferDisplayNameSnapshot })
+            .Select(group =>
+            {
+                var bookedCount = 0;
+                var closedCount = 0;
+                decimal estimatedRevenue = 0;
+                decimal finalRevenue = 0;
+                var skippedIncludedComponentsCount = 0;
+
+                foreach (var item in group)
+                {
+                    bookedCount++;
+
+                    priceSnapshots.TryGetValue(item.PriceSnapshotId, out var priceSnapshot);
+                    var lineEstimated = (priceSnapshot?.TotalAmount ?? 0m) * item.Quantity;
+                    estimatedRevenue += lineEstimated;
+                    finalRevenue += lineEstimated;
+
+                    if (visitByAppointmentId.TryGetValue(item.AppointmentId, out var visit))
+                    {
+                        if (visit.Status == "Closed")
+                            closedCount++;
+
+                        if (adjustmentByVisitId.TryGetValue(visit.Id, out var adjustment))
+                            finalRevenue += adjustment;
+
+                        if (executionItemByVisitAndAppointmentItem.TryGetValue((visit.Id, item.Id), out var executionItem) &&
+                            skippedCountsByExecutionItemId.TryGetValue(executionItem.Id, out var skippedCount))
+                            skippedIncludedComponentsCount += skippedCount;
+                    }
+                }
+
+                return new PackagePerformanceReportItemView(
+                    group.Key.OfferId,
+                    group.Key.OfferCodeSnapshot,
+                    group.Key.OfferDisplayNameSnapshot,
+                    bookedCount,
+                    closedCount,
+                    estimatedRevenue,
+                    finalRevenue,
+                    skippedIncludedComponentsCount);
+            })
+            .OrderByDescending(x => x.BookedCount)
+            .ThenBy(x => x.OfferCode)
+            .ToArray();
+
+        return report;
     }
 }
 

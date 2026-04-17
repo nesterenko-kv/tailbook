@@ -167,25 +167,30 @@ internal static class ReportingScenarioBuilder
         response.EnsureSuccessStatusCode();
         var groomer = await response.Content.ReadFromJsonAsync<GroomerEnvelope>();
 
-        var scheduleResponse = await client.PostAsJsonAsync($"/api/admin/groomers/{groomer!.Id:D}/working-schedules", new
+        foreach (var weekday in Enumerable.Range(1, 7))
         {
-            groomerId = groomer.Id,
-            weekday = 1,
-            startLocalTime = "08:00",
-            endLocalTime = "18:00"
-        });
-        scheduleResponse.EnsureSuccessStatusCode();
+            var scheduleResponse = await client.PostAsJsonAsync($"/api/admin/groomers/{groomer!.Id:D}/working-schedules", new
+            {
+                groomerId = groomer.Id,
+                weekday,
+                startLocalTime = "08:00",
+                endLocalTime = "18:00"
+            });
+            scheduleResponse.EnsureSuccessStatusCode();
+        }
 
-        return groomer;
+        return groomer!;
     }
 
     private static async Task<AppointmentEnvelope> CreateAppointmentAsync(HttpClient client, Guid petId, Guid groomerId, Guid offerId)
     {
+        var appointmentStartAtUtc = DateTime.UtcNow.Date.AddDays(-1).AddHours(10);
+
         var response = await client.PostAsJsonAsync("/api/admin/appointments", new
         {
             petId,
             groomerId,
-            startAtUtc = new DateTime(2026, 4, 21, 8, 0, 0, DateTimeKind.Utc),
+            startAtUtc = appointmentStartAtUtc,
             items = new[] { new { itemType = "Package", offerId } }
         });
         response.EnsureSuccessStatusCode();
