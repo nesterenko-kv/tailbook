@@ -23,4 +23,12 @@ public sealed class ApiSurfaceTests(WebApplicationFactory<Program> factory)
         var response = await client.GetAsync("/swagger/v1/swagger.json");
         Assert.NotEqual(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Swagger_endpoint_should_be_not_available_in_non_development()
+    {
+        var client = factory.WithWebHostBuilder(builder => builder.UseEnvironment("Production")).CreateClient();
+        var response = await client.GetAsync("/swagger/v1/swagger.json");
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }
