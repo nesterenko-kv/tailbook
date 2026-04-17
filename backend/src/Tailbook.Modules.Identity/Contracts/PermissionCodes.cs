@@ -28,4 +28,9 @@ public static class PermissionCodes
     public const string AdminAppAccess = "app.admin.access";
     public const string GroomerAppAccess = "app.groomer.access";
     public const string ClientPortalAccess = "app.client.access";
+    public const string ClientPetsRead = "client.pets.read";
+    public const string ClientAppointmentsRead = "client.appointments.read";
+    public const string ClientBookingWrite = "client.booking.write";
+    public const string ClientContactPreferencesRead = "client.contact_preferences.read";
+    public const string ClientContactPreferencesWrite = "client.contact_preferences.write";
 }

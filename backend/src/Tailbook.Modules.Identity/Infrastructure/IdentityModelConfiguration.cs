@@ -18,11 +18,15 @@ public static class IdentityModelConfiguration
             builder.Property(x => x.DisplayName).HasMaxLength(200).IsRequired();
             builder.Property(x => x.PasswordHash).HasMaxLength(512).IsRequired();
             builder.Property(x => x.Status).HasMaxLength(32).IsRequired();
+            builder.Property(x => x.ClientId);
+            builder.Property(x => x.ContactPersonId);
             builder.Property(x => x.CreatedAtUtc).IsRequired();
             builder.Property(x => x.UpdatedAtUtc).IsRequired();
 
             builder.HasIndex(x => x.SubjectId).IsUnique();
             builder.HasIndex(x => x.NormalizedEmail).IsUnique();
+            builder.HasIndex(x => x.ClientId);
+            builder.HasIndex(x => x.ContactPersonId);
         });
 
         modelBuilder.Entity<IdentityRole>(builder =>

@@ -31,7 +31,12 @@ public static class SystemRoleCatalog
         new(PermissionCodes.GroomerVisitsWrite, "Execute groomer-safe visit actions"),
         new(PermissionCodes.AdminAppAccess, "Access admin application"),
         new(PermissionCodes.GroomerAppAccess, "Access groomer application"),
-        new(PermissionCodes.ClientPortalAccess, "Access client portal")
+        new(PermissionCodes.ClientPortalAccess, "Access client portal"),
+        new(PermissionCodes.ClientPetsRead, "Read own pets in client portal"),
+        new(PermissionCodes.ClientAppointmentsRead, "Read own appointments in client portal"),
+        new(PermissionCodes.ClientBookingWrite, "Submit booking requests in client portal"),
+        new(PermissionCodes.ClientContactPreferencesRead, "Read own contact preferences in client portal"),
+        new(PermissionCodes.ClientContactPreferencesWrite, "Update own contact preferences in client portal")
     ];
 
     public static readonly IReadOnlyCollection<SystemRoleDefinition> Roles =
@@ -63,7 +68,15 @@ public static class SystemRoleCatalog
             PermissionCodes.GroomerVisitsRead,
             PermissionCodes.GroomerVisitsWrite
         ]),
-        new(RoleCodes.Client, "Client", [PermissionCodes.ClientPortalAccess])
+        new(RoleCodes.Client, "Client",
+        [
+            PermissionCodes.ClientPortalAccess,
+            PermissionCodes.ClientPetsRead,
+            PermissionCodes.ClientAppointmentsRead,
+            PermissionCodes.ClientBookingWrite,
+            PermissionCodes.ClientContactPreferencesRead,
+            PermissionCodes.ClientContactPreferencesWrite
+        ])
     ];
 }
 

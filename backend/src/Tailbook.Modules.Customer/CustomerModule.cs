@@ -20,10 +20,12 @@ public sealed class CustomerModule : IModuleDefinition
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<CustomerQueries>();
+        services.AddScoped<ClientPortalCustomerQueries>();
         services.AddScoped<ICustomerAccessPolicy, CustomerAccessPolicy>();
         services.AddScoped<IClientReferenceValidationService, CustomerReferenceServices>();
         services.AddScoped<IContactReferenceValidationService, CustomerReferenceServices>();
         services.AddScoped<IPetContactReadModelService, CustomerReferenceServices>();
+        services.AddScoped<IClientOnboardingService, CustomerReferenceServices>();
         return services;
     }
 

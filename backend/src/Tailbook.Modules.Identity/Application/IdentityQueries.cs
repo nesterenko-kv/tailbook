@@ -31,7 +31,7 @@ public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passw
         return new LoginResult(
             token.AccessToken,
             token.ExpiresAtUtc,
-            new AuthenticatedUserView(user.Id, user.SubjectId, user.Email, user.DisplayName, user.Status, roles, permissions));
+            new AuthenticatedUserView(user.Id, user.SubjectId, user.Email, user.DisplayName, user.Status, user.ClientId, user.ContactPersonId, roles, permissions));
     }
 
     public async Task<IReadOnlyList<RoleView>> ListRolesAsync(CancellationToken cancellationToken)
@@ -255,7 +255,7 @@ public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passw
 }
 
 public sealed record LoginResult(string AccessToken, DateTime ExpiresAtUtc, AuthenticatedUserView User);
-public sealed record AuthenticatedUserView(Guid Id, string SubjectId, string Email, string DisplayName, string Status, IReadOnlyCollection<string> Roles, IReadOnlyCollection<string> Permissions);
+public sealed record AuthenticatedUserView(Guid Id, string SubjectId, string Email, string DisplayName, string Status, Guid? ClientId, Guid? ContactPersonId, IReadOnlyCollection<string> Roles, IReadOnlyCollection<string> Permissions);
 public sealed record RoleView(Guid Id, string Code, string DisplayName, IReadOnlyCollection<string> PermissionCodes);
 public sealed record PermissionView(Guid Id, string Code, string DisplayName);
 public sealed record UserSummaryView(Guid Id, string SubjectId, string Email, string DisplayName, string Status, IReadOnlyCollection<string> Roles, DateTime CreatedAtUtc, DateTime UpdatedAtUtc);
