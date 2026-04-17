@@ -1,30 +1,15 @@
-const cards = [
-    "Separate web shell ready",
-    "Tailwind v4 wired",
-    "TanStack Query provider wired",
-    "API base URL env hook ready for later stages"
-];
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { getAdminToken } from "@/lib/auth";
 
 export default function HomePage() {
-    return (
-        <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-8 px-6 py-16">
-            <section className="space-y-4">
-                <span className="inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-300">
-                    Stage 0 shell
-                </span>
-                <h1 className="text-4xl font-semibold tracking-tight">Tailbook Admin</h1>
-                <p className="max-w-2xl text-slate-300">
-                    This is the isolated admin application shell for Tailbook. Real routes, auth-aware layout, and domain screens land in later stages.
-                </p>
-            </section>
+  const router = useRouter();
 
-            <section className="grid gap-4 md:grid-cols-2">
-                {cards.map((card) => (
-                    <article key={card} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm">
-                        <p className="text-sm text-slate-200">{card}</p>
-                    </article>
-                ))}
-            </section>
-        </main>
-    );
+  useEffect(() => {
+    router.replace(getAdminToken() ? "/clients" : "/login");
+  }, [router]);
+
+  return <div className="p-8 text-sm text-slate-300">Redirecting…</div>;
 }
