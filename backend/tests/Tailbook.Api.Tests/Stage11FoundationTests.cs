@@ -16,7 +16,7 @@ public sealed class Stage11FoundationTests : IClassFixture<CustomWebApplicationF
     [Fact]
     public async Task Admin_can_query_estimate_accuracy_and_package_performance_reports()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 
@@ -40,7 +40,7 @@ public sealed class Stage11FoundationTests : IClassFixture<CustomWebApplicationF
     [Fact]
     public async Task Processing_outbox_creates_notification_job()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 
@@ -64,7 +64,7 @@ public sealed class Stage11FoundationTests : IClassFixture<CustomWebApplicationF
     [Fact]
     public async Task Appointment_creation_writes_audit_trail_entry()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 

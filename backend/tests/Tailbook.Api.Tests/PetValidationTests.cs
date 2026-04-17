@@ -16,7 +16,7 @@ public sealed class PetValidationTests : IClassFixture<CustomWebApplicationFacto
     [Fact]
     public async Task Register_pet_rejects_breed_that_does_not_belong_to_selected_animal_type()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 

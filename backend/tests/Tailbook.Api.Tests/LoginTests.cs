@@ -21,7 +21,7 @@ public sealed class LoginTests : IClassFixture<CustomWebApplicationFactory>
         var response = await client.PostAsJsonAsync("/api/identity/auth/login", new
         {
             email = "admin@test.local",
-            password = "Admin12345!"
+            password = "MyV3ryC00lAdminP@ss"
         });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

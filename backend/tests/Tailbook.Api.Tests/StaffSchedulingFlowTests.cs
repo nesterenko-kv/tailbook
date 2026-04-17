@@ -16,7 +16,7 @@ public sealed class StaffSchedulingFlowTests : IClassFixture<CustomWebApplicatio
     [Fact]
     public async Task Admin_can_create_groomer_configure_schedule_and_detect_blocked_availability()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 
@@ -85,7 +85,7 @@ public sealed class StaffSchedulingFlowTests : IClassFixture<CustomWebApplicatio
     [Fact]
     public async Task Groomer_capability_modifier_is_applied_to_quote_preview_reserved_duration()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 
@@ -137,7 +137,7 @@ public sealed class StaffSchedulingFlowTests : IClassFixture<CustomWebApplicatio
     [Fact]
     public async Task Deny_capability_blocks_availability_check_with_bad_request()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 

@@ -16,7 +16,7 @@ public sealed class CustomerPetsFlowTests : IClassFixture<CustomWebApplicationFa
     [Fact]
     public async Task Admin_can_create_client_contact_pet_link_and_read_details()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 
@@ -96,7 +96,7 @@ public sealed class CustomerPetsFlowTests : IClassFixture<CustomWebApplicationFa
     [Fact]
     public async Task Reading_client_detail_creates_access_audit_entry()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 

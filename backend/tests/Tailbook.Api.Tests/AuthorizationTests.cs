@@ -28,7 +28,7 @@ public sealed class AuthorizationTests : IClassFixture<CustomWebApplicationFacto
     [Fact]
     public async Task Admin_can_access_admin_iam_users_endpoint()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
 
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);

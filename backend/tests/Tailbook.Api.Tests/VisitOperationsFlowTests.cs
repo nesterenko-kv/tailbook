@@ -16,7 +16,7 @@ public sealed class VisitOperationsFlowTests : IClassFixture<CustomWebApplicatio
     [Fact]
     public async Task Admin_can_check_in_execute_adjust_complete_and_close_visit()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 
@@ -104,7 +104,7 @@ public sealed class VisitOperationsFlowTests : IClassFixture<CustomWebApplicatio
     [Fact]
     public async Task Same_appointment_cannot_be_checked_in_twice()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 

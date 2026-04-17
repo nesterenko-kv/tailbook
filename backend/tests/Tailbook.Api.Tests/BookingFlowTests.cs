@@ -16,7 +16,7 @@ public sealed class BookingFlowTests : IClassFixture<CustomWebApplicationFactory
     [Fact]
     public async Task Admin_can_create_booking_request_and_convert_it_to_appointment()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 
@@ -71,7 +71,7 @@ public sealed class BookingFlowTests : IClassFixture<CustomWebApplicationFactory
     [Fact]
     public async Task Admin_can_create_reschedule_and_cancel_appointment_with_optimistic_concurrency()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 
@@ -133,7 +133,7 @@ public sealed class BookingFlowTests : IClassFixture<CustomWebApplicationFactory
     [Fact]
     public async Task Existing_appointment_blocks_staff_availability_check()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 

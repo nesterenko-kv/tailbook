@@ -16,7 +16,7 @@ public sealed class GroomerPortalFlowTests : IClassFixture<CustomWebApplicationF
     [Fact]
     public async Task Assigned_groomer_gets_privacy_safe_appointment_detail_without_contact_data()
     {
-        var adminToken = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var adminToken = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var adminClient = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(adminClient, adminToken);
 
@@ -51,7 +51,7 @@ public sealed class GroomerPortalFlowTests : IClassFixture<CustomWebApplicationF
     [Fact]
     public async Task Groomer_can_execute_own_visit_but_cannot_read_other_groomer_appointment()
     {
-        var adminToken = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var adminToken = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var adminClient = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(adminClient, adminToken);
 

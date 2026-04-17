@@ -19,7 +19,7 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
     [Fact]
     public async Task Admin_can_create_rule_sets_publish_and_preview_quote_with_persisted_snapshots()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 
@@ -70,7 +70,7 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
     [Fact]
     public async Task More_specific_breed_price_rule_wins_over_animal_type_fallback()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 

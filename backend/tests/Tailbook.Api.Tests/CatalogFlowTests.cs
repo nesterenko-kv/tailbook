@@ -16,7 +16,7 @@ public sealed class CatalogFlowTests : IClassFixture<CustomWebApplicationFactory
     [Fact]
     public async Task Admin_can_create_package_offer_add_component_publish_and_read_offer_detail()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 
@@ -75,7 +75,7 @@ public sealed class CatalogFlowTests : IClassFixture<CustomWebApplicationFactory
     [Fact]
     public async Task Published_offer_version_is_immutable_for_components()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 
@@ -124,7 +124,7 @@ public sealed class CatalogFlowTests : IClassFixture<CustomWebApplicationFactory
     [Fact]
     public async Task Standalone_service_version_cannot_accept_package_components()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 

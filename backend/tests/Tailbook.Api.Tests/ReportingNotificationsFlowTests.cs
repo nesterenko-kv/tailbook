@@ -21,7 +21,7 @@ public sealed class ReportingNotificationsFlowTests : IClassFixture<CustomWebApp
     [Fact]
     public async Task Closed_visit_is_visible_in_estimate_accuracy_and_package_performance_reports()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 
@@ -47,7 +47,7 @@ public sealed class ReportingNotificationsFlowTests : IClassFixture<CustomWebApp
     [Fact]
     public async Task Closing_visit_emits_outbox_event_that_can_be_processed_into_notification_job()
     {
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 

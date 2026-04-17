@@ -17,7 +17,7 @@ public sealed class AccessAuditTests : IClassFixture<CustomWebApplicationFactory
     public async Task Reading_sensitive_user_detail_writes_access_audit_entry()
     {
         var targetUserId = await _factory.SeedUserAsync("manager@test.local", "Manager", "Manager123!", "manager");
-        var token = await _factory.LoginAsAsync("admin@test.local", "Admin12345!");
+        var token = await _factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
 
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);

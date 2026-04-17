@@ -39,7 +39,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["BootstrapAdmin:Email"] = "admin@test.local",
-                ["BootstrapAdmin:Password"] = "Admin12345!",
+                ["BootstrapAdmin:Password"] = "MyV3ryC00lAdminP@ss",
                 ["BootstrapAdmin:DisplayName"] = "Test Admin",
 
                 ["Jwt:Issuer"] = TestJwtIssuer,
