@@ -102,6 +102,7 @@ builder.Services.AddHealthChecks()
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<IOutboxPublisher, OutboxPublisher>();
 builder.Services.AddSingleton<IUtcClock, SystemUtcClock>();
+builder.Services.AddScoped<IDataSeeder, DevelopmentDemoSalonSeeder>();
 
 builder.Services.AddTailbookModules(builder.Configuration);
 

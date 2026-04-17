@@ -91,7 +91,9 @@ public sealed class PetsCatalogSeeder : IDataSeeder
             new BreedSeed(dog.Id, groups["DOG_POODLE_DOODLE"].Id, "SHIH_POO", "Shih-Poo"),
 
             new BreedSeed(dog.Id, groups["DOG_SPITZ"].Id, "POMERANIAN", "Pomeranian"),
+            new BreedSeed(dog.Id, groups["DOG_SPITZ"].Id, "GERMAN_SPITZ", "German Spitz"),
             new BreedSeed(dog.Id, groups["DOG_SPITZ"].Id, "JAPANESE_SPITZ", "Japanese Spitz"),
+            new BreedSeed(dog.Id, groups["DOG_SPITZ"].Id, "ALASKAN_MALAMUTE", "Alaskan Malamute"),
             new BreedSeed(dog.Id, groups["DOG_SPITZ"].Id, "SAMOYED", "Samoyed"),
             new BreedSeed(dog.Id, groups["DOG_SPITZ"].Id, "SHIBA_INU", "Shiba Inu"),
             new BreedSeed(dog.Id, groups["DOG_SPITZ"].Id, "AKITA", "Akita"),
@@ -110,12 +112,14 @@ public sealed class PetsCatalogSeeder : IDataSeeder
             new BreedSeed(dog.Id, groups["DOG_SHEPHERD"].Id, "WELSH_CORGI_CARDIGAN", "Welsh Corgi Cardigan"),
 
             new BreedSeed(dog.Id, groups["DOG_TERRIER"].Id, "YORKSHIRE_TERRIER", "Yorkshire Terrier"),
+            new BreedSeed(dog.Id, groups["DOG_TERRIER"].Id, "BIEWER_TERRIER", "Biewer Terrier"),
             new BreedSeed(dog.Id, groups["DOG_TERRIER"].Id, "WEST_HIGHLAND_WHITE_TERRIER", "West Highland White Terrier"),
             new BreedSeed(dog.Id, groups["DOG_TERRIER"].Id, "JACK_RUSSELL_TERRIER", "Jack Russell Terrier"),
             new BreedSeed(dog.Id, groups["DOG_TERRIER"].Id, "FOX_TERRIER", "Fox Terrier"),
             new BreedSeed(dog.Id, groups["DOG_TERRIER"].Id, "SCOTTISH_TERRIER", "Scottish Terrier"),
 
             new BreedSeed(dog.Id, groups["DOG_COMPANION_TOY"].Id, "CHIHUAHUA", "Chihuahua"),
+            new BreedSeed(dog.Id, groups["DOG_COMPANION_TOY"].Id, "TOY_TERRIER", "Toy Terrier"),
             new BreedSeed(dog.Id, groups["DOG_COMPANION_TOY"].Id, "PAPILLON", "Papillon"),
             new BreedSeed(dog.Id, groups["DOG_COMPANION_TOY"].Id, "PUG", "Pug"),
             new BreedSeed(dog.Id, groups["DOG_COMPANION_TOY"].Id, "PEKINGESE", "Pekingese"),
@@ -139,6 +143,7 @@ public sealed class PetsCatalogSeeder : IDataSeeder
             new BreedSeed(dog.Id, groups["DOG_BULLDOG_MASTIFF"].Id, "CANE_CORSO", "Cane Corso"),
 
             new BreedSeed(dog.Id, groups["DOG_HOUND"].Id, "BEAGLE", "Beagle"),
+            new BreedSeed(dog.Id, groups["DOG_HOUND"].Id, "COCKER_SPANIEL", "Cocker Spaniel"),
             new BreedSeed(dog.Id, groups["DOG_HOUND"].Id, "BASSET_HOUND", "Basset Hound"),
             new BreedSeed(dog.Id, groups["DOG_HOUND"].Id, "WHIPPET", "Whippet"),
             new BreedSeed(dog.Id, groups["DOG_HOUND"].Id, "GREYHOUND", "Greyhound"),
@@ -211,15 +216,15 @@ public sealed class PetsCatalogSeeder : IDataSeeder
 
         AddMappings(new[] { "DOG_MIXED" }, "SHORT_COAT", "LONG_COAT", "DOUBLE_COAT", "CURLY_COAT");
         AddMappings(new[] { "POODLE_TOY", "POODLE_MINIATURE", "POODLE_STANDARD", "MALTIPOO_F1", "MALTIPOO_F2", "CAVAPOO_F1", "CAVAPOO_F2", "COCKAPOO", "LABRADOODLE", "GOLDENDOODLE", "YORKIPOO", "SHIH_POO" }, "CURLY_COAT");
-        AddMappings(new[] { "POMERANIAN", "JAPANESE_SPITZ", "SAMOYED", "SHIBA_INU", "AKITA", "HUSKY", "POMSKY" }, "DOUBLE_COAT");
+        AddMappings(new[] { "POMERANIAN", "GERMAN_SPITZ", "JAPANESE_SPITZ", "SAMOYED", "SHIBA_INU", "AKITA", "HUSKY", "POMSKY", "ALASKAN_MALAMUTE" }, "DOUBLE_COAT");
         AddMappings(new[] { "LABRADOR_RETRIEVER" }, "SHORT_COAT");
         AddMappings(new[] { "GOLDEN_RETRIEVER" }, "LONG_COAT");
         AddMappings(new[] { "NOVA_SCOTIA_DUCK_TOLLING_RETRIEVER" }, "DOUBLE_COAT");
         AddMappings(new[] { "GERMAN_SHEPHERD", "BELGIAN_SHEPHERD", "AUSTRALIAN_SHEPHERD", "BORDER_COLLIE", "WELSH_CORGI_PEMBROKE", "WELSH_CORGI_CARDIGAN" }, "DOUBLE_COAT");
-        AddMappings(new[] { "YORKSHIRE_TERRIER", "WEST_HIGHLAND_WHITE_TERRIER", "SCOTTISH_TERRIER" }, "LONG_COAT");
+        AddMappings(new[] { "YORKSHIRE_TERRIER", "BIEWER_TERRIER", "WEST_HIGHLAND_WHITE_TERRIER", "SCOTTISH_TERRIER" }, "LONG_COAT");
         AddMappings(new[] { "JACK_RUSSELL_TERRIER", "FOX_TERRIER" }, "SHORT_COAT");
-        AddMappings(new[] { "CHIHUAHUA", "PUG", "CHINESE_CRESTED", "MINIATURE_PINSCHER" }, "SHORT_COAT");
-        AddMappings(new[] { "PAPILLON", "PEKINGESE", "SHIH_TZU", "CAVALIER_KING_CHARLES_SPANIEL" }, "LONG_COAT");
+        AddMappings(new[] { "CHIHUAHUA", "TOY_TERRIER", "PUG", "CHINESE_CRESTED", "MINIATURE_PINSCHER" }, "SHORT_COAT");
+        AddMappings(new[] { "PAPILLON", "PEKINGESE", "SHIH_TZU", "CAVALIER_KING_CHARLES_SPANIEL", "COCKER_SPANIEL" }, "LONG_COAT");
         AddMappings(new[] { "MALTESE", "HAVANESE", "COTON_DE_TULEAR" }, "LONG_COAT");
         AddMappings(new[] { "BICHON_FRISE" }, "CURLY_COAT");
         AddMappings(new[] { "DACHSHUND_SMOOTH", "FRENCH_BULLDOG", "ENGLISH_BULLDOG", "BOSTON_TERRIER", "CANE_CORSO", "BEAGLE", "BASSET_HOUND", "WHIPPET", "GREYHOUND", "DOBERMAN", "ROTTWEILER" }, "SHORT_COAT");
@@ -297,8 +302,10 @@ public sealed class PetsCatalogSeeder : IDataSeeder
         AddMappings(new[] { "LABRADOODLE", "GOLDENDOODLE" }, "MEDIUM", "LARGE");
 
         AddMappings(new[] { "POMERANIAN" }, "MINIATURE", "TOY", "SMALL");
+        AddMappings(new[] { "GERMAN_SPITZ" }, "SMALL", "MEDIUM");
         AddMappings(new[] { "JAPANESE_SPITZ" }, "SMALL", "MEDIUM");
         AddMappings(new[] { "SAMOYED" }, "LARGE");
+        AddMappings(new[] { "ALASKAN_MALAMUTE" }, "LARGE", "GIANT");
         AddMappings(new[] { "SHIBA_INU" }, "MEDIUM");
         AddMappings(new[] { "AKITA" }, "LARGE");
         AddMappings(new[] { "HUSKY" }, "MEDIUM", "LARGE");
@@ -311,16 +318,17 @@ public sealed class PetsCatalogSeeder : IDataSeeder
         AddMappings(new[] { "AUSTRALIAN_SHEPHERD", "BORDER_COLLIE" }, "MEDIUM");
         AddMappings(new[] { "WELSH_CORGI_PEMBROKE", "WELSH_CORGI_CARDIGAN" }, "MEDIUM");
 
-        AddMappings(new[] { "YORKSHIRE_TERRIER" }, "MINIATURE", "TOY", "SMALL");
+        AddMappings(new[] { "YORKSHIRE_TERRIER", "BIEWER_TERRIER" }, "MINIATURE", "TOY", "SMALL");
         AddMappings(new[] { "WEST_HIGHLAND_WHITE_TERRIER", "JACK_RUSSELL_TERRIER", "FOX_TERRIER", "SCOTTISH_TERRIER" }, "SMALL");
 
-        AddMappings(new[] { "CHIHUAHUA" }, "TEACUP", "MINIATURE", "TOY", "SMALL");
+        AddMappings(new[] { "CHIHUAHUA", "TOY_TERRIER" }, "TEACUP", "MINIATURE", "TOY", "SMALL");
         AddMappings(new[] { "PAPILLON", "CHINESE_CRESTED", "MINIATURE_PINSCHER" }, "MINIATURE", "TOY", "SMALL");
         AddMappings(new[] { "PUG", "PEKINGESE", "SHIH_TZU", "CAVALIER_KING_CHARLES_SPANIEL" }, "SMALL");
 
         AddMappings(new[] { "MALTESE", "BICHON_FRISE", "HAVANESE", "COTON_DE_TULEAR" }, "MINIATURE", "TOY", "SMALL");
 
         AddMappings(new[] { "DACHSHUND_SMOOTH", "DACHSHUND_LONG_HAIRED", "DACHSHUND_WIRE_HAIRED", "FRENCH_BULLDOG", "ENGLISH_BULLDOG", "BOSTON_TERRIER", "BEAGLE" }, "SMALL");
+        AddMappings(new[] { "COCKER_SPANIEL" }, "MEDIUM");
         AddMappings(new[] { "CANE_CORSO" }, "LARGE", "GIANT");
 
         AddMappings(new[] { "BASSET_HOUND", "WHIPPET" }, "MEDIUM");
