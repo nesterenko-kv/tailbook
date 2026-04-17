@@ -64,7 +64,7 @@ public sealed class VisitQueries(
         return await GetVisitAsync(visit.Id, actorUserId, cancellationToken);
     }
 
-    public async Task<VisitDetailView?> GetVisitAsync(Guid visitId, Guid? actorUserId, CancellationToken cancellationToken)
+    public async Task<VisitDetailView?> GetVisitAsync(Guid visitId, Guid? actorUserId, CancellationToken cancellationToken, bool recordAccessAudit = true)
     {
         var visit = await dbContext.Set<Visit>().SingleOrDefaultAsync(x => x.Id == visitId, cancellationToken);
         if (visit is null)
@@ -104,7 +104,7 @@ public sealed class VisitQueries(
             componentMap[executionItem.Id] = await visitCatalogReadService.GetIncludedComponentsAsync(executionItem.OfferVersionId, cancellationToken);
         }
 
-        if (actorUserId.HasValue)
+        if (recordAccessAudit && actorUserId.HasValue)
         {
             await accessAuditService.RecordAsync("visit", visitId.ToString("D"), "READ_VISIT_DETAIL", actorUserId, cancellationToken);
         }

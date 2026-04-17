@@ -26,6 +26,9 @@ public static class SystemRoleCatalog
         new(PermissionCodes.BookingWrite, "Create and edit booking requests and appointments"),
         new(PermissionCodes.VisitRead, "Read visits and execution details"),
         new(PermissionCodes.VisitWrite, "Check in, execute and finalize visits"),
+        new(PermissionCodes.GroomerAppointmentsRead, "Read groomer-safe assigned appointments"),
+        new(PermissionCodes.GroomerVisitsRead, "Read groomer-safe assigned visits"),
+        new(PermissionCodes.GroomerVisitsWrite, "Execute groomer-safe visit actions"),
         new(PermissionCodes.AdminAppAccess, "Access admin application"),
         new(PermissionCodes.GroomerAppAccess, "Access groomer application"),
         new(PermissionCodes.ClientPortalAccess, "Access client portal")
@@ -53,7 +56,13 @@ public static class SystemRoleCatalog
             PermissionCodes.VisitRead,
             PermissionCodes.VisitWrite
         ]),
-        new(RoleCodes.Groomer, "Groomer", [PermissionCodes.GroomerAppAccess]),
+        new(RoleCodes.Groomer, "Groomer",
+        [
+            PermissionCodes.GroomerAppAccess,
+            PermissionCodes.GroomerAppointmentsRead,
+            PermissionCodes.GroomerVisitsRead,
+            PermissionCodes.GroomerVisitsWrite
+        ]),
         new(RoleCodes.Client, "Client", [PermissionCodes.ClientPortalAccess])
     ];
 }

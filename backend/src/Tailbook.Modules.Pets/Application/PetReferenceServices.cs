@@ -9,6 +9,7 @@ public sealed class PetReferenceServices(AppDbContext dbContext)
     : IPetReferenceValidationService,
       IPetReadModelService,
       IPetSummaryReadService,
+      IPetOperationalReadService,
       IPetQuoteProfileService,
       IPetTaxonomyValidationService
 {
@@ -80,6 +81,31 @@ public sealed class PetReferenceServices(AppDbContext dbContext)
             pet.Breed.Name,
             coatTypeCode,
             sizeCategoryCode);
+    }
+
+
+    public async Task<PetOperationalReadModel?> GetPetOperationalAsync(Guid petId, CancellationToken cancellationToken)
+    {
+        var summary = await GetPetSummaryAsync(petId, cancellationToken);
+        if (summary is null)
+        {
+            return null;
+        }
+
+        var notes = await dbContext.Set<Pet>()
+            .Where(x => x.Id == petId)
+            .Select(x => x.Notes)
+            .SingleAsync(cancellationToken);
+
+        return new PetOperationalReadModel(
+            summary.Id,
+            summary.Name,
+            summary.AnimalTypeCode,
+            summary.AnimalTypeName,
+            summary.BreedName,
+            summary.CoatTypeCode,
+            summary.SizeCategoryCode,
+            notes);
     }
 
     public async Task<PetQuoteProfile?> GetPetAsync(Guid petId, CancellationToken cancellationToken)

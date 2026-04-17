@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj"/>
+    <ProjectReference Include="..\Tailbook.Modules.Identity\Tailbook.Modules.Identity.csproj" />
   </ItemGroup>
 
   <ItemGroup>
