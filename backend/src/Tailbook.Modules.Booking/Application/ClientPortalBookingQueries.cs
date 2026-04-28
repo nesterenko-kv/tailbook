@@ -100,6 +100,7 @@ public sealed class ClientPortalBookingQueries(
         var petMap = pets.Where(x => x is not null).ToDictionary(x => x!.Id, x => x!);
         var filtered = appointments.Where(x => petMap.TryGetValue(x.PetId, out var pet) && pet.ClientId == clientId)
             .ToArray();
+
         if (filtered.Length == 0) return [];
 
         var appointmentIds = filtered.Select(x => x.Id).ToArray();

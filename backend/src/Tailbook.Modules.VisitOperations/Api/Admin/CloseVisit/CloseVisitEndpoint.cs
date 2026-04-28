@@ -6,32 +6,21 @@ using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.CloseVisit;
 
-public sealed class CloseVisitEndpoint(ICurrentUser currentUser, IVisitOperationsAccessPolicy accessPolicy, VisitQueries visitQueries)
+public sealed class CloseVisitEndpoint(ICurrentUser currentUser, VisitQueries visitQueries)
     : Endpoint<CloseVisitRequest, VisitDetailView>
 {
     public override void Configure()
     {
         Post("/api/admin/visits/{visitId:guid}/close");
         Description(x => x.WithTags("Admin Visits"));
+        Permissions("visit.write");
     }
 
     public override async Task HandleAsync(CloseVisitRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
-        if (!accessPolicy.CanWriteVisits(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
+        var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
         try
         {
-            var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
             var result = await visitQueries.CloseVisitAsync(req.VisitId, actorUserId, ct);
             if (result is null)
             {

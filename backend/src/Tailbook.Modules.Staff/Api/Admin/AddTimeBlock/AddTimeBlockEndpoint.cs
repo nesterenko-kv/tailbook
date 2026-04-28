@@ -17,12 +17,6 @@ public sealed class AddTimeBlockEndpoint(ICurrentUser currentUser, IStaffAccessP
 
     public override async Task HandleAsync(AddTimeBlockRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteStaff(currentUser))
         {
             await Send.ForbiddenAsync(ct);

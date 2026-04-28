@@ -17,12 +17,6 @@ public sealed class GetOfferByIdEndpoint(ICurrentUser currentUser, ICatalogAcces
 
     public override async Task HandleAsync(GetOfferByIdRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanReadCatalog(currentUser))
         {
             await Send.ForbiddenAsync(ct);

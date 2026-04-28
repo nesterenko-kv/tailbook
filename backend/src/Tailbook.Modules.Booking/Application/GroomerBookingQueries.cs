@@ -55,12 +55,13 @@ public sealed class GroomerBookingQueries(
         var resultItems = new List<GroomerAppointmentListItemView>();
         foreach (var appointment in appointments)
         {
-            if (!petCache.ContainsKey(appointment.PetId))
+            if (!petCache.TryGetValue(appointment.PetId, out PetOperationalReadModel? value))
             {
-                petCache[appointment.PetId] = await petOperationalReadService.GetPetOperationalAsync(appointment.PetId, cancellationToken);
+                value = await petOperationalReadService.GetPetOperationalAsync(appointment.PetId, cancellationToken);
+                petCache[appointment.PetId] = value;
             }
 
-            var pet = petCache[appointment.PetId] ?? throw new InvalidOperationException("Appointment pet does not exist.");
+            var pet = value ?? throw new InvalidOperationException("Appointment pet does not exist.");
             var appointmentItems = items.Where(x => x.AppointmentId == appointment.Id).ToArray();
 
             resultItems.Add(new GroomerAppointmentListItemView(

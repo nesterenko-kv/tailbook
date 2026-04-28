@@ -17,12 +17,6 @@ public sealed class CheckAvailabilityEndpoint(ICurrentUser currentUser, IStaffAc
 
     public override async Task HandleAsync(CheckAvailabilityRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanReadStaff(currentUser))
         {
             await Send.ForbiddenAsync(ct);

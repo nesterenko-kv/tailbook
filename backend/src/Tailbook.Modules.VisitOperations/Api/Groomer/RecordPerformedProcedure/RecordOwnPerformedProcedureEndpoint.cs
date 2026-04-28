@@ -20,12 +20,6 @@ public sealed class RecordOwnPerformedProcedureEndpoint(
 
     public override async Task HandleAsync(RecordOwnPerformedProcedureRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteOwnVisits(currentUser))
         {
             await Send.ForbiddenAsync(ct);

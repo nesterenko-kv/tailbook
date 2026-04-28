@@ -17,12 +17,6 @@ public sealed class PublishDurationRuleSetEndpoint(ICurrentUser currentUser, ICa
 
     public override async Task HandleAsync(PublishDurationRuleSetRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteCatalog(currentUser))
         {
             await Send.ForbiddenAsync(ct);

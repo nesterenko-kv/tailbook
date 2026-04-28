@@ -6,32 +6,22 @@ using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.ApplyVisitAdjustment;
 
-public sealed class ApplyVisitAdjustmentEndpoint(ICurrentUser currentUser, IVisitOperationsAccessPolicy accessPolicy, VisitQueries visitQueries)
+public sealed class ApplyVisitAdjustmentEndpoint(ICurrentUser currentUser, VisitQueries visitQueries)
     : Endpoint<ApplyVisitAdjustmentRequest, VisitDetailView>
 {
     public override void Configure()
     {
         Post("/api/admin/visits/{visitId:guid}/adjustments");
         Description(x => x.WithTags("Admin Visits"));
+        Permissions("visit.write");
     }
 
     public override async Task HandleAsync(ApplyVisitAdjustmentRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
-        if (!accessPolicy.CanWriteVisits(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
+        var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
 
         try
         {
-            var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
             var result = await visitQueries.ApplyPriceAdjustmentAsync(req.VisitId, req.Sign, req.Amount, req.ReasonCode, req.Note, actorUserId, ct);
             if (result is null)
             {

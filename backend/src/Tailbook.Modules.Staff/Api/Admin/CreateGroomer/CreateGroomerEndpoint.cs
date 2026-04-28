@@ -17,12 +17,6 @@ public sealed class CreateGroomerEndpoint(ICurrentUser currentUser, IStaffAccess
 
     public override async Task HandleAsync(CreateGroomerRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteStaff(currentUser))
         {
             await Send.ForbiddenAsync(ct);

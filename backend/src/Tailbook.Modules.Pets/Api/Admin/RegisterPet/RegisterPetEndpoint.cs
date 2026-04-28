@@ -17,12 +17,6 @@ public sealed class RegisterPetEndpoint(ICurrentUser currentUser, IPetsAccessPol
 
     public override async Task HandleAsync(RegisterPetRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWritePets(currentUser))
         {
             await Send.ForbiddenAsync(ct);

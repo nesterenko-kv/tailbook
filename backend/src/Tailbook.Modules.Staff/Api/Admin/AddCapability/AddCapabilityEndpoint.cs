@@ -18,12 +18,6 @@ public sealed class AddCapabilityEndpoint(ICurrentUser currentUser, IStaffAccess
 
     public override async Task HandleAsync(AddCapabilityRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteStaff(currentUser))
         {
             await Send.ForbiddenAsync(ct);

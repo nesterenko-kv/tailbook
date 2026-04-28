@@ -17,12 +17,6 @@ public sealed class CreateClientEndpoint(ICurrentUser currentUser, ICustomerAcce
 
     public override async Task HandleAsync(CreateClientRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteClients(currentUser))
         {
             await Send.ForbiddenAsync(ct);

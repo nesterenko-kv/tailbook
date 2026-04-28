@@ -16,12 +16,6 @@ public sealed class ListPetContactLinksEndpoint(ICurrentUser currentUser, ICusto
 
     public override async Task HandleAsync(ListPetContactLinksRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanReadContacts(currentUser))
         {
             await Send.ForbiddenAsync(ct);

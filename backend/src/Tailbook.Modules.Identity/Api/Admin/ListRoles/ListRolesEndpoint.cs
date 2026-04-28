@@ -16,12 +16,6 @@ public sealed class ListRolesEndpoint(ICurrentUser currentUser, IIdentityAccessP
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanReadRoles(currentUser))
         {
             await Send.ForbiddenAsync(ct);

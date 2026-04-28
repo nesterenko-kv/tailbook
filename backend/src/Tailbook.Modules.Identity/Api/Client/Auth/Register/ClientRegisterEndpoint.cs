@@ -1,11 +1,12 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Tailbook.Modules.Identity.Application;
 
 namespace Tailbook.Modules.Identity.Api.Client.Auth.Register;
 
-public sealed class ClientRegisterEndpoint(ClientPortalIdentityQueries identityQueries) : Endpoint<ClientRegisterRequest, ClientRegisterResponse>
+public sealed class ClientRegisterEndpoint : Endpoint<ClientRegisterRequest, ClientRegisterResponse>
 {
     public override void Configure()
     {
@@ -18,16 +19,25 @@ public sealed class ClientRegisterEndpoint(ClientPortalIdentityQueries identityQ
     {
         try
         {
-            var result = await identityQueries.RegisterClientAsync(
-                new RegisterClientPortalUserCommand(
-                    req.DisplayName,
-                    req.FirstName,
-                    req.LastName,
-                    req.Email,
-                    req.Password,
-                    req.Phone,
-                    req.Instagram),
-                ct);
+            var command = new RegisterClientPortalUserCommand(
+                req.DisplayName,
+                req.FirstName,
+                req.LastName,
+                req.Email,
+                req.Password,
+                req.Phone,
+                req.Instagram
+            );
+
+            await command.ExecuteAsync(ct);
+
+            var result = await new AuthenticateUserCommand(req.Email, req.Password).ExecuteAsync(ct);
+            if (result is null)
+            {
+                Logger.Log(LogLevel.Warning, "Client portal registration finished without an active login session.");
+                await Send.UnauthorizedAsync(ct);
+                return;
+            }
 
             await Send.ResponseAsync(new ClientRegisterResponse
             {

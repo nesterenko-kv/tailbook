@@ -20,12 +20,6 @@ public sealed class RecordOwnSkippedComponentEndpoint(
 
     public override async Task HandleAsync(RecordOwnSkippedComponentRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteOwnVisits(currentUser))
         {
             await Send.ForbiddenAsync(ct);

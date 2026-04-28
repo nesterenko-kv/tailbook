@@ -17,12 +17,6 @@ public sealed class PublishOfferVersionEndpoint(ICurrentUser currentUser, ICatal
 
     public override async Task HandleAsync(PublishOfferVersionRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteCatalog(currentUser))
         {
             await Send.ForbiddenAsync(ct);

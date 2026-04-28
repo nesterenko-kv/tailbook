@@ -16,12 +16,6 @@ public sealed class ListProceduresEndpoint(ICurrentUser currentUser, ICatalogAcc
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanReadCatalog(currentUser))
         {
             await Send.ForbiddenAsync(ct);

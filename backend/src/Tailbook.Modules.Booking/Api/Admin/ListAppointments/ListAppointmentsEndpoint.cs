@@ -1,34 +1,22 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Admin.ListAppointments;
 
-public sealed class ListAppointmentsEndpoint(ICurrentUser currentUser, IBookingAccessPolicy accessPolicy, BookingManagementQueries bookingQueries)
+public sealed class ListAppointmentsEndpoint(BookingManagementQueries bookingQueries)
     : Endpoint<ListAppointmentsRequest, PagedResult<AppointmentListItemView>>
 {
     public override void Configure()
     {
         Get("/api/admin/appointments");
         Description(x => x.WithTags("Admin Booking"));
+        Permissions("booking.read");
     }
 
     public override async Task HandleAsync(ListAppointmentsRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
-        if (!accessPolicy.CanReadBooking(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var result = await bookingQueries.ListAppointmentsAsync(req.FromUtc, req.ToUtc, req.GroomerId, req.Page, req.PageSize, ct);
         await Send.ResponseAsync(result, cancellation: ct);
     }

@@ -17,12 +17,6 @@ public sealed class ListBookingRequestsEndpoint(ICurrentUser currentUser, IBooki
 
     public override async Task HandleAsync(ListBookingRequestsRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanReadBooking(currentUser))
         {
             await Send.ForbiddenAsync(ct);

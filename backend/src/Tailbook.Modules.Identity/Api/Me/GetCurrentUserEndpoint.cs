@@ -15,12 +15,6 @@ public sealed class GetCurrentUserEndpoint(ICurrentUser currentUser, IClientPort
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         Guid? parsedUserId = null;
         Guid? clientId = null;
         Guid? contactPersonId = null;

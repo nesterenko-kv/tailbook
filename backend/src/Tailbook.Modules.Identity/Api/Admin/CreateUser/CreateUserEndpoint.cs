@@ -16,12 +16,6 @@ public sealed class CreateUserEndpoint(ICurrentUser currentUser, IIdentityAccess
 
     public override async Task HandleAsync(CreateUserRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteUsers(currentUser) || (req.RoleCodes.Count > 0 && !accessPolicy.CanAssignRoles(currentUser)))
         {
             await Send.ForbiddenAsync(ct);

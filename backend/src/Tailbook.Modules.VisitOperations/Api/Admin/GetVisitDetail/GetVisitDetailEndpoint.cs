@@ -5,29 +5,18 @@ using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.GetVisitDetail;
 
-public sealed class GetVisitDetailEndpoint(ICurrentUser currentUser, IVisitOperationsAccessPolicy accessPolicy, VisitQueries visitQueries)
+public sealed class GetVisitDetailEndpoint(ICurrentUser currentUser, VisitQueries visitQueries)
     : Endpoint<GetVisitDetailRequest, VisitDetailView>
 {
     public override void Configure()
     {
         Get("/api/admin/visits/{visitId:guid}");
         Description(x => x.WithTags("Admin Visits"));
+        Permissions("visit.read");
     }
 
     public override async Task HandleAsync(GetVisitDetailRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
-        if (!accessPolicy.CanReadVisits(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
         var result = await visitQueries.GetVisitAsync(req.VisitId, actorUserId, ct);
         if (result is null)

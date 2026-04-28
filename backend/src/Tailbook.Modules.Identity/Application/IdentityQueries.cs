@@ -1,4 +1,7 @@
+using System.Security.Claims;
+using FastEndpoints.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Identity.Contracts;
@@ -6,34 +9,8 @@ using Tailbook.Modules.Identity.Domain;
 
 namespace Tailbook.Modules.Identity.Application;
 
-public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passwordHasher, JwtTokenFactory jwtTokenFactory)
+public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passwordHasher)
 {
-    public async Task<LoginResult?> AuthenticateAsync(string email, string password, CancellationToken cancellationToken)
-    {
-        var normalizedEmail = NormalizeEmail(email);
-        var user = await dbContext.Set<IdentityUser>()
-            .SingleOrDefaultAsync(x => x.NormalizedEmail == normalizedEmail, cancellationToken);
-
-        if (user is null || !string.Equals(user.Status, UserStatusCodes.Active, StringComparison.OrdinalIgnoreCase))
-        {
-            return null;
-        }
-
-        if (!passwordHasher.Verify(password, user.PasswordHash))
-        {
-            return null;
-        }
-
-        var roles = await GetRoleCodesAsync(user.Id, cancellationToken);
-        var permissions = await GetPermissionCodesAsync(user.Id, cancellationToken);
-        var token = jwtTokenFactory.CreateToken(user.Id.ToString("D"), user.SubjectId, user.Email, user.DisplayName, roles, permissions);
-
-        return new LoginResult(
-            token.AccessToken,
-            token.ExpiresAtUtc,
-            new AuthenticatedUserView(user.Id, user.SubjectId, user.Email, user.DisplayName, user.Status, user.ClientId, user.ContactPersonId, roles, permissions));
-    }
-
     public async Task<IReadOnlyList<RoleView>> ListRolesAsync(CancellationToken cancellationToken)
     {
         var roles = await dbContext.Set<IdentityRole>()
@@ -107,7 +84,7 @@ public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passw
             return null;
         }
 
-        var roleCodes = await GetRoleCodesAsync(user.Id, cancellationToken);
+        var roles = await GetRoleCodesAsync(user.Id, cancellationToken);
         var permissions = await GetPermissionCodesAsync(user.Id, cancellationToken);
 
         return new UserDetailView(
@@ -116,7 +93,7 @@ public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passw
             user.Email,
             user.DisplayName,
             user.Status,
-            roleCodes,
+            roles,
             permissions,
             user.CreatedAtUtc,
             user.UpdatedAtUtc);
@@ -218,7 +195,7 @@ public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passw
                 g => g.Select(x => x.Code).Distinct(StringComparer.OrdinalIgnoreCase).ToArray());
     }
 
-    private async Task<string[]> GetRoleCodesAsync(Guid userId, CancellationToken cancellationToken)
+    private async Task<HashSet<string>> GetRoleCodesAsync(Guid userId, CancellationToken cancellationToken)
     {
         return await dbContext.Set<UserRoleAssignment>()
             .Where(x => x.UserId == userId)
@@ -229,10 +206,11 @@ public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passw
                 (_, role) => role.Code)
             .Distinct()
             .OrderBy(x => x)
-            .ToArrayAsync(cancellationToken);
+            .AsAsyncEnumerable()
+            .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, cancellationToken);
     }
 
-    private async Task<string[]> GetPermissionCodesAsync(Guid userId, CancellationToken cancellationToken)
+    private async Task<HashSet<string>> GetPermissionCodesAsync(Guid userId, CancellationToken cancellationToken)
     {
         return await dbContext.Set<UserRoleAssignment>()
             .Where(x => x.UserId == userId)
@@ -248,7 +226,8 @@ public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passw
                 (_, permission) => permission.Code)
             .Distinct()
             .OrderBy(x => x)
-            .ToArrayAsync(cancellationToken);
+            .AsAsyncEnumerable()
+            .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, cancellationToken: cancellationToken);
     }
 
     public static string NormalizeEmail(string email) => email.Trim().ToUpperInvariant();

@@ -17,12 +17,6 @@ public sealed class AddContactPersonEndpoint(ICurrentUser currentUser, ICustomer
 
     public override async Task HandleAsync(AddContactPersonRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteContacts(currentUser))
         {
             await Send.ForbiddenAsync(ct);

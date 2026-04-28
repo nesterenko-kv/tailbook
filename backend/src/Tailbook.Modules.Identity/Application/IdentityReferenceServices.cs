@@ -17,7 +17,7 @@ public sealed class IdentityReferenceServices(AppDbContext dbContext)
     public async Task<ClientPortalActor?> GetActorAsync(Guid userId, CancellationToken cancellationToken)
     {
         var user = await dbContext.Set<IdentityUser>().SingleOrDefaultAsync(x => x.Id == userId, cancellationToken);
-        if (user is null || user.ClientId is null || user.ContactPersonId is null)
+        if (user is null or {ClientId: null} or {ContactPersonId: null})
         {
             return null;
         }

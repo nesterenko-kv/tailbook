@@ -18,12 +18,6 @@ public sealed class UpsertWorkingScheduleEndpoint(ICurrentUser currentUser, ISta
 
     public override async Task HandleAsync(UpsertWorkingScheduleRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteStaff(currentUser))
         {
             await Send.ForbiddenAsync(ct);

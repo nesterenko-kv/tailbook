@@ -17,12 +17,6 @@ public sealed class CreateAppointmentEndpoint(ICurrentUser currentUser, IBooking
 
     public override async Task HandleAsync(CreateAppointmentRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteBooking(currentUser))
         {
             await Send.ForbiddenAsync(ct);

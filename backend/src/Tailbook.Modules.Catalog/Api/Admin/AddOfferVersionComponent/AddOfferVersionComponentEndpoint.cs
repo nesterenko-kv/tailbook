@@ -18,12 +18,6 @@ public sealed class AddOfferVersionComponentEndpoint(ICurrentUser currentUser, I
 
     public override async Task HandleAsync(AddOfferVersionComponentRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteCatalog(currentUser))
         {
             await Send.ForbiddenAsync(ct);

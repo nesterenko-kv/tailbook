@@ -116,6 +116,7 @@ public sealed class BookingManagementQueries(
     {
         var bookingRequest = await dbContext.Set<BookingRequest>()
             .SingleOrDefaultAsync(x => x.Id == command.BookingRequestId, cancellationToken);
+
         if (bookingRequest is null)
         {
             return null;

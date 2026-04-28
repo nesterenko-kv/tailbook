@@ -6,29 +6,18 @@ using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Admin.PreviewQuote;
 
-public sealed class PreviewQuoteEndpoint(ICurrentUser currentUser, IBookingAccessPolicy accessPolicy, BookingQuoteQueries bookingQuoteQueries)
+public sealed class PreviewQuoteEndpoint(ICurrentUser currentUser, BookingQuoteQueries bookingQuoteQueries)
     : Endpoint<PreviewQuoteRequest, PreviewQuoteResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/quotes/preview");
         Description(x => x.WithTags("Admin Booking"));
+        PermissionsAll("booking.read", "catalog.read", "pets.read");
     }
 
     public override async Task HandleAsync(PreviewQuoteRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
-        if (!accessPolicy.CanPreviewQuotes(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var result = await bookingQuoteQueries.PreviewQuoteAsync(

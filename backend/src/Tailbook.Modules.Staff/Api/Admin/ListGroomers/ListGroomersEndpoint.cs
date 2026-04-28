@@ -16,12 +16,6 @@ public sealed class ListGroomersEndpoint(ICurrentUser currentUser, IStaffAccessP
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanReadStaff(currentUser))
         {
             await Send.ForbiddenAsync(ct);

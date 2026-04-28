@@ -17,12 +17,6 @@ public sealed class ConvertBookingRequestToAppointmentEndpoint(ICurrentUser curr
 
     public override async Task HandleAsync(ConvertBookingRequestToAppointmentRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteBooking(currentUser))
         {
             await Send.ForbiddenAsync(ct);

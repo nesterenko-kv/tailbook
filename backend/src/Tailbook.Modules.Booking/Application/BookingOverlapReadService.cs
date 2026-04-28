@@ -8,7 +8,7 @@ namespace Tailbook.Modules.Booking.Application;
 
 public sealed class BookingOverlapReadService(AppDbContext dbContext) : IAppointmentOverlapReadService
 {
-    private static readonly string[] ActiveStatuses =
+    private static readonly IEnumerable<string> ActiveStatuses =
     [
         AppointmentStatusCodes.Confirmed,
         AppointmentStatusCodes.Rescheduled,

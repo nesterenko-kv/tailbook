@@ -16,12 +16,6 @@ public sealed class AssignRolesEndpoint(ICurrentUser currentUser, IIdentityAcces
 
     public override async Task HandleAsync(AssignRolesRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanAssignRoles(currentUser))
         {
             await Send.ForbiddenAsync(ct);

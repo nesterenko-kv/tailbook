@@ -16,12 +16,6 @@ public sealed class GetAppointmentDetailEndpoint(ICurrentUser currentUser, IBook
 
     public override async Task HandleAsync(GetAppointmentDetailRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanReadBooking(currentUser))
         {
             await Send.ForbiddenAsync(ct);

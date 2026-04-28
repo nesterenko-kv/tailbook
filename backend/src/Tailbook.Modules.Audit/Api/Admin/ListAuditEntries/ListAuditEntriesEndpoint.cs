@@ -7,31 +7,18 @@ using Tailbook.Modules.Audit.Domain;
 
 namespace Tailbook.Modules.Audit.Api.Admin.ListAuditEntries;
 
-public sealed class ListAuditEntriesEndpoint(ICurrentUser currentUser, AppDbContext dbContext)
+public sealed class ListAuditEntriesEndpoint(AppDbContext dbContext)
     : Endpoint<ListAuditEntriesRequest, ListAuditEntriesResponse>
 {
-    private const string AuditTrailReadPermission = "audit.trail.read";
-
     public override void Configure()
     {
         Get("/api/admin/audit");
         Description(x => x.WithTags("Audit"));
+        Permissions("audit.trail.read");
     }
 
     public override async Task HandleAsync(ListAuditEntriesRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
-        if (!currentUser.HasPermission(AuditTrailReadPermission))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var page = req.Page <= 0 ? 1 : req.Page;
         var pageSize = req.PageSize switch { <= 0 => 20, > 100 => 100, _ => req.PageSize };
 

@@ -20,12 +20,6 @@ public sealed class GetUserByIdEndpoint(
 
     public override async Task HandleAsync(GetUserByIdRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanReadUsers(currentUser))
         {
             await Send.ForbiddenAsync(ct);

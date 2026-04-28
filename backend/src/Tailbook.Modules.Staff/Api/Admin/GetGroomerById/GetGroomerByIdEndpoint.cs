@@ -17,12 +17,6 @@ public sealed class GetGroomerByIdEndpoint(ICurrentUser currentUser, IStaffAcces
 
     public override async Task HandleAsync(GetGroomerByIdRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanReadStaff(currentUser))
         {
             await Send.ForbiddenAsync(ct);

@@ -1,5 +1,6 @@
 using System.Text;
 using FastEndpoints;
+using FastEndpoints.Security;
 using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -27,7 +28,9 @@ builder.Logging.AddSimpleConsole(options =>
 
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddFastEndpoints(o => o.Assemblies = ModuleCatalog.EndpointAssemblies);
+builder.Services.AddFastEndpoints(o => o.Assemblies = ModuleCatalog.EndpointAssemblies)
+    .AddJobQueues<JobRecord, JobProvider>();
+
 builder.Services.SwaggerDocument(o =>
 {
     o.DocumentSettings = s =>
@@ -57,9 +60,21 @@ builder.Services
     .Bind(builder.Configuration.GetSection(HttpTransportOptions.SectionName))
     .ValidateOnStart();
 
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer();
+builder.Services.AddOptions<JwtSigningOptions>()
+    .Configure<IOptions<JwtOptions>>((options, jwtOptionsAccessor) =>
+    {
+        var jwtOptions = jwtOptionsAccessor.Value;
+
+        options.SigningKey = jwtOptions.SigningKey;
+    });
+
+builder.Services.AddOptions<JwtCreationOptions>()
+    .Configure<IOptions<JwtOptions>>((options, jwtOptionsAccessor) =>
+    {
+        var jwtOptions = jwtOptionsAccessor.Value;
+
+        options.SigningKey = jwtOptions.SigningKey;
+    });
 
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
     .Configure<IOptions<JwtOptions>>((options, jwtOptionsAccessor) =>
@@ -79,7 +94,12 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services
+    .AddAuthenticationJwtBearer(_ =>
+    {
+
+    })
+    .AddAuthorization();
 
 var appCorsOptions = builder.Configuration.GetSection(AppCorsOptions.SectionName).Get<AppCorsOptions>() ?? new AppCorsOptions();
 builder.Services.AddCors(options =>
@@ -88,12 +108,14 @@ builder.Services.AddCors(options =>
     {
         if (appCorsOptions.AllowedOrigins.Length > 0)
         {
-            policy.WithOrigins(appCorsOptions.AllowedOrigins).AllowAnyHeader().AllowAnyMethod();
+            policy.WithOrigins(appCorsOptions.AllowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod();
         }
     });
 });
 
-builder.Services.AddDbContext<AppDbContext>(options =>
+builder.Services.AddDbContextFactory<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Main")));
 
 builder.Services.AddHealthChecks()
@@ -116,7 +138,7 @@ if (app.Environment.IsDevelopment())
 }
 
 var httpTransportOptions = app.Services.GetRequiredService<IOptions<HttpTransportOptions>>().Value;
-if (!app.Environment.IsDevelopment() && httpTransportOptions.UseHsts && httpTransportOptions.EnforceHttpsRedirection)
+if (!app.Environment.IsDevelopment() && httpTransportOptions is { UseHsts: true, EnforceHttpsRedirection: true })
 {
     app.UseHsts();
 }
@@ -130,7 +152,13 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseCors("AppCors");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseFastEndpoints(c => c.Endpoints.RoutePrefix = null);
+app.UseFastEndpoints(c =>
+{
+    c.Endpoints.RoutePrefix = null;
+    c.Security.PermissionsClaimType = TailbookClaimTypes.Permission;
+});
+
+app.UseJobQueues();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {

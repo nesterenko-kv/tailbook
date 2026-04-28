@@ -16,12 +16,6 @@ public sealed class GetClientDetailEndpoint(ICurrentUser currentUser, ICustomerA
 
     public override async Task HandleAsync(GetClientDetailRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanReadClients(currentUser) || !accessPolicy.CanReadContacts(currentUser))
         {
             await Send.ForbiddenAsync(ct);

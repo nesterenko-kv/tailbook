@@ -17,12 +17,6 @@ public sealed class CreateOfferEndpoint(ICurrentUser currentUser, ICatalogAccess
 
     public override async Task HandleAsync(CreateOfferRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteCatalog(currentUser))
         {
             await Send.ForbiddenAsync(ct);

@@ -1,4 +1,5 @@
 using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
@@ -31,19 +32,7 @@ public static class ModuleCatalog
         new ReportingModule()
     ];
 
-    public static readonly Assembly[] EndpointAssemblies =
-    [
-        typeof(IdentityModule).Assembly,
-        typeof(CustomerModule).Assembly,
-        typeof(PetsModule).Assembly,
-        typeof(CatalogModule).Assembly,
-        typeof(BookingModule).Assembly,
-        typeof(VisitOperationsModule).Assembly,
-        typeof(StaffModule).Assembly,
-        typeof(NotificationsModule).Assembly,
-        typeof(AuditModule).Assembly,
-        typeof(ReportingModule).Assembly
-    ];
+    public static readonly Assembly[] EndpointAssemblies = Modules.Select(x => x.GetType().Assembly).ToArray();
 
     public static void ConfigureModulePersistence()
     {

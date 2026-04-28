@@ -18,12 +18,6 @@ public sealed class CreateOfferVersionEndpoint(ICurrentUser currentUser, ICatalo
 
     public override async Task HandleAsync(CreateOfferVersionRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteCatalog(currentUser))
         {
             await Send.ForbiddenAsync(ct);

@@ -18,12 +18,6 @@ public sealed class CreateDurationRuleSetEndpoint(ICurrentUser currentUser, ICat
 
     public override async Task HandleAsync(CreateDurationRuleSetRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteCatalog(currentUser))
         {
             await Send.ForbiddenAsync(ct);

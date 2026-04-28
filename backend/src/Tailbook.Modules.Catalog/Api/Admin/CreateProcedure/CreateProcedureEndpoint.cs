@@ -17,12 +17,6 @@ public sealed class CreateProcedureEndpoint(ICurrentUser currentUser, ICatalogAc
 
     public override async Task HandleAsync(CreateProcedureRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteCatalog(currentUser))
         {
             await Send.ForbiddenAsync(ct);

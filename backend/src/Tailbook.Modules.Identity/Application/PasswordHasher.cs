@@ -26,7 +26,12 @@ public sealed class PasswordHasher
         }
 
         var parts = passwordHash.Split('$', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length != 4 || !string.Equals(parts[0], "PBKDF2", StringComparison.Ordinal))
+        if (parts.Length != 4)
+        {
+            return false;
+        }
+
+        if (!string.Equals(parts[0], "PBKDF2", StringComparison.Ordinal))
         {
             return false;
         }

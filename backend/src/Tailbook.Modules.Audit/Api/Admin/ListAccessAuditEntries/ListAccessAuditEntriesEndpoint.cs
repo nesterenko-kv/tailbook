@@ -1,38 +1,24 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Audit.Domain;
 
 namespace Tailbook.Modules.Audit.Api.Admin.ListAccessAuditEntries;
 
 public sealed class ListAccessAuditEntriesEndpoint(
-    ICurrentUser currentUser,
-    AppDbContext dbContext) : Endpoint<ListAccessAuditEntriesRequest, ListAccessAuditEntriesResponse>
+    AppDbContext dbContext
+) : Endpoint<ListAccessAuditEntriesRequest, ListAccessAuditEntriesResponse>
 {
-    private const string AuditAccessReadPermission = "audit.access.read";
-
     public override void Configure()
     {
         Get("/api/admin/audit/access");
         Description(x => x.WithTags("Audit"));
+        Permissions("audit.access.read");
     }
 
     public override async Task HandleAsync(ListAccessAuditEntriesRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
-        if (!currentUser.HasPermission(AuditAccessReadPermission))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var page = req.Page <= 0 ? 1 : req.Page;
         var pageSize = req.PageSize switch
         {
@@ -44,14 +30,10 @@ public sealed class ListAccessAuditEntriesEndpoint(
         var query = dbContext.Set<AccessAuditEntry>().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(req.ResourceType))
-        {
             query = query.Where(x => x.ResourceType == req.ResourceType);
-        }
 
         if (!string.IsNullOrWhiteSpace(req.ResourceId))
-        {
             query = query.Where(x => x.ResourceId == req.ResourceId);
-        }
 
         var totalCount = await query.CountAsync(ct);
         var items = await query
@@ -75,6 +57,6 @@ public sealed class ListAccessAuditEntriesEndpoint(
             Page = page,
             PageSize = pageSize,
             TotalCount = totalCount
-        }, cancellation: ct);
+        }, ct);
     }
 }

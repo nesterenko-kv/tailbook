@@ -342,23 +342,23 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
     private sealed class AnimalTypeEnvelope
     {
         public Guid Id { get; set; }
-        public string Code { get; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
     }
 
     private sealed class BreedEnvelope
     {
         public Guid Id { get; set; }
-        public string Code { get; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
     }
 
     private sealed class CoatTypeEnvelope
     {
-        public string Code { get; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
     }
 
     private sealed class SizeCategoryEnvelope
     {
-        public string Code { get; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
     }
 
     private sealed class PreviewQuoteResponse
@@ -370,12 +370,12 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
         {
             public Guid Id { get; set; }
             public decimal TotalAmount { get; set; }
-            public PriceLineEnvelope[] Lines { get; } = [];
+            public PriceLineEnvelope[] Lines { get; set; } = [];
         }
 
         public sealed class PriceLineEnvelope
         {
-            public string Label { get; } = string.Empty;
+            public string Label { get; set; } = string.Empty;
         }
 
         public sealed class DurationSnapshotEnvelope
@@ -383,7 +383,7 @@ public sealed class PricingDurationFlowTests : IClassFixture<CustomWebApplicatio
             public Guid Id { get; set; }
             public int ServiceMinutes { get; set; }
             public int ReservedMinutes { get; set; }
-            public DurationLineEnvelope[] Lines { get; } = [];
+            public DurationLineEnvelope[] Lines { get; set; } = [];
         }
 
         public sealed class DurationLineEnvelope

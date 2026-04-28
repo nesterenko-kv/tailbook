@@ -19,12 +19,6 @@ public sealed class GetOwnVisitDetailEndpoint(
 
     public override async Task HandleAsync(GetOwnVisitDetailRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanReadOwnVisits(currentUser))
         {
             await Send.ForbiddenAsync(ct);

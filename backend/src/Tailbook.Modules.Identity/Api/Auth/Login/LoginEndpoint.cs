@@ -4,7 +4,7 @@ using Tailbook.Modules.Identity.Application;
 
 namespace Tailbook.Modules.Identity.Api.Auth.Login;
 
-public sealed class LoginEndpoint(IdentityQueries identityQueries) : Endpoint<LoginRequest, LoginResponse>
+public sealed class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
 {
     public override void Configure()
     {
@@ -15,7 +15,7 @@ public sealed class LoginEndpoint(IdentityQueries identityQueries) : Endpoint<Lo
 
     public override async Task HandleAsync(LoginRequest req, CancellationToken ct)
     {
-        var result = await identityQueries.AuthenticateAsync(req.Email, req.Password, ct);
+        var result = await new AuthenticateUserCommand(req.Email, req.Password).ExecuteAsync(ct);
         if (result is null)
         {
             await Send.UnauthorizedAsync(ct);

@@ -16,12 +16,6 @@ public sealed class GetPetCatalogEndpoint(ICurrentUser currentUser, IPetsAccessP
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanReadCatalog(currentUser))
         {
             await Send.ForbiddenAsync(ct);

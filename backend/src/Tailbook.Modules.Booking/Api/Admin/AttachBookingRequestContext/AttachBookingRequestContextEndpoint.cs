@@ -20,12 +20,6 @@ public sealed class AttachBookingRequestContextEndpoint(
 
     public override async Task HandleAsync(AttachBookingRequestContextRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteBooking(currentUser))
         {
             await Send.ForbiddenAsync(ct);

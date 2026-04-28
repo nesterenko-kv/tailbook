@@ -18,12 +18,6 @@ public sealed class CreatePriceRuleEndpoint(ICurrentUser currentUser, ICatalogAc
 
     public override async Task HandleAsync(CreatePriceRuleRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteCatalog(currentUser))
         {
             await Send.ForbiddenAsync(ct);

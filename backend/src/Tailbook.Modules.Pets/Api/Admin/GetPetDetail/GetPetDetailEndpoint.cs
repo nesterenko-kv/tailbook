@@ -16,12 +16,6 @@ public sealed class GetPetDetailEndpoint(ICurrentUser currentUser, IPetsAccessPo
 
     public override async Task HandleAsync(GetPetDetailRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanReadPets(currentUser))
         {
             await Send.ForbiddenAsync(ct);

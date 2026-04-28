@@ -17,12 +17,6 @@ public sealed class PublishPriceRuleSetEndpoint(ICurrentUser currentUser, ICatal
 
     public override async Task HandleAsync(PublishPriceRuleSetRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanWriteCatalog(currentUser))
         {
             await Send.ForbiddenAsync(ct);

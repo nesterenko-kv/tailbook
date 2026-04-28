@@ -16,12 +16,6 @@ public sealed class ListClientsEndpoint(ICurrentUser currentUser, ICustomerAcces
 
     public override async Task HandleAsync(ListClientsRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated)
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
         if (!accessPolicy.CanReadClients(currentUser))
         {
             await Send.ForbiddenAsync(ct);
