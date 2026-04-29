@@ -324,10 +324,11 @@ public sealed class BookingManagementQueries(
         string? actorUserId,
         CancellationToken cancellationToken)
     {
+        var normalizedStartAtUtc = BookingTimeInputNormalizer.AssumeUtc(startAtUtc, nameof(startAtUtc));
         var composition = await bookingSnapshotComposer.ComposeAppointmentAsync(
             petId,
             groomerId,
-            DateTime.SpecifyKind(startAtUtc, DateTimeKind.Utc),
+            normalizedStartAtUtc,
             items,
             actorUserId,
             cancellationToken);
@@ -339,7 +340,7 @@ public sealed class BookingManagementQueries(
             bookingRequestId,
             petId,
             groomerId,
-            new BookingPeriod(composition.StartAtUtc, composition.EndAtUtc),
+            BookingTimeInputNormalizer.CreatePeriod(composition.StartAtUtc, composition.EndAtUtc),
             composition.Items.Select(x => new AppointmentItemDraft(
                 x.OfferType,
                 x.OfferId,
@@ -361,7 +362,9 @@ public sealed class BookingManagementQueries(
             petId = appointment.PetId,
             groomerId = appointment.GroomerId,
             startAtUtc = appointment.StartAtUtc,
-            endAtUtc = appointment.EndAtUtc
+            endAtUtc = appointment.EndAtUtc,
+            status = appointment.Status,
+            versionNo = appointment.VersionNo
         }, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -487,6 +490,7 @@ public sealed class BookingManagementQueries(
 
         EnsureVersion(appointment, command.ExpectedVersionNo);
         appointment.EnsureCanBeRescheduled();
+        var normalizedStartAtUtc = BookingTimeInputNormalizer.AssumeUtc(command.StartAtUtc, nameof(command.StartAtUtc));
 
         var items = await dbContext.Set<AppointmentItem>()
             .Where(x => x.AppointmentId == appointment.Id)
@@ -515,7 +519,7 @@ public sealed class BookingManagementQueries(
             command.GroomerId,
             appointment.PetId,
             items.Select(x => x.OfferId).ToArray(),
-            DateTime.SpecifyKind(command.StartAtUtc, DateTimeKind.Utc),
+            normalizedStartAtUtc,
             baseReservedMinutes,
             appointment.Id,
             cancellationToken);
@@ -527,7 +531,7 @@ public sealed class BookingManagementQueries(
 
         appointment.Reschedule(
             command.GroomerId,
-            new BookingPeriod(DateTime.SpecifyKind(command.StartAtUtc, DateTimeKind.Utc), availability.EndAtUtc),
+            BookingTimeInputNormalizer.CreatePeriod(normalizedStartAtUtc, availability.EndAtUtc),
             ParseGuid(actorUserId),
             DateTime.UtcNow);
 
@@ -560,6 +564,7 @@ public sealed class BookingManagementQueries(
         await outboxPublisher.PublishAsync("booking", "AppointmentCancelled", new
         {
             appointmentId = appointment.Id,
+            status = appointment.Status,
             reasonCode = appointment.CancellationReasonCode,
             versionNo = appointment.VersionNo
         }, cancellationToken);
@@ -670,8 +675,8 @@ public sealed class BookingManagementQueries(
         }
 
         return JsonSerializer.Serialize(windows.Select(x => new PreferredTimeWindowView(
-            DateTime.SpecifyKind(x.StartAtUtc, DateTimeKind.Utc),
-            DateTime.SpecifyKind(x.EndAtUtc, DateTimeKind.Utc),
+            BookingTimeInputNormalizer.AssumeUtc(x.StartAtUtc, nameof(x.StartAtUtc)),
+            BookingTimeInputNormalizer.AssumeUtc(x.EndAtUtc, nameof(x.EndAtUtc)),
             NormalizeOptional(x.Label))).ToArray());
     }
 

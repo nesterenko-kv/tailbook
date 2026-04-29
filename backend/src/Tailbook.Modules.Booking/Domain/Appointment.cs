@@ -38,6 +38,16 @@ public sealed class Appointment
         Guid? actorUserId,
         DateTime utcNow)
     {
+        if (period is null)
+        {
+            throw new InvalidOperationException("Appointment period is required.");
+        }
+
+        if (items is null)
+        {
+            throw new InvalidOperationException("Appointment items are required.");
+        }
+
         if (id == Guid.Empty)
         {
             throw new InvalidOperationException("Appointment id is required.");
@@ -101,6 +111,11 @@ public sealed class Appointment
     {
         EnsureMutable();
 
+        if (period is null)
+        {
+            throw new InvalidOperationException("Appointment period is required.");
+        }
+
         if (groomerId == Guid.Empty)
         {
             throw new InvalidOperationException("Appointment must reference a groomer.");
@@ -116,10 +131,12 @@ public sealed class Appointment
     public void Cancel(string reasonCode, string? notes, Guid? actorUserId, DateTime utcNow)
     {
         EnsureMutable();
+        var normalizedReasonCode = NormalizeReasonCode(reasonCode);
+        var normalizedNotes = NormalizeOptional(notes);
 
         Status = AppointmentStatusCodes.Cancelled;
-        CancellationReasonCode = NormalizeReasonCode(reasonCode);
-        CancellationNotes = NormalizeOptional(notes);
+        CancellationReasonCode = normalizedReasonCode;
+        CancellationNotes = normalizedNotes;
         CancelledAtUtc = DateTime.SpecifyKind(utcNow, DateTimeKind.Utc);
         Touch(actorUserId, utcNow);
     }
@@ -175,6 +192,11 @@ public sealed class Appointment
 
     private void AddItem(AppointmentItemDraft item, DateTime utcNow)
     {
+        if (item is null)
+        {
+            throw new InvalidOperationException("Appointment item is required.");
+        }
+
         _items.Add(AppointmentItem.Create(
             Guid.NewGuid(),
             Id,
@@ -211,12 +233,11 @@ public sealed class Appointment
 
     private static string NormalizeReasonCode(string reasonCode)
     {
-        var normalized = reasonCode.Trim();
-        if (string.IsNullOrWhiteSpace(normalized))
+        if (string.IsNullOrWhiteSpace(reasonCode))
         {
             throw new InvalidOperationException("Cancellation reason code is required.");
         }
 
-        return normalized.ToUpperInvariant();
+        return reasonCode.Trim().ToUpperInvariant();
     }
 }

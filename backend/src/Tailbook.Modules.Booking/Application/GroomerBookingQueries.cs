@@ -24,6 +24,7 @@ public sealed class GroomerBookingQueries(
         };
 
         var query = dbContext.Set<Appointment>().Where(x => x.GroomerId == groomer.GroomerId);
+        // Read filters preserve the legacy API convention: compare local/unspecified inputs as UTC wall-clock values.
         if (fromUtc.HasValue)
         {
             query = query.Where(x => x.StartAtUtc >= DateTime.SpecifyKind(fromUtc.Value, DateTimeKind.Utc));

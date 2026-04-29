@@ -82,6 +82,7 @@ public static class BookingModelConfiguration
             builder.Property(x => x.CancellationReasonCode).HasMaxLength(64);
             builder.Property(x => x.CancellationNotes).HasMaxLength(1000);
             builder.Property(x => x.VersionNo).IsRequired();
+            builder.Ignore(x => x.Period);
             builder.HasIndex(x => new { x.GroomerId, x.StartAtUtc, x.EndAtUtc });
             builder.HasIndex(x => new { x.Status, x.StartAtUtc });
             builder.HasIndex(x => x.BookingRequestId).IsUnique(false);

@@ -94,6 +94,7 @@ public sealed class BookingSnapshotComposer(
         string? actorUserId,
         CancellationToken cancellationToken)
     {
+        var normalizedStartAtUtc = BookingTimeInputNormalizer.AssumeUtc(startAtUtc, nameof(startAtUtc));
         if (items.Count == 0)
         {
             throw new InvalidOperationException("At least one appointment item is required.");
@@ -111,7 +112,7 @@ public sealed class BookingSnapshotComposer(
             groomerId,
             petId,
             overallResolution.Items.Select(x => x.OfferId).ToArray(),
-            DateTime.SpecifyKind(startAtUtc, DateTimeKind.Utc),
+            normalizedStartAtUtc,
             overallResolution.ReservedMinutes,
             null,
             cancellationToken);
@@ -228,7 +229,7 @@ public sealed class BookingSnapshotComposer(
 
         return new AppointmentCompositionResult(
             pet.ClientId,
-            DateTime.SpecifyKind(startAtUtc, DateTimeKind.Utc),
+            normalizedStartAtUtc,
             availability.EndAtUtc,
             overallResolution.TotalAmount,
             overallResolution.ServiceMinutes,

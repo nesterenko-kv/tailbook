@@ -18,12 +18,16 @@ public sealed record BookingPeriod
 
     private static DateTime EnsureUtc(DateTime value, string parameterName)
     {
-        var utcValue = DateTime.SpecifyKind(value, DateTimeKind.Utc);
-        if (utcValue == default)
+        if (value == default)
         {
             throw new InvalidOperationException($"{parameterName} is required.");
         }
 
-        return utcValue;
+        if (value.Kind != DateTimeKind.Utc)
+        {
+            throw new InvalidOperationException($"{parameterName} must be UTC.");
+        }
+
+        return value;
     }
 }
