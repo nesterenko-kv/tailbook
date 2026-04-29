@@ -8,6 +8,8 @@ import { getStoredAccessToken, storeSession } from "@/lib/auth";
 type LoginResponse = {
     accessToken: string;
     expiresAtUtc: string;
+    refreshToken: string;
+    refreshTokenExpiresAtUtc: string;
     user: {
         id: string;
         email: string;
@@ -46,7 +48,7 @@ export default function LoginPage() {
                 body: JSON.stringify({ email, password })
             });
 
-            storeSession(response.accessToken, response.user.email, response.user.displayName);
+            storeSession(response.accessToken, response.user.email, response.user.displayName, response.refreshToken);
             router.push("/appointments");
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Login failed.");

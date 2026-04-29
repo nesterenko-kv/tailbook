@@ -50,6 +50,8 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 ["LoginThrottling:MaxFailedAttempts"] = TestMaxFailedLoginAttempts.ToString(),
                 ["LoginThrottling:FailureWindowMinutes"] = "15",
                 ["LoginThrottling:LockoutMinutes"] = "15",
+                ["PasswordReset:ExpirationMinutes"] = "30",
+                ["PasswordReset:TokenBytes"] = "32",
                 ["Notifications:LocalFilePath"] = Path.Combine(Path.GetTempPath(), $"tailbook-test-notifications-{Guid.NewGuid():N}.log")
             });
         });

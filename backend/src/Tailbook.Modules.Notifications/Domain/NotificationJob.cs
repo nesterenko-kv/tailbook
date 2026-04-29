@@ -12,6 +12,7 @@ public sealed class NotificationJob
     public string Body { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public int AttemptCount { get; set; }
+    public string? LastErrorMessage { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     public DateTime? SentAtUtc { get; set; }
     public string EventType { get; set; } = string.Empty;

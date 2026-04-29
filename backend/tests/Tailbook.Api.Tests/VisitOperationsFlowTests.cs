@@ -77,6 +77,11 @@ public sealed class VisitOperationsFlowTests : IClassFixture<CustomWebApplicatio
         Assert.NotNull(visit);
         Assert.Equal(1350m, visit!.FinalTotalAmount);
 
+        var adjustmentAuditResponse = await client.GetAsync($"/api/admin/audit?moduleCode=visitops&entityType=visit&entityId={visit.Id:D}");
+        Assert.Equal(HttpStatusCode.OK, adjustmentAuditResponse.StatusCode);
+        var adjustmentAudit = await adjustmentAuditResponse.Content.ReadFromJsonAsync<AuditTrailEnvelope>();
+        Assert.Contains(adjustmentAudit!.Items, x => x.ActionCode == "APPLY_ADJUSTMENT");
+
         var completeResponse = await client.PostAsJsonAsync($"/api/admin/visits/{visit.Id:D}/complete", new { visitId = visit.Id });
         Assert.Equal(HttpStatusCode.OK, completeResponse.StatusCode);
         visit = await completeResponse.Content.ReadFromJsonAsync<VisitEnvelope>();
@@ -317,6 +322,16 @@ public sealed class VisitOperationsFlowTests : IClassFixture<CustomWebApplicatio
     private sealed class AccessAuditEnvelope
     {
         public IReadOnlyCollection<AccessAuditItemEnvelope> Items { get; set; } = [];
+    }
+
+    private sealed class AuditTrailEnvelope
+    {
+        public IReadOnlyCollection<AuditTrailItemEnvelope> Items { get; set; } = [];
+    }
+
+    private sealed class AuditTrailItemEnvelope
+    {
+        public string ActionCode { get; set; } = string.Empty;
     }
 
     private sealed class AccessAuditItemEnvelope

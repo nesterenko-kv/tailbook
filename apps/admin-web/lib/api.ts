@@ -1,5 +1,6 @@
+import { createApiRequest } from "@tailbook/frontend-api";
 import { resolveApiBaseUrl } from "@/lib/env";
-import { getAdminToken, notifyAdminUnauthorized } from "@/lib/auth";
+import { getAdminRefreshToken, getAdminToken, notifyAdminUnauthorized, setAdminSession } from "@/lib/auth";
 
 export class ApiError extends Error {
   status: number;
@@ -13,48 +14,72 @@ export class ApiError extends Error {
   }
 }
 
-function normalizeUrl(path: string) {
-  if (path.startsWith("http://") || path.startsWith("https://")) {
-    return path;
-  }
-  return `${resolveApiBaseUrl()}${path}`;
+type RefreshResponse = {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    email: string;
+    displayName: string;
+  };
+};
+
+function shouldAttemptRefresh(path: string, init?: RequestInit) {
+  if (typeof window === "undefined") return false;
+  if (new Headers(init?.headers ?? {}).has("Authorization")) return false;
+  return !path.includes("/api/identity/auth/login")
+    && !path.includes("/api/identity/auth/refresh")
+    && !path.includes("/api/identity/auth/revoke");
 }
 
-export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = getAdminToken();
-  const headers = new Headers(init?.headers ?? {});
-  headers.set("Accept", "application/json");
+async function refreshAdminSession() {
+  const refreshToken = getAdminRefreshToken();
+  if (!refreshToken) return false;
 
-  if (init?.body && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
-  }
-
-  if (token && !headers.has("Authorization")) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
-
-  const response = await fetch(normalizeUrl(path), {
-    ...init,
-    headers,
+  const response = await fetch(`${resolveApiBaseUrl()}/api/identity/auth/refresh`, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ refreshToken }),
     cache: "no-store"
-  });
+  }).catch(() => null);
 
-  const contentType = response.headers.get("content-type") ?? "";
-  const isJson = contentType.includes("application/json") || contentType.includes("problem+json");
-  const payload = isJson ? await response.json().catch(() => null) : await response.text().catch(() => null);
-
-  if (!response.ok) {
-    if (response.status === 401 && typeof window !== "undefined") {
-      notifyAdminUnauthorized();
-    }
-
-    const generalErrors = payload && typeof payload === "object" && "errors" in payload && payload.errors && typeof payload.errors === "object" && "generalErrors" in payload.errors
-      ? (payload.errors as { generalErrors?: string[] }).generalErrors
-      : undefined;
-    const title = payload && typeof payload === "object" && "title" in payload ? String(payload.title) : undefined;
-    const message = generalErrors?.[0] ?? title ?? response.statusText ?? "Request failed";
-    throw new ApiError(message, response.status, payload);
+  if (!response?.ok) {
+    notifyAdminUnauthorized();
+    return false;
   }
 
-  return payload as T;
+  const payload = await response.json().catch(() => null) as RefreshResponse | null;
+  if (!payload?.accessToken || !payload.refreshToken || !payload.user?.email) {
+    notifyAdminUnauthorized();
+    return false;
+  }
+
+  setAdminSession({
+    accessToken: payload.accessToken,
+    refreshToken: payload.refreshToken,
+    email: payload.user.email,
+    displayName: payload.user.displayName
+  });
+  return true;
 }
+
+function getErrorMessage(payload: unknown, response: Response) {
+  const generalErrors = payload && typeof payload === "object" && "errors" in payload && payload.errors && typeof payload.errors === "object" && "generalErrors" in payload.errors
+    ? (payload.errors as { generalErrors?: string[] }).generalErrors
+    : undefined;
+  const title = payload && typeof payload === "object" && "title" in payload ? String(payload.title) : undefined;
+  const text = typeof payload === "string" && payload.length > 0 ? payload : undefined;
+  return generalErrors?.[0] ?? title ?? text ?? response.statusText ?? "Request failed";
+}
+
+export const apiRequest = createApiRequest<ApiError>({
+  resolveApiBaseUrl,
+  getAccessToken: getAdminToken,
+  refreshSession: refreshAdminSession,
+  notifyUnauthorized: notifyAdminUnauthorized,
+  shouldAttemptRefresh,
+  getErrorMessage,
+  createError: (message, status, payload) => new ApiError(message, status, payload)
+});

@@ -29,6 +29,7 @@ public static class NotificationsModelConfiguration
             builder.Property(x => x.Subject).HasMaxLength(256).IsRequired();
             builder.Property(x => x.Body).HasColumnType("text").IsRequired();
             builder.Property(x => x.Status).HasMaxLength(32).IsRequired();
+            builder.Property(x => x.LastErrorMessage).HasMaxLength(1024);
             builder.HasIndex(x => x.Status);
             builder.HasIndex(x => x.SourceEventMessageId);
         });

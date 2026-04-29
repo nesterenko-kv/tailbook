@@ -66,6 +66,11 @@ public sealed class BookingFlowTests : IClassFixture<CustomWebApplicationFactory
         var requestList = await listResponse.Content.ReadFromJsonAsync<PagedBookingRequestEnvelope>();
         Assert.NotNull(requestList);
         Assert.Contains(requestList!.Items, x => x.Id == bookingRequest.Id && x.Status == "Converted");
+
+        var auditResponse = await client.GetAsync($"/api/admin/audit?moduleCode=booking&entityType=booking_request&entityId={bookingRequest.Id:D}");
+        Assert.Equal(HttpStatusCode.OK, auditResponse.StatusCode);
+        var audit = await auditResponse.Content.ReadFromJsonAsync<AuditTrailEnvelope>();
+        Assert.Contains(audit!.Items, x => x.ActionCode == "CONVERT_TO_APPOINTMENT");
     }
 
     [Fact]
@@ -128,6 +133,11 @@ public sealed class BookingFlowTests : IClassFixture<CustomWebApplicationFactory
         Assert.NotNull(cancelled);
         Assert.Equal("Cancelled", cancelled!.Status);
         Assert.Equal(3, cancelled.VersionNo);
+
+        var auditResponse = await client.GetAsync($"/api/admin/audit?moduleCode=booking&entityType=appointment&entityId={created.Id:D}");
+        Assert.Equal(HttpStatusCode.OK, auditResponse.StatusCode);
+        var audit = await auditResponse.Content.ReadFromJsonAsync<AuditTrailEnvelope>();
+        Assert.Contains(audit!.Items, x => x.ActionCode == "CANCEL");
     }
 
     [Fact]
@@ -286,6 +296,16 @@ public sealed class BookingFlowTests : IClassFixture<CustomWebApplicationFactory
     private sealed class PagedBookingRequestEnvelope
     {
         public BookingRequestListEnvelope[] Items { get; set; } = [];
+    }
+
+    private sealed class AuditTrailEnvelope
+    {
+        public AuditTrailItemEnvelope[] Items { get; set; } = [];
+    }
+
+    private sealed class AuditTrailItemEnvelope
+    {
+        public string ActionCode { get; set; } = string.Empty;
     }
 
     private sealed class BookingRequestListEnvelope

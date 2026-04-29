@@ -14,6 +14,9 @@ importers:
 
   apps/admin-web:
     dependencies:
+      '@tailbook/frontend-api':
+        specifier: workspace:*
+        version: link:../../packages/frontend-api
       '@tanstack/react-query':
         specifier: ^5.99.0
         version: 5.99.0(react@19.2.5)
@@ -63,6 +66,9 @@ importers:
 
   apps/client-web:
     dependencies:
+      '@tailbook/frontend-api':
+        specifier: workspace:*
+        version: link:../../packages/frontend-api
       '@tanstack/react-query':
         specifier: ^5.99.0
         version: 5.99.0(react@19.2.5)
@@ -112,6 +118,9 @@ importers:
 
   apps/groomer-web:
     dependencies:
+      '@tailbook/frontend-api':
+        specifier: workspace:*
+        version: link:../../packages/frontend-api
       '@tanstack/react-query':
         specifier: ^5.99.0
         version: 5.99.0(react@19.2.5)
@@ -158,6 +167,8 @@ importers:
       typescript:
         specifier: ^6.0.2
         version: 6.0.2
+
+  packages/frontend-api: {}
 
   packages/typescript-config: {}
 

@@ -168,6 +168,93 @@ public sealed class VisitQueries(
             visit.UpdatedAtUtc);
     }
 
+    public async Task<PagedResult<VisitListItemView>> ListVisitsAsync(
+        string? status,
+        DateTime? fromUtc,
+        DateTime? toUtc,
+        Guid? groomerId,
+        Guid? appointmentId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var safePage = page <= 0 ? 1 : page;
+        var safePageSize = pageSize switch { <= 0 => 20, > 100 => 100, _ => pageSize };
+        var normalizedStatus = NormalizeOptional(status);
+
+        if (!string.IsNullOrWhiteSpace(normalizedStatus) && !VisitStatusCodes.All.Contains(normalizedStatus, StringComparer.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException($"Unknown visit status '{status}'.");
+        }
+        var canonicalStatus = string.IsNullOrWhiteSpace(normalizedStatus)
+            ? null
+            : VisitStatusCodes.All.Single(x => string.Equals(x, normalizedStatus, StringComparison.OrdinalIgnoreCase));
+
+        var query = dbContext.Set<Visit>().AsQueryable();
+        if (!string.IsNullOrWhiteSpace(canonicalStatus))
+        {
+            query = query.Where(x => x.Status == canonicalStatus);
+        }
+
+        if (appointmentId.HasValue)
+        {
+            query = query.Where(x => x.AppointmentId == appointmentId.Value);
+        }
+
+        var candidateVisits = await query
+            .OrderByDescending(x => x.CheckedInAtUtc)
+            .ToListAsync(cancellationToken);
+        var appointments = await appointmentVisitService.ListAppointmentsAsync(
+            candidateVisits.Select(x => x.AppointmentId).ToArray(),
+            fromUtc.HasValue ? DateTime.SpecifyKind(fromUtc.Value, DateTimeKind.Utc) : null,
+            toUtc.HasValue ? DateTime.SpecifyKind(toUtc.Value, DateTimeKind.Utc) : null,
+            groomerId,
+            cancellationToken);
+
+        var filteredVisits = candidateVisits
+            .Where(x => appointments.ContainsKey(x.AppointmentId))
+            .ToArray();
+        var totalCount = filteredVisits.Length;
+        var pageVisits = filteredVisits
+            .Skip((safePage - 1) * safePageSize)
+            .Take(safePageSize)
+            .ToArray();
+
+        var items = new List<VisitListItemView>();
+        foreach (var visit in pageVisits)
+        {
+            var appointment = appointments[visit.AppointmentId];
+            var pet = await petSummaryReadService.GetPetSummaryAsync(appointment.PetId, cancellationToken)
+                ?? throw new InvalidOperationException("Visit pet does not exist.");
+            var appointmentTotal = appointment.Items.Sum(x => x.PriceAmount * x.Quantity);
+            var adjustmentTotal = await dbContext.Set<VisitPriceAdjustment>()
+                .Where(x => x.VisitId == visit.Id)
+                .SumAsync(x => x.Amount * x.Sign, cancellationToken);
+
+            items.Add(new VisitListItemView(
+                visit.Id,
+                visit.AppointmentId,
+                appointment.BookingRequestId,
+                appointment.PetId,
+                pet.Name,
+                pet.BreedName,
+                appointment.GroomerId,
+                appointment.StartAtUtc,
+                appointment.EndAtUtc,
+                visit.Status,
+                visit.CheckedInAtUtc,
+                visit.StartedAtUtc,
+                visit.CompletedAtUtc,
+                visit.ClosedAtUtc,
+                appointment.Items.Count,
+                appointmentTotal,
+                adjustmentTotal,
+                appointmentTotal + adjustmentTotal));
+        }
+
+        return new PagedResult<VisitListItemView>(items, safePage, safePageSize, totalCount);
+    }
+
     public async Task<VisitDetailView?> RecordPerformedProcedureAsync(Guid visitId, Guid visitExecutionItemId, Guid procedureId, string? note, Guid? actorUserId, CancellationToken cancellationToken)
     {
         var visit = await LoadVisitAsync(visitId, cancellationToken);
@@ -268,12 +355,24 @@ public sealed class VisitQueries(
             throw new InvalidOperationException("Adjustment amount must be greater than zero.");
         }
 
+        var roundedAmount = decimal.Round(amount, 2, MidpointRounding.AwayFromZero);
+        var appointmentTotal = await dbContext.Set<VisitExecutionItem>()
+            .Where(x => x.VisitId == visit.Id)
+            .SumAsync(x => x.PriceAmountSnapshot * x.Quantity, cancellationToken);
+        var existingAdjustmentTotal = await dbContext.Set<VisitPriceAdjustment>()
+            .Where(x => x.VisitId == visit.Id)
+            .SumAsync(x => x.Amount * x.Sign, cancellationToken);
+        if (appointmentTotal + existingAdjustmentTotal + (roundedAmount * sign) < 0)
+        {
+            throw new InvalidOperationException("Visit final total cannot be negative.");
+        }
+
         dbContext.Set<VisitPriceAdjustment>().Add(new VisitPriceAdjustment
         {
             Id = Guid.NewGuid(),
             VisitId = visit.Id,
             Sign = sign,
-            Amount = decimal.Round(amount, 2, MidpointRounding.AwayFromZero),
+            Amount = roundedAmount,
             ReasonCode = NormalizeRequiredCode(reasonCode, "Adjustment reason code is required."),
             Note = NormalizeOptional(note),
             CreatedByUserId = actorUserId,
@@ -302,6 +401,7 @@ public sealed class VisitQueries(
         {
             throw new InvalidOperationException("Visit is not eligible for completion.");
         }
+        await EnsureDefaultExpectedComponentsAccountedForAsync(visit.Id, cancellationToken);
 
         visit.Status = VisitStatusCodes.AwaitingFinalization;
         visit.CompletedAtUtc = DateTime.UtcNow;
@@ -381,6 +481,42 @@ public sealed class VisitQueries(
         }
     }
 
+    private async Task EnsureDefaultExpectedComponentsAccountedForAsync(Guid visitId, CancellationToken cancellationToken)
+    {
+        var executionItems = await dbContext.Set<VisitExecutionItem>()
+            .Where(x => x.VisitId == visitId)
+            .ToListAsync(cancellationToken);
+        var executionItemIds = executionItems.Select(x => x.Id).ToArray();
+        var performedProcedures = await dbContext.Set<VisitPerformedProcedure>()
+            .Where(x => executionItemIds.Contains(x.VisitExecutionItemId))
+            .ToListAsync(cancellationToken);
+        var performedProcedureIdsByItem = performedProcedures
+            .GroupBy(x => x.VisitExecutionItemId)
+            .ToDictionary(x => x.Key, x => x.Select(y => y.ProcedureId).ToHashSet());
+        var skippedComponents = await dbContext.Set<VisitSkippedComponent>()
+            .Where(x => executionItemIds.Contains(x.VisitExecutionItemId))
+            .ToListAsync(cancellationToken);
+        var skippedComponentIdsByItem = skippedComponents
+            .GroupBy(x => x.VisitExecutionItemId)
+            .ToDictionary(x => x.Key, x => x.Select(y => y.OfferVersionComponentId).ToHashSet());
+
+        foreach (var executionItem in executionItems)
+        {
+            var components = await visitCatalogReadService.GetIncludedComponentsAsync(executionItem.OfferVersionId, cancellationToken);
+            foreach (var component in components.Where(x => x.DefaultExpected))
+            {
+                var wasPerformed = performedProcedureIdsByItem.TryGetValue(executionItem.Id, out var performedProcedureIds)
+                                   && performedProcedureIds.Contains(component.ProcedureId);
+                var wasSkipped = skippedComponentIdsByItem.TryGetValue(executionItem.Id, out var skippedComponentIds)
+                                 && skippedComponentIds.Contains(component.Id);
+                if (!wasPerformed && !wasSkipped)
+                {
+                    throw new InvalidOperationException($"Default expected component '{component.ProcedureName}' must be performed or skipped before completion.");
+                }
+            }
+        }
+    }
+
     private static string? NormalizeOptional(string? value)
         => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
@@ -403,3 +539,5 @@ public sealed record VisitSkippedComponentView(Guid Id, Guid OfferVersionCompone
 public sealed record VisitExecutionItemView(Guid Id, Guid AppointmentItemId, string ItemType, Guid OfferId, Guid OfferVersionId, string OfferCode, string OfferDisplayName, int Quantity, decimal PriceAmount, int ServiceMinutes, int ReservedMinutes, IReadOnlyCollection<VisitExpectedComponentView> ExpectedComponents, IReadOnlyCollection<VisitPerformedProcedureView> PerformedProcedures, IReadOnlyCollection<VisitSkippedComponentView> SkippedComponents);
 public sealed record VisitPriceAdjustmentView(Guid Id, int Sign, decimal Amount, string ReasonCode, string? Note, DateTime CreatedAtUtc);
 public sealed record VisitDetailView(Guid Id, Guid AppointmentId, Guid? BookingRequestId, VisitPetView Pet, Guid GroomerId, string Status, DateTime CheckedInAtUtc, DateTime? StartedAtUtc, DateTime? CompletedAtUtc, DateTime? ClosedAtUtc, int ServiceMinutes, int ReservedMinutes, decimal AppointmentTotalAmount, decimal AdjustmentTotalAmount, decimal FinalTotalAmount, IReadOnlyCollection<VisitExecutionItemView> Items, IReadOnlyCollection<VisitPriceAdjustmentView> Adjustments, DateTime CreatedAtUtc, DateTime UpdatedAtUtc);
+public sealed record VisitListItemView(Guid Id, Guid AppointmentId, Guid? BookingRequestId, Guid PetId, string PetName, string BreedName, Guid GroomerId, DateTime AppointmentStartAtUtc, DateTime AppointmentEndAtUtc, string Status, DateTime CheckedInAtUtc, DateTime? StartedAtUtc, DateTime? CompletedAtUtc, DateTime? ClosedAtUtc, int ItemCount, decimal AppointmentTotalAmount, decimal AdjustmentTotalAmount, decimal FinalTotalAmount);
+public sealed record PagedResult<T>(IReadOnlyCollection<T> Items, int Page, int PageSize, int TotalCount);

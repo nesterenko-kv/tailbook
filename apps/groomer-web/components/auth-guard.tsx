@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api";
-import { clearSession, getStoredAccessToken, GROOMER_UNAUTHORIZED_EVENT, storeProfile } from "@/lib/auth";
+import { clearSession, getStoredAccessToken, getStoredRefreshToken, GROOMER_UNAUTHORIZED_EVENT, storeProfile } from "@/lib/auth";
 import type { IdentityMeResponse } from "@/lib/types";
 
 export function AuthGuard({ children }: { children: ReactNode }) {
@@ -24,7 +24,8 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
         async function verifySession() {
             const token = getStoredAccessToken();
-            if (!token) {
+            const refreshToken = getStoredRefreshToken();
+            if (!token && !refreshToken) {
                 redirectToLogin();
                 return;
             }

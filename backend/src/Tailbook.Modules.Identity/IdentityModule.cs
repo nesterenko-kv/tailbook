@@ -37,10 +37,17 @@ public sealed class IdentityModule : IModuleDefinition
             .Validate(x => x.ExpirationDays > 0, "RefreshTokens:ExpirationDays must be greater than zero.")
             .Validate(x => x.TokenBytes >= 32, "RefreshTokens:TokenBytes must be at least 32.")
             .ValidateOnStart();
+        services.AddOptions<PasswordResetOptions>()
+            .Bind(configuration.GetSection(PasswordResetOptions.SectionName))
+            .Validate(x => x.ExpirationMinutes > 0, "PasswordReset:ExpirationMinutes must be greater than zero.")
+            .Validate(x => x.TokenBytes >= 32, "PasswordReset:TokenBytes must be at least 32.")
+            .ValidateOnStart();
         services.AddScoped<JwtTokenFactory>();
         services.AddScoped<PasswordHasher>();
         services.AddSingleton<LoginThrottlingService>();
         services.AddScoped<RefreshTokenService>();
+        services.AddScoped<PasswordResetService>();
+        services.AddScoped<MfaFactorService>();
         services.AddScoped<IdentitySessionService>();
         services.AddScoped<IdentityQueries>();
         services.AddScoped<ClientPortalIdentityQueries>();

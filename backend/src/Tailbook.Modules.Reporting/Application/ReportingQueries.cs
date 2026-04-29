@@ -56,31 +56,49 @@ public sealed class ReportingQueries(AppDbContext dbContext)
         }
 
         const string sql = """
+            WITH item_base AS (
+                SELECT
+                    ai."Id" AS "AppointmentItemId",
+                    ai."OfferId",
+                    ai."OfferCodeSnapshot",
+                    ai."OfferDisplayNameSnapshot",
+                    ai."Quantity",
+                    ps."TotalAmount",
+                    v."Id" AS "VisitId",
+                    v."Status" AS "VisitStatus",
+                    COALESCE(adj."AdjustmentValue", 0) AS "AdjustmentValue",
+                    COALESCE(skips."SkippedCount", 0) AS "SkippedCount"
+                FROM booking.appointment_items ai
+                JOIN booking.appointments a ON a."Id" = ai."AppointmentId"
+                JOIN booking.price_snapshots ps ON ps."Id" = ai."PriceSnapshotId"
+                LEFT JOIN visitops.visits v ON v."AppointmentId" = a."Id"
+                LEFT JOIN LATERAL (
+                    SELECT COALESCE(SUM(vpa."Amount" * vpa."Sign"), 0) AS "AdjustmentValue"
+                    FROM visitops.visit_price_adjustments vpa
+                    WHERE vpa."VisitId" = v."Id"
+                ) adj ON TRUE
+                LEFT JOIN LATERAL (
+                    SELECT COUNT(vsc."Id")::integer AS "SkippedCount"
+                    FROM visitops.visit_execution_items vei
+                    JOIN visitops.visit_skipped_components vsc ON vsc."VisitExecutionItemId" = vei."Id"
+                    WHERE vei."VisitId" = v."Id" AND vei."AppointmentItemId" = ai."Id"
+                ) skips ON TRUE
+                WHERE ai."ItemType" = 'Package'
+                  AND (@fromUtc IS NULL OR a."StartAtUtc" >= @fromUtc)
+                  AND (@toUtc IS NULL OR a."StartAtUtc" < @toUtc)
+            )
             SELECT
-                ai."OfferId" AS "OfferId",
-                ai."OfferCodeSnapshot" AS "OfferCode",
-                ai."OfferDisplayNameSnapshot" AS "OfferDisplayName",
+                "OfferId" AS "OfferId",
+                "OfferCodeSnapshot" AS "OfferCode",
+                "OfferDisplayNameSnapshot" AS "OfferDisplayName",
                 COUNT(*)::integer AS "BookedCount",
-                COUNT(*) FILTER (WHERE v."Status" = 'Closed')::integer AS "ClosedCount",
-                COALESCE(SUM(ps."TotalAmount" * ai."Quantity"), 0) AS "EstimatedRevenue",
-                COALESCE(SUM(ps."TotalAmount" * ai."Quantity"), 0) + COALESCE(SUM(adj."AdjustmentValue"), 0) AS "FinalRevenue",
-                COUNT(vsc."Id")::integer AS "SkippedIncludedComponentsCount"
-            FROM booking.appointment_items ai
-            JOIN booking.appointments a ON a."Id" = ai."AppointmentId"
-            JOIN booking.price_snapshots ps ON ps."Id" = ai."PriceSnapshotId"
-            LEFT JOIN visitops.visits v ON v."AppointmentId" = a."Id"
-            LEFT JOIN visitops.visit_execution_items vei ON vei."VisitId" = v."Id" AND vei."AppointmentItemId" = ai."Id"
-            LEFT JOIN visitops.visit_skipped_components vsc ON vsc."VisitExecutionItemId" = vei."Id"
-            LEFT JOIN LATERAL (
-                SELECT COALESCE(SUM(vpa."Amount" * vpa."Sign"), 0) AS "AdjustmentValue"
-                FROM visitops.visit_price_adjustments vpa
-                WHERE vpa."VisitId" = v."Id"
-            ) adj ON TRUE
-            WHERE ai."ItemType" = 'Package'
-              AND (@fromUtc IS NULL OR a."StartAtUtc" >= @fromUtc)
-              AND (@toUtc IS NULL OR a."StartAtUtc" < @toUtc)
-            GROUP BY ai."OfferId", ai."OfferCodeSnapshot", ai."OfferDisplayNameSnapshot"
-            ORDER BY COUNT(*) DESC, ai."OfferCodeSnapshot"
+                COUNT(*) FILTER (WHERE "VisitStatus" = 'Closed')::integer AS "ClosedCount",
+                COALESCE(SUM("TotalAmount" * "Quantity"), 0) AS "EstimatedRevenue",
+                COALESCE(SUM("TotalAmount" * "Quantity"), 0) + COALESCE(SUM(CASE WHEN "VisitStatus" = 'Closed' THEN "AdjustmentValue" ELSE 0 END), 0) AS "FinalRevenue",
+                COALESCE(SUM("SkippedCount"), 0)::integer AS "SkippedIncludedComponentsCount"
+            FROM item_base
+            GROUP BY "OfferId", "OfferCodeSnapshot", "OfferDisplayNameSnapshot"
+            ORDER BY COUNT(*) DESC, "OfferCodeSnapshot"
             """;
 
         var fromParameter = new Npgsql.NpgsqlParameter("fromUtc", fromUtc.HasValue ? fromUtc.Value : DBNull.Value);
@@ -92,6 +110,7 @@ public sealed class ReportingQueries(AppDbContext dbContext)
     private async Task<IReadOnlyCollection<EstimateAccuracyReportItemView>> GetEstimateAccuracyInMemoryAsync(DateTime? fromUtc, DateTime? toUtc, CancellationToken cancellationToken)
     {
         var visits = await dbContext.Set<ReportingVisit>()
+            .AsNoTracking()
             .Where(v => v.Status == "Closed")
             .Where(v => !fromUtc.HasValue || (v.ClosedAtUtc.HasValue && v.ClosedAtUtc.Value >= fromUtc.Value))
             .Where(v => !toUtc.HasValue || (v.ClosedAtUtc.HasValue && v.ClosedAtUtc.Value < toUtc.Value))
@@ -101,6 +120,7 @@ public sealed class ReportingQueries(AppDbContext dbContext)
         var visitIds = visits.Select(v => v.Id).ToArray();
 
         var appointmentItems = await dbContext.Set<ReportingAppointmentItem>()
+            .AsNoTracking()
             .Where(ai => appointmentIds.Contains(ai.AppointmentId))
             .ToListAsync(cancellationToken);
 
@@ -108,14 +128,17 @@ public sealed class ReportingQueries(AppDbContext dbContext)
         var durationSnapshotIds = appointmentItems.Select(ai => ai.DurationSnapshotId).Distinct().ToArray();
 
         var priceSnapshots = await dbContext.Set<ReportingPriceSnapshot>()
+            .AsNoTracking()
             .Where(ps => priceSnapshotIds.Contains(ps.Id))
             .ToDictionaryAsync(ps => ps.Id, cancellationToken);
 
         var durationSnapshots = await dbContext.Set<ReportingDurationSnapshot>()
+            .AsNoTracking()
             .Where(ds => durationSnapshotIds.Contains(ds.Id))
             .ToDictionaryAsync(ds => ds.Id, cancellationToken);
 
         var adjustmentByVisitId = await dbContext.Set<ReportingVisitPriceAdjustment>()
+            .AsNoTracking()
             .Where(vpa => visitIds.Contains(vpa.VisitId))
             .GroupBy(vpa => vpa.VisitId)
             .Select(g => new { VisitId = g.Key, Sum = g.Sum(x => x.Amount * x.Sign) })
@@ -171,6 +194,7 @@ public sealed class ReportingQueries(AppDbContext dbContext)
     private async Task<IReadOnlyCollection<PackagePerformanceReportItemView>> GetPackagePerformanceInMemoryAsync(DateTime? fromUtc, DateTime? toUtc, CancellationToken cancellationToken)
     {
         var appointments = await dbContext.Set<ReportingAppointment>()
+            .AsNoTracking()
             .Where(a => !fromUtc.HasValue || a.StartAtUtc >= fromUtc.Value)
             .Where(a => !toUtc.HasValue || a.StartAtUtc < toUtc.Value)
             .ToListAsync(cancellationToken);
@@ -179,33 +203,39 @@ public sealed class ReportingQueries(AppDbContext dbContext)
         var appointmentIds = appointmentById.Keys.ToArray();
 
         var appointmentItems = await dbContext.Set<ReportingAppointmentItem>()
+            .AsNoTracking()
             .Where(ai => ai.ItemType == "Package" && appointmentIds.Contains(ai.AppointmentId))
             .ToListAsync(cancellationToken);
 
         var priceSnapshotIds = appointmentItems.Select(ai => ai.PriceSnapshotId).Distinct().ToArray();
         var priceSnapshots = await dbContext.Set<ReportingPriceSnapshot>()
+            .AsNoTracking()
             .Where(ps => priceSnapshotIds.Contains(ps.Id))
             .ToDictionaryAsync(ps => ps.Id, cancellationToken);
 
         var visits = await dbContext.Set<ReportingVisit>()
+            .AsNoTracking()
             .Where(v => appointmentIds.Contains(v.AppointmentId))
             .ToListAsync(cancellationToken);
         var visitByAppointmentId = visits.GroupBy(v => v.AppointmentId).ToDictionary(g => g.Key, g => g.First());
         var visitIds = visits.Select(v => v.Id).ToArray();
 
         var adjustmentByVisitId = await dbContext.Set<ReportingVisitPriceAdjustment>()
+            .AsNoTracking()
             .Where(vpa => visitIds.Contains(vpa.VisitId))
             .GroupBy(vpa => vpa.VisitId)
             .Select(g => new { VisitId = g.Key, Sum = g.Sum(x => x.Amount * x.Sign) })
             .ToDictionaryAsync(x => x.VisitId, x => x.Sum, cancellationToken);
 
         var executionItems = await dbContext.Set<ReportingVisitExecutionItem>()
+            .AsNoTracking()
             .Where(vei => visitIds.Contains(vei.VisitId))
             .ToListAsync(cancellationToken);
         var executionItemByVisitAndAppointmentItem = executionItems.ToDictionary(x => (x.VisitId, x.AppointmentItemId), x => x);
         var executionItemIds = executionItems.Select(x => x.Id).ToArray();
 
         var skippedCountsByExecutionItemId = await dbContext.Set<ReportingVisitSkippedComponent>()
+            .AsNoTracking()
             .Where(vsc => executionItemIds.Contains(vsc.VisitExecutionItemId))
             .GroupBy(vsc => vsc.VisitExecutionItemId)
             .Select(g => new { ExecutionItemId = g.Key, Count = g.Count() })
@@ -235,7 +265,7 @@ public sealed class ReportingQueries(AppDbContext dbContext)
                         if (visit.Status == "Closed")
                             closedCount++;
 
-                        if (adjustmentByVisitId.TryGetValue(visit.Id, out var adjustment))
+                        if (visit.Status == "Closed" && adjustmentByVisitId.TryGetValue(visit.Id, out var adjustment))
                             finalRevenue += adjustment;
 
                         if (executionItemByVisitAndAppointmentItem.TryGetValue((visit.Id, item.Id), out var executionItem) &&

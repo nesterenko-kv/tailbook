@@ -1,5 +1,6 @@
+import { createApiRequest } from "@tailbook/frontend-api";
 import { resolveApiBaseUrl } from "./env";
-import { getStoredAccessToken, notifyUnauthorized } from "./auth";
+import { getStoredAccessToken, getStoredRefreshToken, notifyUnauthorized, storeSession } from "./auth";
 
 export class ApiError extends Error {
     status: number;
@@ -10,50 +11,74 @@ export class ApiError extends Error {
     }
 }
 
-export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
-    const headers = new Headers(init?.headers ?? {});
-    headers.set("Accept", "application/json");
+type RefreshResponse = {
+    accessToken: string;
+    refreshToken: string;
+    user: {
+        email: string;
+        displayName: string;
+    };
+};
 
-    const token = getStoredAccessToken();
-    if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-    }
-
-    if (init?.body && !headers.has("Content-Type")) {
-        headers.set("Content-Type", "application/json");
-    }
-
-    const response = await fetch(`${resolveApiBaseUrl()}${path}`, {
-        ...init,
-        headers,
-        cache: "no-store"
-    });
-
-    if (!response.ok) {
-        let message = `Request failed with status ${response.status}`;
-        try {
-            const payload = await response.json();
-            if (payload?.message) {
-                message = payload.message;
-            } else if (Array.isArray(payload?.errors) && payload.errors.length > 0) {
-                message = payload.errors.join(" ");
-            } else if (payload?.errors?.generalErrors?.length > 0) {
-                message = payload.errors.generalErrors.join(" ");
-            }
-        } catch {
-            // ignore body parse failures
-        }
-
-        if (response.status === 401 && typeof window !== "undefined") {
-            notifyUnauthorized();
-        }
-
-        throw new ApiError(response.status, message);
-    }
-
-    if (response.status === 204) {
-        return undefined as T;
-    }
-
-    return (await response.json()) as T;
+function shouldAttemptRefresh(path: string, init?: RequestInit) {
+    if (typeof window === "undefined") return false;
+    if (new Headers(init?.headers ?? {}).has("Authorization")) return false;
+    return !path.includes("/api/identity/auth/login")
+        && !path.includes("/api/identity/auth/refresh")
+        && !path.includes("/api/identity/auth/revoke");
 }
+
+async function refreshSession() {
+    const refreshToken = getStoredRefreshToken();
+    if (!refreshToken) return false;
+
+    const response = await fetch(`${resolveApiBaseUrl()}/api/identity/auth/refresh`, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ refreshToken }),
+        cache: "no-store"
+    }).catch(() => null);
+
+    if (!response?.ok) {
+        notifyUnauthorized();
+        return false;
+    }
+
+    const payload = await response.json().catch(() => null) as RefreshResponse | null;
+    if (!payload?.accessToken || !payload.refreshToken || !payload.user?.email) {
+        notifyUnauthorized();
+        return false;
+    }
+
+    storeSession(payload.accessToken, payload.user.email, payload.user.displayName, payload.refreshToken);
+    return true;
+}
+
+function getErrorMessage(payload: unknown, response: Response) {
+    if (payload && typeof payload === "object") {
+        const body = payload as { message?: unknown; errors?: unknown; title?: unknown };
+        if (typeof body.message === "string") return body.message;
+        if (Array.isArray(body.errors) && body.errors.length > 0) return body.errors.join(" ");
+        if (body.errors && typeof body.errors === "object" && "generalErrors" in body.errors) {
+            const generalErrors = (body.errors as { generalErrors?: unknown }).generalErrors;
+            if (Array.isArray(generalErrors) && generalErrors.length > 0) return generalErrors.join(" ");
+        }
+        if (typeof body.title === "string") return body.title;
+    }
+
+    if (typeof payload === "string" && payload.length > 0) return payload;
+    return `Request failed with status ${response.status}`;
+}
+
+export const apiRequest = createApiRequest<ApiError>({
+    resolveApiBaseUrl,
+    getAccessToken: getStoredAccessToken,
+    refreshSession,
+    notifyUnauthorized,
+    shouldAttemptRefresh,
+    getErrorMessage,
+    createError: (message, status) => new ApiError(status, message)
+});

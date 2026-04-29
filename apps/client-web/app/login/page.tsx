@@ -25,7 +25,7 @@ export default function LoginPage() {
         method: "POST",
         body: JSON.stringify({ email, password })
       });
-      storeSession(response.accessToken, response.user.email);
+      storeSession(response.accessToken, response.user.email, response.refreshToken);
       router.replace("/dashboard");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Не вдалося увійти.");

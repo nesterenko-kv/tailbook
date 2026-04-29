@@ -1,7 +1,9 @@
+using System.Text.Json;
 using System.Security.Claims;
 using FastEndpoints.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Identity.Contracts;
@@ -9,7 +11,7 @@ using Tailbook.Modules.Identity.Domain;
 
 namespace Tailbook.Modules.Identity.Application;
 
-public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passwordHasher)
+public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passwordHasher, IAuditTrailService auditTrailService)
 {
     public async Task<IReadOnlyList<RoleView>> ListRolesAsync(CancellationToken cancellationToken)
     {
@@ -124,6 +126,15 @@ public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passw
 
         dbContext.Set<IdentityUser>().Add(user);
         await dbContext.SaveChangesAsync(cancellationToken);
+        await auditTrailService.RecordAsync(
+            "identity",
+            "iam_user",
+            user.Id.ToString("D"),
+            "CREATE_USER",
+            assignedByUserId,
+            null,
+            JsonSerializer.Serialize(new { user.Email, user.DisplayName, user.Status }),
+            cancellationToken);
 
         if (roleCodes.Count > 0)
         {
@@ -160,6 +171,12 @@ public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passw
         var existingAssignments = await dbContext.Set<UserRoleAssignment>()
             .Where(x => x.UserId == userId && x.ScopeType == "Global" && x.ScopeId == null)
             .ToListAsync(cancellationToken);
+        var existingRoleIds = existingAssignments.Select(x => x.RoleId).ToArray();
+        var existingRoleCodes = await dbContext.Set<IdentityRole>()
+            .Where(x => existingRoleIds.Contains(x.Id))
+            .Select(x => x.Code)
+            .OrderBy(x => x)
+            .ToListAsync(cancellationToken);
 
         dbContext.Set<UserRoleAssignment>().RemoveRange(existingAssignments);
         dbContext.Set<UserRoleAssignment>().AddRange(roles.Select(role => new UserRoleAssignment
@@ -174,6 +191,15 @@ public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passw
         }));
 
         await dbContext.SaveChangesAsync(cancellationToken);
+        await auditTrailService.RecordAsync(
+            "identity",
+            "iam_user",
+            userId.ToString("D"),
+            "ASSIGN_ROLES",
+            assignedByUserId,
+            JsonSerializer.Serialize(new { roleCodes = existingRoleCodes }),
+            JsonSerializer.Serialize(new { roleCodes = roles.Select(x => x.Code).OrderBy(x => x).ToArray() }),
+            cancellationToken);
         return await GetUserAsync(userId, cancellationToken);
     }
 

@@ -2,6 +2,7 @@ using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
+using Tailbook.Modules.Identity.Contracts;
 using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.ApplyVisitAdjustment;
@@ -13,7 +14,7 @@ public sealed class ApplyVisitAdjustmentEndpoint(VisitQueries visitQueries)
     {
         Post("/api/admin/visits/{visitId:guid}/adjustments");
         Description(x => x.WithTags("Admin Visits"));
-        PermissionsAll("visit.write");
+        PermissionsAll(PermissionCodes.VisitAdjustmentsWrite);
     }
 
     public override async Task HandleAsync(ApplyVisitAdjustmentRequest req, CancellationToken ct)

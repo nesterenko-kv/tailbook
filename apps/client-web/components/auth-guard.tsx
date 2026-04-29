@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api";
-import { clearSession, CLIENT_UNAUTHORIZED_EVENT, getStoredAccessToken, storeEmail } from "@/lib/auth";
+import { clearSession, CLIENT_UNAUTHORIZED_EVENT, getStoredAccessToken, getStoredRefreshToken, storeEmail } from "@/lib/auth";
 import type { ClientMeResponse } from "@/lib/types";
 
 export function AuthGuard({ children }: Readonly<{ children: ReactNode }>) {
@@ -23,7 +23,8 @@ export function AuthGuard({ children }: Readonly<{ children: ReactNode }>) {
 
     async function verifySession() {
       const token = getStoredAccessToken();
-      if (!token) {
+      const refreshToken = getStoredRefreshToken();
+      if (!token && !refreshToken) {
         redirectToLogin();
         return;
       }

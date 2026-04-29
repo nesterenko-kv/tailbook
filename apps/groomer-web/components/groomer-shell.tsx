@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { AuthGuard } from "@/components/auth-guard";
-import { clearSession, getStoredDisplayName, getStoredEmail } from "@/lib/auth";
+import { getStoredDisplayName, getStoredEmail, revokeSession } from "@/lib/auth";
 
 const navigation = [
     { href: "/appointments", label: "My appointments" }
@@ -30,8 +30,7 @@ export function GroomerShell({ children }: { children: ReactNode }) {
                             <button
                                 type="button"
                                 onClick={() => {
-                                    clearSession();
-                                    router.push("/login");
+                                    void revokeSession().finally(() => router.push("/login"));
                                 }}
                                 className="rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-900"
                             >

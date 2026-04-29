@@ -1,6 +1,8 @@
 export type LoginResponse = {
     accessToken: string;
     expiresAtUtc: string;
+    refreshToken: string;
+    refreshTokenExpiresAtUtc: string;
     user: {
         id: string;
         email: string;
@@ -112,6 +114,20 @@ export type PetDetail = {
     notes?: string | null;
     photos: PetPhoto[];
     contacts: PetContact[];
+    createdAtUtc: string;
+    updatedAtUtc: string;
+};
+
+export type PetListItem = {
+    id: string;
+    clientId?: string | null;
+    name: string;
+    animalTypeCode: string;
+    animalTypeName: string;
+    breedName: string;
+    coatTypeCode?: string | null;
+    sizeCategoryCode?: string | null;
+    weightKg?: number | null;
     createdAtUtc: string;
     updatedAtUtc: string;
 };
@@ -481,6 +497,27 @@ export type VisitDetail = {
     adjustments: Array<{ id: string; sign: number; amount: number; reasonCode: string; note?: string | null; createdAtUtc: string }>;
     createdAtUtc: string;
     updatedAtUtc: string;
+};
+
+export type VisitListItem = {
+    id: string;
+    appointmentId: string;
+    bookingRequestId?: string | null;
+    petId: string;
+    petName: string;
+    breedName: string;
+    groomerId: string;
+    appointmentStartAtUtc: string;
+    appointmentEndAtUtc: string;
+    status: string;
+    checkedInAtUtc: string;
+    startedAtUtc?: string | null;
+    completedAtUtc?: string | null;
+    closedAtUtc?: string | null;
+    itemCount: number;
+    appointmentTotalAmount: number;
+    adjustmentTotalAmount: number;
+    finalTotalAmount: number;
 };
 
 export type AuditAccessItem = {

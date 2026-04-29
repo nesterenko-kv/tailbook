@@ -89,6 +89,94 @@ public sealed class PetsQueries(
         return pet with { Contacts = contacts };
     }
 
+    public async Task<PagedResult<PetListItemView>> ListPetsAsync(
+        string? search,
+        Guid? clientId,
+        string? animalTypeCode,
+        Guid? breedId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var safePage = page <= 0 ? 1 : page;
+        var safePageSize = pageSize switch { <= 0 => 20, > 100 => 100, _ => pageSize };
+        var normalizedSearch = NormalizeOptional(search);
+        var normalizedAnimalTypeCode = NormalizeOptional(animalTypeCode);
+
+        var query = dbContext.Set<Pet>()
+            .Join(dbContext.Set<AnimalType>(), pet => pet.AnimalTypeId, animalType => animalType.Id, (pet, animalType) => new { Pet = pet, AnimalType = animalType })
+            .Join(dbContext.Set<Breed>(), row => row.Pet.BreedId, breed => breed.Id, (row, breed) => new { row.Pet, row.AnimalType, Breed = breed })
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(normalizedSearch))
+        {
+            query = query.Where(x => x.Pet.Name.Contains(normalizedSearch));
+        }
+
+        if (clientId.HasValue)
+        {
+            query = query.Where(x => x.Pet.ClientId == clientId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(normalizedAnimalTypeCode))
+        {
+            query = query.Where(x => x.AnimalType.Code == normalizedAnimalTypeCode);
+        }
+
+        if (breedId.HasValue)
+        {
+            query = query.Where(x => x.Pet.BreedId == breedId.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var rows = await query
+            .OrderBy(x => x.Pet.Name)
+            .ThenBy(x => x.Pet.CreatedAtUtc)
+            .Skip((safePage - 1) * safePageSize)
+            .Take(safePageSize)
+            .Select(x => new
+            {
+                x.Pet.Id,
+                x.Pet.ClientId,
+                x.Pet.Name,
+                AnimalTypeCode = x.AnimalType.Code,
+                AnimalTypeName = x.AnimalType.Name,
+                BreedName = x.Breed.Name,
+                x.Pet.CoatTypeId,
+                x.Pet.SizeCategoryId,
+                x.Pet.WeightKg,
+                x.Pet.CreatedAtUtc,
+                x.Pet.UpdatedAtUtc
+            })
+            .ToListAsync(cancellationToken);
+
+        var coatTypeIds = rows.Where(x => x.CoatTypeId.HasValue).Select(x => x.CoatTypeId!.Value).Distinct().ToArray();
+        var sizeCategoryIds = rows.Where(x => x.SizeCategoryId.HasValue).Select(x => x.SizeCategoryId!.Value).Distinct().ToArray();
+        var coatTypes = await dbContext.Set<CoatType>()
+            .Where(x => coatTypeIds.Contains(x.Id))
+            .ToDictionaryAsync(x => x.Id, x => x.Code, cancellationToken);
+        var sizeCategories = await dbContext.Set<SizeCategory>()
+            .Where(x => sizeCategoryIds.Contains(x.Id))
+            .ToDictionaryAsync(x => x.Id, x => x.Code, cancellationToken);
+
+        return new PagedResult<PetListItemView>(
+            rows.Select(x => new PetListItemView(
+                x.Id,
+                x.ClientId,
+                x.Name,
+                x.AnimalTypeCode,
+                x.AnimalTypeName,
+                x.BreedName,
+                x.CoatTypeId.HasValue ? coatTypes.GetValueOrDefault(x.CoatTypeId.Value) : null,
+                x.SizeCategoryId.HasValue ? sizeCategories.GetValueOrDefault(x.SizeCategoryId.Value) : null,
+                x.WeightKg,
+                x.CreatedAtUtc,
+                x.UpdatedAtUtc)).ToArray(),
+            safePage,
+            safePageSize,
+            totalCount);
+    }
+
     public async Task<PetDetailView> RegisterPetAsync(RegisterPetCommand command, CancellationToken cancellationToken)
     {
         if (command.ClientId is not null)
@@ -269,3 +357,5 @@ public sealed record CoatTypeView(Guid Id, Guid? AnimalTypeId, string Code, stri
 public sealed record SizeCategoryView(Guid Id, Guid? AnimalTypeId, string Code, string Name, decimal? MinWeightKg, decimal? MaxWeightKg);
 public sealed record PetPhotoView(Guid Id, string StorageKey, string FileName, string ContentType, bool IsPrimary, int SortOrder, DateTime CreatedAtUtc);
 public sealed record PetDetailView(Guid Id, Guid? ClientId, string Name, AnimalTypeView AnimalType, BreedView Breed, CoatTypeView? CoatType, SizeCategoryView? SizeCategory, DateOnly? BirthDate, decimal? WeightKg, string? Notes, IReadOnlyCollection<PetPhotoView> Photos, IReadOnlyCollection<PetContactAdminSummary> Contacts, DateTime CreatedAtUtc, DateTime UpdatedAtUtc);
+public sealed record PetListItemView(Guid Id, Guid? ClientId, string Name, string AnimalTypeCode, string AnimalTypeName, string BreedName, string? CoatTypeCode, string? SizeCategoryCode, decimal? WeightKg, DateTime CreatedAtUtc, DateTime UpdatedAtUtc);
+public sealed record PagedResult<T>(IReadOnlyCollection<T> Items, int Page, int PageSize, int TotalCount);

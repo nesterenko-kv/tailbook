@@ -5,7 +5,7 @@ import { apiRequest, ApiError } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import type { BookingRequestDetail, BookingRequestListItem, ClientDetail, GroomerListItem, GroomerListResponse, OfferListItem, PagedResult } from "@/lib/types";
 import { unwrapItems } from "@/lib/contracts";
-import { Badge, Card, ErrorBanner, Field, Input, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
+import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
 
 function toneForStatus(status: string): "default" | "success" | "warning" {
   switch (status) {
@@ -28,12 +28,15 @@ export default function BookingRequestsPage() {
   const [selectedRequest, setSelectedRequest] = useState<BookingRequestDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [actionInFlight, setActionInFlight] = useState<"create" | "attach" | "convert" | null>(null);
   const [form, setForm] = useState({ clientId: "", petId: "", requestedByContactId: "", channel: "Admin", preferredStartAtUtc: "", preferredEndAtUtc: "", preferredLabel: "Preferred slot", notes: "", offerId: "" });
   const [attachForm, setAttachForm] = useState({ clientId: "", petId: "", requestedByContactId: "" });
   const [convertForm, setConvertForm] = useState({ bookingRequestId: "", groomerId: "", startAtUtc: "" });
 
   async function loadBase() {
     setError(null);
+    setIsLoading(true);
     try {
       const [requestResponse, offerResponse, clientResponse, groomerResponse] = await Promise.all([
         apiRequest<PagedResult<BookingRequestListItem>>("/api/admin/booking-requests?page=1&pageSize=50"),
@@ -47,6 +50,8 @@ export default function BookingRequestsPage() {
       setGroomers(unwrapItems(groomerResponse));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to load booking requests.");
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -99,8 +104,10 @@ export default function BookingRequestsPage() {
 
   async function createRequest(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (actionInFlight) return;
     setError(null);
     setSuccess(null);
+    setActionInFlight("create");
     try {
       await apiRequest("/api/admin/booking-requests", {
         method: "POST",
@@ -122,6 +129,8 @@ export default function BookingRequestsPage() {
       await loadBase();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to create booking request.");
+    } finally {
+      setActionInFlight(null);
     }
   }
 
@@ -130,9 +139,11 @@ export default function BookingRequestsPage() {
     if (!selectedRequest) {
       return;
     }
+    if (actionInFlight) return;
 
     setError(null);
     setSuccess(null);
+    setActionInFlight("attach");
     try {
       const updated = await apiRequest<BookingRequestDetail>(`/api/admin/booking-requests/${selectedRequest.id}/attach-context`, {
         method: "POST",
@@ -147,13 +158,17 @@ export default function BookingRequestsPage() {
       await loadBase();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to attach guest request context.");
+    } finally {
+      setActionInFlight(null);
     }
   }
 
   async function convertRequest(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (actionInFlight) return;
     setError(null);
     setSuccess(null);
+    setActionInFlight("convert");
     try {
       await apiRequest(`/api/admin/booking-requests/${convertForm.bookingRequestId}/convert`, {
         method: "POST",
@@ -171,6 +186,8 @@ export default function BookingRequestsPage() {
       }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to convert booking request.");
+    } finally {
+      setActionInFlight(null);
     }
   }
 
@@ -182,25 +199,29 @@ export default function BookingRequestsPage() {
 
       <div className="grid gap-6 xl:grid-cols-[1.15fr_1fr]">
         <Card title="Booking request queue" description="Guest requests can stay in NeedsReview until staff links them to a real pet and confirms details.">
-          <div className="grid gap-3">
-            {requests.map((item) => (
-              <button key={item.id} type="button" onClick={() => setSelectedRequestId(item.id)} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-left transition hover:border-emerald-500/40">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="font-medium text-white">{item.petDisplayName ?? item.id}</div>
-                    <div className="text-sm text-slate-400">{item.requesterDisplayName ?? "Unknown requester"} · {item.requesterPrimaryContact ?? item.channel}</div>
+          {isLoading ? <LoadingState label="Loading booking requests..." /> : null}
+          {!isLoading && requests.length === 0 ? <EmptyState title="No booking requests found" description="New public or admin-assisted booking requests will appear here." /> : null}
+          {!isLoading && requests.length > 0 ? (
+            <div className="grid gap-3">
+              {requests.map((item) => (
+                <button key={item.id} type="button" onClick={() => setSelectedRequestId(item.id)} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-left transition hover:border-emerald-500/40">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-medium text-white">{item.petDisplayName ?? item.id}</div>
+                      <div className="text-sm text-slate-400">{item.requesterDisplayName ?? "Unknown requester"} · {item.requesterPrimaryContact ?? item.channel}</div>
+                    </div>
+                    <Badge tone={toneForStatus(item.status)}>{item.status}</Badge>
                   </div>
-                  <Badge tone={toneForStatus(item.status)}>{item.status}</Badge>
-                </div>
-                <div className="mt-2 grid gap-1 text-sm text-slate-300 md:grid-cols-2">
-                  <div>Items: {item.itemCount}</div>
-                  <div>Selection: {item.selectionMode ?? "—"}</div>
-                  <div>Preferred groomer: {item.preferredGroomerName ?? "Any suitable"}</div>
-                  <div>Created: {formatDateTime(item.createdAtUtc)}</div>
-                </div>
-              </button>
-            ))}
-          </div>
+                  <div className="mt-2 grid gap-1 text-sm text-slate-300 md:grid-cols-2">
+                    <div>Items: {item.itemCount}</div>
+                    <div>Selection: {item.selectionMode ?? "—"}</div>
+                    <div>Preferred groomer: {item.preferredGroomerName ?? "Any suitable"}</div>
+                    <div>Created: {formatDateTime(item.createdAtUtc)}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : null}
         </Card>
 
         <Card title="Create booking request" description="Admin-assisted intake for already-known clients still works as before.">
@@ -216,7 +237,7 @@ export default function BookingRequestsPage() {
             </div>
             <Field label="Preferred label"><Input value={form.preferredLabel} onChange={(e) => setForm((c) => ({ ...c, preferredLabel: e.target.value }))} /></Field>
             <Field label="Notes"><TextArea value={form.notes} onChange={(e) => setForm((c) => ({ ...c, notes: e.target.value }))} /></Field>
-            <PrimaryButton type="submit">Create booking request</PrimaryButton>
+            <PrimaryButton type="submit" disabled={actionInFlight !== null}>{actionInFlight === "create" ? "Creating..." : "Create booking request"}</PrimaryButton>
           </form>
         </Card>
       </div>
@@ -272,7 +293,7 @@ export default function BookingRequestsPage() {
                     <Field label="Client"><Select value={attachForm.clientId} onChange={(e) => setAttachForm((c) => ({ ...c, clientId: e.target.value, petId: "", requestedByContactId: "" }))} required><option value="">Select client</option>{clients.map((x) => <option key={x.id} value={x.id}>{x.displayName}</option>)}</Select></Field>
                     <Field label="Pet"><Select value={attachForm.petId} onChange={(e) => setAttachForm((c) => ({ ...c, petId: e.target.value }))} required><option value="">Select pet</option>{attachClient?.pets.map((x) => <option key={x.id} value={x.id}>{x.name} · {x.breedName}</option>)}</Select></Field>
                     <Field label="Requester contact"><Select value={attachForm.requestedByContactId} onChange={(e) => setAttachForm((c) => ({ ...c, requestedByContactId: e.target.value }))}><option value="">None</option>{attachClient?.contacts.map((x) => <option key={x.id} value={x.id}>{x.firstName} {x.lastName ?? ""}</option>)}</Select></Field>
-                    <PrimaryButton type="submit">Attach CRM context</PrimaryButton>
+                    <PrimaryButton type="submit" disabled={actionInFlight !== null}>{actionInFlight === "attach" ? "Attaching..." : "Attach CRM context"}</PrimaryButton>
                   </form>
                 </Card>
               ) : null}
@@ -281,7 +302,7 @@ export default function BookingRequestsPage() {
                 <form className="grid gap-4" onSubmit={convertRequest}>
                   <Field label="Groomer"><Select value={convertForm.groomerId} onChange={(e) => setConvertForm((c) => ({ ...c, groomerId: e.target.value }))} required><option value="">Select groomer</option>{groomers.map((x) => <option key={x.id} value={x.id}>{x.displayName}</option>)}</Select></Field>
                   <Field label="Start at"><Input type="datetime-local" value={convertForm.startAtUtc} onChange={(e) => setConvertForm((c) => ({ ...c, startAtUtc: e.target.value }))} required /></Field>
-                  <PrimaryButton type="submit" disabled={!selectedRequest.petId}>Convert to appointment</PrimaryButton>
+                  <PrimaryButton type="submit" disabled={!selectedRequest.petId || actionInFlight !== null}>{actionInFlight === "convert" ? "Converting..." : "Convert to appointment"}</PrimaryButton>
                 </form>
                 {!selectedRequest.petId ? <p className="mt-3 text-sm text-amber-300">Link this request to a real pet before conversion.</p> : null}
               </Card>

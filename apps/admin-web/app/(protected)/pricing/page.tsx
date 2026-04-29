@@ -17,7 +17,7 @@ import type {
     GroomerListItem,
     GroomerListResponse
 } from "@/lib/types";
-import { Badge, Card, ErrorBanner, Field, Input, PageHeader, PrimaryButton, Select, SuccessBanner } from "@/components/ui";
+import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, PrimaryButton, Select, SuccessBanner } from "@/components/ui";
 
 export default function PricingPage() {
     const [offers, setOffers] = useState<OfferListItem[]>([]);
@@ -29,6 +29,8 @@ export default function PricingPage() {
     const [quotePreview, setQuotePreview] = useState<QuotePreview | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [actionInFlight, setActionInFlight] = useState<string | null>(null);
     const [priceSetForm, setPriceSetForm] = useState({ validFromUtc: "", validToUtc: "" });
     const [durationSetForm, setDurationSetForm] = useState({ validFromUtc: "", validToUtc: "" });
     const [priceRuleForm, setPriceRuleForm] = useState({ ruleSetId: "", offerId: "", priority: "100", fixedAmount: "1400", currency: "UAH", animalTypeId: "", breedId: "", breedGroupId: "", coatTypeId: "", sizeCategoryId: "" });
@@ -36,6 +38,7 @@ export default function PricingPage() {
     const [quoteForm, setQuoteForm] = useState({ clientId: "", petId: "", groomerId: "", offerIds: [] as string[] });
 
     async function loadAll() {
+        setIsLoading(true);
         try {
             const [offerResponse, clientResponse, groomerResponse, priceResponse, durationResponse] = await Promise.all([
                 apiRequest<OfferListItem[]>("/api/admin/catalog/offers"),
@@ -75,6 +78,8 @@ export default function PricingPage() {
             }));
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Failed to load pricing data.");
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -100,7 +105,9 @@ export default function PricingPage() {
 
     async function createPriceRuleSet(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        if (actionInFlight) return;
         setError(null);
+        setActionInFlight("price-rule-set");
         try {
             await apiRequest("/api/admin/pricing/rule-sets", { method: "POST", body: JSON.stringify({ validFromUtc: priceSetForm.validFromUtc ? new Date(priceSetForm.validFromUtc).toISOString() : null, validToUtc: priceSetForm.validToUtc ? new Date(priceSetForm.validToUtc).toISOString() : null }) });
             setSuccess("Price rule set created.");
@@ -108,12 +115,16 @@ export default function PricingPage() {
             await loadAll();
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Failed to create price rule set.");
+        } finally {
+            setActionInFlight(null);
         }
     }
 
     async function createDurationRuleSet(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        if (actionInFlight) return;
         setError(null);
+        setActionInFlight("duration-rule-set");
         try {
             await apiRequest("/api/admin/duration/rule-sets", { method: "POST", body: JSON.stringify({ validFromUtc: durationSetForm.validFromUtc ? new Date(durationSetForm.validFromUtc).toISOString() : null, validToUtc: durationSetForm.validToUtc ? new Date(durationSetForm.validToUtc).toISOString() : null }) });
             setSuccess("Duration rule set created.");
@@ -121,12 +132,16 @@ export default function PricingPage() {
             await loadAll();
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Failed to create duration rule set.");
+        } finally {
+            setActionInFlight(null);
         }
     }
 
     async function createPriceRule(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        if (actionInFlight) return;
         setError(null);
+        setActionInFlight("price-rule");
         try {
             await apiRequest(`/api/admin/pricing/rule-sets/${priceRuleForm.ruleSetId}/rules`, {
                 method: "POST",
@@ -147,12 +162,16 @@ export default function PricingPage() {
             await loadAll();
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Failed to create price rule.");
+        } finally {
+            setActionInFlight(null);
         }
     }
 
     async function createDurationRule(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        if (actionInFlight) return;
         setError(null);
+        setActionInFlight("duration-rule");
         try {
             await apiRequest(`/api/admin/duration/rule-sets/${durationRuleForm.ruleSetId}/rules`, {
                 method: "POST",
@@ -174,11 +193,15 @@ export default function PricingPage() {
             await loadAll();
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Failed to create duration rule.");
+        } finally {
+            setActionInFlight(null);
         }
     }
 
     async function publishRuleSet(kind: "price" | "duration", ruleSetId: string) {
+        if (actionInFlight) return;
         setError(null);
+        setActionInFlight(`${kind}-publish-${ruleSetId}`);
         try {
             await apiRequest(kind === "price" ? `/api/admin/pricing/rule-sets/${ruleSetId}/publish` : `/api/admin/duration/rule-sets/${ruleSetId}/publish`, {
                 method: "POST",
@@ -188,12 +211,16 @@ export default function PricingPage() {
             await loadAll();
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Failed to publish rule set.");
+        } finally {
+            setActionInFlight(null);
         }
     }
 
     async function previewQuote(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        if (actionInFlight) return;
         setError(null);
+        setActionInFlight("quote-preview");
         try {
             const response = await apiRequest<QuotePreview>("/api/admin/quotes/preview", {
                 method: "POST",
@@ -207,6 +234,8 @@ export default function PricingPage() {
             setSuccess("Quote preview generated.");
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Failed to preview quote.");
+        } finally {
+            setActionInFlight(null);
         }
     }
 
@@ -230,48 +259,68 @@ export default function PricingPage() {
                     <form className="grid gap-4 md:grid-cols-2" onSubmit={createPriceRuleSet}>
                         <Field label="Valid from"><Input type="datetime-local" value={priceSetForm.validFromUtc} onChange={(event) => setPriceSetForm((current) => ({ ...current, validFromUtc: event.target.value }))} /></Field>
                         <Field label="Valid to"><Input type="datetime-local" value={priceSetForm.validToUtc} onChange={(event) => setPriceSetForm((current) => ({ ...current, validToUtc: event.target.value }))} /></Field>
-                        <PrimaryButton type="submit" className="md:col-span-2">Create price rule set</PrimaryButton>
+                        <PrimaryButton type="submit" className="md:col-span-2" disabled={actionInFlight !== null}>
+                            {actionInFlight === "price-rule-set" ? "Creating..." : "Create price rule set"}
+                        </PrimaryButton>
                     </form>
-                    <div className="mt-4 grid gap-3">
-                        {priceRuleSets.map((item) => (
-                            <article key={item.id} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
-                                <div className="flex items-start justify-between gap-3">
-                                    <div>
-                                        <h3 className="font-medium">Version {item.versionNo}</h3>
-                                        <p className="text-sm text-slate-400">{item.rules.length} rules • {formatDateTime(item.validFromUtc)}</p>
+                    {isLoading ? <div className="mt-4"><LoadingState label="Loading price rule sets..." /></div> : null}
+                    {!isLoading && priceRuleSets.length === 0 ? <div className="mt-4"><EmptyState title="No price rule sets" description="Create a rule set before adding price rules." /></div> : null}
+                    {!isLoading && priceRuleSets.length > 0 ? (
+                        <div className="mt-4 grid gap-3">
+                            {priceRuleSets.map((item) => (
+                                <article key={item.id} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div>
+                                            <h3 className="font-medium">Version {item.versionNo}</h3>
+                                            <p className="text-sm text-slate-400">{item.rules.length} rules • {formatDateTime(item.validFromUtc)}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Badge tone={item.status === "Published" ? "success" : "default"}>{item.status}</Badge>
+                                            {item.status !== "Published" ? (
+                                                <PrimaryButton type="button" disabled={actionInFlight !== null} onClick={() => void publishRuleSet("price", item.id)}>
+                                                    {actionInFlight === `price-publish-${item.id}` ? "Publishing..." : "Publish"}
+                                                </PrimaryButton>
+                                            ) : null}
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <Badge tone={item.status === "Published" ? "success" : "default"}>{item.status}</Badge>
-                                        {item.status !== "Published" ? <PrimaryButton type="button" onClick={() => void publishRuleSet("price", item.id)}>Publish</PrimaryButton> : null}
-                                    </div>
-                                </div>
-                            </article>
-                        ))}
-                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    ) : null}
                 </Card>
 
                 <Card title="Duration rule sets">
                     <form className="grid gap-4 md:grid-cols-2" onSubmit={createDurationRuleSet}>
                         <Field label="Valid from"><Input type="datetime-local" value={durationSetForm.validFromUtc} onChange={(event) => setDurationSetForm((current) => ({ ...current, validFromUtc: event.target.value }))} /></Field>
                         <Field label="Valid to"><Input type="datetime-local" value={durationSetForm.validToUtc} onChange={(event) => setDurationSetForm((current) => ({ ...current, validToUtc: event.target.value }))} /></Field>
-                        <PrimaryButton type="submit" className="md:col-span-2">Create duration rule set</PrimaryButton>
+                        <PrimaryButton type="submit" className="md:col-span-2" disabled={actionInFlight !== null}>
+                            {actionInFlight === "duration-rule-set" ? "Creating..." : "Create duration rule set"}
+                        </PrimaryButton>
                     </form>
-                    <div className="mt-4 grid gap-3">
-                        {durationRuleSets.map((item) => (
-                            <article key={item.id} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
-                                <div className="flex items-start justify-between gap-3">
-                                    <div>
-                                        <h3 className="font-medium">Version {item.versionNo}</h3>
-                                        <p className="text-sm text-slate-400">{item.rules.length} rules • {formatDateTime(item.validFromUtc)}</p>
+                    {isLoading ? <div className="mt-4"><LoadingState label="Loading duration rule sets..." /></div> : null}
+                    {!isLoading && durationRuleSets.length === 0 ? <div className="mt-4"><EmptyState title="No duration rule sets" description="Create a rule set before adding duration rules." /></div> : null}
+                    {!isLoading && durationRuleSets.length > 0 ? (
+                        <div className="mt-4 grid gap-3">
+                            {durationRuleSets.map((item) => (
+                                <article key={item.id} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div>
+                                            <h3 className="font-medium">Version {item.versionNo}</h3>
+                                            <p className="text-sm text-slate-400">{item.rules.length} rules • {formatDateTime(item.validFromUtc)}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Badge tone={item.status === "Published" ? "success" : "default"}>{item.status}</Badge>
+                                            {item.status !== "Published" ? (
+                                                <PrimaryButton type="button" disabled={actionInFlight !== null} onClick={() => void publishRuleSet("duration", item.id)}>
+                                                    {actionInFlight === `duration-publish-${item.id}` ? "Publishing..." : "Publish"}
+                                                </PrimaryButton>
+                                            ) : null}
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <Badge tone={item.status === "Published" ? "success" : "default"}>{item.status}</Badge>
-                                        {item.status !== "Published" ? <PrimaryButton type="button" onClick={() => void publishRuleSet("duration", item.id)}>Publish</PrimaryButton> : null}
-                                    </div>
-                                </div>
-                            </article>
-                        ))}
-                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    ) : null}
                 </Card>
             </div>
 
@@ -288,7 +337,9 @@ export default function PricingPage() {
                         <Field label="Breed group id"><Input value={priceRuleForm.breedGroupId} onChange={(event) => setPriceRuleForm((current) => ({ ...current, breedGroupId: event.target.value }))} /></Field>
                         <Field label="Coat type id"><Input value={priceRuleForm.coatTypeId} onChange={(event) => setPriceRuleForm((current) => ({ ...current, coatTypeId: event.target.value }))} /></Field>
                         <Field label="Size category id"><Input value={priceRuleForm.sizeCategoryId} onChange={(event) => setPriceRuleForm((current) => ({ ...current, sizeCategoryId: event.target.value }))} /></Field>
-                        <PrimaryButton type="submit" className="md:col-span-2">Create price rule</PrimaryButton>
+                        <PrimaryButton type="submit" className="md:col-span-2" disabled={actionInFlight !== null || priceRuleSets.length === 0 || offers.length === 0}>
+                            {actionInFlight === "price-rule" ? "Creating..." : "Create price rule"}
+                        </PrimaryButton>
                     </form>
                 </Card>
 
@@ -305,7 +356,9 @@ export default function PricingPage() {
                         <Field label="Breed group id"><Input value={durationRuleForm.breedGroupId} onChange={(event) => setDurationRuleForm((current) => ({ ...current, breedGroupId: event.target.value }))} /></Field>
                         <Field label="Coat type id"><Input value={durationRuleForm.coatTypeId} onChange={(event) => setDurationRuleForm((current) => ({ ...current, coatTypeId: event.target.value }))} /></Field>
                         <Field label="Size category id"><Input value={durationRuleForm.sizeCategoryId} onChange={(event) => setDurationRuleForm((current) => ({ ...current, sizeCategoryId: event.target.value }))} /></Field>
-                        <PrimaryButton type="submit" className="md:col-span-2">Create duration rule</PrimaryButton>
+                        <PrimaryButton type="submit" className="md:col-span-2" disabled={actionInFlight !== null || durationRuleSets.length === 0 || offers.length === 0}>
+                            {actionInFlight === "duration-rule" ? "Creating..." : "Create duration rule"}
+                        </PrimaryButton>
                     </form>
                 </Card>
             </div>
@@ -326,7 +379,9 @@ export default function PricingPage() {
                             ))}
                         </div>
                     </div>
-                    <PrimaryButton type="submit">Preview quote</PrimaryButton>
+                    <PrimaryButton type="submit" disabled={actionInFlight !== null || !quoteForm.petId || quoteForm.offerIds.length === 0}>
+                        {actionInFlight === "quote-preview" ? "Previewing..." : "Preview quote"}
+                    </PrimaryButton>
                 </form>
 
                 {quotePreview ? (

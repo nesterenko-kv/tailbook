@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiRequest, ApiError } from "@/lib/api";
 import type { BookingRequestDetail, ClientContactPreferences, ClientMeResponse, PublicBookableOffer } from "@/lib/types";
@@ -26,6 +26,7 @@ export default function BookingContactPage() {
   const [consent, setConsent] = useState(booking.contact.consent);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const submitInFlightRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,6 +57,15 @@ export default function BookingContactPage() {
 
   async function handleSubmit(event?: FormEvent) {
     event?.preventDefault();
+    if (busy || submitInFlightRef.current) return;
+    if (!booking.pet || booking.selectedTemplateIds.length === 0) {
+      setError("Поверніться до попередніх кроків і перевірте вихованця та послуги.");
+      return;
+    }
+    if (!fullName || !consent || (!phone && !instagram)) {
+      setError("Заповніть ім'я, контактний спосіб зв'язку та згоду на обробку даних.");
+      return;
+    }
     if (!canSubmit) return;
     const petPayload = toPublicPetPayload(booking.pet);
     if (!petPayload) {
@@ -63,6 +73,7 @@ export default function BookingContactPage() {
       return;
     }
 
+    submitInFlightRef.current = true;
     setBusy(true);
     setError(null);
     try {
@@ -110,6 +121,7 @@ export default function BookingContactPage() {
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Не вдалося відправити booking request.");
     } finally {
+      submitInFlightRef.current = false;
       setBusy(false);
     }
   }

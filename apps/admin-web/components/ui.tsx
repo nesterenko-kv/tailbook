@@ -93,3 +93,11 @@ export function EmptyState({ title, description }: { title: string; description?
     </div>
   );
 }
+
+export function LoadingState({ label = "Loading..." }: { label?: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-950/50 px-5 py-8 text-center text-sm text-slate-400" aria-live="polite">
+      {label}
+    </div>
+  );
+}

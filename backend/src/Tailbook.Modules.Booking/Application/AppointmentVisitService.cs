@@ -10,16 +10,45 @@ public sealed class AppointmentVisitService(AppDbContext dbContext) : IAppointme
 {
     public async Task<VisitAppointmentInfo?> GetAppointmentAsync(Guid appointmentId, CancellationToken cancellationToken)
     {
-        var appointment = await dbContext.Set<Appointment>()
-            .SingleOrDefaultAsync(x => x.Id == appointmentId, cancellationToken);
+        var appointments = await ListAppointmentsAsync([appointmentId], null, null, null, cancellationToken);
+        return appointments.GetValueOrDefault(appointmentId);
+    }
 
-        if (appointment is null)
+    public async Task<IReadOnlyDictionary<Guid, VisitAppointmentInfo>> ListAppointmentsAsync(
+        IReadOnlyCollection<Guid> appointmentIds,
+        DateTime? fromUtc,
+        DateTime? toUtc,
+        Guid? groomerId,
+        CancellationToken cancellationToken)
+    {
+        if (appointmentIds.Count == 0)
         {
-            return null;
+            return new Dictionary<Guid, VisitAppointmentInfo>();
         }
 
+        var query = dbContext.Set<Appointment>()
+            .Where(x => appointmentIds.Contains(x.Id));
+
+        if (fromUtc.HasValue)
+        {
+            query = query.Where(x => x.StartAtUtc >= fromUtc.Value);
+        }
+
+        if (toUtc.HasValue)
+        {
+            query = query.Where(x => x.StartAtUtc < toUtc.Value);
+        }
+
+        if (groomerId.HasValue)
+        {
+            query = query.Where(x => x.GroomerId == groomerId.Value);
+        }
+
+        var appointments = await query.ToListAsync(cancellationToken);
+        var matchedAppointmentIds = appointments.Select(x => x.Id).ToArray();
+
         var items = await dbContext.Set<AppointmentItem>()
-            .Where(x => x.AppointmentId == appointmentId)
+            .Where(x => matchedAppointmentIds.Contains(x.AppointmentId))
             .OrderBy(x => x.CreatedAtUtc)
             .ToListAsync(cancellationToken);
 
@@ -31,29 +60,32 @@ public sealed class AppointmentVisitService(AppDbContext dbContext) : IAppointme
             .Where(x => items.Select(y => y.DurationSnapshotId).Contains(x.Id))
             .ToDictionaryAsync(x => x.Id, cancellationToken);
 
-        return new VisitAppointmentInfo(
-            appointment.Id,
-            appointment.BookingRequestId,
-            appointment.PetId,
-            appointment.GroomerId,
-            appointment.StartAtUtc,
-            appointment.EndAtUtc,
-            appointment.Status,
-            appointment.VersionNo,
-            items.Select(x => new VisitAppointmentItemInfo(
+        return appointments.ToDictionary(
+            x => x.Id,
+            x => new VisitAppointmentInfo(
                 x.Id,
-                x.ItemType,
-                x.OfferId,
-                x.OfferVersionId,
-                x.OfferCodeSnapshot,
-                x.OfferDisplayNameSnapshot,
-                x.Quantity,
-                x.PriceSnapshotId,
-                x.DurationSnapshotId,
-                priceSnapshots[x.PriceSnapshotId].TotalAmount,
-                durationSnapshots[x.DurationSnapshotId].ServiceMinutes,
-                durationSnapshots[x.DurationSnapshotId].ReservedMinutes))
-                .ToArray());
+                x.BookingRequestId,
+                x.PetId,
+                x.GroomerId,
+                x.StartAtUtc,
+                x.EndAtUtc,
+                x.Status,
+                x.VersionNo,
+                items.Where(item => item.AppointmentId == x.Id)
+                    .Select(item => new VisitAppointmentItemInfo(
+                        item.Id,
+                        item.ItemType,
+                        item.OfferId,
+                        item.OfferVersionId,
+                        item.OfferCodeSnapshot,
+                        item.OfferDisplayNameSnapshot,
+                        item.Quantity,
+                        item.PriceSnapshotId,
+                        item.DurationSnapshotId,
+                        priceSnapshots[item.PriceSnapshotId].TotalAmount,
+                        durationSnapshots[item.DurationSnapshotId].ServiceMinutes,
+                        durationSnapshots[item.DurationSnapshotId].ReservedMinutes))
+                    .ToArray()));
     }
 
     public async Task MarkCheckedInAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)

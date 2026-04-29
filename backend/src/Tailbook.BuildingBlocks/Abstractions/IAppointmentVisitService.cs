@@ -3,6 +3,12 @@ namespace Tailbook.BuildingBlocks.Abstractions;
 public interface IAppointmentVisitService
 {
     Task<VisitAppointmentInfo?> GetAppointmentAsync(Guid appointmentId, CancellationToken cancellationToken);
+    Task<IReadOnlyDictionary<Guid, VisitAppointmentInfo>> ListAppointmentsAsync(
+        IReadOnlyCollection<Guid> appointmentIds,
+        DateTime? fromUtc,
+        DateTime? toUtc,
+        Guid? groomerId,
+        CancellationToken cancellationToken);
     Task MarkCheckedInAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken);
     Task MarkInProgressAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken);
     Task MarkCompletedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken);

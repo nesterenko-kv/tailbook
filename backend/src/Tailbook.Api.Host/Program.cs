@@ -138,6 +138,7 @@ builder.Services.AddTailbookModules(builder.Configuration);
 var app = builder.Build();
 
 await app.InitializeDatabaseAsync();
+StartupDiagnosticsLogger.Log(app);
 
 if (app.Environment.IsDevelopment())
 {
@@ -173,9 +174,13 @@ app.MapHealthChecks("/health/live", new HealthCheckOptions
 });
 app.MapHealthChecks("/health/ready", new HealthCheckOptions
 {
-    Predicate = _ => true
+    Predicate = _ => true,
+    ResponseWriter = HealthCheckResponseWriter.WriteAsync
 });
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = HealthCheckResponseWriter.WriteAsync
+});
 app.MapGet("/", () => Results.Ok(new
 {
     name = "Tailbook API",

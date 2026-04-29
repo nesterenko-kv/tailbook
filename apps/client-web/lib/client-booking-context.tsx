@@ -16,31 +16,37 @@ const ClientBookingContext = createContext<ClientBookingContextValue | null>(nul
 
 export function ClientBookingProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [booking, setBooking] = useState<BookingState>(emptyBookingState);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") {
+      setHydrated(true);
       return;
     }
 
     const raw = window.sessionStorage.getItem(STORAGE_KEY);
     if (!raw) {
+      setHydrated(true);
       return;
     }
 
     try {
-      setBooking({ ...emptyBookingState, ...JSON.parse(raw) });
+      const parsed = JSON.parse(raw);
+      setBooking(parsed && typeof parsed === "object" ? { ...emptyBookingState, ...parsed } : emptyBookingState);
     } catch {
       window.sessionStorage.removeItem(STORAGE_KEY);
+    } finally {
+      setHydrated(true);
     }
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
+    if (!hydrated || typeof window === "undefined") {
       return;
     }
 
     window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(booking));
-  }, [booking]);
+  }, [booking, hydrated]);
 
   const patchBooking = useCallback((patch: Partial<BookingState>) => {
     setBooking((current) => ({ ...current, ...patch }));

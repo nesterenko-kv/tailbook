@@ -26,3 +26,6 @@
 - Import through dedicated scripts/jobs, not manual SQL edits in production.
 - Keep historical snapshots immutable once imported.
 - Record import provenance (`source file`, `imported at`, `import batch id`) in future migration/import tooling.
+- Validate every external file before mutation. The shared `ImportValidationService` in `Tailbook.BuildingBlocks.Infrastructure.Imports` currently covers malformed rows, duplicate external identifiers, required fields, pet taxonomy references, prices, and durations.
+- Treat validation failures as batch blockers unless a future importer explicitly supports quarantining invalid rows with operator review.
+- Normalize external identifiers before duplicate checks, and keep raw source values in provenance/audit metadata for traceability.

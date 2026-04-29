@@ -23,7 +23,7 @@ export default function LoginPage() {
         method: "POST",
         body: JSON.stringify({ email, password })
       });
-      setAdminSession({ accessToken: response.accessToken, email: response.user.email, displayName: response.user.displayName });
+      setAdminSession({ accessToken: response.accessToken, refreshToken: response.refreshToken, email: response.user.email, displayName: response.user.displayName });
       router.replace("/clients");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Login failed.");

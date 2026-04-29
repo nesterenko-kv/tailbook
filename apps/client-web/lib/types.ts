@@ -13,6 +13,8 @@ export type AuthenticatedUserView = {
 export type ClientLoginResponse = {
     accessToken: string;
     expiresAtUtc: string;
+    refreshToken: string;
+    refreshTokenExpiresAtUtc: string;
     user: AuthenticatedUserView;
 };
 

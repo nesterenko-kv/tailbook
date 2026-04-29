@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { AuthGuard } from "@/components/auth-guard";
-import { clearAdminSession, getAdminDisplayName, getAdminEmail } from "@/lib/auth";
+import { getAdminDisplayName, getAdminEmail, revokeAdminSession } from "@/lib/auth";
 
 const nav = [
   { href: "/clients", label: "Clients" },
@@ -56,8 +56,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
               type="button"
               className="mt-6 w-full rounded-2xl border border-slate-700 px-4 py-3 text-sm text-slate-200 transition hover:border-slate-500"
               onClick={() => {
-                clearAdminSession();
-                router.replace('/login');
+                void revokeAdminSession().finally(() => router.replace("/login"));
               }}
             >
               Sign out

@@ -26,6 +26,7 @@ public static class PermissionCodes
     public const string BookingWrite = "booking.write";
     public const string VisitRead = "visit.read";
     public const string VisitWrite = "visit.write";
+    public const string VisitAdjustmentsWrite = "visit.adjustments.write";
     public const string GroomerAppointmentsRead = "groomer.appointments.read";
     public const string GroomerVisitsRead = "groomer.visits.read";
     public const string GroomerVisitsWrite = "groomer.visits.write";

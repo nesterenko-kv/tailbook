@@ -44,6 +44,36 @@ public static class IdentityModelConfiguration
             builder.HasIndex(x => x.UserId);
         });
 
+        modelBuilder.Entity<IdentityPasswordResetToken>(builder =>
+        {
+            builder.ToTable("iam_password_reset_tokens", "iam");
+            builder.HasKey(x => x.Id);
+
+            builder.Property(x => x.TokenHash).HasMaxLength(128).IsRequired();
+            builder.Property(x => x.ExpiresAtUtc).IsRequired();
+            builder.Property(x => x.CreatedAtUtc).IsRequired();
+            builder.Property(x => x.UsedAtUtc);
+
+            builder.HasIndex(x => x.TokenHash).IsUnique();
+            builder.HasIndex(x => new { x.UserId, x.ExpiresAtUtc });
+        });
+
+        modelBuilder.Entity<IdentityMfaFactor>(builder =>
+        {
+            builder.ToTable("iam_mfa_factors", "iam");
+            builder.HasKey(x => x.Id);
+
+            builder.Property(x => x.FactorType).HasMaxLength(32).IsRequired();
+            builder.Property(x => x.Status).HasMaxLength(32).IsRequired();
+            builder.Property(x => x.TargetEmail).HasMaxLength(256).IsRequired();
+            builder.Property(x => x.CreatedAtUtc).IsRequired();
+            builder.Property(x => x.EnabledAtUtc);
+            builder.Property(x => x.DisabledAtUtc);
+
+            builder.HasIndex(x => new { x.UserId, x.FactorType });
+            builder.HasIndex(x => new { x.Status, x.FactorType });
+        });
+
         modelBuilder.Entity<IdentityRole>(builder =>
         {
             builder.ToTable("iam_roles", "iam");

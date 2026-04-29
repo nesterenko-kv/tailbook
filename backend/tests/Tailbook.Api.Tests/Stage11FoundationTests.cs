@@ -6,7 +6,6 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-// TODO: rename to more appropriate
 public sealed class Stage11FoundationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;
@@ -23,15 +22,7 @@ public sealed class Stage11FoundationTests : IClassFixture<CustomWebApplicationF
         using var client = _factory.CreateClient();
         CustomWebApplicationFactory.SetBearer(client, token);
 
-        var catalog = await TestApiHelpers.GetPetCatalogAsync(client);
-        var clientId = await TestApiHelpers.CreateClientAsync(client, "Report Client");
-        var petId = await TestApiHelpers.RegisterPetAsync(client, clientId, catalog.SamoyedBreedId, catalog.DogAnimalTypeCode, catalog.DoubleCoatCode, catalog.LargeSizeCode);
-        var offerId = await TestApiHelpers.CreateSchedulableOfferAsync(client, catalog.SamoyedBreedId);
-        var groomer = await TestApiHelpers.CreateSchedulableGroomerAsync(client);
-        var appointment = await TestApiHelpers.CreateAppointmentAsync(client, petId, groomer.Id, offerId, DateTime.Parse("2026-04-25T08:00:00Z").ToUniversalTime());
-        var visit = await TestApiHelpers.CheckInAsync(client, appointment.Id);
-        (await client.PostAsJsonAsync($"/api/admin/visits/{visit.Id:D}/complete", new { visitId = visit.Id })).EnsureSuccessStatusCode();
-        (await client.PostAsJsonAsync($"/api/admin/visits/{visit.Id:D}/close", new { visitId = visit.Id })).EnsureSuccessStatusCode();
+        await ReportingScenarioBuilder.CreateClosedVisitAsync(client);
 
         var estimateResponse = await client.GetAsync("/api/admin/reports/estimate-accuracy");
         Assert.Equal(HttpStatusCode.OK, estimateResponse.StatusCode);
@@ -114,4 +105,3 @@ public sealed class Stage11FoundationTests : IClassFixture<CustomWebApplicationF
         public string ActionCode { get; set; } = string.Empty;
     }
 }
-

@@ -38,42 +38,57 @@ public sealed class NotificationQueries(AppDbContext dbContext, INotificationSin
                 continue;
             }
 
-            var body = RenderTemplate(template.BodyTemplate, message.PayloadJson);
-            var subject = RenderTemplate(template.SubjectTemplate, message.PayloadJson);
-            var job = new NotificationJob
-            {
-                Id = Guid.NewGuid(),
-                SourceEventType = message.EventType,
-                SourceEventMessageId = message.Id,
-                TemplateId = template.Id,
-                Channel = template.Channel,
-                Recipient = "front-desk",
-                Subject = subject,
-                Body = body,
-                Status = NotificationStatusCodes.Pending,
-                AttemptCount = 0,
-                CreatedAtUtc = DateTime.UtcNow
-            };
+            var job = await dbContext.Set<NotificationJob>()
+                .SingleOrDefaultAsync(x => x.SourceEventMessageId == message.Id, cancellationToken);
 
-            dbContext.Set<NotificationJob>().Add(job);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            if (job is null)
+            {
+                var body = RenderTemplate(template.BodyTemplate, message.PayloadJson);
+                var subject = RenderTemplate(template.SubjectTemplate, message.PayloadJson);
+                job = new NotificationJob
+                {
+                    Id = Guid.NewGuid(),
+                    SourceEventType = message.EventType,
+                    SourceEventMessageId = message.Id,
+                    TemplateId = template.Id,
+                    Channel = template.Channel,
+                    Recipient = ResolveRecipient(message.PayloadJson) ?? "front-desk",
+                    Subject = subject,
+                    Body = body,
+                    Status = NotificationStatusCodes.Pending,
+                    AttemptCount = 0,
+                    CreatedAtUtc = DateTime.UtcNow
+                };
+
+                dbContext.Set<NotificationJob>().Add(job);
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+            else if (job.Status == NotificationStatusCodes.Sent)
+            {
+                message.ProcessedAtUtc = DateTime.UtcNow;
+                processed++;
+                await dbContext.SaveChangesAsync(cancellationToken);
+                continue;
+            }
 
             try
             {
                 await notificationSink.SendAsync(new NotificationDispatchEnvelope(job.Id, job.Channel, job.Recipient, job.Subject, job.Body, DateTime.UtcNow), cancellationToken);
                 job.AttemptCount += 1;
                 job.Status = NotificationStatusCodes.Sent;
+                job.LastErrorMessage = null;
                 job.SentAtUtc = DateTime.UtcNow;
                 dbContext.Set<NotificationDeliveryAttempt>().Add(new NotificationDeliveryAttempt { Id = Guid.NewGuid(), NotificationJobId = job.Id, AttemptNo = job.AttemptCount, Status = NotificationStatusCodes.Sent, AttemptedAtUtc = job.SentAtUtc.Value });
+                message.ProcessedAtUtc = DateTime.UtcNow;
             }
             catch (Exception ex)
             {
                 job.AttemptCount += 1;
                 job.Status = NotificationStatusCodes.Failed;
-                dbContext.Set<NotificationDeliveryAttempt>().Add(new NotificationDeliveryAttempt { Id = Guid.NewGuid(), NotificationJobId = job.Id, AttemptNo = job.AttemptCount, Status = NotificationStatusCodes.Failed, ErrorMessage = ex.Message.Length > 1024 ? ex.Message[..1024] : ex.Message, AttemptedAtUtc = DateTime.UtcNow });
+                job.LastErrorMessage = TruncateError(ex.Message);
+                dbContext.Set<NotificationDeliveryAttempt>().Add(new NotificationDeliveryAttempt { Id = Guid.NewGuid(), NotificationJobId = job.Id, AttemptNo = job.AttemptCount, Status = NotificationStatusCodes.Failed, ErrorMessage = job.LastErrorMessage, AttemptedAtUtc = DateTime.UtcNow });
             }
 
-            message.ProcessedAtUtc = DateTime.UtcNow;
             processed++;
             await dbContext.SaveChangesAsync(cancellationToken);
         }
@@ -91,14 +106,36 @@ public sealed class NotificationQueries(AppDbContext dbContext, INotificationSin
 
         return await query.OrderByDescending(x => x.CreatedAtUtc)
             .Take(200)
-            .Select(x => new NotificationJobListItemView(x.Id, x.SourceEventType, x.Channel, x.Recipient, x.Status, x.AttemptCount, x.CreatedAtUtc, x.SentAtUtc))
+            .Select(x => new NotificationJobListItemView(x.Id, x.SourceEventType, x.Channel, x.Recipient, x.Status, x.AttemptCount, x.LastErrorMessage, x.CreatedAtUtc, x.SentAtUtc))
             .ToListAsync(cancellationToken);
+    }
+
+    private static string TruncateError(string message)
+    {
+        return message.Length > 1024 ? message[..1024] : message;
     }
 
     private static string? ResolveTemplateCode(string eventType)
     {
         if (eventType.Contains("AppointmentCreated", StringComparison.OrdinalIgnoreCase)) return "APPOINTMENT_CREATED";
         if (eventType.Contains("VisitClosed", StringComparison.OrdinalIgnoreCase)) return "VISIT_CLOSED";
+        if (eventType.Contains("PasswordResetRequested", StringComparison.OrdinalIgnoreCase)) return "PASSWORD_RESET_REQUESTED";
+        return null;
+    }
+
+    private static string? ResolveRecipient(string payloadJson)
+    {
+        using var document = JsonDocument.Parse(payloadJson);
+        if (document.RootElement.TryGetProperty("email", out var camelEmail))
+        {
+            return camelEmail.GetString();
+        }
+
+        if (document.RootElement.TryGetProperty("Email", out var pascalEmail))
+        {
+            return pascalEmail.GetString();
+        }
+
         return null;
     }
 
@@ -114,4 +151,4 @@ public sealed class NotificationQueries(AppDbContext dbContext, INotificationSin
     }
 }
 
-public sealed record NotificationJobListItemView(Guid Id, string SourceEventType, string Channel, string Recipient, string Status, int AttemptCount, DateTime CreatedAtUtc, DateTime? SentAtUtc);
+public sealed record NotificationJobListItemView(Guid Id, string SourceEventType, string Channel, string Recipient, string Status, int AttemptCount, string? LastErrorMessage, DateTime CreatedAtUtc, DateTime? SentAtUtc);

@@ -36,7 +36,18 @@ export default function BookingSchedulePage() {
   const activePetPayload = useMemo(() => toPublicPetPayload(booking.pet), [booking.pet]);
 
   useEffect(() => {
-    if (!activePetPayload || selectedTemplates.length === 0) return;
+    if (!activePetPayload) {
+      setPlanner(null);
+      setResolvedOfferIds([]);
+      setError("Поверніться до кроку з вихованцем і перевірте дані профілю.");
+      return;
+    }
+    if (selectedTemplates.length === 0) {
+      setPlanner(null);
+      setResolvedOfferIds([]);
+      setError("Поверніться до послуг і оберіть хоча б одну позицію.");
+      return;
+    }
     let cancelled = false;
 
     async function loadPlanner() {

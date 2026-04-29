@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { clearAdminSession, getAdminToken, setAdminProfile, ADMIN_UNAUTHORIZED_EVENT } from "@/lib/auth";
+import { clearAdminSession, getAdminRefreshToken, getAdminToken, setAdminProfile, ADMIN_UNAUTHORIZED_EVENT } from "@/lib/auth";
 import { apiRequest } from "@/lib/api";
 import type { MeResponse } from "@/lib/types";
 
@@ -24,7 +24,8 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
     async function verifySession() {
       const token = getAdminToken();
-      if (!token) {
+      const refreshToken = getAdminRefreshToken();
+      if (!token && !refreshToken) {
         redirectToLogin();
         return;
       }
