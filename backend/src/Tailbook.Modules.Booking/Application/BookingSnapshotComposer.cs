@@ -108,7 +108,7 @@ public sealed class BookingSnapshotComposer(
             items.Select(x => new QuotePreviewCatalogItem(x.OfferId, x.ItemType)).ToArray(),
             cancellationToken);
 
-        var availability = await staffSchedulingService.CheckAvailabilityAsync(
+        var availabilityResult = await staffSchedulingService.CheckAvailabilityAsync(
             groomerId,
             petId,
             overallResolution.Items.Select(x => x.OfferId).ToArray(),
@@ -116,7 +116,12 @@ public sealed class BookingSnapshotComposer(
             overallResolution.ReservedMinutes,
             null,
             cancellationToken);
+        if (availabilityResult.IsError)
+        {
+            throw new InvalidOperationException(availabilityResult.FirstError.Description);
+        }
 
+        var availability = availabilityResult.Value;
         if (!availability.IsAvailable)
         {
             throw new InvalidOperationException(string.Join(" ", availability.Reasons));
@@ -244,13 +249,18 @@ public sealed class BookingSnapshotComposer(
 
         if (groomerId is not null)
         {
-            var durationResolution = await staffSchedulingService.ResolveReservedDurationAsync(
+            var durationResolutionResult = await staffSchedulingService.ResolveReservedDurationAsync(
                 groomerId.Value,
                 petId,
                 resolution.Items.Select(x => x.OfferId).ToArray(),
                 resolution.ReservedMinutes,
                 cancellationToken);
+            if (durationResolutionResult.IsError)
+            {
+                throw new InvalidOperationException(durationResolutionResult.FirstError.Description);
+            }
 
+            var durationResolution = durationResolutionResult.Value;
             effectiveReservedMinutes = durationResolution.EffectiveReservedMinutes;
             var nextSequenceNo = durationLines.Count == 0 ? 1 : durationLines.Max(x => x.SequenceNo) + 1;
 

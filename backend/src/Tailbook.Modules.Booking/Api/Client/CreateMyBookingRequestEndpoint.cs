@@ -1,6 +1,7 @@
 ﻿using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Client;
@@ -26,25 +27,23 @@ public sealed class CreateMyBookingRequestEndpoint(
             return;
         }
 
-        try
-        {
-            var result = await queries.CreateMyBookingRequestAsync(
-                actor,
-                new CreateClientBookingRequestCommand(
-                    req.PetId,
-                    req.Notes,
-                    req.PreferredTimes.Select(x => new PreferredTimeWindowCommand(x.StartAtUtc, x.EndAtUtc, x.Label))
-                        .ToArray(),
-                    req.Items.Select(x =>
-                        new CreateClientBookingRequestItemCommand(x.OfferId, x.ItemType, x.RequestedNotes)).ToArray()),
-                ct);
+        var result = await queries.CreateMyBookingRequestAsync(
+            actor,
+            new CreateClientBookingRequestCommand(
+                req.PetId,
+                req.Notes,
+                req.PreferredTimes.Select(x => new PreferredTimeWindowCommand(x.StartAtUtc, x.EndAtUtc, x.Label))
+                    .ToArray(),
+                req.Items.Select(x =>
+                    new CreateClientBookingRequestItemCommand(x.OfferId, x.ItemType, x.RequestedNotes)).ToArray()),
+            ct);
 
-            await Send.ResponseAsync(result, StatusCodes.Status201Created, ct);
-        }
-        catch (InvalidOperationException ex)
+        if (result.IsError)
         {
-            AddError(ex.Message);
-            await Send.ErrorsAsync(cancellation: ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
+
+        await Send.ResponseAsync(result.Value, StatusCodes.Status201Created, ct);
     }
 }

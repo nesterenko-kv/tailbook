@@ -1,10 +1,9 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Booking.Application;
-using ProblemDetails = Microsoft.AspNetCore.Mvc.ProblemDetails;
 
 namespace Tailbook.Modules.Booking.Api.Admin.CancelAppointment;
 
@@ -20,35 +19,18 @@ public sealed class CancelAppointmentEndpoint(BookingManagementQueries bookingQu
 
     public override async Task HandleAsync(CancelAppointmentRequest req, CancellationToken ct)
     {
-        try
-        {
-            var result = await bookingQueries.CancelAppointmentAsync(
-                new CancelAppointmentCommand(req.AppointmentId, req.ExpectedVersionNo, req.ReasonCode, req.Notes),
-                req.ActorUserId?.ToString("D"),
-                ct);
+        var result = await bookingQueries.CancelAppointmentAsync(
+            new CancelAppointmentCommand(req.AppointmentId, req.ExpectedVersionNo, req.ReasonCode, req.Notes),
+            req.ActorUserId?.ToString("D"),
+            ct);
 
-            if (result is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
+        if (result.IsError)
+        {
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
 
-            await Send.ResponseAsync(result, cancellation: ct);
-        }
-        catch (BookingConcurrencyException ex)
-        {
-            await Send.ResultAsync(Results.Conflict(new ProblemDetails
-            {
-                Title = "Booking concurrency conflict",
-                Detail = ex.Message,
-                Status = StatusCodes.Status409Conflict
-            }));
-        }
-        catch (InvalidOperationException ex)
-        {
-            AddError(ex.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+        await Send.ResponseAsync(result.Value, cancellation: ct);
     }
 }
 

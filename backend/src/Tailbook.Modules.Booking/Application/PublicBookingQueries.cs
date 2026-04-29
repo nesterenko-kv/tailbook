@@ -1,3 +1,4 @@
+using ErrorOr;
 using Tailbook.BuildingBlocks.Abstractions;
 
 namespace Tailbook.Modules.Booking.Application;
@@ -12,7 +13,7 @@ public sealed class PublicBookingQueries(
     private const int SlotStepMinutes = 30;
     private const int MinimumLeadTimeMinutes = 30;
 
-    public async Task<PublicPetResolutionView> ResolvePetAsync(
+    public async Task<ErrorOr<PublicPetResolutionView>> ResolvePetAsync(
         ClientPortalActor? actor,
         PublicPetSelectionCommand command,
         CancellationToken cancellationToken)
@@ -21,15 +22,18 @@ public sealed class PublicBookingQueries(
         {
             if (actor is null)
             {
-                throw new InvalidOperationException("Saved pet selection requires an authenticated client session.");
+                return Error.Validation("Booking.ClientSessionRequired", "Saved pet selection requires an authenticated client session.");
             }
 
-            var savedPet = await petQuoteProfileService.GetPetAsync(command.PetId.Value, cancellationToken)
-                ?? throw new InvalidOperationException("Selected pet does not exist.");
+            var savedPet = await petQuoteProfileService.GetPetAsync(command.PetId.Value, cancellationToken);
+            if (savedPet is null)
+            {
+                return Error.NotFound("Booking.PetNotFound", "Selected pet does not exist.");
+            }
 
             if (!savedPet.ClientId.HasValue || savedPet.ClientId.Value != actor.ClientId)
             {
-                throw new InvalidOperationException("Selected pet does not belong to the authenticated client.");
+                return Error.Validation("Booking.PetClientMismatch", "Selected pet does not belong to the authenticated client.");
             }
 
             return new PublicPetResolutionView(savedPet, true);
@@ -37,7 +41,7 @@ public sealed class PublicBookingQueries(
 
         if (!command.AnimalTypeId.HasValue || !command.BreedId.HasValue)
         {
-            throw new InvalidOperationException("Animal type and breed are required when booking without a saved pet.");
+            return Error.Validation("Booking.GuestPetTaxonomyRequired", "Animal type and breed are required when booking without a saved pet.");
         }
 
         var guestPet = await petQuoteProfileService.CreateAdHocAsync(
@@ -51,12 +55,16 @@ public sealed class PublicBookingQueries(
         return new PublicPetResolutionView(guestPet, false);
     }
 
-    public async Task<IReadOnlyCollection<ClientBookableOfferView>> ListBookableOffersAsync(
+    public async Task<ErrorOr<IReadOnlyCollection<ClientBookableOfferView>>> ListBookableOffersAsync(
         ClientPortalActor? actor,
         PublicPetSelectionCommand pet,
         CancellationToken cancellationToken)
     {
         var resolvedPet = await ResolvePetAsync(actor, pet, cancellationToken);
+        if (resolvedPet.IsError)
+        {
+            return resolvedPet.Errors;
+        }
 
         var offers = (await catalogOfferReadService.ListActiveOffersAsync(cancellationToken))
             .Where(x => !string.Equals(x.OfferType, "AddOn", StringComparison.OrdinalIgnoreCase))
@@ -64,7 +72,7 @@ public sealed class PublicBookingQueries(
 
         if (offers.Length == 0)
         {
-            return [];
+            return Array.Empty<ClientBookableOfferView>();
         }
 
         var result = new List<ClientBookableOfferView>();
@@ -73,7 +81,7 @@ public sealed class PublicBookingQueries(
             try
             {
                 var resolution = await catalogQuoteResolver.ResolveAsync(
-                    resolvedPet.Pet,
+                    resolvedPet.Value.Pet,
                     [new QuotePreviewCatalogItem(offer.Id, offer.OfferType)],
                     cancellationToken);
 
@@ -99,22 +107,37 @@ public sealed class PublicBookingQueries(
             .ToArray();
     }
 
-    public async Task<QuotePreviewView> PreviewQuoteAsync(
+    public async Task<ErrorOr<QuotePreviewView>> PreviewQuoteAsync(
         ClientPortalActor? actor,
         PublicPreviewQuoteCommand command,
         CancellationToken cancellationToken)
     {
         var resolvedPet = await ResolvePetAsync(actor, command.Pet, cancellationToken);
-        return await CreateQuotePreviewAsync(resolvedPet.Pet, command.Items, cancellationToken);
+        if (resolvedPet.IsError)
+        {
+            return resolvedPet.Errors;
+        }
+
+        return await CreateQuotePreviewAsync(resolvedPet.Value.Pet, command.Items, cancellationToken);
     }
 
-    public async Task<PublicBookingPlannerView> BuildPlannerAsync(
+    public async Task<ErrorOr<PublicBookingPlannerView>> BuildPlannerAsync(
         ClientPortalActor? actor,
         PublicBookingPlannerCommand command,
         CancellationToken cancellationToken)
     {
         var resolvedPet = await ResolvePetAsync(actor, command.Pet, cancellationToken);
-        var quote = await CreateQuotePreviewAsync(resolvedPet.Pet, command.Items, cancellationToken);
+        if (resolvedPet.IsError)
+        {
+            return resolvedPet.Errors;
+        }
+
+        var quote = await CreateQuotePreviewAsync(resolvedPet.Value.Pet, command.Items, cancellationToken);
+        if (quote.IsError)
+        {
+            return quote.Errors;
+        }
+
         var offerIds = command.Items.Select(x => x.OfferId).Distinct().ToArray();
         var groomers = await groomerProfileReadService.ListActiveAsync(cancellationToken);
         var earliestStartAtUtc = DateTime.UtcNow.AddMinutes(MinimumLeadTimeMinutes);
@@ -124,12 +147,25 @@ public sealed class PublicBookingQueries(
         {
             try
             {
-                var duration = await staffSchedulingService.ResolveReservedDurationAsync(
+                var durationResult = await staffSchedulingService.ResolveReservedDurationAsync(
                     groomer.GroomerId,
-                    resolvedPet.Pet,
+                    resolvedPet.Value.Pet,
                     offerIds,
-                    quote.DurationSnapshot.ReservedMinutes,
+                    quote.Value.DurationSnapshot.ReservedMinutes,
                     cancellationToken);
+                if (durationResult.IsError)
+                {
+                    groomerViews.Add(new PublicPlannerGroomerView(
+                        groomer.GroomerId,
+                        groomer.DisplayName,
+                        false,
+                        quote.Value.DurationSnapshot.ReservedMinutes,
+                        durationResult.Errors.Select(error => error.Description).ToArray(),
+                        []));
+                    continue;
+                }
+
+                var duration = durationResult.Value;
 
                 var windows = await staffSchedulingService.GetAvailabilityWindowsAsync(
                     groomer.GroomerId,
@@ -141,15 +177,20 @@ public sealed class PublicBookingQueries(
                 {
                     foreach (var slotStartAtUtc in GenerateSlotStarts(window, duration.EffectiveReservedMinutes, earliestStartAtUtc))
                     {
-                        var availability = await staffSchedulingService.CheckAvailabilityAsync(
+                        var availabilityResult = await staffSchedulingService.CheckAvailabilityAsync(
                             groomer.GroomerId,
-                            resolvedPet.Pet,
+                            resolvedPet.Value.Pet,
                             offerIds,
                             slotStartAtUtc,
-                            quote.DurationSnapshot.ReservedMinutes,
+                            quote.Value.DurationSnapshot.ReservedMinutes,
                             null,
                             cancellationToken);
+                        if (availabilityResult.IsError)
+                        {
+                            continue;
+                        }
 
+                        var availability = availabilityResult.Value;
                         if (availability.IsAvailable)
                         {
                             slots.Add(new PublicPlannerSlotView(
@@ -174,7 +215,7 @@ public sealed class PublicBookingQueries(
                     groomer.GroomerId,
                     groomer.DisplayName,
                     false,
-                    quote.DurationSnapshot.ReservedMinutes,
+                    quote.Value.DurationSnapshot.ReservedMinutes,
                     [ex.Message],
                     []));
             }
@@ -192,23 +233,31 @@ public sealed class PublicBookingQueries(
             .ThenBy(x => x.EndAtUtc)
             .ToArray();
 
-        return new PublicBookingPlannerView(quote, anySuitableSlots, groomerViews);
+        return new PublicBookingPlannerView(quote.Value, anySuitableSlots, groomerViews);
     }
 
-    private async Task<QuotePreviewView> CreateQuotePreviewAsync(
+    private async Task<ErrorOr<QuotePreviewView>> CreateQuotePreviewAsync(
         PetQuoteProfile pet,
         IReadOnlyCollection<PreviewQuoteItemCommand> items,
         CancellationToken cancellationToken)
     {
         if (items.Count == 0)
         {
-            throw new InvalidOperationException("At least one offer must be selected.");
+            return Error.Validation("Booking.OfferRequired", "At least one offer must be selected.");
         }
 
-        var resolution = await catalogQuoteResolver.ResolveAsync(
-            pet,
-            items.Select(x => new QuotePreviewCatalogItem(x.OfferId, x.ItemType)).ToArray(),
-            cancellationToken);
+        CatalogQuoteResolution resolution;
+        try
+        {
+            resolution = await catalogQuoteResolver.ResolveAsync(
+                pet,
+                items.Select(x => new QuotePreviewCatalogItem(x.OfferId, x.ItemType)).ToArray(),
+                cancellationToken);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Error.Validation("Booking.QuotePreviewFailed", ex.Message);
+        }
 
         return new QuotePreviewView(
             new PriceSnapshotView(

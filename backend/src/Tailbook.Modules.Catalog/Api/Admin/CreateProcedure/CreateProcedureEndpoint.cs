@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Catalog.Application;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreateProcedure;
@@ -17,24 +18,23 @@ public sealed class CreateProcedureEndpoint(CatalogQueries catalogQueries)
 
     public override async Task HandleAsync(CreateProcedureRequest req, CancellationToken ct)
     {
-        try
+        var result = await catalogQueries.CreateProcedureAsync(req.Code, req.Name, ct);
+        if (result.IsError)
         {
-            var procedure = await catalogQueries.CreateProcedureAsync(req.Code, req.Name, ct);
-            await Send.ResponseAsync(new CreateProcedureResponse
-            {
-                Id = procedure.Id,
-                Code = procedure.Code,
-                Name = procedure.Name,
-                IsActive = procedure.IsActive,
-                CreatedAtUtc = procedure.CreatedAtUtc,
-                UpdatedAtUtc = procedure.UpdatedAtUtc
-            }, StatusCodes.Status201Created, ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
-        catch (InvalidOperationException exception)
+
+        var procedure = result.Value;
+        await Send.ResponseAsync(new CreateProcedureResponse
         {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+            Id = procedure.Id,
+            Code = procedure.Code,
+            Name = procedure.Name,
+            IsActive = procedure.IsActive,
+            CreatedAtUtc = procedure.CreatedAtUtc,
+            UpdatedAtUtc = procedure.UpdatedAtUtc
+        }, StatusCodes.Status201Created, ct);
     }
 }
 

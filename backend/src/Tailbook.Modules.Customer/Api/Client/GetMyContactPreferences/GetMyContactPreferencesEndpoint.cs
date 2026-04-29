@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Customer.Application;
 using Tailbook.Modules.Identity.Contracts;
 
@@ -57,26 +58,18 @@ public sealed class UpdateMyContactPreferencesEndpoint(IClientPortalActorService
             return;
         }
 
-        try
-        {
-            var result = await queries.UpdateContactPreferencesAsync(
-                actor.ContactPersonId,
-                new UpdateClientContactPreferencesCommand(req.Methods.Select(x => new UpdateClientContactMethodCommand(x.MethodType, x.Value, x.IsPreferred, x.Notes)).ToArray()),
-                ct);
+        var result = await queries.UpdateContactPreferencesAsync(
+            actor.ContactPersonId,
+            new UpdateClientContactPreferencesCommand(req.Methods.Select(x => new UpdateClientContactMethodCommand(x.MethodType, x.Value, x.IsPreferred, x.Notes)).ToArray()),
+            ct);
 
-            if (result is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
-
-            await Send.OkAsync(result, cancellation: ct);
-        }
-        catch (InvalidOperationException ex)
+        if (result.IsError)
         {
-            AddError(ex.Message);
-            await Send.ErrorsAsync(cancellation: ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
+
+        await Send.OkAsync(result.Value, cancellation: ct);
     }
 }
 

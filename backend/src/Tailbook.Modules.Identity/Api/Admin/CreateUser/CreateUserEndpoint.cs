@@ -1,6 +1,7 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Identity.Application;
 
 namespace Tailbook.Modules.Identity.Api.Admin.CreateUser;
@@ -23,25 +24,24 @@ public sealed class CreateUserEndpoint(ICurrentUser currentUser, IdentityQueries
             return;
         }
 
-        try
+        var result = await identityQueries.CreateUserAsync(req.Email, req.DisplayName, req.Password, req.RoleCodes, req.ActorUserId, ct);
+        if (result.IsError)
         {
-            var user = await identityQueries.CreateUserAsync(req.Email, req.DisplayName, req.Password, req.RoleCodes, req.ActorUserId, ct);
-            await Send.ResponseAsync(new CreateUserResponse
-            {
-                Id = user.Id,
-                SubjectId = user.SubjectId,
-                Email = user.Email,
-                DisplayName = user.DisplayName,
-                Status = user.Status,
-                Roles = user.Roles,
-                Permissions = user.Permissions
-            }, StatusCodes.Status201Created, ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
-        catch (InvalidOperationException exception)
+
+        var user = result.Value;
+        await Send.ResponseAsync(new CreateUserResponse
         {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+            Id = user.Id,
+            SubjectId = user.SubjectId,
+            Email = user.Email,
+            DisplayName = user.DisplayName,
+            Status = user.Status,
+            Roles = user.Roles,
+            Permissions = user.Permissions
+        }, StatusCodes.Status201Created, ct);
     }
 
 }

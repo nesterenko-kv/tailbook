@@ -1,3 +1,4 @@
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -16,7 +17,7 @@ public sealed class ClientPortalBookingQueries(
     ICatalogOfferReadService catalogOfferReadService
 )
 {
-    public Task<BookingRequestDetailView> CreateMyBookingRequestAsync(ClientPortalActor actor,
+    public Task<ErrorOr<BookingRequestDetailView>> CreateMyBookingRequestAsync(ClientPortalActor actor,
         CreateClientBookingRequestCommand command, CancellationToken cancellationToken)
     {
         return bookingManagementQueries.CreateBookingRequestAsync(
@@ -76,11 +77,14 @@ public sealed class ClientPortalBookingQueries(
             .ToArray();
     }
 
-    public async Task<QuotePreviewView?> PreviewMyQuoteAsync(ClientPortalActor actor, PreviewQuoteCommand command,
+    public async Task<ErrorOr<QuotePreviewView>> PreviewMyQuoteAsync(ClientPortalActor actor, PreviewQuoteCommand command,
         CancellationToken cancellationToken)
     {
         var pet = await petQuoteProfileService.GetPetAsync(command.PetId, cancellationToken);
-        if (pet is null || pet.ClientId != actor.ClientId) return null;
+        if (pet is null || pet.ClientId != actor.ClientId)
+        {
+            return Error.NotFound("Booking.PetNotFound", "Pet does not exist.");
+        }
 
         return await bookingQuoteQueries.PreviewQuoteAsync(command, actor.UserId.ToString("D"), cancellationToken);
     }

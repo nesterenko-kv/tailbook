@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Customer.Contracts;
@@ -28,39 +29,44 @@ public sealed class ClientPortalCustomerQueries(AppDbContext dbContext)
         return new ClientContactPreferencesView(contact.Id, contact.ClientId, contact.FirstName, contact.LastName, methods);
     }
 
-    public async Task<ClientContactPreferencesView?> UpdateContactPreferencesAsync(Guid contactPersonId, UpdateClientContactPreferencesCommand command, CancellationToken cancellationToken)
+    public async Task<ErrorOr<ClientContactPreferencesView>> UpdateContactPreferencesAsync(Guid contactPersonId, UpdateClientContactPreferencesCommand command, CancellationToken cancellationToken)
     {
         var contact = await dbContext.Set<ContactPerson>()
             .SingleOrDefaultAsync(x => x.Id == contactPersonId && x.IsActive, cancellationToken);
 
         if (contact is null)
         {
-            return null;
+            return Error.NotFound("Customer.ContactNotFound", "Contact does not exist.");
         }
 
         var existingMethods = await dbContext.Set<ContactMethod>()
             .Where(x => x.ContactPersonId == contactPersonId && x.IsActive)
             .ToListAsync(cancellationToken);
 
-        var normalizedMethods = command.Methods
-            .Where(x => !string.IsNullOrWhiteSpace(x.Value))
-            .Select(x => new
-            {
-                MethodType = NormalizeMethodType(x.MethodType),
-                DisplayValue = x.Value.Trim(),
-                NormalizedValue = NormalizeContactValue(NormalizeMethodType(x.MethodType), x.Value),
-                IsPreferred = x.IsPreferred,
-                Notes = NormalizeOptional(x.Notes)
-            })
-            .ToArray();
-
-        if (normalizedMethods.Length == 0)
+        var normalizedMethods = new List<NormalizedContactMethodInput>();
+        foreach (var method in command.Methods.Where(x => !string.IsNullOrWhiteSpace(x.Value)))
         {
-            throw new InvalidOperationException("At least one contact method is required.");
+            var normalizedMethodType = NormalizeMethodType(method.MethodType);
+            if (normalizedMethodType.IsError)
+            {
+                return normalizedMethodType.Errors;
+            }
+
+            normalizedMethods.Add(new NormalizedContactMethodInput(
+                normalizedMethodType.Value,
+                method.Value.Trim(),
+                NormalizeContactValue(normalizedMethodType.Value, method.Value),
+                method.IsPreferred,
+                NormalizeOptional(method.Notes)));
+        }
+
+        if (normalizedMethods.Count == 0)
+        {
+            return Error.Validation("Customer.ContactMethodRequired", "At least one contact method is required.");
         }
 
         var hasPreferred = normalizedMethods.Any(x => x.IsPreferred);
-        for (var index = 0; index < normalizedMethods.Length; index++)
+        for (var index = 0; index < normalizedMethods.Count; index++)
         {
             var item = normalizedMethods[index];
             var isPreferred = hasPreferred ? item.IsPreferred : index == 0;
@@ -105,10 +111,10 @@ public sealed class ClientPortalCustomerQueries(AppDbContext dbContext)
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        return await GetContactPreferencesAsync(contactPersonId, cancellationToken);
+        return (await GetContactPreferencesAsync(contactPersonId, cancellationToken))!;
     }
 
-    private static string NormalizeMethodType(string methodType)
+    private static ErrorOr<string> NormalizeMethodType(string methodType)
     {
         var trimmed = methodType.Trim();
         return trimmed switch
@@ -117,7 +123,7 @@ public sealed class ClientPortalCustomerQueries(AppDbContext dbContext)
             var x when x.Equals(ContactMethodTypes.Instagram, StringComparison.OrdinalIgnoreCase) => ContactMethodTypes.Instagram,
             var x when x.Equals(ContactMethodTypes.Email, StringComparison.OrdinalIgnoreCase) => ContactMethodTypes.Email,
             var x when x.Equals(ContactMethodTypes.Other, StringComparison.OrdinalIgnoreCase) => ContactMethodTypes.Other,
-            _ => throw new InvalidOperationException($"Unsupported contact method type '{methodType}'.")
+            _ => Error.Validation("Customer.UnsupportedContactMethodType", $"Unsupported contact method type '{methodType}'.")
         };
     }
 
@@ -140,3 +146,5 @@ public sealed record UpdateClientContactPreferencesCommand(IReadOnlyCollection<U
 public sealed record UpdateClientContactMethodCommand(string MethodType, string Value, bool IsPreferred, string? Notes);
 public sealed record ClientContactPreferencesView(Guid ContactPersonId, Guid ClientId, string FirstName, string? LastName, IReadOnlyCollection<ClientContactMethodPreferenceView> Methods);
 public sealed record ClientContactMethodPreferenceView(Guid Id, string MethodType, string DisplayValue, bool IsPreferred, string VerificationStatus, string? Notes);
+
+internal sealed record NormalizedContactMethodInput(string MethodType, string DisplayValue, string NormalizedValue, bool IsPreferred, string? Notes);

@@ -1,6 +1,7 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Identity.Application;
 
 namespace Tailbook.Modules.Identity.Api.Admin.AssignRoles;
@@ -17,28 +18,21 @@ public sealed class AssignRolesEndpoint(IdentityQueries identityQueries)
 
     public override async Task HandleAsync(AssignRolesRequest req, CancellationToken ct)
     {
-        try
+        var result = await identityQueries.AssignRolesAsync(req.Id, req.RoleCodes, req.ActorUserId, ct);
+        if (result.IsError)
         {
-            var user = await identityQueries.AssignRolesAsync(req.Id, req.RoleCodes, req.ActorUserId, ct);
-            if (user is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
 
-            await Send.OkAsync(new AssignRolesResponse
-            {
-                Id = user.Id,
-                Email = user.Email,
-                Roles = user.Roles,
-                Permissions = user.Permissions
-            }, cancellation: ct);
-        }
-        catch (InvalidOperationException exception)
+        var user = result.Value;
+        await Send.OkAsync(new AssignRolesResponse
         {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+            Id = user.Id,
+            Email = user.Email,
+            Roles = user.Roles,
+            Permissions = user.Permissions
+        }, cancellation: ct);
     }
 
 }

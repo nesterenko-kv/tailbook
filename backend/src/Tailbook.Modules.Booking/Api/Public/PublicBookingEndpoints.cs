@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Booking.Application;
 using Tailbook.Modules.Booking.Api.Client;
 using Tailbook.Modules.Booking.Contracts;
@@ -24,26 +25,24 @@ public sealed class ListPublicBookableOffersEndpoint(
 
     public override async Task HandleAsync(PublicBookableOffersRequest req, CancellationToken ct)
     {
-        try
+        var actor = await ResolveActorAsync(req.UserId, actorService, ct);
+        var result = await queries.ListBookableOffersAsync(actor, MapPet(req.Pet), ct);
+        if (result.IsError)
         {
-            var actor = await ResolveActorAsync(req.UserId, actorService, ct);
-            var result = await queries.ListBookableOffersAsync(actor, MapPet(req.Pet), ct);
-            await Send.OkAsync(result.Select(x => new ClientBookableOfferResponse
-            {
-                Id = x.Id,
-                OfferType = x.OfferType,
-                DisplayName = x.DisplayName,
-                Currency = x.Currency,
-                PriceAmount = x.PriceAmount,
-                ServiceMinutes = x.ServiceMinutes,
-                ReservedMinutes = x.ReservedMinutes
-            }).ToArray(), ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
-        catch (InvalidOperationException ex)
+
+        await Send.OkAsync(result.Value.Select(x => new ClientBookableOfferResponse
         {
-            AddError(ex.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+            Id = x.Id,
+            OfferType = x.OfferType,
+            DisplayName = x.DisplayName,
+            Currency = x.Currency,
+            PriceAmount = x.PriceAmount,
+            ServiceMinutes = x.ServiceMinutes,
+            ReservedMinutes = x.ReservedMinutes
+        }).ToArray(), ct);
     }
 }
 
@@ -61,23 +60,21 @@ public sealed class PreviewPublicQuoteEndpoint(
 
     public override async Task HandleAsync(PublicPreviewQuoteRequest req, CancellationToken ct)
     {
-        try
-        {
-            var actor = await ResolveActorAsync(req.UserId, actorService, ct);
-            var result = await queries.PreviewQuoteAsync(
-                actor,
-                new PublicPreviewQuoteCommand(
-                    MapPet(req.Pet),
-                    req.Items.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray()),
-                ct);
+        var actor = await ResolveActorAsync(req.UserId, actorService, ct);
+        var result = await queries.PreviewQuoteAsync(
+            actor,
+            new PublicPreviewQuoteCommand(
+                MapPet(req.Pet),
+                req.Items.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray()),
+            ct);
 
-            await Send.OkAsync(MapQuote(result), ct);
-        }
-        catch (InvalidOperationException ex)
+        if (result.IsError)
         {
-            AddError(ex.Message);
-            await Send.ErrorsAsync(cancellation: ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
+
+        await Send.OkAsync(MapQuote(result.Value), ct);
     }
 }
 
@@ -102,37 +99,35 @@ public sealed class BuildPublicBookingPlannerEndpoint(
             return;
         }
 
-        try
-        {
-            var actor = await ResolveActorAsync(req.UserId, actorService, ct);
-            var result = await queries.BuildPlannerAsync(
-                actor,
-                new PublicBookingPlannerCommand(
-                    MapPet(req.Pet),
-                    localDate,
-                    req.Items.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray()),
-                ct);
+        var actor = await ResolveActorAsync(req.UserId, actorService, ct);
+        var result = await queries.BuildPlannerAsync(
+            actor,
+            new PublicBookingPlannerCommand(
+                MapPet(req.Pet),
+                localDate,
+                req.Items.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray()),
+            ct);
 
-            await Send.OkAsync(new PublicBookingPlannerResponse
-            {
-                Quote = MapQuote(result.Quote),
-                AnySuitableSlots = result.AnySuitableSlots.Select(MapSlot).ToArray(),
-                Groomers = result.Groomers.Select(x => new PublicPlannerGroomerResponse
-                {
-                    GroomerId = x.GroomerId,
-                    DisplayName = x.DisplayName,
-                    CanTakeRequest = x.CanTakeRequest,
-                    ReservedMinutes = x.ReservedMinutes,
-                    Reasons = x.Reasons.ToArray(),
-                    Slots = x.Slots.Select(MapSlot).ToArray()
-                }).ToArray()
-            }, ct);
-        }
-        catch (InvalidOperationException ex)
+        if (result.IsError)
         {
-            AddError(ex.Message);
-            await Send.ErrorsAsync(cancellation: ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
+
+        await Send.OkAsync(new PublicBookingPlannerResponse
+        {
+            Quote = MapQuote(result.Value.Quote),
+            AnySuitableSlots = result.Value.AnySuitableSlots.Select(MapSlot).ToArray(),
+            Groomers = result.Value.Groomers.Select(x => new PublicPlannerGroomerResponse
+            {
+                GroomerId = x.GroomerId,
+                DisplayName = x.DisplayName,
+                CanTakeRequest = x.CanTakeRequest,
+                ReservedMinutes = x.ReservedMinutes,
+                Reasons = x.Reasons.ToArray(),
+                Slots = x.Slots.Select(MapSlot).ToArray()
+            }).ToArray()
+        }, ct);
     }
 }
 
@@ -151,40 +146,44 @@ public sealed class CreatePublicBookingRequestEndpoint(
 
     public override async Task HandleAsync(CreatePublicBookingRequestRequest req, CancellationToken ct)
     {
-        try
+        var actor = await ResolveActorAsync(req.UserId, actorService, ct);
+        if (actor is null && IsMissingActionableContact(req.Requester))
         {
-            var actor = await ResolveActorAsync(req.UserId, actorService, ct);
-            if (actor is null && IsMissingActionableContact(req.Requester))
-            {
-                AddError("Provide your name and at least one contact method so the salon can follow up.");
-                await Send.ErrorsAsync(cancellation: ct);
-                return;
-            }
-
-            var resolvedPet = await publicBookingQueries.ResolvePetAsync(actor, MapPet(req.Pet), ct);
-            var result = await bookingManagementQueries.CreateBookingRequestAsync(
-                new CreateBookingRequestCommand(
-                    actor?.ClientId,
-                    req.Pet.PetId,
-                    actor?.ContactPersonId,
-                    BookingChannelCodes.PublicWidget,
-                    req.Notes,
-                    req.PreferredTimes.Select(x => new PreferredTimeWindowCommand(x.StartAtUtc, x.EndAtUtc, x.Label)).ToArray(),
-                    req.Items.Select(x => new CreateBookingRequestItemCommand(x.OfferId, x.ItemType, x.RequestedNotes)).ToArray(),
-                    req.PreferredGroomerId,
-                    req.SelectionMode,
-                    BuildGuestIntake(req, resolvedPet),
-                    req.Pet.PetId.HasValue ? BookingRequestStatusCodes.Submitted : BookingRequestStatusCodes.NeedsReview),
-                req.UserId?.ToString("D"),
-                ct);
-
-            await Send.ResponseAsync(result, StatusCodes.Status201Created, ct);
-        }
-        catch (InvalidOperationException ex)
-        {
-            AddError(ex.Message);
+            AddError("Provide your name and at least one contact method so the salon can follow up.");
             await Send.ErrorsAsync(cancellation: ct);
+            return;
         }
+
+        var resolvedPet = await publicBookingQueries.ResolvePetAsync(actor, MapPet(req.Pet), ct);
+        if (resolvedPet.IsError)
+        {
+            await Send.ResultAsync(resolvedPet.Errors.ToHttpResult());
+            return;
+        }
+
+        var result = await bookingManagementQueries.CreateBookingRequestAsync(
+            new CreateBookingRequestCommand(
+                actor?.ClientId,
+                req.Pet.PetId,
+                actor?.ContactPersonId,
+                BookingChannelCodes.PublicWidget,
+                req.Notes,
+                req.PreferredTimes.Select(x => new PreferredTimeWindowCommand(x.StartAtUtc, x.EndAtUtc, x.Label)).ToArray(),
+                req.Items.Select(x => new CreateBookingRequestItemCommand(x.OfferId, x.ItemType, x.RequestedNotes)).ToArray(),
+                req.PreferredGroomerId,
+                req.SelectionMode,
+                BuildGuestIntake(req, resolvedPet.Value),
+                req.Pet.PetId.HasValue ? BookingRequestStatusCodes.Submitted : BookingRequestStatusCodes.NeedsReview),
+            req.UserId?.ToString("D"),
+            ct);
+
+        if (result.IsError)
+        {
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
+
+        await Send.ResponseAsync(result.Value, StatusCodes.Status201Created, ct);
     }
 }
 

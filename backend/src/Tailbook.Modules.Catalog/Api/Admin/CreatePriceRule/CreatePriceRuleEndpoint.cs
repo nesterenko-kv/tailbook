@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Catalog.Application;
 using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
@@ -18,31 +19,23 @@ public sealed class CreatePriceRuleEndpoint(CatalogPricingQueries pricingQueries
 
     public override async Task HandleAsync(CreatePriceRuleRequest req, CancellationToken ct)
     {
-        try
-        {
-            var result = await pricingQueries.CreatePriceRuleAsync(
-                new CreatePriceRuleCommand(
-                    req.RuleSetId,
-                    req.OfferId,
-                    req.Priority,
-                    req.FixedAmount,
-                    req.Currency,
-                    new RuleConditionInput(req.AnimalTypeId, req.BreedId, req.BreedGroupId, req.CoatTypeId, req.SizeCategoryId)),
-                ct);
+        var result = await pricingQueries.CreatePriceRuleAsync(
+            new CreatePriceRuleCommand(
+                req.RuleSetId,
+                req.OfferId,
+                req.Priority,
+                req.FixedAmount,
+                req.Currency,
+                new RuleConditionInput(req.AnimalTypeId, req.BreedId, req.BreedGroupId, req.CoatTypeId, req.SizeCategoryId)),
+            ct);
 
-            if (result is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
-
-            await Send.ResponseAsync(CreatePriceRuleResponse.FromView(result), StatusCodes.Status201Created, ct);
-        }
-        catch (InvalidOperationException exception)
+        if (result.IsError)
         {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
+
+        await Send.ResponseAsync(CreatePriceRuleResponse.FromView(result.Value), StatusCodes.Status201Created, ct);
     }
 }
 

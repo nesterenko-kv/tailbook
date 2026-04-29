@@ -2,6 +2,7 @@ using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Admin.AttachBookingRequestContext;
@@ -18,30 +19,22 @@ public sealed class AttachBookingRequestContextEndpoint(BookingManagementQueries
 
     public override async Task HandleAsync(AttachBookingRequestContextRequest req, CancellationToken ct)
     {
-        try
-        {
-            var result = await bookingQueries.AttachBookingRequestContextAsync(
-                new AttachBookingRequestContextCommand(
-                    req.BookingRequestId,
-                    req.ClientId,
-                    req.PetId,
-                    req.RequestedByContactId),
-                req.ActorUserId?.ToString("D"),
-                ct);
+        var result = await bookingQueries.AttachBookingRequestContextAsync(
+            new AttachBookingRequestContextCommand(
+                req.BookingRequestId,
+                req.ClientId,
+                req.PetId,
+                req.RequestedByContactId),
+            req.ActorUserId?.ToString("D"),
+            ct);
 
-            if (result is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
-
-            await Send.OkAsync(result, ct);
-        }
-        catch (InvalidOperationException ex)
+        if (result.IsError)
         {
-            AddError(ex.Message);
-            await Send.ErrorsAsync(cancellation: ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
+
+        await Send.OkAsync(result.Value, ct);
     }
 }
 

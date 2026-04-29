@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -151,24 +152,29 @@ public sealed class CustomerQueries(
         return new ContactPersonView(contact.Id, contact.ClientId, contact.FirstName, contact.LastName, contact.Notes, contact.TrustLevel, []);
     }
 
-    public async Task<ContactMethodView?> AddContactMethodAsync(Guid contactId, string methodType, string value, string? displayValue, bool isPreferred, string? verificationStatus, string? notes, CancellationToken cancellationToken)
+    public async Task<ErrorOr<ContactMethodView>> AddContactMethodAsync(Guid contactId, string methodType, string value, string? displayValue, bool isPreferred, string? verificationStatus, string? notes, CancellationToken cancellationToken)
     {
         var contact = await dbContext.Set<ContactPerson>().SingleOrDefaultAsync(x => x.Id == contactId && x.IsActive, cancellationToken);
         if (contact is null)
         {
-            return null;
+            return Error.NotFound("Customer.ContactNotFound", "Contact does not exist.");
         }
 
         var normalizedMethodType = NormalizeMethodType(methodType);
-        var normalizedValue = NormalizeContactValue(normalizedMethodType, value);
+        if (normalizedMethodType.IsError)
+        {
+            return normalizedMethodType.Errors;
+        }
+
+        var normalizedValue = NormalizeContactValue(normalizedMethodType.Value, value);
         var effectiveDisplayValue = string.IsNullOrWhiteSpace(displayValue) ? value.Trim() : displayValue.Trim();
         var effectiveVerificationStatus = string.IsNullOrWhiteSpace(verificationStatus) ? ContactVerificationStatuses.Unverified : verificationStatus.Trim();
 
         var duplicate = await dbContext.Set<ContactMethod>()
-            .AnyAsync(x => x.ContactPersonId == contactId && x.MethodType == normalizedMethodType && x.NormalizedValue == normalizedValue, cancellationToken);
+            .AnyAsync(x => x.ContactPersonId == contactId && x.MethodType == normalizedMethodType.Value && x.NormalizedValue == normalizedValue, cancellationToken);
         if (duplicate)
         {
-            throw new InvalidOperationException("A contact method with the same normalized value already exists for this contact.");
+            return Error.Conflict("Customer.ContactMethodDuplicate", "A contact method with the same normalized value already exists for this contact.");
         }
 
         if (isPreferred)
@@ -189,7 +195,7 @@ public sealed class CustomerQueries(
         {
             Id = Guid.NewGuid(),
             ContactPersonId = contactId,
-            MethodType = normalizedMethodType,
+            MethodType = normalizedMethodType.Value,
             NormalizedValue = normalizedValue,
             DisplayValue = effectiveDisplayValue,
             IsPreferred = isPreferred,
@@ -310,7 +316,7 @@ public sealed class CustomerQueries(
             .ToArray();
     }
 
-    private static string NormalizeMethodType(string methodType)
+    private static ErrorOr<string> NormalizeMethodType(string methodType)
     {
         var trimmed = methodType.Trim();
         return trimmed switch
@@ -319,7 +325,7 @@ public sealed class CustomerQueries(
             var x when x.Equals(ContactMethodTypes.Instagram, StringComparison.OrdinalIgnoreCase) => ContactMethodTypes.Instagram,
             var x when x.Equals(ContactMethodTypes.Email, StringComparison.OrdinalIgnoreCase) => ContactMethodTypes.Email,
             var x when x.Equals(ContactMethodTypes.Other, StringComparison.OrdinalIgnoreCase) => ContactMethodTypes.Other,
-            _ => throw new InvalidOperationException($"Unsupported contact method type '{methodType}'.")
+            _ => Error.Validation("Customer.UnsupportedContactMethodType", $"Unsupported contact method type '{methodType}'.")
         };
     }
 

@@ -1,5 +1,6 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Catalog.Application;
 using Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
@@ -17,22 +18,14 @@ public sealed class PublishOfferVersionEndpoint(CatalogQueries catalogQueries)
 
     public override async Task HandleAsync(PublishOfferVersionRequest req, CancellationToken ct)
     {
-        try
+        var result = await catalogQueries.PublishOfferVersionAsync(req.VersionId, ct);
+        if (result.IsError)
         {
-            var version = await catalogQueries.PublishOfferVersionAsync(req.VersionId, ct);
-            if (version is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
 
-            await Send.OkAsync(OfferVersionResponse.Map(version), ct);
-        }
-        catch (InvalidOperationException exception)
-        {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+        await Send.OkAsync(OfferVersionResponse.Map(result.Value), ct);
     }
 }
 

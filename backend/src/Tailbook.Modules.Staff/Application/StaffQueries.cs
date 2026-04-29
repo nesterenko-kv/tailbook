@@ -1,3 +1,4 @@
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -71,12 +72,12 @@ public sealed class StaffQueries(
             groomer.UpdatedAtUtc);
     }
 
-    public async Task<GroomerDetailView> CreateGroomerAsync(string displayName, Guid? userId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<GroomerDetailView>> CreateGroomerAsync(string displayName, Guid? userId, CancellationToken cancellationToken)
     {
         var normalizedDisplayName = displayName.Trim();
         if (string.IsNullOrWhiteSpace(normalizedDisplayName))
         {
-            throw new InvalidOperationException("Display name is required.");
+            return Error.Validation("Staff.DisplayNameRequired", "Display name is required.");
         }
 
         if (userId is not null)
@@ -84,13 +85,13 @@ public sealed class StaffQueries(
             var userExists = await userReferenceValidationService.ExistsAsync(userId.Value, cancellationToken);
             if (!userExists)
             {
-                throw new InvalidOperationException("Linked IAM user does not exist.");
+                return Error.NotFound("Staff.LinkedUserNotFound", "Linked IAM user does not exist.");
             }
 
             var duplicateUser = await dbContext.Set<Groomer>().AnyAsync(x => x.UserId == userId.Value, cancellationToken);
             if (duplicateUser)
             {
-                throw new InvalidOperationException("The specified IAM user is already linked to another groomer.");
+                return Error.Conflict("Staff.LinkedUserAlreadyAssigned", "The specified IAM user is already linked to another groomer.");
             }
         }
 
@@ -110,44 +111,48 @@ public sealed class StaffQueries(
         return (await GetGroomerAsync(entity.Id, cancellationToken))!;
     }
 
-    public async Task<GroomerCapabilityView?> AddCapabilityAsync(AddGroomerCapabilityCommand command, CancellationToken cancellationToken)
+    public async Task<ErrorOr<GroomerCapabilityView>> AddCapabilityAsync(AddGroomerCapabilityCommand command, CancellationToken cancellationToken)
     {
         var groomer = await dbContext.Set<Groomer>().SingleOrDefaultAsync(x => x.Id == command.GroomerId, cancellationToken);
         if (groomer is null)
         {
-            return null;
+            return Error.NotFound("Staff.GroomerNotFound", "Groomer does not exist.");
         }
 
         var normalizedMode = NormalizeCapabilityMode(command.CapabilityMode);
+        if (normalizedMode.IsError)
+        {
+            return normalizedMode.Errors;
+        }
 
         if (command.AnimalTypeId is not null && !await petTaxonomyValidationService.AnimalTypeExistsAsync(command.AnimalTypeId.Value, cancellationToken))
         {
-            throw new InvalidOperationException("Animal type does not exist.");
+            return Error.NotFound("Staff.AnimalTypeNotFound", "Animal type does not exist.");
         }
 
         if (command.BreedId is not null && !await petTaxonomyValidationService.BreedExistsAsync(command.BreedId.Value, cancellationToken))
         {
-            throw new InvalidOperationException("Breed does not exist.");
+            return Error.NotFound("Staff.BreedNotFound", "Breed does not exist.");
         }
 
         if (command.BreedGroupId is not null && !await petTaxonomyValidationService.BreedGroupExistsAsync(command.BreedGroupId.Value, cancellationToken))
         {
-            throw new InvalidOperationException("Breed group does not exist.");
+            return Error.NotFound("Staff.BreedGroupNotFound", "Breed group does not exist.");
         }
 
         if (command.CoatTypeId is not null && !await petTaxonomyValidationService.CoatTypeExistsAsync(command.CoatTypeId.Value, cancellationToken))
         {
-            throw new InvalidOperationException("Coat type does not exist.");
+            return Error.NotFound("Staff.CoatTypeNotFound", "Coat type does not exist.");
         }
 
         if (command.SizeCategoryId is not null && !await petTaxonomyValidationService.SizeCategoryExistsAsync(command.SizeCategoryId.Value, cancellationToken))
         {
-            throw new InvalidOperationException("Size category does not exist.");
+            return Error.NotFound("Staff.SizeCategoryNotFound", "Size category does not exist.");
         }
 
         if (command.OfferId is not null && !await offerReferenceValidationService.ExistsAsync(command.OfferId.Value, cancellationToken))
         {
-            throw new InvalidOperationException("Offer does not exist.");
+            return Error.NotFound("Staff.OfferNotFound", "Offer does not exist.");
         }
 
         var entity = new GroomerCapability
@@ -160,7 +165,7 @@ public sealed class StaffQueries(
             CoatTypeId = command.CoatTypeId,
             SizeCategoryId = command.SizeCategoryId,
             OfferId = command.OfferId,
-            CapabilityMode = normalizedMode,
+            CapabilityMode = normalizedMode.Value,
             ReservedDurationModifierMinutes = command.ReservedDurationModifierMinutes,
             Notes = NormalizeOptional(command.Notes),
             CreatedAtUtc = DateTime.UtcNow
@@ -171,24 +176,39 @@ public sealed class StaffQueries(
         return MapCapability(entity);
     }
 
-    public async Task<WorkingScheduleView?> UpsertWorkingScheduleAsync(Guid groomerId, int weekday, string startLocalTime, string endLocalTime, CancellationToken cancellationToken)
+    public async Task<ErrorOr<WorkingScheduleView>> UpsertWorkingScheduleAsync(Guid groomerId, int weekday, string startLocalTime, string endLocalTime, CancellationToken cancellationToken)
     {
         var groomerExists = await dbContext.Set<Groomer>().AnyAsync(x => x.Id == groomerId, cancellationToken);
         if (!groomerExists)
         {
-            return null;
+            return Error.NotFound("Staff.GroomerNotFound", "Groomer does not exist.");
         }
 
         var normalizedWeekday = NormalizeWeekday(weekday);
-        var start = ParseLocalTime(startLocalTime, "startLocalTime");
-        var end = ParseLocalTime(endLocalTime, "endLocalTime");
-        if (end <= start)
+        if (normalizedWeekday.IsError)
         {
-            throw new InvalidOperationException("Working schedule endLocalTime must be later than startLocalTime.");
+            return normalizedWeekday.Errors;
+        }
+
+        var start = ParseLocalTime(startLocalTime, "startLocalTime");
+        if (start.IsError)
+        {
+            return start.Errors;
+        }
+
+        var end = ParseLocalTime(endLocalTime, "endLocalTime");
+        if (end.IsError)
+        {
+            return end.Errors;
+        }
+
+        if (end.Value <= start.Value)
+        {
+            return Error.Validation("Staff.InvalidWorkingScheduleRange", "Working schedule endLocalTime must be later than startLocalTime.");
         }
 
         var entity = await dbContext.Set<WorkingSchedule>()
-            .SingleOrDefaultAsync(x => x.GroomerId == groomerId && x.Weekday == normalizedWeekday, cancellationToken);
+            .SingleOrDefaultAsync(x => x.GroomerId == groomerId && x.Weekday == normalizedWeekday.Value, cancellationToken);
 
         if (entity is null)
         {
@@ -196,9 +216,9 @@ public sealed class StaffQueries(
             {
                 Id = Guid.NewGuid(),
                 GroomerId = groomerId,
-                Weekday = normalizedWeekday,
-                StartLocalTime = start,
-                EndLocalTime = end,
+                Weekday = normalizedWeekday.Value,
+                StartLocalTime = start.Value,
+                EndLocalTime = end.Value,
                 CreatedAtUtc = DateTime.UtcNow,
                 UpdatedAtUtc = DateTime.UtcNow
             };
@@ -206,8 +226,8 @@ public sealed class StaffQueries(
         }
         else
         {
-            entity.StartLocalTime = start;
-            entity.EndLocalTime = end;
+            entity.StartLocalTime = start.Value;
+            entity.EndLocalTime = end.Value;
             entity.UpdatedAtUtc = DateTime.UtcNow;
         }
 
@@ -215,17 +235,23 @@ public sealed class StaffQueries(
         return MapSchedule(entity);
     }
 
-    public async Task<TimeBlockView?> AddTimeBlockAsync(Guid groomerId, DateTime startAtUtc, DateTime endAtUtc, string reasonCode, string? notes, CancellationToken cancellationToken)
+    public async Task<ErrorOr<TimeBlockView>> AddTimeBlockAsync(Guid groomerId, DateTime startAtUtc, DateTime endAtUtc, string reasonCode, string? notes, CancellationToken cancellationToken)
     {
         var groomerExists = await dbContext.Set<Groomer>().AnyAsync(x => x.Id == groomerId, cancellationToken);
         if (!groomerExists)
         {
-            return null;
+            return Error.NotFound("Staff.GroomerNotFound", "Groomer does not exist.");
         }
 
         if (endAtUtc <= startAtUtc)
         {
-            throw new InvalidOperationException("Time block endAtUtc must be later than startAtUtc.");
+            return Error.Validation("Staff.InvalidTimeBlockRange", "Time block endAtUtc must be later than startAtUtc.");
+        }
+
+        var normalizedReasonCode = NormalizeReasonCode(reasonCode);
+        if (normalizedReasonCode.IsError)
+        {
+            return normalizedReasonCode.Errors;
         }
 
         var entity = new TimeBlock
@@ -234,7 +260,7 @@ public sealed class StaffQueries(
             GroomerId = groomerId,
             StartAtUtc = DateTime.SpecifyKind(startAtUtc, DateTimeKind.Utc),
             EndAtUtc = DateTime.SpecifyKind(endAtUtc, DateTimeKind.Utc),
-            ReasonCode = NormalizeReasonCode(reasonCode),
+            ReasonCode = normalizedReasonCode.Value,
             Notes = NormalizeOptional(notes),
             CreatedAtUtc = DateTime.UtcNow
         };
@@ -244,17 +270,17 @@ public sealed class StaffQueries(
         return MapTimeBlock(entity);
     }
 
-    public async Task<GroomerScheduleView?> GetScheduleAsync(Guid groomerId, DateTimeOffset fromUtc, DateTimeOffset toUtc, CancellationToken cancellationToken)
+    public async Task<ErrorOr<GroomerScheduleView>> GetScheduleAsync(Guid groomerId, DateTimeOffset fromUtc, DateTimeOffset toUtc, CancellationToken cancellationToken)
     {
         var groomer = await dbContext.Set<Groomer>().SingleOrDefaultAsync(x => x.Id == groomerId, cancellationToken);
         if (groomer is null)
         {
-            return null;
+            return Error.NotFound("Staff.GroomerNotFound", "Groomer does not exist.");
         }
 
         if (toUtc <= fromUtc)
         {
-            throw new InvalidOperationException("Range end must be later than range start.");
+            return Error.Validation("Staff.InvalidScheduleRange", "Range end must be later than range start.");
         }
 
         var schedules = await dbContext.Set<WorkingSchedule>()
@@ -280,9 +306,9 @@ public sealed class StaffQueries(
             windows);
     }
 
-    public Task<GroomerAvailabilityCheckResult> CheckAvailabilityAsync(CheckGroomerAvailabilityCommand command, CancellationToken cancellationToken)
+    public async Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(CheckGroomerAvailabilityCommand command, CancellationToken cancellationToken)
     {
-        return staffSchedulingService.CheckAvailabilityAsync(
+        return await staffSchedulingService.CheckAvailabilityAsync(
             command.GroomerId,
             command.PetId,
             command.OfferIds,
@@ -360,28 +386,30 @@ public sealed class StaffQueries(
     private static TimeBlockView MapTimeBlock(TimeBlock x)
         => new(x.Id, x.GroomerId, x.StartAtUtc, x.EndAtUtc, x.ReasonCode, x.Notes, x.CreatedAtUtc);
 
-    private static string NormalizeCapabilityMode(string capabilityMode)
+    private static ErrorOr<string> NormalizeCapabilityMode(string capabilityMode)
     {
         var normalized = capabilityMode.Trim();
         var match = CapabilityModeCodes.All.SingleOrDefault(x => string.Equals(x, normalized, StringComparison.OrdinalIgnoreCase));
-        return match ?? throw new InvalidOperationException($"Unknown capability mode '{capabilityMode}'.");
+        return match is null
+            ? Error.Validation("Staff.UnknownCapabilityMode", $"Unknown capability mode '{capabilityMode}'.")
+            : match;
     }
 
-    private static int NormalizeWeekday(int weekday)
+    private static ErrorOr<int> NormalizeWeekday(int weekday)
     {
         if (weekday is < 1 or > 7)
         {
-            throw new InvalidOperationException("Weekday must be between 1 and 7.");
+            return Error.Validation("Staff.InvalidWeekday", "Weekday must be between 1 and 7.");
         }
 
         return weekday;
     }
 
-    private static TimeSpan ParseLocalTime(string value, string fieldName)
+    private static ErrorOr<TimeSpan> ParseLocalTime(string value, string fieldName)
     {
         if (!TimeSpan.TryParse(value, out var result))
         {
-            throw new InvalidOperationException($"{fieldName} must be a valid local time in HH:mm format.");
+            return Error.Validation($"Staff.Invalid{fieldName}", $"{fieldName} must be a valid local time in HH:mm format.");
         }
 
         return new TimeSpan(result.Hours, result.Minutes, 0);
@@ -389,12 +417,12 @@ public sealed class StaffQueries(
 
     private static string FormatLocalTime(TimeSpan value) => value.ToString(@"hh\:mm");
 
-    private static string NormalizeReasonCode(string value)
+    private static ErrorOr<string> NormalizeReasonCode(string value)
     {
         var normalized = value.Trim().ToUpperInvariant().Replace(' ', '_');
         if (string.IsNullOrWhiteSpace(normalized))
         {
-            throw new InvalidOperationException("Reason code is required.");
+            return Error.Validation("Staff.ReasonCodeRequired", "Reason code is required.");
         }
 
         return normalized;

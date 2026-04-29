@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Staff.Application;
 
 namespace Tailbook.Modules.Staff.Api.Admin.CheckAvailability;
@@ -17,25 +18,23 @@ public sealed class CheckAvailabilityEndpoint(StaffQueries staffQueries)
 
     public override async Task HandleAsync(CheckAvailabilityRequest req, CancellationToken ct)
     {
-        try
-        {
-            var result = await staffQueries.CheckAvailabilityAsync(
-                new CheckGroomerAvailabilityCommand(req.GroomerId, req.PetId, req.StartAtUtc, req.ReservedMinutes, req.OfferIds),
-                ct);
+        var result = await staffQueries.CheckAvailabilityAsync(
+            new CheckGroomerAvailabilityCommand(req.GroomerId, req.PetId, req.StartAtUtc, req.ReservedMinutes, req.OfferIds),
+            ct);
 
-            await Send.ResponseAsync(new CheckAvailabilityResponse
-            {
-                IsAvailable = result.IsAvailable,
-                EndAtUtc = result.EndAtUtc,
-                CheckedReservedMinutes = result.CheckedReservedMinutes,
-                Reasons = result.Reasons.ToArray()
-            }, cancellation: ct);
-        }
-        catch (InvalidOperationException exception)
+        if (result.IsError)
         {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
+
+        await Send.ResponseAsync(new CheckAvailabilityResponse
+        {
+            IsAvailable = result.Value.IsAvailable,
+            EndAtUtc = result.Value.EndAtUtc,
+            CheckedReservedMinutes = result.Value.CheckedReservedMinutes,
+            Reasons = result.Value.Reasons.ToArray()
+        }, cancellation: ct);
     }
 }
 

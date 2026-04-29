@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Security.Claims;
+using ErrorOr;
 using FastEndpoints.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -101,13 +102,13 @@ public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passw
             user.UpdatedAtUtc);
     }
 
-    public async Task<UserDetailView> CreateUserAsync(string email, string displayName, string password, IReadOnlyCollection<string> roleCodes, Guid? assignedByUserId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<UserDetailView>> CreateUserAsync(string email, string displayName, string password, IReadOnlyCollection<string> roleCodes, Guid? assignedByUserId, CancellationToken cancellationToken)
     {
         var normalizedEmail = NormalizeEmail(email);
         var exists = await dbContext.Set<IdentityUser>().AnyAsync(x => x.NormalizedEmail == normalizedEmail, cancellationToken);
         if (exists)
         {
-            throw new InvalidOperationException($"User with email '{email}' already exists.");
+            return Error.Conflict("Identity.UserEmailExists", $"User with email '{email}' already exists.");
         }
 
         var utcNow = DateTime.UtcNow;
@@ -138,18 +139,22 @@ public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passw
 
         if (roleCodes.Count > 0)
         {
-            await AssignRolesAsync(user.Id, roleCodes, assignedByUserId, cancellationToken);
+            var assignmentResult = await AssignRolesAsync(user.Id, roleCodes, assignedByUserId, cancellationToken);
+            if (assignmentResult.IsError)
+            {
+                return assignmentResult.Errors;
+            }
         }
 
         return (await GetUserAsync(user.Id, cancellationToken))!;
     }
 
-    public async Task<UserDetailView?> AssignRolesAsync(Guid userId, IReadOnlyCollection<string> roleCodes, Guid? assignedByUserId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<UserDetailView>> AssignRolesAsync(Guid userId, IReadOnlyCollection<string> roleCodes, Guid? assignedByUserId, CancellationToken cancellationToken)
     {
         var userExists = await dbContext.Set<IdentityUser>().AnyAsync(x => x.Id == userId, cancellationToken);
         if (!userExists)
         {
-            return null;
+            return Error.NotFound("Identity.UserNotFound", "User does not exist.");
         }
 
         var requestedRoleCodes = roleCodes
@@ -165,7 +170,7 @@ public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passw
         if (roles.Count != requestedRoleCodes.Length)
         {
             var missing = requestedRoleCodes.Except(roles.Select(x => x.Code), StringComparer.OrdinalIgnoreCase).ToArray();
-            throw new InvalidOperationException($"Unknown roles: {string.Join(", ", missing)}");
+            return Error.Validation("Identity.UnknownRoles", $"Unknown roles: {string.Join(", ", missing)}");
         }
 
         var existingAssignments = await dbContext.Set<UserRoleAssignment>()
@@ -200,7 +205,7 @@ public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passw
             JsonSerializer.Serialize(new { roleCodes = existingRoleCodes }),
             JsonSerializer.Serialize(new { roleCodes = roles.Select(x => x.Code).OrderBy(x => x).ToArray() }),
             cancellationToken);
-        return await GetUserAsync(userId, cancellationToken);
+        return (await GetUserAsync(userId, cancellationToken))!;
     }
 
     private async Task<Dictionary<Guid, string[]>> LoadRoleMapAsync(Guid[] userIds, CancellationToken cancellationToken)

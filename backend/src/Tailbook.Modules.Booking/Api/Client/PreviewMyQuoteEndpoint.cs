@@ -1,6 +1,7 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Client;
@@ -26,51 +27,43 @@ public sealed class PreviewMyQuoteEndpoint(
             return;
         }
 
-        try
-        {
-            var result = await queries.PreviewMyQuoteAsync(
-                actor,
-                new PreviewQuoteCommand(req.PetId, null,
-                    req.Items.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray()),
-                ct);
+        var result = await queries.PreviewMyQuoteAsync(
+            actor,
+            new PreviewQuoteCommand(req.PetId, null,
+                req.Items.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray()),
+            ct);
 
-            if (result is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
-
-            await Send.OkAsync(new PreviewMyQuoteResponse
-            {
-                Currency = result.PriceSnapshot.Currency,
-                TotalAmount = result.PriceSnapshot.TotalAmount,
-                ServiceMinutes = result.DurationSnapshot.ServiceMinutes,
-                ReservedMinutes = result.DurationSnapshot.ReservedMinutes,
-                Items = result.Items.Select(x => new PreviewMyQuoteResponse.QuoteItemPayload
-                {
-                    OfferId = x.OfferId,
-                    OfferType = x.OfferType,
-                    DisplayName = x.DisplayName,
-                    PriceAmount = x.PriceAmount,
-                    ServiceMinutes = x.ServiceMinutes,
-                    ReservedMinutes = x.ReservedMinutes
-                }).ToArray(),
-                PriceLines = result.PriceSnapshot.Lines.Select(x => new PreviewMyQuoteResponse.PriceLinePayload
-                {
-                    Label = x.Label,
-                    Amount = x.Amount
-                }).ToArray(),
-                DurationLines = result.DurationSnapshot.Lines.Select(x => new PreviewMyQuoteResponse.DurationLinePayload
-                {
-                    Label = x.Label,
-                    Minutes = x.Minutes
-                }).ToArray()
-            }, ct);
-        }
-        catch (InvalidOperationException ex)
+        if (result.IsError)
         {
-            AddError(ex.Message);
-            await Send.ErrorsAsync(cancellation: ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
+
+        await Send.OkAsync(new PreviewMyQuoteResponse
+        {
+            Currency = result.Value.PriceSnapshot.Currency,
+            TotalAmount = result.Value.PriceSnapshot.TotalAmount,
+            ServiceMinutes = result.Value.DurationSnapshot.ServiceMinutes,
+            ReservedMinutes = result.Value.DurationSnapshot.ReservedMinutes,
+            Items = result.Value.Items.Select(x => new PreviewMyQuoteResponse.QuoteItemPayload
+            {
+                OfferId = x.OfferId,
+                OfferType = x.OfferType,
+                DisplayName = x.DisplayName,
+                PriceAmount = x.PriceAmount,
+                ServiceMinutes = x.ServiceMinutes,
+                ReservedMinutes = x.ReservedMinutes
+            }).ToArray(),
+            PriceLines = result.Value.PriceSnapshot.Lines.Select(x => new PreviewMyQuoteResponse.PriceLinePayload
+            {
+                Label = x.Label,
+                Amount = x.Amount
+            }).ToArray(),
+            DurationLines = result.Value.DurationSnapshot.Lines.Select(x => new PreviewMyQuoteResponse.DurationLinePayload
+            {
+                Label = x.Label,
+                Minutes = x.Minutes
+            }).ToArray()
+        }, ct);
     }
 }

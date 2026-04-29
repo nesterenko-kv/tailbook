@@ -1,5 +1,6 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Catalog.Application;
 using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
@@ -17,22 +18,14 @@ public sealed class PublishDurationRuleSetEndpoint(CatalogPricingQueries pricing
 
     public override async Task HandleAsync(PublishDurationRuleSetRequest req, CancellationToken ct)
     {
-        try
+        var result = await pricingQueries.PublishDurationRuleSetAsync(req.RuleSetId, ct);
+        if (result.IsError)
         {
-            var result = await pricingQueries.PublishDurationRuleSetAsync(req.RuleSetId, ct);
-            if (result is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
 
-            await Send.ResponseAsync(PublishDurationRuleSetResponse.FromView(result), cancellation: ct);
-        }
-        catch (InvalidOperationException exception)
-        {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+        await Send.ResponseAsync(PublishDurationRuleSetResponse.FromView(result.Value), cancellation: ct);
     }
 }
 

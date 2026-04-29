@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -68,21 +69,22 @@ public sealed class BookingAppointmentApplicationTests
                 [new CreateAppointmentItemCommand(offerId, "Package")]),
             null,
             CancellationToken.None);
+        Assert.False(created.IsError);
 
         Assert.Equal(DateTimeKind.Utc, harness.StaffSchedulingService.LastAvailabilityStartAtUtc?.Kind);
         Assert.Equal(createStart.Ticks, harness.StaffSchedulingService.LastAvailabilityStartAtUtc?.Ticks);
-        Assert.Equal(DateTime.SpecifyKind(createStart, DateTimeKind.Utc), created.StartAtUtc);
+        Assert.Equal(DateTime.SpecifyKind(createStart, DateTimeKind.Utc), created.Value.StartAtUtc);
 
         var rescheduleStart = Unspecified("2026-04-22T09:00:00");
         var rescheduled = await harness.Queries.RescheduleAppointmentAsync(
-            new RescheduleAppointmentCommand(created.Id, harness.GroomerId, rescheduleStart, created.VersionNo),
+            new RescheduleAppointmentCommand(created.Value.Id, harness.GroomerId, rescheduleStart, created.Value.VersionNo),
             null,
             CancellationToken.None);
 
-        Assert.NotNull(rescheduled);
+        Assert.False(rescheduled.IsError);
         Assert.Equal(DateTimeKind.Utc, harness.StaffSchedulingService.LastAvailabilityStartAtUtc?.Kind);
         Assert.Equal(rescheduleStart.Ticks, harness.StaffSchedulingService.LastAvailabilityStartAtUtc?.Ticks);
-        Assert.Equal(DateTime.SpecifyKind(rescheduleStart, DateTimeKind.Utc), rescheduled!.StartAtUtc);
+        Assert.Equal(DateTime.SpecifyKind(rescheduleStart, DateTimeKind.Utc), rescheduled.Value.StartAtUtc);
     }
 
     [Fact]
@@ -375,27 +377,27 @@ public sealed class BookingAppointmentApplicationTests
         public bool IsAvailable { get; set; } = true;
         public DateTime? LastAvailabilityStartAtUtc { get; private set; }
 
-        public Task<ReservedDurationResolution> ResolveReservedDurationAsync(
+        public Task<ErrorOr<ReservedDurationResolution>> ResolveReservedDurationAsync(
             Guid groomerId,
             Guid petId,
             IReadOnlyCollection<Guid> offerIds,
             int baseReservedMinutes,
             CancellationToken cancellationToken)
         {
-            return Task.FromResult(new ReservedDurationResolution(baseReservedMinutes, baseReservedMinutes, 0, []));
+            return Task.FromResult<ErrorOr<ReservedDurationResolution>>(new ReservedDurationResolution(baseReservedMinutes, baseReservedMinutes, 0, []));
         }
 
-        public Task<ReservedDurationResolution> ResolveReservedDurationAsync(
+        public Task<ErrorOr<ReservedDurationResolution>> ResolveReservedDurationAsync(
             Guid groomerId,
             PetQuoteProfile pet,
             IReadOnlyCollection<Guid> offerIds,
             int baseReservedMinutes,
             CancellationToken cancellationToken)
         {
-            return Task.FromResult(new ReservedDurationResolution(baseReservedMinutes, baseReservedMinutes, 0, []));
+            return Task.FromResult<ErrorOr<ReservedDurationResolution>>(new ReservedDurationResolution(baseReservedMinutes, baseReservedMinutes, 0, []));
         }
 
-        public Task<GroomerAvailabilityCheckResult> CheckAvailabilityAsync(
+        public Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(
             Guid groomerId,
             Guid petId,
             IReadOnlyCollection<Guid> offerIds,
@@ -405,14 +407,14 @@ public sealed class BookingAppointmentApplicationTests
             CancellationToken cancellationToken)
         {
             LastAvailabilityStartAtUtc = startAtUtc;
-            return Task.FromResult(new GroomerAvailabilityCheckResult(
+            return Task.FromResult<ErrorOr<GroomerAvailabilityCheckResult>>(new GroomerAvailabilityCheckResult(
                 IsAvailable,
                 startAtUtc.AddMinutes(reservedMinutes),
                 reservedMinutes,
                 IsAvailable ? ["Requested slot is available."] : ["Requested slot is unavailable."]));
         }
 
-        public Task<GroomerAvailabilityCheckResult> CheckAvailabilityAsync(
+        public Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(
             Guid groomerId,
             PetQuoteProfile pet,
             IReadOnlyCollection<Guid> offerIds,

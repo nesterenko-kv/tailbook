@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Staff.Application;
 using Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
@@ -18,39 +19,32 @@ public sealed class AddCapabilityEndpoint(StaffQueries staffQueries)
 
     public override async Task HandleAsync(AddCapabilityRequest req, CancellationToken ct)
     {
-        try
-        {
-            var capability = await staffQueries.AddCapabilityAsync(
-                new AddGroomerCapabilityCommand(req.GroomerId, req.AnimalTypeId, req.BreedId, req.BreedGroupId, req.CoatTypeId, req.SizeCategoryId, req.OfferId, req.CapabilityMode, req.ReservedDurationModifierMinutes, req.Notes),
-                ct);
+        var result = await staffQueries.AddCapabilityAsync(
+            new AddGroomerCapabilityCommand(req.GroomerId, req.AnimalTypeId, req.BreedId, req.BreedGroupId, req.CoatTypeId, req.SizeCategoryId, req.OfferId, req.CapabilityMode, req.ReservedDurationModifierMinutes, req.Notes),
+            ct);
 
-            if (capability is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
-
-            await Send.ResponseAsync(new GroomerCapabilityResponse
-            {
-                Id = capability.Id,
-                GroomerId = capability.GroomerId,
-                AnimalTypeId = capability.AnimalTypeId,
-                BreedId = capability.BreedId,
-                BreedGroupId = capability.BreedGroupId,
-                CoatTypeId = capability.CoatTypeId,
-                SizeCategoryId = capability.SizeCategoryId,
-                OfferId = capability.OfferId,
-                CapabilityMode = capability.CapabilityMode,
-                ReservedDurationModifierMinutes = capability.ReservedDurationModifierMinutes,
-                Notes = capability.Notes,
-                CreatedAtUtc = capability.CreatedAtUtc
-            }, StatusCodes.Status201Created, ct);
-        }
-        catch (InvalidOperationException exception)
+        if (result.IsError)
         {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
+
+        var capability = result.Value;
+        await Send.ResponseAsync(new GroomerCapabilityResponse
+        {
+            Id = capability.Id,
+            GroomerId = capability.GroomerId,
+            AnimalTypeId = capability.AnimalTypeId,
+            BreedId = capability.BreedId,
+            BreedGroupId = capability.BreedGroupId,
+            CoatTypeId = capability.CoatTypeId,
+            SizeCategoryId = capability.SizeCategoryId,
+            OfferId = capability.OfferId,
+            CapabilityMode = capability.CapabilityMode,
+            ReservedDurationModifierMinutes = capability.ReservedDurationModifierMinutes,
+            Notes = capability.Notes,
+            CreatedAtUtc = capability.CreatedAtUtc
+        }, StatusCodes.Status201Created, ct);
     }
 }
 

@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Customer.Application;
 
 namespace Tailbook.Modules.Customer.Api.Admin.AddContactMethod;
@@ -17,30 +18,23 @@ public sealed class AddContactMethodEndpoint(CustomerQueries customerQueries)
 
     public override async Task HandleAsync(AddContactMethodRequest req, CancellationToken ct)
     {
-        try
+        var result = await customerQueries.AddContactMethodAsync(req.ContactId, req.MethodType, req.Value, req.DisplayValue, req.IsPreferred, req.VerificationStatus, req.Notes, ct);
+        if (result.IsError)
         {
-            var method = await customerQueries.AddContactMethodAsync(req.ContactId, req.MethodType, req.Value, req.DisplayValue, req.IsPreferred, req.VerificationStatus, req.Notes, ct);
-            if (method is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
 
-            await Send.ResponseAsync(new AddContactMethodResponse
-            {
-                Id = method.Id,
-                MethodType = method.MethodType,
-                DisplayValue = method.DisplayValue,
-                IsPreferred = method.IsPreferred,
-                VerificationStatus = method.VerificationStatus,
-                Notes = method.Notes
-            }, StatusCodes.Status201Created, ct);
-        }
-        catch (InvalidOperationException exception)
+        var method = result.Value;
+        await Send.ResponseAsync(new AddContactMethodResponse
         {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+            Id = method.Id,
+            MethodType = method.MethodType,
+            DisplayValue = method.DisplayValue,
+            IsPreferred = method.IsPreferred,
+            VerificationStatus = method.VerificationStatus,
+            Notes = method.Notes
+        }, StatusCodes.Status201Created, ct);
     }
 }
 

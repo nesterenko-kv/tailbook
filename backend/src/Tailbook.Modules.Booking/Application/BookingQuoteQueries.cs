@@ -1,10 +1,19 @@
+using ErrorOr;
+
 namespace Tailbook.Modules.Booking.Application;
 
 public sealed class BookingQuoteQueries(BookingSnapshotComposer bookingSnapshotComposer)
 {
-    public Task<QuotePreviewView> PreviewQuoteAsync(PreviewQuoteCommand command, string? actorUserId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<QuotePreviewView>> PreviewQuoteAsync(PreviewQuoteCommand command, string? actorUserId, CancellationToken cancellationToken)
     {
-        return bookingSnapshotComposer.CreatePreviewAsync(command, actorUserId, cancellationToken);
+        try
+        {
+            return await bookingSnapshotComposer.CreatePreviewAsync(command, actorUserId, cancellationToken);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Error.Validation("Booking.QuotePreviewFailed", ex.Message);
+        }
     }
 }
 

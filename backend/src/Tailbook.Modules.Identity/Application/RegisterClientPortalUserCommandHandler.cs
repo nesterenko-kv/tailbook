@@ -1,4 +1,5 @@
 ﻿using FastEndpoints;
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -16,10 +17,23 @@ public class RegisterClientPortalUserCommandHandler(
     public async Task ExecuteAsync(RegisterClientPortalUserCommand command,
         CancellationToken cancellationToken)
     {
+        var result = await ExecuteResultAsync(command, cancellationToken);
+        if (result.IsError)
+        {
+            throw new InvalidOperationException(result.FirstError.Description);
+        }
+    }
+
+    public async Task<ErrorOr<bool>> ExecuteResultAsync(RegisterClientPortalUserCommand command,
+        CancellationToken cancellationToken)
+    {
         var normalizedEmail = IdentityQueries.NormalizeEmail(command.Email);
         var exists = await dbContext.Set<IdentityUser>()
             .AnyAsync(x => x.NormalizedEmail == normalizedEmail, cancellationToken);
-        if (exists) throw new InvalidOperationException($"User with email '{command.Email}' already exists.");
+        if (exists)
+        {
+            return Error.Conflict("Identity.UserEmailExists", $"User with email '{command.Email}' already exists.");
+        }
 
         var onboarding = await clientOnboardingService.CreateClientPortalProfileAsync(
             new CreateClientPortalProfileCommand(
@@ -65,5 +79,6 @@ public class RegisterClientPortalUserCommandHandler(
         });
 
         await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
     }
 }

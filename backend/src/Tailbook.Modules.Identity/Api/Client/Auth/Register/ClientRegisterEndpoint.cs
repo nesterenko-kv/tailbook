@@ -2,11 +2,12 @@ using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Identity.Application;
 
 namespace Tailbook.Modules.Identity.Api.Client.Auth.Register;
 
-public sealed class ClientRegisterEndpoint : Endpoint<ClientRegisterRequest, ClientRegisterResponse>
+public sealed class ClientRegisterEndpoint(RegisterClientPortalUserCommandHandler registerHandler) : Endpoint<ClientRegisterRequest, ClientRegisterResponse>
 {
     public override void Configure()
     {
@@ -17,42 +18,39 @@ public sealed class ClientRegisterEndpoint : Endpoint<ClientRegisterRequest, Cli
 
     public override async Task HandleAsync(ClientRegisterRequest req, CancellationToken ct)
     {
-        try
+        var command = new RegisterClientPortalUserCommand(
+            req.DisplayName,
+            req.FirstName,
+            req.LastName,
+            req.Email,
+            req.Password,
+            req.Phone,
+            req.Instagram
+        );
+
+        var registerResult = await registerHandler.ExecuteResultAsync(command, ct);
+        if (registerResult.IsError)
         {
-            var command = new RegisterClientPortalUserCommand(
-                req.DisplayName,
-                req.FirstName,
-                req.LastName,
-                req.Email,
-                req.Password,
-                req.Phone,
-                req.Instagram
-            );
-
-            await command.ExecuteAsync(ct);
-
-            var result = await new AuthenticateUserCommand(req.Email, req.Password).ExecuteAsync(ct);
-            if (result is null)
-            {
-                Logger.Log(LogLevel.Warning, "Client portal registration finished without an active login session.");
-                await Send.UnauthorizedAsync(ct);
-                return;
-            }
-
-            await Send.ResponseAsync(new ClientRegisterResponse
-            {
-                AccessToken = result.AccessToken,
-                ExpiresAtUtc = result.ExpiresAtUtc,
-                RefreshToken = result.RefreshToken,
-                RefreshTokenExpiresAtUtc = result.RefreshTokenExpiresAtUtc,
-                User = result.User
-            }, StatusCodes.Status201Created, ct);
+            await Send.ResultAsync(registerResult.Errors.ToHttpResult());
+            return;
         }
-        catch (InvalidOperationException ex)
+
+        var result = await new AuthenticateUserCommand(req.Email, req.Password).ExecuteAsync(ct);
+        if (result is null)
         {
-            AddError(ex.Message);
-            await Send.ErrorsAsync(cancellation: ct);
+            Logger.Log(LogLevel.Warning, "Client portal registration finished without an active login session.");
+            await Send.UnauthorizedAsync(ct);
+            return;
         }
+
+        await Send.ResponseAsync(new ClientRegisterResponse
+        {
+            AccessToken = result.AccessToken,
+            ExpiresAtUtc = result.ExpiresAtUtc,
+            RefreshToken = result.RefreshToken,
+            RefreshTokenExpiresAtUtc = result.RefreshTokenExpiresAtUtc,
+            User = result.User
+        }, StatusCodes.Status201Created, ct);
     }
 }
 

@@ -2,6 +2,7 @@ using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Admin.CreateBookingRequest;
@@ -18,27 +19,25 @@ public sealed class CreateBookingRequestEndpoint(BookingManagementQueries bookin
 
     public override async Task HandleAsync(CreateBookingRequestRequest req, CancellationToken ct)
     {
-        try
-        {
-            var result = await bookingQueries.CreateBookingRequestAsync(
-                new CreateBookingRequestCommand(
-                    req.ClientId,
-                    req.PetId,
-                    req.RequestedByContactId,
-                    req.Channel,
-                    req.Notes,
-                    req.PreferredTimes.Select(x => new PreferredTimeWindowCommand(x.StartAtUtc, x.EndAtUtc, x.Label)).ToArray(),
-                    req.Items.Select(x => new CreateBookingRequestItemCommand(x.OfferId, x.ItemType, x.RequestedNotes)).ToArray()),
-                req.ActorUserId?.ToString("D"),
-                ct);
+        var result = await bookingQueries.CreateBookingRequestAsync(
+            new CreateBookingRequestCommand(
+                req.ClientId,
+                req.PetId,
+                req.RequestedByContactId,
+                req.Channel,
+                req.Notes,
+                req.PreferredTimes.Select(x => new PreferredTimeWindowCommand(x.StartAtUtc, x.EndAtUtc, x.Label)).ToArray(),
+                req.Items.Select(x => new CreateBookingRequestItemCommand(x.OfferId, x.ItemType, x.RequestedNotes)).ToArray()),
+            req.ActorUserId?.ToString("D"),
+            ct);
 
-            await Send.ResponseAsync(result, StatusCodes.Status201Created, ct);
-        }
-        catch (InvalidOperationException ex)
+        if (result.IsError)
         {
-            AddError(ex.Message);
-            await Send.ErrorsAsync(cancellation: ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
+
+        await Send.ResponseAsync(result.Value, StatusCodes.Status201Created, ct);
     }
 }
 

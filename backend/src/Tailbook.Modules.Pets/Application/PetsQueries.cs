@@ -1,3 +1,4 @@
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -177,28 +178,33 @@ public sealed class PetsQueries(
             totalCount);
     }
 
-    public async Task<PetDetailView> RegisterPetAsync(RegisterPetCommand command, CancellationToken cancellationToken)
+    public async Task<ErrorOr<PetDetailView>> RegisterPetAsync(RegisterPetCommand command, CancellationToken cancellationToken)
     {
         if (command.ClientId is not null)
         {
             var clientExists = await clientReferenceValidationService.ExistsAsync(command.ClientId.Value, cancellationToken);
             if (!clientExists)
             {
-                throw new InvalidOperationException("Client does not exist.");
+                return Error.NotFound("Pets.ClientNotFound", "Client does not exist.");
             }
         }
 
         var taxonomy = await ResolvePetTaxonomyAsync(command.AnimalTypeCode, command.BreedId, command.CoatTypeCode, command.SizeCategoryCode, cancellationToken);
+        if (taxonomy.IsError)
+        {
+            return taxonomy.Errors;
+        }
+
         var utcNow = DateTime.UtcNow;
         var pet = new Pet
         {
             Id = Guid.NewGuid(),
             ClientId = command.ClientId,
             Name = command.Name.Trim(),
-            AnimalTypeId = taxonomy.AnimalType.Id,
-            BreedId = taxonomy.Breed.Id,
-            CoatTypeId = taxonomy.CoatType?.Id,
-            SizeCategoryId = taxonomy.SizeCategory?.Id,
+            AnimalTypeId = taxonomy.Value.AnimalType.Id,
+            BreedId = taxonomy.Value.Breed.Id,
+            CoatTypeId = taxonomy.Value.CoatType?.Id,
+            SizeCategoryId = taxonomy.Value.SizeCategory?.Id,
             BirthDate = command.BirthDate,
             WeightKg = command.WeightKg,
             Notes = NormalizeOptional(command.Notes),
@@ -211,31 +217,35 @@ public sealed class PetsQueries(
         return (await LoadPetProjectionAsync(pet.Id, cancellationToken))!;
     }
 
-    public async Task<PetDetailView?> UpdatePetAsync(Guid petId, UpdatePetCommand command, CancellationToken cancellationToken)
+    public async Task<ErrorOr<PetDetailView>> UpdatePetAsync(Guid petId, UpdatePetCommand command, CancellationToken cancellationToken)
     {
         var pet = await dbContext.Set<Pet>().SingleOrDefaultAsync(x => x.Id == petId, cancellationToken);
         if (pet is null)
         {
-            return null;
+            return Error.NotFound("Pets.PetNotFound", "Pet does not exist.");
         }
 
         var taxonomy = await ResolvePetTaxonomyAsync(command.AnimalTypeCode, command.BreedId, command.CoatTypeCode, command.SizeCategoryCode, cancellationToken);
+        if (taxonomy.IsError)
+        {
+            return taxonomy.Errors;
+        }
 
         pet.Name = command.Name.Trim();
-        pet.AnimalTypeId = taxonomy.AnimalType.Id;
-        pet.BreedId = taxonomy.Breed.Id;
-        pet.CoatTypeId = taxonomy.CoatType?.Id;
-        pet.SizeCategoryId = taxonomy.SizeCategory?.Id;
+        pet.AnimalTypeId = taxonomy.Value.AnimalType.Id;
+        pet.BreedId = taxonomy.Value.Breed.Id;
+        pet.CoatTypeId = taxonomy.Value.CoatType?.Id;
+        pet.SizeCategoryId = taxonomy.Value.SizeCategory?.Id;
         pet.BirthDate = command.BirthDate;
         pet.WeightKg = command.WeightKg;
         pet.Notes = NormalizeOptional(command.Notes);
         pet.UpdatedAtUtc = DateTime.UtcNow;
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        return await LoadPetProjectionAsync(pet.Id, cancellationToken);
+        return (await LoadPetProjectionAsync(pet.Id, cancellationToken))!;
     }
 
-    private async Task<ResolvedPetTaxonomy> ResolvePetTaxonomyAsync(
+    private async Task<ErrorOr<ResolvedPetTaxonomy>> ResolvePetTaxonomyAsync(
         string animalTypeCode,
         Guid breedId,
         string? coatTypeCode,
@@ -243,28 +253,37 @@ public sealed class PetsQueries(
         CancellationToken cancellationToken)
     {
         var animalType = await dbContext.Set<AnimalType>()
-            .SingleOrDefaultAsync(x => x.Code == animalTypeCode, cancellationToken)
-            ?? throw new InvalidOperationException($"Unknown animal type '{animalTypeCode}'.");
+            .SingleOrDefaultAsync(x => x.Code == animalTypeCode, cancellationToken);
+        if (animalType is null)
+        {
+            return Error.Validation("Pets.UnknownAnimalType", $"Unknown animal type '{animalTypeCode}'.");
+        }
 
         var breed = await dbContext.Set<Breed>()
-            .SingleOrDefaultAsync(x => x.Id == breedId, cancellationToken)
-            ?? throw new InvalidOperationException("Breed does not exist.");
+            .SingleOrDefaultAsync(x => x.Id == breedId, cancellationToken);
+        if (breed is null)
+        {
+            return Error.NotFound("Pets.BreedNotFound", "Breed does not exist.");
+        }
 
         if (breed.AnimalTypeId != animalType.Id)
         {
-            throw new InvalidOperationException("Breed must belong to the selected animal type.");
+            return Error.Validation("Pets.BreedAnimalTypeMismatch", "Breed must belong to the selected animal type.");
         }
 
         CoatType? coatType = null;
         if (!string.IsNullOrWhiteSpace(coatTypeCode))
         {
             coatType = await dbContext.Set<CoatType>()
-                .SingleOrDefaultAsync(x => x.Code == coatTypeCode, cancellationToken)
-                ?? throw new InvalidOperationException($"Unknown coat type '{coatTypeCode}'.");
+                .SingleOrDefaultAsync(x => x.Code == coatTypeCode, cancellationToken);
+            if (coatType is null)
+            {
+                return Error.Validation("Pets.UnknownCoatType", $"Unknown coat type '{coatTypeCode}'.");
+            }
 
             if (coatType.AnimalTypeId is not null && coatType.AnimalTypeId != animalType.Id)
             {
-                throw new InvalidOperationException("Coat type must belong to the selected animal type when scoped by animal type.");
+                return Error.Validation("Pets.CoatTypeAnimalTypeMismatch", "Coat type must belong to the selected animal type when scoped by animal type.");
             }
 
             var isAllowedForBreed = await dbContext.Set<BreedAllowedCoatType>()
@@ -272,7 +291,7 @@ public sealed class PetsQueries(
 
             if (!isAllowedForBreed)
             {
-                throw new InvalidOperationException($"Coat type '{coatType.Name}' is not allowed for breed '{breed.Name}'.");
+                return Error.Validation("Pets.CoatTypeNotAllowedForBreed", $"Coat type '{coatType.Name}' is not allowed for breed '{breed.Name}'.");
             }
         }
 
@@ -280,12 +299,15 @@ public sealed class PetsQueries(
         if (!string.IsNullOrWhiteSpace(sizeCategoryCode))
         {
             sizeCategory = await dbContext.Set<SizeCategory>()
-                .SingleOrDefaultAsync(x => x.Code == sizeCategoryCode, cancellationToken)
-                ?? throw new InvalidOperationException($"Unknown size category '{sizeCategoryCode}'.");
+                .SingleOrDefaultAsync(x => x.Code == sizeCategoryCode, cancellationToken);
+            if (sizeCategory is null)
+            {
+                return Error.Validation("Pets.UnknownSizeCategory", $"Unknown size category '{sizeCategoryCode}'.");
+            }
 
             if (sizeCategory.AnimalTypeId is not null && sizeCategory.AnimalTypeId != animalType.Id)
             {
-                throw new InvalidOperationException("Size category must belong to the selected animal type when scoped by animal type.");
+                return Error.Validation("Pets.SizeCategoryAnimalTypeMismatch", "Size category must belong to the selected animal type when scoped by animal type.");
             }
 
             var isAllowedForBreed = await dbContext.Set<BreedAllowedSizeCategory>()
@@ -293,7 +315,7 @@ public sealed class PetsQueries(
 
             if (!isAllowedForBreed)
             {
-                throw new InvalidOperationException($"Size category '{sizeCategory.Name}' is not allowed for breed '{breed.Name}'.");
+                return Error.Validation("Pets.SizeCategoryNotAllowedForBreed", $"Size category '{sizeCategory.Name}' is not allowed for breed '{breed.Name}'.");
             }
         }
 

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -20,17 +21,20 @@ public sealed class BookingManagementQueries(
     IAuditTrailService auditTrailService,
     IOutboxPublisher outboxPublisher)
 {
-    public async Task<BookingRequestDetailView> CreateBookingRequestAsync(CreateBookingRequestCommand command, string? actorUserId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<BookingRequestDetailView>> CreateBookingRequestAsync(CreateBookingRequestCommand command, string? actorUserId, CancellationToken cancellationToken)
     {
         PetQuoteProfile? pet = null;
         if (command.PetId.HasValue)
         {
-            pet = await petQuoteProfileService.GetPetAsync(command.PetId.Value, cancellationToken)
-                ?? throw new InvalidOperationException("Pet does not exist.");
+            pet = await petQuoteProfileService.GetPetAsync(command.PetId.Value, cancellationToken);
+            if (pet is null)
+            {
+                return Error.NotFound("Booking.PetNotFound", "Pet does not exist.");
+            }
         }
         else if (command.GuestIntake is null)
         {
-            throw new InvalidOperationException("Booking request must reference a saved pet or include guest pet details.");
+            return Error.Validation("Booking.PetRequired", "Booking request must reference a saved pet or include guest pet details.");
         }
 
         if (command.ClientId.HasValue)
@@ -38,12 +42,12 @@ public sealed class BookingManagementQueries(
             var clientExists = await clientReferenceValidationService.ExistsAsync(command.ClientId.Value, cancellationToken);
             if (!clientExists)
             {
-                throw new InvalidOperationException("Client does not exist.");
+                return Error.NotFound("Booking.ClientNotFound", "Client does not exist.");
             }
 
             if (pet?.ClientId.HasValue == true && pet.ClientId.Value != command.ClientId.Value)
             {
-                throw new InvalidOperationException("Selected pet does not belong to the specified client.");
+                return Error.Validation("Booking.PetClientMismatch", "Selected pet does not belong to the specified client.");
             }
         }
 
@@ -52,7 +56,7 @@ public sealed class BookingManagementQueries(
             var contactExists = await contactReferenceValidationService.ExistsAsync(command.RequestedByContactId.Value, cancellationToken);
             if (!contactExists)
             {
-                throw new InvalidOperationException("Requested-by contact does not exist.");
+                return Error.NotFound("Booking.RequestedByContactNotFound", "Requested-by contact does not exist.");
             }
         }
 
@@ -61,8 +65,26 @@ public sealed class BookingManagementQueries(
             var exists = await offerReferenceValidationService.ExistsAsync(item.OfferId, cancellationToken);
             if (!exists)
             {
-                throw new InvalidOperationException("One or more requested offers do not exist.");
+                return Error.NotFound("Booking.OfferNotFound", "One or more requested offers do not exist.");
             }
+        }
+
+        var status = NormalizeStatus(command.InitialStatus, command.PetId.HasValue ? BookingRequestStatusCodes.Submitted : BookingRequestStatusCodes.NeedsReview);
+        if (status.IsError)
+        {
+            return status.Errors;
+        }
+
+        string? selectionMode = null;
+        if (!string.IsNullOrWhiteSpace(command.SelectionMode))
+        {
+            var selectionModeResult = NormalizeSelectionMode(command.SelectionMode);
+            if (selectionModeResult.IsError)
+            {
+                return selectionModeResult.Errors;
+            }
+
+            selectionMode = selectionModeResult.Value;
         }
 
         var utcNow = DateTime.UtcNow;
@@ -74,8 +96,8 @@ public sealed class BookingManagementQueries(
             RequestedByContactId = command.RequestedByContactId,
             PreferredGroomerId = command.PreferredGroomerId,
             Channel = string.IsNullOrWhiteSpace(command.Channel) ? BookingChannelCodes.Admin : command.Channel.Trim(),
-            Status = NormalizeStatus(command.InitialStatus, command.PetId.HasValue ? BookingRequestStatusCodes.Submitted : BookingRequestStatusCodes.NeedsReview),
-            SelectionMode = NormalizeSelectionMode(command.SelectionMode),
+            Status = status.Value,
+            SelectionMode = selectionMode,
             GuestIntakeJson = SerializeGuestIntake(command.GuestIntake),
             PreferredTimeJson = SerializePreferredTimes(command.PreferredTimes),
             Notes = NormalizeOptional(command.Notes),
@@ -112,35 +134,38 @@ public sealed class BookingManagementQueries(
         return (await GetBookingRequestAsync(entity.Id, cancellationToken))!;
     }
 
-    public async Task<BookingRequestDetailView?> AttachBookingRequestContextAsync(AttachBookingRequestContextCommand command, string? actorUserId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<BookingRequestDetailView>> AttachBookingRequestContextAsync(AttachBookingRequestContextCommand command, string? actorUserId, CancellationToken cancellationToken)
     {
         var bookingRequest = await dbContext.Set<BookingRequest>()
             .SingleOrDefaultAsync(x => x.Id == command.BookingRequestId, cancellationToken);
 
         if (bookingRequest is null)
         {
-            return null;
+            return Error.NotFound("Booking.BookingRequestNotFound", "Booking request does not exist.");
         }
 
         if (bookingRequest.Status == BookingRequestStatusCodes.Converted)
         {
-            throw new InvalidOperationException("Converted booking requests cannot be relinked.");
+            return Error.Conflict("Booking.BookingRequestConverted", "Converted booking requests cannot be relinked.");
         }
 
-        var pet = await petQuoteProfileService.GetPetAsync(command.PetId, cancellationToken)
-            ?? throw new InvalidOperationException("Pet does not exist.");
+        var pet = await petQuoteProfileService.GetPetAsync(command.PetId, cancellationToken);
+        if (pet is null)
+        {
+            return Error.NotFound("Booking.PetNotFound", "Pet does not exist.");
+        }
 
         if (command.ClientId.HasValue)
         {
             var clientExists = await clientReferenceValidationService.ExistsAsync(command.ClientId.Value, cancellationToken);
             if (!clientExists)
             {
-                throw new InvalidOperationException("Client does not exist.");
+                return Error.NotFound("Booking.ClientNotFound", "Client does not exist.");
             }
 
             if (pet.ClientId.HasValue && pet.ClientId.Value != command.ClientId.Value)
             {
-                throw new InvalidOperationException("Selected pet does not belong to the specified client.");
+                return Error.Validation("Booking.PetClientMismatch", "Selected pet does not belong to the specified client.");
             }
         }
 
@@ -149,7 +174,7 @@ public sealed class BookingManagementQueries(
             var contactExists = await contactReferenceValidationService.ExistsAsync(command.RequestedByContactId.Value, cancellationToken);
             if (!contactExists)
             {
-                throw new InvalidOperationException("Requested-by contact does not exist.");
+                return Error.NotFound("Booking.RequestedByContactNotFound", "Requested-by contact does not exist.");
             }
         }
 
@@ -167,7 +192,7 @@ public sealed class BookingManagementQueries(
         await auditTrailService.RecordAsync("booking", "booking_request", bookingRequest.Id.ToString("D"), "ATTACH_CONTEXT", ParseGuid(actorUserId), null,
             JsonSerializer.Serialize(new { bookingRequest.ClientId, bookingRequest.PetId, bookingRequest.RequestedByContactId, bookingRequest.Status }), cancellationToken);
 
-        return await GetBookingRequestAsync(bookingRequest.Id, cancellationToken);
+        return (await GetBookingRequestAsync(bookingRequest.Id, cancellationToken))!;
     }
 
     public async Task<PagedResult<BookingRequestListItemView>> ListBookingRequestsAsync(string? status, int page, int pageSize, CancellationToken cancellationToken)
@@ -256,19 +281,22 @@ public sealed class BookingManagementQueries(
             bookingRequest.UpdatedAtUtc);
     }
 
-    public async Task<AppointmentDetailView> ConvertBookingRequestToAppointmentAsync(ConvertBookingRequestToAppointmentCommand command, string? actorUserId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<AppointmentDetailView>> ConvertBookingRequestToAppointmentAsync(ConvertBookingRequestToAppointmentCommand command, string? actorUserId, CancellationToken cancellationToken)
     {
-        var bookingRequest = await dbContext.Set<BookingRequest>().SingleOrDefaultAsync(x => x.Id == command.BookingRequestId, cancellationToken)
-            ?? throw new InvalidOperationException("Booking request does not exist.");
+        var bookingRequest = await dbContext.Set<BookingRequest>().SingleOrDefaultAsync(x => x.Id == command.BookingRequestId, cancellationToken);
+        if (bookingRequest is null)
+        {
+            return Error.NotFound("Booking.BookingRequestNotFound", "Booking request does not exist.");
+        }
 
         if (bookingRequest.Status == BookingRequestStatusCodes.Converted)
         {
-            throw new InvalidOperationException("Booking request has already been converted.");
+            return Error.Conflict("Booking.BookingRequestAlreadyConverted", "Booking request has already been converted.");
         }
 
         if (!bookingRequest.PetId.HasValue)
         {
-            throw new InvalidOperationException("Guest booking requests must be linked to a saved pet before conversion to an appointment.");
+            return Error.Validation("Booking.GuestRequestRequiresSavedPet", "Guest booking requests must be linked to a saved pet before conversion to an appointment.");
         }
 
         var requestItems = await dbContext.Set<BookingRequestItem>()
@@ -278,7 +306,7 @@ public sealed class BookingManagementQueries(
 
         if (requestItems.Count == 0)
         {
-            throw new InvalidOperationException("Booking request must contain at least one requested item.");
+            return Error.Validation("Booking.BookingRequestItemsRequired", "Booking request must contain at least one requested item.");
         }
 
         var result = await CreateAppointmentInternalAsync(
@@ -289,21 +317,25 @@ public sealed class BookingManagementQueries(
             requestItems.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray(),
             actorUserId,
             cancellationToken);
+        if (result.IsError)
+        {
+            return result.Errors;
+        }
 
         bookingRequest.Status = BookingRequestStatusCodes.Converted;
         bookingRequest.UpdatedAtUtc = DateTime.UtcNow;
         await outboxPublisher.PublishAsync("booking", "BookingRequestConverted", new
         {
             bookingRequestId = bookingRequest.Id,
-            appointmentId = result.Id
+            appointmentId = result.Value.Id
         }, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
-        await auditTrailService.RecordAsync("booking", "booking_request", bookingRequest.Id.ToString("D"), "CONVERT_TO_APPOINTMENT", ParseGuid(actorUserId), null, JsonSerializer.Serialize(new { appointmentId = result.Id }), cancellationToken);
+        await auditTrailService.RecordAsync("booking", "booking_request", bookingRequest.Id.ToString("D"), "CONVERT_TO_APPOINTMENT", ParseGuid(actorUserId), null, JsonSerializer.Serialize(new { appointmentId = result.Value.Id }), cancellationToken);
 
-        return result;
+        return result.Value;
     }
 
-    public Task<AppointmentDetailView> CreateAppointmentAsync(CreateAppointmentCommand command, string? actorUserId, CancellationToken cancellationToken)
+    public Task<ErrorOr<AppointmentDetailView>> CreateAppointmentAsync(CreateAppointmentCommand command, string? actorUserId, CancellationToken cancellationToken)
     {
         return CreateAppointmentInternalAsync(
             null,
@@ -315,7 +347,7 @@ public sealed class BookingManagementQueries(
             cancellationToken);
     }
 
-    private async Task<AppointmentDetailView> CreateAppointmentInternalAsync(
+    private async Task<ErrorOr<AppointmentDetailView>> CreateAppointmentInternalAsync(
         Guid? bookingRequestId,
         Guid petId,
         Guid groomerId,
@@ -325,13 +357,21 @@ public sealed class BookingManagementQueries(
         CancellationToken cancellationToken)
     {
         var normalizedStartAtUtc = BookingTimeInputNormalizer.AssumeUtc(startAtUtc, nameof(startAtUtc));
-        var composition = await bookingSnapshotComposer.ComposeAppointmentAsync(
-            petId,
-            groomerId,
-            normalizedStartAtUtc,
-            items,
-            actorUserId,
-            cancellationToken);
+        AppointmentCompositionResult composition;
+        try
+        {
+            composition = await bookingSnapshotComposer.ComposeAppointmentAsync(
+                petId,
+                groomerId,
+                normalizedStartAtUtc,
+                items,
+                actorUserId,
+                cancellationToken);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Error.Validation("Booking.AppointmentCompositionFailed", ex.Message);
+        }
 
         var utcNow = DateTime.UtcNow;
         var actorGuid = ParseGuid(actorUserId);
@@ -480,16 +520,28 @@ public sealed class BookingManagementQueries(
             appointment.UpdatedAtUtc);
     }
 
-    public async Task<AppointmentDetailView?> RescheduleAppointmentAsync(RescheduleAppointmentCommand command, string? actorUserId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<AppointmentDetailView>> RescheduleAppointmentAsync(RescheduleAppointmentCommand command, string? actorUserId, CancellationToken cancellationToken)
     {
         var appointment = await dbContext.Set<Appointment>().SingleOrDefaultAsync(x => x.Id == command.AppointmentId, cancellationToken);
         if (appointment is null)
         {
-            return null;
+            return Error.NotFound("Booking.AppointmentNotFound", "Appointment does not exist.");
         }
 
-        EnsureVersion(appointment, command.ExpectedVersionNo);
-        appointment.EnsureCanBeRescheduled();
+        var version = EnsureVersion(appointment, command.ExpectedVersionNo);
+        if (version.IsError)
+        {
+            return version.Errors;
+        }
+
+        try
+        {
+            appointment.EnsureCanBeRescheduled();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Error.Conflict("Booking.AppointmentNotMutable", ex.Message);
+        }
         var normalizedStartAtUtc = BookingTimeInputNormalizer.AssumeUtc(command.StartAtUtc, nameof(command.StartAtUtc));
 
         var items = await dbContext.Set<AppointmentItem>()
@@ -515,7 +567,7 @@ public sealed class BookingManagementQueries(
             return snapshot.ReservedMinutes - modifierTotal;
         });
 
-        var availability = await staffSchedulingService.CheckAvailabilityAsync(
+        var availabilityResult = await staffSchedulingService.CheckAvailabilityAsync(
             command.GroomerId,
             appointment.PetId,
             items.Select(x => x.OfferId).ToArray(),
@@ -523,17 +575,29 @@ public sealed class BookingManagementQueries(
             baseReservedMinutes,
             appointment.Id,
             cancellationToken);
-
-        if (!availability.IsAvailable)
+        if (availabilityResult.IsError)
         {
-            throw new InvalidOperationException(string.Join(" ", availability.Reasons));
+            return availabilityResult.Errors;
         }
 
-        appointment.Reschedule(
-            command.GroomerId,
-            BookingTimeInputNormalizer.CreatePeriod(normalizedStartAtUtc, availability.EndAtUtc),
-            ParseGuid(actorUserId),
-            DateTime.UtcNow);
+        var availability = availabilityResult.Value;
+        if (!availability.IsAvailable)
+        {
+            return Error.Validation("Booking.AppointmentSlotUnavailable", string.Join(" ", availability.Reasons));
+        }
+
+        try
+        {
+            appointment.Reschedule(
+                command.GroomerId,
+                BookingTimeInputNormalizer.CreatePeriod(normalizedStartAtUtc, availability.EndAtUtc),
+                ParseGuid(actorUserId),
+                DateTime.UtcNow);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Error.Validation("Booking.AppointmentRescheduleFailed", ex.Message);
+        }
 
         await outboxPublisher.PublishAsync("booking", "AppointmentRescheduled", new
         {
@@ -545,21 +609,32 @@ public sealed class BookingManagementQueries(
         }, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         await auditTrailService.RecordAsync("booking", "appointment", appointment.Id.ToString("D"), "RESCHEDULE", ParseGuid(actorUserId), null, JsonSerializer.Serialize(new { appointment.VersionNo, appointment.StartAtUtc, appointment.EndAtUtc }), cancellationToken);
-        return await GetAppointmentAsync(appointment.Id, cancellationToken);
+        return (await GetAppointmentAsync(appointment.Id, cancellationToken))!;
     }
 
-    public async Task<AppointmentDetailView?> CancelAppointmentAsync(CancelAppointmentCommand command, string? actorUserId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<AppointmentDetailView>> CancelAppointmentAsync(CancelAppointmentCommand command, string? actorUserId, CancellationToken cancellationToken)
     {
         var appointment = await dbContext.Set<Appointment>().SingleOrDefaultAsync(x => x.Id == command.AppointmentId, cancellationToken);
         if (appointment is null)
         {
-            return null;
+            return Error.NotFound("Booking.AppointmentNotFound", "Appointment does not exist.");
         }
 
-        EnsureVersion(appointment, command.ExpectedVersionNo);
-        appointment.EnsureCanBeCancelled();
+        var version = EnsureVersion(appointment, command.ExpectedVersionNo);
+        if (version.IsError)
+        {
+            return version.Errors;
+        }
 
-        appointment.Cancel(command.ReasonCode, command.Notes, ParseGuid(actorUserId), DateTime.UtcNow);
+        try
+        {
+            appointment.EnsureCanBeCancelled();
+            appointment.Cancel(command.ReasonCode, command.Notes, ParseGuid(actorUserId), DateTime.UtcNow);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Error.Conflict("Booking.AppointmentCancellationFailed", ex.Message);
+        }
 
         await outboxPublisher.PublishAsync("booking", "AppointmentCancelled", new
         {
@@ -570,7 +645,7 @@ public sealed class BookingManagementQueries(
         }, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         await auditTrailService.RecordAsync("booking", "appointment", appointment.Id.ToString("D"), "CANCEL", ParseGuid(actorUserId), null, JsonSerializer.Serialize(new { appointment.CancellationReasonCode, appointment.VersionNo }), cancellationToken);
-        return await GetAppointmentAsync(appointment.Id, cancellationToken);
+        return (await GetAppointmentAsync(appointment.Id, cancellationToken))!;
     }
 
     private async Task<Dictionary<Guid, BookingRequestSubjectView>> BuildBookingRequestSummariesAsync(IReadOnlyCollection<BookingRequest> bookingRequests, CancellationToken cancellationToken)
@@ -624,12 +699,14 @@ public sealed class BookingManagementQueries(
             guestIntake);
     }
 
-    private static void EnsureVersion(Appointment appointment, int expectedVersionNo)
+    private static ErrorOr<bool> EnsureVersion(Appointment appointment, int expectedVersionNo)
     {
         if (!appointment.HasVersion(expectedVersionNo))
         {
-            throw new BookingConcurrencyException($"Appointment version mismatch. Expected {expectedVersionNo}, actual {appointment.VersionNo}.");
+            return Error.Conflict("Booking.AppointmentVersionMismatch", $"Appointment version mismatch. Expected {expectedVersionNo}, actual {appointment.VersionNo}.");
         }
+
+        return true;
     }
 
     private static string? NormalizeOptional(string? value)
@@ -637,7 +714,7 @@ public sealed class BookingManagementQueries(
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
-    private static string NormalizeStatus(string? status, string fallback)
+    private static ErrorOr<string> NormalizeStatus(string? status, string fallback)
     {
         var normalized = NormalizeOptional(status);
         return normalized switch
@@ -645,25 +722,20 @@ public sealed class BookingManagementQueries(
             null => fallback,
             _ when BookingRequestStatusCodes.All.Contains(normalized, StringComparer.OrdinalIgnoreCase) =>
                 BookingRequestStatusCodes.All.Single(x => string.Equals(x, normalized, StringComparison.OrdinalIgnoreCase)),
-            _ => throw new InvalidOperationException($"Unknown booking request status '{status}'.")
+            _ => Error.Validation("Booking.UnknownBookingRequestStatus", $"Unknown booking request status '{status}'.")
         };
     }
 
-    private static string? NormalizeSelectionMode(string? selectionMode)
+    private static ErrorOr<string> NormalizeSelectionMode(string selectionMode)
     {
         var normalized = NormalizeOptional(selectionMode);
-        if (normalized is null)
-        {
-            return null;
-        }
-
         return normalized switch
         {
             _ when string.Equals(normalized, BookingRequestSelectionModeCodes.AnySuitableGroomer, StringComparison.OrdinalIgnoreCase) => BookingRequestSelectionModeCodes.AnySuitableGroomer,
             _ when string.Equals(normalized, BookingRequestSelectionModeCodes.SpecificGroomer, StringComparison.OrdinalIgnoreCase) => BookingRequestSelectionModeCodes.SpecificGroomer,
             _ when string.Equals(normalized, BookingRequestSelectionModeCodes.ExactSlot, StringComparison.OrdinalIgnoreCase) => BookingRequestSelectionModeCodes.ExactSlot,
             _ when string.Equals(normalized, BookingRequestSelectionModeCodes.PreferredWindow, StringComparison.OrdinalIgnoreCase) => BookingRequestSelectionModeCodes.PreferredWindow,
-            _ => throw new InvalidOperationException($"Unknown selection mode '{selectionMode}'.")
+            _ => Error.Validation("Booking.UnknownSelectionMode", $"Unknown selection mode '{selectionMode}'.")
         };
     }
 

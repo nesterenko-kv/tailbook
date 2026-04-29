@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Staff.Application;
 
 namespace Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
@@ -17,16 +18,14 @@ public sealed class CreateGroomerEndpoint(StaffQueries staffQueries)
 
     public override async Task HandleAsync(CreateGroomerRequest req, CancellationToken ct)
     {
-        try
+        var result = await staffQueries.CreateGroomerAsync(req.DisplayName, req.UserId, ct);
+        if (result.IsError)
         {
-            var groomer = await staffQueries.CreateGroomerAsync(req.DisplayName, req.UserId, ct);
-            await Send.ResponseAsync(Map(groomer), StatusCodes.Status201Created, ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
-        catch (InvalidOperationException exception)
-        {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+
+        await Send.ResponseAsync(Map(result.Value), StatusCodes.Status201Created, ct);
     }
 
     private static CreateGroomerResponse Map(GroomerDetailView x)

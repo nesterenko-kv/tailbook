@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Staff.Application;
 
 namespace Tailbook.Modules.Staff.Api.Admin.GetGroomerSchedule;
@@ -17,53 +18,46 @@ public sealed class GetGroomerScheduleEndpoint(StaffQueries staffQueries)
 
     public override async Task HandleAsync(GetGroomerScheduleRequest req, CancellationToken ct)
     {
-        try
+        var result = await staffQueries.GetScheduleAsync(req.GroomerId, req.FromUtc, req.ToUtc, ct);
+        if (result.IsError)
         {
-            var schedule = await staffQueries.GetScheduleAsync(req.GroomerId, req.FromUtc, req.ToUtc, ct);
-            if (schedule is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
 
-            await Send.ResponseAsync(new GetGroomerScheduleResponse
-            {
-                GroomerId = schedule.GroomerId,
-                GroomerDisplayName = schedule.GroomerDisplayName,
-                FromUtc = schedule.FromUtc,
-                ToUtc = schedule.ToUtc,
-                WorkingSchedules = schedule.WorkingSchedules.Select(x => new WorkingScheduleItemResponse
-                {
-                    Id = x.Id,
-                    GroomerId = x.GroomerId,
-                    Weekday = x.Weekday,
-                    StartLocalTime = x.StartLocalTime,
-                    EndLocalTime = x.EndLocalTime,
-                    CreatedAtUtc = x.CreatedAtUtc,
-                    UpdatedAtUtc = x.UpdatedAtUtc
-                }).ToArray(),
-                TimeBlocks = schedule.TimeBlocks.Select(x => new TimeBlockItemResponse
-                {
-                    Id = x.Id,
-                    GroomerId = x.GroomerId,
-                    StartAtUtc = x.StartAtUtc,
-                    EndAtUtc = x.EndAtUtc,
-                    ReasonCode = x.ReasonCode,
-                    Notes = x.Notes,
-                    CreatedAtUtc = x.CreatedAtUtc
-                }).ToArray(),
-                AvailabilityWindows = schedule.AvailabilityWindows.Select(x => new AvailabilityWindowItemResponse
-                {
-                    StartAtUtc = x.StartAtUtc,
-                    EndAtUtc = x.EndAtUtc
-                }).ToArray()
-            }, cancellation: ct);
-        }
-        catch (InvalidOperationException exception)
+        var schedule = result.Value;
+        await Send.ResponseAsync(new GetGroomerScheduleResponse
         {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+            GroomerId = schedule.GroomerId,
+            GroomerDisplayName = schedule.GroomerDisplayName,
+            FromUtc = schedule.FromUtc,
+            ToUtc = schedule.ToUtc,
+            WorkingSchedules = schedule.WorkingSchedules.Select(x => new WorkingScheduleItemResponse
+            {
+                Id = x.Id,
+                GroomerId = x.GroomerId,
+                Weekday = x.Weekday,
+                StartLocalTime = x.StartLocalTime,
+                EndLocalTime = x.EndLocalTime,
+                CreatedAtUtc = x.CreatedAtUtc,
+                UpdatedAtUtc = x.UpdatedAtUtc
+            }).ToArray(),
+            TimeBlocks = schedule.TimeBlocks.Select(x => new TimeBlockItemResponse
+            {
+                Id = x.Id,
+                GroomerId = x.GroomerId,
+                StartAtUtc = x.StartAtUtc,
+                EndAtUtc = x.EndAtUtc,
+                ReasonCode = x.ReasonCode,
+                Notes = x.Notes,
+                CreatedAtUtc = x.CreatedAtUtc
+            }).ToArray(),
+            AvailabilityWindows = schedule.AvailabilityWindows.Select(x => new AvailabilityWindowItemResponse
+            {
+                StartAtUtc = x.StartAtUtc,
+                EndAtUtc = x.EndAtUtc
+            }).ToArray()
+        }, cancellation: ct);
     }
 }
 

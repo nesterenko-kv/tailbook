@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Pets.Application;
 
 namespace Tailbook.Modules.Pets.Api.Admin.UpdatePet;
@@ -17,35 +18,28 @@ public sealed class UpdatePetEndpoint(PetsQueries petsQueries)
 
     public override async Task HandleAsync(UpdatePetRequest req, CancellationToken ct)
     {
-        try
+        var result = await petsQueries.UpdatePetAsync(req.Id, new UpdatePetCommand(req.Name, req.AnimalTypeCode, req.BreedId, req.CoatTypeCode, req.SizeCategoryCode, req.BirthDate, req.WeightKg, req.Notes), ct);
+        if (result.IsError)
         {
-            var pet = await petsQueries.UpdatePetAsync(req.Id, new UpdatePetCommand(req.Name, req.AnimalTypeCode, req.BreedId, req.CoatTypeCode, req.SizeCategoryCode, req.BirthDate, req.WeightKg, req.Notes), ct);
-            if (pet is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
 
-            await Send.OkAsync(new UpdatePetResponse
-            {
-                Id = pet.Id,
-                ClientId = pet.ClientId,
-                Name = pet.Name,
-                AnimalType = new NamedCatalogItemResponse { Id = pet.AnimalType.Id, Code = pet.AnimalType.Code, Name = pet.AnimalType.Name },
-                Breed = new BreedResponse { Id = pet.Breed.Id, AnimalTypeId = pet.Breed.AnimalTypeId, BreedGroupId = pet.Breed.BreedGroupId, Code = pet.Breed.Code, Name = pet.Breed.Name },
-                CoatType = pet.CoatType is null ? null : new NamedCatalogItemResponse { Id = pet.CoatType.Id, Code = pet.CoatType.Code, Name = pet.CoatType.Name },
-                SizeCategory = pet.SizeCategory is null ? null : new SizeCategoryItemResponse { Id = pet.SizeCategory.Id, Code = pet.SizeCategory.Code, Name = pet.SizeCategory.Name, MinWeightKg = pet.SizeCategory.MinWeightKg, MaxWeightKg = pet.SizeCategory.MaxWeightKg },
-                BirthDate = pet.BirthDate,
-                WeightKg = pet.WeightKg,
-                Notes = pet.Notes,
-                UpdatedAtUtc = pet.UpdatedAtUtc
-            }, ct);
-        }
-        catch (InvalidOperationException exception)
+        var pet = result.Value;
+        await Send.OkAsync(new UpdatePetResponse
         {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+            Id = pet.Id,
+            ClientId = pet.ClientId,
+            Name = pet.Name,
+            AnimalType = new NamedCatalogItemResponse { Id = pet.AnimalType.Id, Code = pet.AnimalType.Code, Name = pet.AnimalType.Name },
+            Breed = new BreedResponse { Id = pet.Breed.Id, AnimalTypeId = pet.Breed.AnimalTypeId, BreedGroupId = pet.Breed.BreedGroupId, Code = pet.Breed.Code, Name = pet.Breed.Name },
+            CoatType = pet.CoatType is null ? null : new NamedCatalogItemResponse { Id = pet.CoatType.Id, Code = pet.CoatType.Code, Name = pet.CoatType.Name },
+            SizeCategory = pet.SizeCategory is null ? null : new SizeCategoryItemResponse { Id = pet.SizeCategory.Id, Code = pet.SizeCategory.Code, Name = pet.SizeCategory.Name, MinWeightKg = pet.SizeCategory.MinWeightKg, MaxWeightKg = pet.SizeCategory.MaxWeightKg },
+            BirthDate = pet.BirthDate,
+            WeightKg = pet.WeightKg,
+            Notes = pet.Notes,
+            UpdatedAtUtc = pet.UpdatedAtUtc
+        }, ct);
     }
 }
 

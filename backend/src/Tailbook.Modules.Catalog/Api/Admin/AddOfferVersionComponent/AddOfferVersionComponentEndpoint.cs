@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Catalog.Application;
 using Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
@@ -18,22 +19,14 @@ public sealed class AddOfferVersionComponentEndpoint(CatalogQueries catalogQueri
 
     public override async Task HandleAsync(AddOfferVersionComponentRequest req, CancellationToken ct)
     {
-        try
+        var result = await catalogQueries.AddComponentAsync(req.VersionId, req.ProcedureId, req.ComponentRole, req.SequenceNo, req.DefaultExpected, ct);
+        if (result.IsError)
         {
-            var component = await catalogQueries.AddComponentAsync(req.VersionId, req.ProcedureId, req.ComponentRole, req.SequenceNo, req.DefaultExpected, ct);
-            if (component is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
 
-            await Send.ResponseAsync(OfferVersionComponentResponse.Map(component), StatusCodes.Status201Created, ct);
-        }
-        catch (InvalidOperationException exception)
-        {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+        await Send.ResponseAsync(OfferVersionComponentResponse.Map(result.Value), StatusCodes.Status201Created, ct);
     }
 }
 

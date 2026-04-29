@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Staff.Application;
 using Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
@@ -18,31 +19,24 @@ public sealed class UpsertWorkingScheduleEndpoint(StaffQueries staffQueries)
 
     public override async Task HandleAsync(UpsertWorkingScheduleRequest req, CancellationToken ct)
     {
-        try
+        var result = await staffQueries.UpsertWorkingScheduleAsync(req.GroomerId, req.Weekday, req.StartLocalTime, req.EndLocalTime, ct);
+        if (result.IsError)
         {
-            var schedule = await staffQueries.UpsertWorkingScheduleAsync(req.GroomerId, req.Weekday, req.StartLocalTime, req.EndLocalTime, ct);
-            if (schedule is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
 
-            await Send.ResponseAsync(new WorkingScheduleResponse
-            {
-                Id = schedule.Id,
-                GroomerId = schedule.GroomerId,
-                Weekday = schedule.Weekday,
-                StartLocalTime = schedule.StartLocalTime,
-                EndLocalTime = schedule.EndLocalTime,
-                CreatedAtUtc = schedule.CreatedAtUtc,
-                UpdatedAtUtc = schedule.UpdatedAtUtc
-            }, StatusCodes.Status201Created, ct);
-        }
-        catch (InvalidOperationException exception)
+        var schedule = result.Value;
+        await Send.ResponseAsync(new WorkingScheduleResponse
         {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+            Id = schedule.Id,
+            GroomerId = schedule.GroomerId,
+            Weekday = schedule.Weekday,
+            StartLocalTime = schedule.StartLocalTime,
+            EndLocalTime = schedule.EndLocalTime,
+            CreatedAtUtc = schedule.CreatedAtUtc,
+            UpdatedAtUtc = schedule.UpdatedAtUtc
+        }, StatusCodes.Status201Created, ct);
     }
 }
 

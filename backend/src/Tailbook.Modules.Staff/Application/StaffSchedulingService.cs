@@ -1,3 +1,4 @@
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -14,20 +15,23 @@ public sealed class StaffSchedulingService(
     IAppointmentOverlapReadService appointmentOverlapReadService)
     : IStaffSchedulingService
 {
-    public async Task<ReservedDurationResolution> ResolveReservedDurationAsync(
+    public async Task<ErrorOr<ReservedDurationResolution>> ResolveReservedDurationAsync(
         Guid groomerId,
         Guid petId,
         IReadOnlyCollection<Guid> offerIds,
         int baseReservedMinutes,
         CancellationToken cancellationToken)
     {
-        var pet = await petQuoteProfileService.GetPetAsync(petId, cancellationToken)
-            ?? throw new InvalidOperationException("Pet does not exist.");
+        var pet = await petQuoteProfileService.GetPetAsync(petId, cancellationToken);
+        if (pet is null)
+        {
+            return Error.NotFound("Staff.PetNotFound", "Pet does not exist.");
+        }
 
         return await ResolveReservedDurationAsync(groomerId, pet, offerIds, baseReservedMinutes, cancellationToken);
     }
 
-    public async Task<ReservedDurationResolution> ResolveReservedDurationAsync(
+    public async Task<ErrorOr<ReservedDurationResolution>> ResolveReservedDurationAsync(
         Guid groomerId,
         PetQuoteProfile pet,
         IReadOnlyCollection<Guid> offerIds,
@@ -35,8 +39,11 @@ public sealed class StaffSchedulingService(
         CancellationToken cancellationToken)
     {
         var groomer = await dbContext.Set<Groomer>()
-            .SingleOrDefaultAsync(x => x.Id == groomerId && x.Active, cancellationToken)
-            ?? throw new InvalidOperationException("Selected groomer does not exist or is inactive.");
+            .SingleOrDefaultAsync(x => x.Id == groomerId && x.Active, cancellationToken);
+        if (groomer is null)
+        {
+            return Error.NotFound("Staff.GroomerNotFound", "Selected groomer does not exist or is inactive.");
+        }
 
         var capabilities = await dbContext.Set<GroomerCapability>()
             .Where(x => x.GroomerId == groomer.Id)
@@ -50,7 +57,7 @@ public sealed class StaffSchedulingService(
 
         if (denial is not null)
         {
-            throw new InvalidOperationException(BuildCapabilityReason(denial, pet, false));
+            return Error.Validation("Staff.GroomerCapabilityDenied", BuildCapabilityReason(denial, pet, false));
         }
 
         var modifierReasons = new List<string>();
@@ -96,7 +103,7 @@ public sealed class StaffSchedulingService(
         return new ReservedDurationResolution(baseReservedMinutes, effectiveReservedMinutes, modifierMinutes, modifierReasons);
     }
 
-    public async Task<GroomerAvailabilityCheckResult> CheckAvailabilityAsync(
+    public async Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(
         Guid groomerId,
         Guid petId,
         IReadOnlyCollection<Guid> offerIds,
@@ -105,13 +112,16 @@ public sealed class StaffSchedulingService(
         Guid? ignoredAppointmentId,
         CancellationToken cancellationToken)
     {
-        var pet = await petQuoteProfileService.GetPetAsync(petId, cancellationToken)
-            ?? throw new InvalidOperationException("Pet does not exist.");
+        var pet = await petQuoteProfileService.GetPetAsync(petId, cancellationToken);
+        if (pet is null)
+        {
+            return Error.NotFound("Staff.PetNotFound", "Pet does not exist.");
+        }
 
         return await CheckAvailabilityAsync(groomerId, pet, offerIds, startAtUtc, reservedMinutes, ignoredAppointmentId, cancellationToken);
     }
 
-    public async Task<GroomerAvailabilityCheckResult> CheckAvailabilityAsync(
+    public async Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(
         Guid groomerId,
         PetQuoteProfile pet,
         IReadOnlyCollection<Guid> offerIds,
@@ -121,7 +131,13 @@ public sealed class StaffSchedulingService(
         CancellationToken cancellationToken)
     {
         var normalizedStartAtUtc = DateTime.SpecifyKind(startAtUtc, DateTimeKind.Utc);
-        var durationResolution = await ResolveReservedDurationAsync(groomerId, pet, offerIds, reservedMinutes, cancellationToken);
+        var durationResolutionResult = await ResolveReservedDurationAsync(groomerId, pet, offerIds, reservedMinutes, cancellationToken);
+        if (durationResolutionResult.IsError)
+        {
+            return durationResolutionResult.Errors;
+        }
+
+        var durationResolution = durationResolutionResult.Value;
         var endAtUtc = normalizedStartAtUtc.AddMinutes(durationResolution.EffectiveReservedMinutes);
 
         var reasons = new List<string>(durationResolution.Reasons);

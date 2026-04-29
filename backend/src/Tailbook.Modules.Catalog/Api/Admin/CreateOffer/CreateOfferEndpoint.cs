@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Catalog.Application;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
@@ -17,16 +18,14 @@ public sealed class CreateOfferEndpoint(CatalogQueries catalogQueries)
 
     public override async Task HandleAsync(CreateOfferRequest req, CancellationToken ct)
     {
-        try
+        var result = await catalogQueries.CreateOfferAsync(req.Code, req.OfferType, req.DisplayName, ct);
+        if (result.IsError)
         {
-            var offer = await catalogQueries.CreateOfferAsync(req.Code, req.OfferType, req.DisplayName, ct);
-            await Send.ResponseAsync(OfferResponse.Map(offer), StatusCodes.Status201Created, ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
-        catch (InvalidOperationException exception)
-        {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+
+        await Send.ResponseAsync(OfferResponse.Map(result.Value), StatusCodes.Status201Created, ct);
     }
 }
 

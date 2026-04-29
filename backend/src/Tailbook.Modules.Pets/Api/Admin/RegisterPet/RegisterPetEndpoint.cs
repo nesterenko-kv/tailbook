@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Pets.Application;
 
 namespace Tailbook.Modules.Pets.Api.Admin.RegisterPet;
@@ -17,16 +18,14 @@ public sealed class RegisterPetEndpoint(PetsQueries petsQueries)
 
     public override async Task HandleAsync(RegisterPetRequest req, CancellationToken ct)
     {
-        try
+        var result = await petsQueries.RegisterPetAsync(new RegisterPetCommand(req.ClientId, req.Name, req.AnimalTypeCode, req.BreedId, req.CoatTypeCode, req.SizeCategoryCode, req.BirthDate, req.WeightKg, req.Notes), ct);
+        if (result.IsError)
         {
-            var pet = await petsQueries.RegisterPetAsync(new RegisterPetCommand(req.ClientId, req.Name, req.AnimalTypeCode, req.BreedId, req.CoatTypeCode, req.SizeCategoryCode, req.BirthDate, req.WeightKg, req.Notes), ct);
-            await Send.ResponseAsync(Map(pet), StatusCodes.Status201Created, ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
-        catch (InvalidOperationException exception)
-        {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+
+        await Send.ResponseAsync(Map(result.Value), StatusCodes.Status201Created, ct);
     }
 
     private static RegisterPetResponse Map(PetDetailView pet)

@@ -1,3 +1,4 @@
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Catalog.Contracts;
@@ -15,23 +16,28 @@ public sealed class CatalogQueries(AppDbContext dbContext)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<ProcedureView> CreateProcedureAsync(string code, string name, CancellationToken cancellationToken)
+    public async Task<ErrorOr<ProcedureView>> CreateProcedureAsync(string code, string name, CancellationToken cancellationToken)
     {
         var normalizedCode = NormalizeCode(code);
+        if (normalizedCode.IsError)
+        {
+            return normalizedCode.Errors;
+        }
+
         var displayName = name.Trim();
 
         var duplicate = await dbContext.Set<ProcedureCatalogItem>()
-            .AnyAsync(x => x.Code == normalizedCode, cancellationToken);
+            .AnyAsync(x => x.Code == normalizedCode.Value, cancellationToken);
         if (duplicate)
         {
-            throw new InvalidOperationException($"A procedure with code '{normalizedCode}' already exists.");
+            return Error.Conflict("Catalog.ProcedureCodeExists", $"A procedure with code '{normalizedCode.Value}' already exists.");
         }
 
         var utcNow = DateTime.UtcNow;
         var entity = new ProcedureCatalogItem
         {
             Id = Guid.NewGuid(),
-            Code = normalizedCode,
+            Code = normalizedCode.Value,
             Name = displayName,
             IsActive = true,
             CreatedAtUtc = utcNow,
@@ -128,25 +134,35 @@ public sealed class CatalogQueries(AppDbContext dbContext)
             offer.UpdatedAtUtc);
     }
 
-    public async Task<OfferDetailView> CreateOfferAsync(string code, string offerType, string displayName, CancellationToken cancellationToken)
+    public async Task<ErrorOr<OfferDetailView>> CreateOfferAsync(string code, string offerType, string displayName, CancellationToken cancellationToken)
     {
         var normalizedCode = NormalizeCode(code);
+        if (normalizedCode.IsError)
+        {
+            return normalizedCode.Errors;
+        }
+
         var normalizedOfferType = NormalizeOfferType(offerType);
+        if (normalizedOfferType.IsError)
+        {
+            return normalizedOfferType.Errors;
+        }
+
         var normalizedDisplayName = displayName.Trim();
 
         var duplicate = await dbContext.Set<CommercialOffer>()
-            .AnyAsync(x => x.Code == normalizedCode, cancellationToken);
+            .AnyAsync(x => x.Code == normalizedCode.Value, cancellationToken);
         if (duplicate)
         {
-            throw new InvalidOperationException($"An offer with code '{normalizedCode}' already exists.");
+            return Error.Conflict("Catalog.OfferCodeExists", $"An offer with code '{normalizedCode.Value}' already exists.");
         }
 
         var utcNow = DateTime.UtcNow;
         var offer = new CommercialOffer
         {
             Id = Guid.NewGuid(),
-            Code = normalizedCode,
-            OfferType = normalizedOfferType,
+            Code = normalizedCode.Value,
+            OfferType = normalizedOfferType.Value,
             DisplayName = normalizedDisplayName,
             IsActive = true,
             CreatedAtUtc = utcNow,
@@ -191,41 +207,49 @@ public sealed class CatalogQueries(AppDbContext dbContext)
         return new OfferVersionView(version.Id, version.OfferId, version.VersionNo, version.Status, version.ValidFromUtc, version.ValidToUtc, version.PolicyText, version.ChangeNote, version.CreatedAtUtc, version.PublishedAtUtc, []);
     }
 
-    public async Task<OfferVersionComponentView?> AddComponentAsync(Guid versionId, Guid procedureId, string componentRole, int sequenceNo, bool defaultExpected, CancellationToken cancellationToken)
+    public async Task<ErrorOr<OfferVersionComponentView>> AddComponentAsync(Guid versionId, Guid procedureId, string componentRole, int sequenceNo, bool defaultExpected, CancellationToken cancellationToken)
     {
         var version = await dbContext.Set<OfferVersion>().SingleOrDefaultAsync(x => x.Id == versionId, cancellationToken);
         if (version is null)
         {
-            return null;
+            return Error.NotFound("Catalog.OfferVersionNotFound", "Offer version does not exist.");
         }
 
         if (!string.Equals(version.Status, OfferVersionStatusCodes.Draft, StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidOperationException("Published or archived offer versions are immutable.");
+            return Error.Conflict("Catalog.OfferVersionImmutable", "Published or archived offer versions are immutable.");
         }
 
         var offer = await dbContext.Set<CommercialOffer>().SingleAsync(x => x.Id == version.OfferId, cancellationToken);
         if (!string.Equals(offer.OfferType, OfferTypeCodes.Package, StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidOperationException("Only package offer versions can have operational components.");
+            return Error.Validation("Catalog.OfferVersionNotPackage", "Only package offer versions can have operational components.");
         }
 
         var normalizedRole = NormalizeComponentRole(componentRole);
-        var procedure = await dbContext.Set<ProcedureCatalogItem>().SingleOrDefaultAsync(x => x.Id == procedureId, cancellationToken)
-            ?? throw new InvalidOperationException("Procedure does not exist.");
+        if (normalizedRole.IsError)
+        {
+            return normalizedRole.Errors;
+        }
+
+        var procedure = await dbContext.Set<ProcedureCatalogItem>().SingleOrDefaultAsync(x => x.Id == procedureId, cancellationToken);
+        if (procedure is null)
+        {
+            return Error.NotFound("Catalog.ProcedureNotFound", "Procedure does not exist.");
+        }
 
         var duplicateSequence = await dbContext.Set<OfferVersionComponent>()
             .AnyAsync(x => x.OfferVersionId == versionId && x.SequenceNo == sequenceNo, cancellationToken);
         if (duplicateSequence)
         {
-            throw new InvalidOperationException("A component with the same sequence number already exists in this version.");
+            return Error.Conflict("Catalog.ComponentSequenceExists", "A component with the same sequence number already exists in this version.");
         }
 
         var duplicateProcedure = await dbContext.Set<OfferVersionComponent>()
             .AnyAsync(x => x.OfferVersionId == versionId && x.ProcedureId == procedureId, cancellationToken);
         if (duplicateProcedure)
         {
-            throw new InvalidOperationException("The same procedure cannot be added twice to one offer version.");
+            return Error.Conflict("Catalog.ComponentProcedureExists", "The same procedure cannot be added twice to one offer version.");
         }
 
         var entity = new OfferVersionComponent
@@ -233,7 +257,7 @@ public sealed class CatalogQueries(AppDbContext dbContext)
             Id = Guid.NewGuid(),
             OfferVersionId = versionId,
             ProcedureId = procedureId,
-            ComponentRole = normalizedRole,
+            ComponentRole = normalizedRole.Value,
             SequenceNo = sequenceNo,
             DefaultExpected = defaultExpected,
             CreatedAtUtc = DateTime.UtcNow
@@ -245,17 +269,17 @@ public sealed class CatalogQueries(AppDbContext dbContext)
         return new OfferVersionComponentView(entity.Id, entity.OfferVersionId, entity.ProcedureId, procedure.Code, procedure.Name, entity.ComponentRole, entity.SequenceNo, entity.DefaultExpected, entity.CreatedAtUtc);
     }
 
-    public async Task<OfferVersionView?> PublishOfferVersionAsync(Guid versionId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<OfferVersionView>> PublishOfferVersionAsync(Guid versionId, CancellationToken cancellationToken)
     {
         var version = await dbContext.Set<OfferVersion>().SingleOrDefaultAsync(x => x.Id == versionId, cancellationToken);
         if (version is null)
         {
-            return null;
+            return Error.NotFound("Catalog.OfferVersionNotFound", "Offer version does not exist.");
         }
 
         if (!string.Equals(version.Status, OfferVersionStatusCodes.Draft, StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidOperationException("Only draft offer versions can be published.");
+            return Error.Conflict("Catalog.OfferVersionNotDraft", "Only draft offer versions can be published.");
         }
 
         var offer = await dbContext.Set<CommercialOffer>().SingleAsync(x => x.Id == version.OfferId, cancellationToken);
@@ -264,7 +288,7 @@ public sealed class CatalogQueries(AppDbContext dbContext)
             var hasComponents = await dbContext.Set<OfferVersionComponent>().AnyAsync(x => x.OfferVersionId == versionId, cancellationToken);
             if (!hasComponents)
             {
-                throw new InvalidOperationException("Package offer versions must contain at least one component before publication.");
+                return Error.Validation("Catalog.PackageOfferVersionEmpty", "Package offer versions must contain at least one component before publication.");
             }
         }
 
@@ -295,29 +319,33 @@ public sealed class CatalogQueries(AppDbContext dbContext)
             components.Select(x => new OfferVersionComponentView(x.Id, x.OfferVersionId, x.ProcedureId, procedures[x.ProcedureId].Code, procedures[x.ProcedureId].Name, x.ComponentRole, x.SequenceNo, x.DefaultExpected, x.CreatedAtUtc)).ToArray());
     }
 
-    private static string NormalizeCode(string code)
+    private static ErrorOr<string> NormalizeCode(string code)
     {
         var normalized = code.Trim().ToUpperInvariant().Replace(' ', '_');
         if (string.IsNullOrWhiteSpace(normalized))
         {
-            throw new InvalidOperationException("Code is required.");
+            return Error.Validation("Catalog.CodeRequired", "Code is required.");
         }
 
         return normalized;
     }
 
-    private static string NormalizeOfferType(string offerType)
+    private static ErrorOr<string> NormalizeOfferType(string offerType)
     {
         var normalized = offerType.Trim();
         var match = OfferTypeCodes.All.SingleOrDefault(x => string.Equals(x, normalized, StringComparison.OrdinalIgnoreCase));
-        return match ?? throw new InvalidOperationException($"Unknown offer type '{offerType}'.");
+        return match is null
+            ? Error.Validation("Catalog.UnknownOfferType", $"Unknown offer type '{offerType}'.")
+            : match;
     }
 
-    private static string NormalizeComponentRole(string componentRole)
+    private static ErrorOr<string> NormalizeComponentRole(string componentRole)
     {
         var normalized = componentRole.Trim();
         var match = OfferComponentRoleCodes.All.SingleOrDefault(x => string.Equals(x, normalized, StringComparison.OrdinalIgnoreCase));
-        return match ?? throw new InvalidOperationException($"Unknown component role '{componentRole}'.");
+        return match is null
+            ? Error.Validation("Catalog.UnknownComponentRole", $"Unknown component role '{componentRole}'.")
+            : match;
     }
 
     private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

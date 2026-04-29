@@ -1,3 +1,4 @@
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -59,23 +60,30 @@ public sealed class CatalogPricingQueries(AppDbContext dbContext, IPetTaxonomyVa
         return new PriceRuleSetView(entity.Id, entity.VersionNo, entity.Status, entity.ValidFromUtc, entity.ValidToUtc, entity.CreatedAtUtc, entity.PublishedAtUtc, []);
     }
 
-    public async Task<PriceRuleView?> CreatePriceRuleAsync(CreatePriceRuleCommand command, CancellationToken cancellationToken)
+    public async Task<ErrorOr<PriceRuleView>> CreatePriceRuleAsync(CreatePriceRuleCommand command, CancellationToken cancellationToken)
     {
         var ruleSet = await dbContext.Set<PriceRuleSet>().SingleOrDefaultAsync(x => x.Id == command.RuleSetId, cancellationToken);
         if (ruleSet is null)
         {
-            return null;
+            return Error.NotFound("Catalog.PriceRuleSetNotFound", "Price rule set does not exist.");
         }
 
         if (!string.Equals(ruleSet.Status, RuleSetStatusCodes.Draft, StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidOperationException("Price rules can only be added to draft rule sets.");
+            return Error.Conflict("Catalog.PriceRuleSetNotDraft", "Price rules can only be added to draft rule sets.");
         }
 
-        var offer = await dbContext.Set<CommercialOffer>().SingleOrDefaultAsync(x => x.Id == command.OfferId, cancellationToken)
-            ?? throw new InvalidOperationException("Offer does not exist.");
+        var offer = await dbContext.Set<CommercialOffer>().SingleOrDefaultAsync(x => x.Id == command.OfferId, cancellationToken);
+        if (offer is null)
+        {
+            return Error.NotFound("Catalog.OfferNotFound", "Offer does not exist.");
+        }
 
-        await ValidateTaxonomyAsync(command.Condition, cancellationToken);
+        var taxonomy = await ValidateTaxonomyAsync(command.Condition, cancellationToken);
+        if (taxonomy.IsError)
+        {
+            return taxonomy.Errors;
+        }
 
         var duplicate = await dbContext.Set<PriceRule>()
             .Where(x => x.RuleSetId == command.RuleSetId && x.OfferId == command.OfferId)
@@ -89,7 +97,13 @@ public sealed class CatalogPricingQueries(AppDbContext dbContext, IPetTaxonomyVa
 
         if (duplicate)
         {
-            throw new InvalidOperationException("An equivalent price rule already exists in this rule set for the same offer and condition combination.");
+            return Error.Conflict("Catalog.DuplicatePriceRule", "An equivalent price rule already exists in this rule set for the same offer and condition combination.");
+        }
+
+        var currency = NormalizeCurrency(command.Currency);
+        if (currency.IsError)
+        {
+            return currency.Errors;
         }
 
         var utcNow = DateTime.UtcNow;
@@ -102,7 +116,7 @@ public sealed class CatalogPricingQueries(AppDbContext dbContext, IPetTaxonomyVa
             SpecificityScore = CalculateSpecificity(command.Condition),
             ActionType = PriceRuleActionTypes.FixedAmount,
             FixedAmount = command.FixedAmount,
-            Currency = NormalizeCurrency(command.Currency),
+            Currency = currency.Value,
             CreatedAtUtc = utcNow
         };
 
@@ -124,23 +138,23 @@ public sealed class CatalogPricingQueries(AppDbContext dbContext, IPetTaxonomyVa
         return MapPriceRule(rule, condition, offer);
     }
 
-    public async Task<PriceRuleSetView?> PublishPriceRuleSetAsync(Guid ruleSetId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<PriceRuleSetView>> PublishPriceRuleSetAsync(Guid ruleSetId, CancellationToken cancellationToken)
     {
         var ruleSet = await dbContext.Set<PriceRuleSet>().SingleOrDefaultAsync(x => x.Id == ruleSetId, cancellationToken);
         if (ruleSet is null)
         {
-            return null;
+            return Error.NotFound("Catalog.PriceRuleSetNotFound", "Price rule set does not exist.");
         }
 
         if (!string.Equals(ruleSet.Status, RuleSetStatusCodes.Draft, StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidOperationException("Only draft price rule sets can be published.");
+            return Error.Conflict("Catalog.PriceRuleSetNotDraft", "Only draft price rule sets can be published.");
         }
 
         var hasRules = await dbContext.Set<PriceRule>().AnyAsync(x => x.RuleSetId == ruleSetId, cancellationToken);
         if (!hasRules)
         {
-            throw new InvalidOperationException("A price rule set must contain at least one rule before publication.");
+            return Error.Validation("Catalog.PriceRuleSetEmpty", "A price rule set must contain at least one rule before publication.");
         }
 
         var publishedSets = await dbContext.Set<PriceRuleSet>()
@@ -209,23 +223,30 @@ public sealed class CatalogPricingQueries(AppDbContext dbContext, IPetTaxonomyVa
         return new DurationRuleSetView(entity.Id, entity.VersionNo, entity.Status, entity.ValidFromUtc, entity.ValidToUtc, entity.CreatedAtUtc, entity.PublishedAtUtc, []);
     }
 
-    public async Task<DurationRuleView?> CreateDurationRuleAsync(CreateDurationRuleCommand command, CancellationToken cancellationToken)
+    public async Task<ErrorOr<DurationRuleView>> CreateDurationRuleAsync(CreateDurationRuleCommand command, CancellationToken cancellationToken)
     {
         var ruleSet = await dbContext.Set<DurationRuleSet>().SingleOrDefaultAsync(x => x.Id == command.RuleSetId, cancellationToken);
         if (ruleSet is null)
         {
-            return null;
+            return Error.NotFound("Catalog.DurationRuleSetNotFound", "Duration rule set does not exist.");
         }
 
         if (!string.Equals(ruleSet.Status, RuleSetStatusCodes.Draft, StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidOperationException("Duration rules can only be added to draft rule sets.");
+            return Error.Conflict("Catalog.DurationRuleSetNotDraft", "Duration rules can only be added to draft rule sets.");
         }
 
-        var offer = await dbContext.Set<CommercialOffer>().SingleOrDefaultAsync(x => x.Id == command.OfferId, cancellationToken)
-            ?? throw new InvalidOperationException("Offer does not exist.");
+        var offer = await dbContext.Set<CommercialOffer>().SingleOrDefaultAsync(x => x.Id == command.OfferId, cancellationToken);
+        if (offer is null)
+        {
+            return Error.NotFound("Catalog.OfferNotFound", "Offer does not exist.");
+        }
 
-        await ValidateTaxonomyAsync(command.Condition, cancellationToken);
+        var taxonomy = await ValidateTaxonomyAsync(command.Condition, cancellationToken);
+        if (taxonomy.IsError)
+        {
+            return taxonomy.Errors;
+        }
 
         var duplicate = await dbContext.Set<DurationRule>()
             .Where(x => x.RuleSetId == command.RuleSetId && x.OfferId == command.OfferId)
@@ -239,7 +260,7 @@ public sealed class CatalogPricingQueries(AppDbContext dbContext, IPetTaxonomyVa
 
         if (duplicate)
         {
-            throw new InvalidOperationException("An equivalent duration rule already exists in this rule set for the same offer and condition combination.");
+            return Error.Conflict("Catalog.DuplicateDurationRule", "An equivalent duration rule already exists in this rule set for the same offer and condition combination.");
         }
 
         var utcNow = DateTime.UtcNow;
@@ -274,23 +295,23 @@ public sealed class CatalogPricingQueries(AppDbContext dbContext, IPetTaxonomyVa
         return MapDurationRule(rule, condition, offer);
     }
 
-    public async Task<DurationRuleSetView?> PublishDurationRuleSetAsync(Guid ruleSetId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<DurationRuleSetView>> PublishDurationRuleSetAsync(Guid ruleSetId, CancellationToken cancellationToken)
     {
         var ruleSet = await dbContext.Set<DurationRuleSet>().SingleOrDefaultAsync(x => x.Id == ruleSetId, cancellationToken);
         if (ruleSet is null)
         {
-            return null;
+            return Error.NotFound("Catalog.DurationRuleSetNotFound", "Duration rule set does not exist.");
         }
 
         if (!string.Equals(ruleSet.Status, RuleSetStatusCodes.Draft, StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidOperationException("Only draft duration rule sets can be published.");
+            return Error.Conflict("Catalog.DurationRuleSetNotDraft", "Only draft duration rule sets can be published.");
         }
 
         var hasRules = await dbContext.Set<DurationRule>().AnyAsync(x => x.RuleSetId == ruleSetId, cancellationToken);
         if (!hasRules)
         {
-            throw new InvalidOperationException("A duration rule set must contain at least one rule before publication.");
+            return Error.Validation("Catalog.DurationRuleSetEmpty", "A duration rule set must contain at least one rule before publication.");
         }
 
         var publishedSets = await dbContext.Set<DurationRuleSet>()
@@ -320,32 +341,34 @@ public sealed class CatalogPricingQueries(AppDbContext dbContext, IPetTaxonomyVa
         return ruleSets.Single(x => x.Id == ruleSetId);
     }
 
-    private async Task ValidateTaxonomyAsync(RuleConditionInput condition, CancellationToken cancellationToken)
+    private async Task<ErrorOr<RuleConditionInput>> ValidateTaxonomyAsync(RuleConditionInput condition, CancellationToken cancellationToken)
     {
         if (condition.AnimalTypeId is not null && !await petTaxonomyValidationService.AnimalTypeExistsAsync(condition.AnimalTypeId.Value, cancellationToken))
         {
-            throw new InvalidOperationException("Animal type does not exist.");
+            return Error.NotFound("Catalog.AnimalTypeNotFound", "Animal type does not exist.");
         }
 
         if (condition.BreedId is not null && !await petTaxonomyValidationService.BreedExistsAsync(condition.BreedId.Value, cancellationToken))
         {
-            throw new InvalidOperationException("Breed does not exist.");
+            return Error.NotFound("Catalog.BreedNotFound", "Breed does not exist.");
         }
 
         if (condition.BreedGroupId is not null && !await petTaxonomyValidationService.BreedGroupExistsAsync(condition.BreedGroupId.Value, cancellationToken))
         {
-            throw new InvalidOperationException("Breed group does not exist.");
+            return Error.NotFound("Catalog.BreedGroupNotFound", "Breed group does not exist.");
         }
 
         if (condition.CoatTypeId is not null && !await petTaxonomyValidationService.CoatTypeExistsAsync(condition.CoatTypeId.Value, cancellationToken))
         {
-            throw new InvalidOperationException("Coat type does not exist.");
+            return Error.NotFound("Catalog.CoatTypeNotFound", "Coat type does not exist.");
         }
 
         if (condition.SizeCategoryId is not null && !await petTaxonomyValidationService.SizeCategoryExistsAsync(condition.SizeCategoryId.Value, cancellationToken))
         {
-            throw new InvalidOperationException("Size category does not exist.");
+            return Error.NotFound("Catalog.SizeCategoryNotFound", "Size category does not exist.");
         }
+
+        return condition;
     }
 
     private static int CalculateSpecificity(RuleConditionInput condition)
@@ -362,12 +385,12 @@ public sealed class CatalogPricingQueries(AppDbContext dbContext, IPetTaxonomyVa
         return values.Count(x => x.HasValue);
     }
 
-    private static string NormalizeCurrency(string currency)
+    private static ErrorOr<string> NormalizeCurrency(string currency)
     {
         var normalized = currency.Trim().ToUpperInvariant();
         if (string.IsNullOrWhiteSpace(normalized))
         {
-            throw new InvalidOperationException("Currency is required.");
+            return Error.Validation("Catalog.CurrencyRequired", "Currency is required.");
         }
 
         return normalized;

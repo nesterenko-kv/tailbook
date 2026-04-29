@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Catalog.Application;
 using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
@@ -18,32 +19,24 @@ public sealed class CreateDurationRuleEndpoint(CatalogPricingQueries pricingQuer
 
     public override async Task HandleAsync(CreateDurationRuleRequest req, CancellationToken ct)
     {
-        try
-        {
-            var result = await pricingQueries.CreateDurationRuleAsync(
-                new CreateDurationRuleCommand(
-                    req.RuleSetId,
-                    req.OfferId,
-                    req.Priority,
-                    req.BaseMinutes,
-                    req.BufferBeforeMinutes,
-                    req.BufferAfterMinutes,
-                    new RuleConditionInput(req.AnimalTypeId, req.BreedId, req.BreedGroupId, req.CoatTypeId, req.SizeCategoryId)),
-                ct);
+        var result = await pricingQueries.CreateDurationRuleAsync(
+            new CreateDurationRuleCommand(
+                req.RuleSetId,
+                req.OfferId,
+                req.Priority,
+                req.BaseMinutes,
+                req.BufferBeforeMinutes,
+                req.BufferAfterMinutes,
+                new RuleConditionInput(req.AnimalTypeId, req.BreedId, req.BreedGroupId, req.CoatTypeId, req.SizeCategoryId)),
+            ct);
 
-            if (result is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
-
-            await Send.ResponseAsync(CreateDurationRuleResponse.FromView(result), StatusCodes.Status201Created, ct);
-        }
-        catch (InvalidOperationException exception)
+        if (result.IsError)
         {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
+
+        await Send.ResponseAsync(CreateDurationRuleResponse.FromView(result.Value), StatusCodes.Status201Created, ct);
     }
 }
 

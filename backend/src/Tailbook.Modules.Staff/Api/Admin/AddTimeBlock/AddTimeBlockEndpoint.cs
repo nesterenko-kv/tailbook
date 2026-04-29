@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Staff.Application;
 
 namespace Tailbook.Modules.Staff.Api.Admin.AddTimeBlock;
@@ -17,31 +18,24 @@ public sealed class AddTimeBlockEndpoint(StaffQueries staffQueries)
 
     public override async Task HandleAsync(AddTimeBlockRequest req, CancellationToken ct)
     {
-        try
+        var result = await staffQueries.AddTimeBlockAsync(req.GroomerId, req.StartAtUtc, req.EndAtUtc, req.ReasonCode, req.Notes, ct);
+        if (result.IsError)
         {
-            var block = await staffQueries.AddTimeBlockAsync(req.GroomerId, req.StartAtUtc, req.EndAtUtc, req.ReasonCode, req.Notes, ct);
-            if (block is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
 
-            await Send.ResponseAsync(new AddTimeBlockResponse
-            {
-                Id = block.Id,
-                GroomerId = block.GroomerId,
-                StartAtUtc = block.StartAtUtc,
-                EndAtUtc = block.EndAtUtc,
-                ReasonCode = block.ReasonCode,
-                Notes = block.Notes,
-                CreatedAtUtc = block.CreatedAtUtc
-            }, StatusCodes.Status201Created, ct);
-        }
-        catch (InvalidOperationException exception)
+        var block = result.Value;
+        await Send.ResponseAsync(new AddTimeBlockResponse
         {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+            Id = block.Id,
+            GroomerId = block.GroomerId,
+            StartAtUtc = block.StartAtUtc,
+            EndAtUtc = block.EndAtUtc,
+            ReasonCode = block.ReasonCode,
+            Notes = block.Notes,
+            CreatedAtUtc = block.CreatedAtUtc
+        }, StatusCodes.Status201Created, ct);
     }
 }
 

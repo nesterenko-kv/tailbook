@@ -1,22 +1,24 @@
+using ErrorOr;
+
 namespace Tailbook.BuildingBlocks.Abstractions;
 
 public interface IStaffSchedulingService
 {
-    Task<ReservedDurationResolution> ResolveReservedDurationAsync(
+    Task<ErrorOr<ReservedDurationResolution>> ResolveReservedDurationAsync(
         Guid groomerId,
         Guid petId,
         IReadOnlyCollection<Guid> offerIds,
         int baseReservedMinutes,
         CancellationToken cancellationToken);
 
-    Task<ReservedDurationResolution> ResolveReservedDurationAsync(
+    Task<ErrorOr<ReservedDurationResolution>> ResolveReservedDurationAsync(
         Guid groomerId,
         PetQuoteProfile pet,
         IReadOnlyCollection<Guid> offerIds,
         int baseReservedMinutes,
         CancellationToken cancellationToken);
 
-    Task<GroomerAvailabilityCheckResult> CheckAvailabilityAsync(
+    Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(
         Guid groomerId,
         Guid petId,
         IReadOnlyCollection<Guid> offerIds,
@@ -25,7 +27,7 @@ public interface IStaffSchedulingService
         Guid? ignoredAppointmentId,
         CancellationToken cancellationToken);
 
-    Task<GroomerAvailabilityCheckResult> CheckAvailabilityAsync(
+    Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(
         Guid groomerId,
         PetQuoteProfile pet,
         IReadOnlyCollection<Guid> offerIds,
