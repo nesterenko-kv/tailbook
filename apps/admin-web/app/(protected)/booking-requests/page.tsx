@@ -23,7 +23,6 @@ export default function BookingRequestsPage() {
   const [offers, setOffers] = useState<OfferListItem[]>([]);
   const [clients, setClients] = useState<{ id: string; displayName: string }[]>([]);
   const [selectedClient, setSelectedClient] = useState<ClientDetail | null>(null);
-  const [attachClientDetail, setAttachClientDetail] = useState<ClientDetail | null>(null);
   const [groomers, setGroomers] = useState<GroomerListItem[]>([]);
   const [selectedRequestId, setSelectedRequestId] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<BookingRequestDetail | null>(null);

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { getRecentVisitIds } from "@/lib/recent";
-import { Card, EmptyState, Field, Input, LinkButton, PageHeader, PrimaryButton } from "@/components/ui";
+import { Card, EmptyState, Field, Input, LinkButton, PageHeader } from "@/components/ui";
 
 export default function VisitsPage() {
   const [visitId, setVisitId] = useState("");

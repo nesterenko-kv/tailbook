@@ -14,7 +14,7 @@ import { SlotButton } from "@/components/slot-button";
 import { ArrowLeftIcon, ArrowRightIcon, CalendarIcon, SparklesIcon } from "@/components/icons";
 import { Button, Card } from "@/components/ui";
 import { useClientBooking } from "@/lib/client-booking-context";
-import { buildPreferredTimes, extractUniqueSlots, formatDateLong, mergeGroomerCardData, resolveOffersFromTemplates, slotKey, slotLabelFromUtc, toPublicPetPayload } from "@/lib/booking-helpers";
+import { extractUniqueSlots, formatDateLong, mergeGroomerCardData, resolveOffersFromTemplates, slotKey, slotLabelFromUtc, toPublicPetPayload } from "@/lib/booking-helpers";
 import { groomerProfiles, serviceTemplates } from "@/lib/display-data";
 
 function todayLocalDate() {

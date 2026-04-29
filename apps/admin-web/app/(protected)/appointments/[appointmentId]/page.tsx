@@ -3,7 +3,6 @@
 import { unwrapItems } from "@/lib/contracts";
 import type { AppointmentDetail, GroomerListItem, GroomerListResponse } from "@/lib/types";
 import { FormEvent, useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { apiRequest, ApiError } from "@/lib/api";
 import { addRecentVisitId } from "@/lib/recent";

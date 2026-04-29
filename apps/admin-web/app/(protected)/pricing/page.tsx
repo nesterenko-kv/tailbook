@@ -11,7 +11,6 @@ import type {
     DurationRuleSetListResponse,
     OfferListItem,
     PagedResult,
-    PetCatalog,
     PriceRuleSet,
     PriceRuleSetListResponse,
     QuotePreview,
@@ -24,7 +23,6 @@ export default function PricingPage() {
     const [offers, setOffers] = useState<OfferListItem[]>([]);
     const [clients, setClients] = useState<ClientListItem[]>([]);
     const [groomers, setGroomers] = useState<GroomerListItem[]>([]);
-    const [catalog, setCatalog] = useState<PetCatalog | null>(null);
     const [selectedClient, setSelectedClient] = useState<ClientDetail | null>(null);
     const [priceRuleSets, setPriceRuleSets] = useState<PriceRuleSet[]>([]);
     const [durationRuleSets, setDurationRuleSets] = useState<DurationRuleSet[]>([]);
@@ -39,11 +37,10 @@ export default function PricingPage() {
 
     async function loadAll() {
         try {
-            const [offerResponse, clientResponse, groomerResponse, catalogResponse, priceResponse, durationResponse] = await Promise.all([
+            const [offerResponse, clientResponse, groomerResponse, priceResponse, durationResponse] = await Promise.all([
                 apiRequest<OfferListItem[]>("/api/admin/catalog/offers"),
                 apiRequest<PagedResult<ClientListItem>>("/api/admin/clients?page=1&pageSize=100"),
                 apiRequest<GroomerListResponse>("/api/admin/groomers"),
-                apiRequest<PetCatalog>("/api/admin/pets/catalog"),
                 apiRequest<PriceRuleSetListResponse>("/api/admin/pricing/rule-sets"),
                 apiRequest<DurationRuleSetListResponse>("/api/admin/duration/rule-sets")
             ]);
@@ -55,7 +52,6 @@ export default function PricingPage() {
             setOffers(offerResponse);
             setClients(clientResponse.items);
             setGroomers(groomerItems);
-            setCatalog(catalogResponse);
             setPriceRuleSets(priceRuleSetItems);
             setDurationRuleSets(durationRuleSetItems);
     
