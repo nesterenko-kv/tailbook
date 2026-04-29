@@ -85,6 +85,8 @@ public static class BookingModelConfiguration
             builder.HasIndex(x => new { x.GroomerId, x.StartAtUtc, x.EndAtUtc });
             builder.HasIndex(x => new { x.Status, x.StartAtUtc });
             builder.HasIndex(x => x.BookingRequestId).IsUnique(false);
+            builder.HasMany(x => x.Items).WithOne().HasForeignKey(x => x.AppointmentId).OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(x => x.Items).UsePropertyAccessMode(PropertyAccessMode.Field);
         });
 
         modelBuilder.Entity<AppointmentItem>(builder =>
@@ -95,7 +97,6 @@ public static class BookingModelConfiguration
             builder.Property(x => x.OfferCodeSnapshot).HasMaxLength(64).IsRequired();
             builder.Property(x => x.OfferDisplayNameSnapshot).HasMaxLength(200).IsRequired();
             builder.Property(x => x.Quantity).IsRequired();
-            builder.HasOne<Appointment>().WithMany().HasForeignKey(x => x.AppointmentId).OnDelete(DeleteBehavior.Cascade);
             builder.HasIndex(x => x.AppointmentId);
             builder.HasIndex(x => x.PriceSnapshotId);
             builder.HasIndex(x => x.DurationSnapshotId);

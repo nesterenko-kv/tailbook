@@ -334,37 +334,25 @@ public sealed class BookingManagementQueries(
 
         var utcNow = DateTime.UtcNow;
         var actorGuid = ParseGuid(actorUserId);
-        var appointment = new Appointment
-        {
-            Id = Guid.NewGuid(),
-            BookingRequestId = bookingRequestId,
-            PetId = petId,
-            GroomerId = groomerId,
-            StartAtUtc = composition.StartAtUtc,
-            EndAtUtc = composition.EndAtUtc,
-            Status = AppointmentStatusCodes.Confirmed,
-            VersionNo = 1,
-            CreatedByUserId = actorGuid,
-            UpdatedByUserId = actorGuid,
-            CreatedAtUtc = utcNow,
-            UpdatedAtUtc = utcNow
-        };
+        var appointment = Appointment.Create(
+            Guid.NewGuid(),
+            bookingRequestId,
+            petId,
+            groomerId,
+            new BookingPeriod(composition.StartAtUtc, composition.EndAtUtc),
+            composition.Items.Select(x => new AppointmentItemDraft(
+                x.OfferType,
+                x.OfferId,
+                x.OfferVersionId,
+                x.OfferCode,
+                x.DisplayName,
+                1,
+                x.PriceSnapshot.Id,
+                x.DurationSnapshot.Id)).ToArray(),
+            actorGuid,
+            utcNow);
 
         dbContext.Set<Appointment>().Add(appointment);
-        dbContext.Set<AppointmentItem>().AddRange(composition.Items.Select(x => new AppointmentItem
-        {
-            Id = Guid.NewGuid(),
-            AppointmentId = appointment.Id,
-            ItemType = x.OfferType,
-            OfferId = x.OfferId,
-            OfferVersionId = x.OfferVersionId,
-            OfferCodeSnapshot = x.OfferCode,
-            OfferDisplayNameSnapshot = x.DisplayName,
-            Quantity = 1,
-            PriceSnapshotId = x.PriceSnapshot.Id,
-            DurationSnapshotId = x.DurationSnapshot.Id,
-            CreatedAtUtc = utcNow
-        }));
 
         await outboxPublisher.PublishAsync("booking", "AppointmentCreated", new
         {
@@ -498,7 +486,7 @@ public sealed class BookingManagementQueries(
         }
 
         EnsureVersion(appointment, command.ExpectedVersionNo);
-        EnsureMutable(appointment);
+        appointment.EnsureCanBeRescheduled();
 
         var items = await dbContext.Set<AppointmentItem>()
             .Where(x => x.AppointmentId == appointment.Id)
@@ -537,13 +525,11 @@ public sealed class BookingManagementQueries(
             throw new InvalidOperationException(string.Join(" ", availability.Reasons));
         }
 
-        appointment.GroomerId = command.GroomerId;
-        appointment.StartAtUtc = DateTime.SpecifyKind(command.StartAtUtc, DateTimeKind.Utc);
-        appointment.EndAtUtc = availability.EndAtUtc;
-        appointment.Status = AppointmentStatusCodes.Rescheduled;
-        appointment.VersionNo += 1;
-        appointment.UpdatedAtUtc = DateTime.UtcNow;
-        appointment.UpdatedByUserId = ParseGuid(actorUserId);
+        appointment.Reschedule(
+            command.GroomerId,
+            new BookingPeriod(DateTime.SpecifyKind(command.StartAtUtc, DateTimeKind.Utc), availability.EndAtUtc),
+            ParseGuid(actorUserId),
+            DateTime.UtcNow);
 
         await outboxPublisher.PublishAsync("booking", "AppointmentRescheduled", new
         {
@@ -567,15 +553,9 @@ public sealed class BookingManagementQueries(
         }
 
         EnsureVersion(appointment, command.ExpectedVersionNo);
-        EnsureMutable(appointment);
+        appointment.EnsureCanBeCancelled();
 
-        appointment.Status = AppointmentStatusCodes.Cancelled;
-        appointment.CancellationReasonCode = NormalizeReasonCode(command.ReasonCode);
-        appointment.CancellationNotes = NormalizeOptional(command.Notes);
-        appointment.CancelledAtUtc = DateTime.UtcNow;
-        appointment.VersionNo += 1;
-        appointment.UpdatedAtUtc = DateTime.UtcNow;
-        appointment.UpdatedByUserId = ParseGuid(actorUserId);
+        appointment.Cancel(command.ReasonCode, command.Notes, ParseGuid(actorUserId), DateTime.UtcNow);
 
         await outboxPublisher.PublishAsync("booking", "AppointmentCancelled", new
         {
@@ -641,34 +621,15 @@ public sealed class BookingManagementQueries(
 
     private static void EnsureVersion(Appointment appointment, int expectedVersionNo)
     {
-        if (appointment.VersionNo != expectedVersionNo)
+        if (!appointment.HasVersion(expectedVersionNo))
         {
             throw new BookingConcurrencyException($"Appointment version mismatch. Expected {expectedVersionNo}, actual {appointment.VersionNo}.");
-        }
-    }
-
-    private static void EnsureMutable(Appointment appointment)
-    {
-        if (appointment.Status == AppointmentStatusCodes.Cancelled || appointment.Status == AppointmentStatusCodes.Closed)
-        {
-            throw new InvalidOperationException("Appointment is not mutable in its current status.");
         }
     }
 
     private static string? NormalizeOptional(string? value)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    }
-
-    private static string NormalizeReasonCode(string reasonCode)
-    {
-        var normalized = reasonCode.Trim();
-        if (string.IsNullOrWhiteSpace(normalized))
-        {
-            throw new InvalidOperationException("Cancellation reason code is required.");
-        }
-
-        return normalized.ToUpperInvariant();
     }
 
     private static string NormalizeStatus(string? status, string fallback)

@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.Booking.Contracts;
 using Tailbook.Modules.Booking.Domain;
 
 namespace Tailbook.Modules.Booking.Application;
@@ -91,62 +90,25 @@ public sealed class AppointmentVisitService(AppDbContext dbContext) : IAppointme
     public async Task MarkCheckedInAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
     {
         var appointment = await LoadAsync(appointmentId, cancellationToken);
-        if (appointment.Status is not AppointmentStatusCodes.Confirmed and not AppointmentStatusCodes.Rescheduled)
-        {
-            throw new InvalidOperationException("Appointment is not eligible for check-in.");
-        }
-
-        appointment.Status = AppointmentStatusCodes.CheckedIn;
-        appointment.VersionNo += 1;
-        appointment.UpdatedAtUtc = DateTime.UtcNow;
-        appointment.UpdatedByUserId = actorUserId;
+        appointment.MarkCheckedIn(actorUserId, DateTime.UtcNow);
     }
 
     public async Task MarkInProgressAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
     {
         var appointment = await LoadAsync(appointmentId, cancellationToken);
-        if (appointment.Status == AppointmentStatusCodes.InProgress)
-        {
-            return;
-        }
-
-        if (appointment.Status != AppointmentStatusCodes.CheckedIn)
-        {
-            throw new InvalidOperationException("Appointment is not eligible to enter in-progress state.");
-        }
-
-        appointment.Status = AppointmentStatusCodes.InProgress;
-        appointment.VersionNo += 1;
-        appointment.UpdatedAtUtc = DateTime.UtcNow;
-        appointment.UpdatedByUserId = actorUserId;
+        appointment.MarkInProgress(actorUserId, DateTime.UtcNow);
     }
 
     public async Task MarkCompletedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
     {
         var appointment = await LoadAsync(appointmentId, cancellationToken);
-        if (appointment.Status is not AppointmentStatusCodes.CheckedIn and not AppointmentStatusCodes.InProgress)
-        {
-            throw new InvalidOperationException("Appointment is not eligible for completion.");
-        }
-
-        appointment.Status = AppointmentStatusCodes.Completed;
-        appointment.VersionNo += 1;
-        appointment.UpdatedAtUtc = DateTime.UtcNow;
-        appointment.UpdatedByUserId = actorUserId;
+        appointment.MarkCompleted(actorUserId, DateTime.UtcNow);
     }
 
     public async Task MarkClosedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
     {
         var appointment = await LoadAsync(appointmentId, cancellationToken);
-        if (appointment.Status != AppointmentStatusCodes.Completed)
-        {
-            throw new InvalidOperationException("Appointment is not eligible for closure.");
-        }
-
-        appointment.Status = AppointmentStatusCodes.Closed;
-        appointment.VersionNo += 1;
-        appointment.UpdatedAtUtc = DateTime.UtcNow;
-        appointment.UpdatedByUserId = actorUserId;
+        appointment.MarkClosed(actorUserId, DateTime.UtcNow);
     }
 
     private async Task<Appointment> LoadAsync(Guid appointmentId, CancellationToken cancellationToken)
