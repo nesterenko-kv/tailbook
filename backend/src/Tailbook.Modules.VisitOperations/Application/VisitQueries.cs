@@ -32,40 +32,30 @@ public sealed class VisitQueries(
         await appointmentVisitService.MarkCheckedInAsync(appointmentId, actorUserId, cancellationToken);
 
         var utcNow = DateTime.UtcNow;
-        var visit = new Visit
-        {
-            Id = Guid.NewGuid(),
-            AppointmentId = appointmentId,
-            Status = VisitStatusCodes.Open,
-            CheckedInAtUtc = utcNow,
-            CreatedByUserId = actorUserId,
-            UpdatedByUserId = actorUserId,
-            CreatedAtUtc = utcNow,
-            UpdatedAtUtc = utcNow
-        };
+        var visit = Visit.CheckIn(
+            Guid.NewGuid(),
+            appointmentId,
+            appointment.Items.Select(x => new VisitExecutionItemDraft(
+                x.AppointmentItemId,
+                x.ItemType,
+                x.OfferId,
+                x.OfferVersionId,
+                x.OfferCode,
+                x.OfferDisplayName,
+                x.Quantity,
+                x.PriceAmount,
+                x.ServiceMinutes,
+                x.ReservedMinutes)).ToArray(),
+            actorUserId,
+            utcNow);
 
         dbContext.Set<Visit>().Add(visit);
-        dbContext.Set<VisitExecutionItem>().AddRange(appointment.Items.Select(x => new VisitExecutionItem
-        {
-            Id = Guid.NewGuid(),
-            VisitId = visit.Id,
-            AppointmentItemId = x.AppointmentItemId,
-            ItemType = x.ItemType,
-            OfferId = x.OfferId,
-            OfferVersionId = x.OfferVersionId,
-            OfferCodeSnapshot = x.OfferCode,
-            OfferDisplayNameSnapshot = x.OfferDisplayName,
-            Quantity = x.Quantity,
-            PriceAmountSnapshot = x.PriceAmount,
-            ServiceMinutesSnapshot = x.ServiceMinutes,
-            ReservedMinutesSnapshot = x.ReservedMinutes,
-            CreatedAtUtc = utcNow
-        }));
 
         await outboxPublisher.PublishAsync("visitops", "VisitCheckedIn", new
         {
             visitId = visit.Id,
             appointmentId = visit.AppointmentId,
+            status = visit.Status,
             checkedInAtUtc = visit.CheckedInAtUtc
         }, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -257,49 +247,37 @@ public sealed class VisitQueries(
 
     public async Task<VisitDetailView?> RecordPerformedProcedureAsync(Guid visitId, Guid visitExecutionItemId, Guid procedureId, string? note, Guid? actorUserId, CancellationToken cancellationToken)
     {
-        var visit = await LoadVisitAsync(visitId, cancellationToken);
-        EnsureEditable(visit);
-
-        var executionItem = await dbContext.Set<VisitExecutionItem>()
-            .SingleOrDefaultAsync(x => x.Id == visitExecutionItemId && x.VisitId == visitId, cancellationToken)
-            ?? throw new InvalidOperationException("Visit execution item does not exist.");
-
-        var exists = await dbContext.Set<VisitPerformedProcedure>()
-            .AnyAsync(x => x.VisitExecutionItemId == visitExecutionItemId && x.ProcedureId == procedureId, cancellationToken);
-        if (exists)
-        {
-            throw new InvalidOperationException("Procedure has already been recorded for this execution item.");
-        }
+        var visit = await LoadVisitAggregateAsync(visitId, cancellationToken);
+        var wasOpen = visit.Status == VisitStatusCodes.Open;
 
         var procedure = await visitCatalogReadService.GetProcedureAsync(procedureId, cancellationToken)
             ?? throw new InvalidOperationException("Procedure does not exist.");
 
-        dbContext.Set<VisitPerformedProcedure>().Add(new VisitPerformedProcedure
-        {
-            Id = Guid.NewGuid(),
-            VisitExecutionItemId = executionItem.Id,
-            ProcedureId = procedure.Id,
-            ProcedureCodeSnapshot = procedure.Code,
-            ProcedureNameSnapshot = procedure.Name,
-            Status = ProcedureExecutionStatusCodes.Performed,
-            Note = NormalizeOptional(note),
-            RecordedByUserId = actorUserId,
-            RecordedAtUtc = DateTime.UtcNow
-        });
+        var performedProcedure = visit.RecordPerformedProcedure(
+            visitExecutionItemId,
+            new VisitPerformedProcedureDraft(
+                procedure.Id,
+                procedure.Code,
+                procedure.Name,
+                note),
+            actorUserId,
+            DateTime.UtcNow);
+        dbContext.Set<VisitPerformedProcedure>().Add(performedProcedure);
 
-        await EnsureInProgressAsync(visit, actorUserId, cancellationToken);
+        if (wasOpen && visit.Status == VisitStatusCodes.InProgress)
+        {
+            await appointmentVisitService.MarkInProgressAsync(visit.AppointmentId, actorUserId, cancellationToken);
+        }
+
         await dbContext.SaveChangesAsync(cancellationToken);
         return await GetVisitAsync(visitId, actorUserId, cancellationToken);
     }
 
     public async Task<VisitDetailView?> RecordSkippedComponentAsync(Guid visitId, Guid visitExecutionItemId, Guid offerVersionComponentId, string omissionReasonCode, string? note, Guid? actorUserId, CancellationToken cancellationToken)
     {
-        var visit = await LoadVisitAsync(visitId, cancellationToken);
-        EnsureEditable(visit);
-
-        var executionItem = await dbContext.Set<VisitExecutionItem>()
-            .SingleOrDefaultAsync(x => x.Id == visitExecutionItemId && x.VisitId == visitId, cancellationToken)
-            ?? throw new InvalidOperationException("Visit execution item does not exist.");
+        var visit = await LoadVisitAggregateAsync(visitId, cancellationToken);
+        var wasOpen = visit.Status == VisitStatusCodes.Open;
+        var executionItem = visit.GetExecutionItem(visitExecutionItemId);
 
         var component = await visitCatalogReadService.GetComponentAsync(offerVersionComponentId, cancellationToken)
             ?? throw new InvalidOperationException("Offer version component does not exist.");
@@ -314,105 +292,64 @@ public sealed class VisitQueries(
             throw new InvalidOperationException("Only included components can be marked as skipped.");
         }
 
-        var exists = await dbContext.Set<VisitSkippedComponent>()
-            .AnyAsync(x => x.VisitExecutionItemId == visitExecutionItemId && x.OfferVersionComponentId == offerVersionComponentId, cancellationToken);
-        if (exists)
+        var skippedComponent = visit.RecordSkippedComponent(
+            visitExecutionItemId,
+            new VisitSkippedComponentDraft(
+                component.Id,
+                component.ProcedureId,
+                component.ProcedureCode,
+                component.ProcedureName,
+                omissionReasonCode,
+                note),
+            actorUserId,
+            DateTime.UtcNow);
+        dbContext.Set<VisitSkippedComponent>().Add(skippedComponent);
+
+        if (wasOpen && visit.Status == VisitStatusCodes.InProgress)
         {
-            throw new InvalidOperationException("Component has already been marked as skipped for this execution item.");
+            await appointmentVisitService.MarkInProgressAsync(visit.AppointmentId, actorUserId, cancellationToken);
         }
 
-        dbContext.Set<VisitSkippedComponent>().Add(new VisitSkippedComponent
-        {
-            Id = Guid.NewGuid(),
-            VisitExecutionItemId = executionItem.Id,
-            OfferVersionComponentId = component.Id,
-            ProcedureId = component.ProcedureId,
-            ProcedureCodeSnapshot = component.ProcedureCode,
-            ProcedureNameSnapshot = component.ProcedureName,
-            OmissionReasonCode = NormalizeRequiredCode(omissionReasonCode, "Omission reason code is required."),
-            Note = NormalizeOptional(note),
-            RecordedByUserId = actorUserId,
-            RecordedAtUtc = DateTime.UtcNow
-        });
-
-        await EnsureInProgressAsync(visit, actorUserId, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return await GetVisitAsync(visitId, actorUserId, cancellationToken);
     }
 
     public async Task<VisitDetailView?> ApplyPriceAdjustmentAsync(Guid visitId, int sign, decimal amount, string reasonCode, string? note, Guid? actorUserId, CancellationToken cancellationToken)
     {
-        var visit = await LoadVisitAsync(visitId, cancellationToken);
-        EnsureEditable(visit, allowAwaitingFinalization: true);
-
-        if (sign is not -1 and not 1)
-        {
-            throw new InvalidOperationException("Adjustment sign must be either -1 or 1.");
-        }
-
-        if (amount <= 0)
-        {
-            throw new InvalidOperationException("Adjustment amount must be greater than zero.");
-        }
-
-        var roundedAmount = decimal.Round(amount, 2, MidpointRounding.AwayFromZero);
-        var appointmentTotal = await dbContext.Set<VisitExecutionItem>()
-            .Where(x => x.VisitId == visit.Id)
-            .SumAsync(x => x.PriceAmountSnapshot * x.Quantity, cancellationToken);
-        var existingAdjustmentTotal = await dbContext.Set<VisitPriceAdjustment>()
-            .Where(x => x.VisitId == visit.Id)
-            .SumAsync(x => x.Amount * x.Sign, cancellationToken);
-        if (appointmentTotal + existingAdjustmentTotal + (roundedAmount * sign) < 0)
-        {
-            throw new InvalidOperationException("Visit final total cannot be negative.");
-        }
-
-        dbContext.Set<VisitPriceAdjustment>().Add(new VisitPriceAdjustment
-        {
-            Id = Guid.NewGuid(),
-            VisitId = visit.Id,
-            Sign = sign,
-            Amount = roundedAmount,
-            ReasonCode = NormalizeRequiredCode(reasonCode, "Adjustment reason code is required."),
-            Note = NormalizeOptional(note),
-            CreatedByUserId = actorUserId,
-            CreatedAtUtc = DateTime.UtcNow
-        });
-
-        visit.UpdatedAtUtc = DateTime.UtcNow;
-        visit.UpdatedByUserId = actorUserId;
+        var visit = await LoadVisitAggregateAsync(visitId, cancellationToken);
+        var adjustment = visit.ApplyPriceAdjustment(
+            new VisitPriceAdjustmentDraft(sign, amount, reasonCode, note),
+            actorUserId,
+            DateTime.UtcNow);
+        dbContext.Set<VisitPriceAdjustment>().Add(adjustment);
 
         await outboxPublisher.PublishAsync("visitops", "FinalPriceAdjusted", new
         {
             visitId = visit.Id,
-            sign,
-            amount,
-            reasonCode
+            status = visit.Status,
+            sign = adjustment.Sign,
+            amount = adjustment.Amount,
+            reasonCode = adjustment.ReasonCode
         }, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
-        await auditTrailService.RecordAsync("visitops", "visit", visit.Id.ToString("D"), "APPLY_ADJUSTMENT", actorUserId, null, System.Text.Json.JsonSerializer.Serialize(new { sign, amount, reasonCode }), cancellationToken);
+        await auditTrailService.RecordAsync("visitops", "visit", visit.Id.ToString("D"), "APPLY_ADJUSTMENT", actorUserId, null, System.Text.Json.JsonSerializer.Serialize(new { adjustment.Sign, adjustment.Amount, adjustment.ReasonCode }), cancellationToken);
         return await GetVisitAsync(visitId, actorUserId, cancellationToken);
     }
 
     public async Task<VisitDetailView?> CompleteVisitAsync(Guid visitId, Guid? actorUserId, CancellationToken cancellationToken)
     {
-        var visit = await LoadVisitAsync(visitId, cancellationToken);
-        if (visit.Status is not VisitStatusCodes.Open and not VisitStatusCodes.InProgress)
-        {
-            throw new InvalidOperationException("Visit is not eligible for completion.");
-        }
+        var visit = await LoadVisitAggregateAsync(visitId, cancellationToken);
+        visit.EnsureCanBeCompleted();
         await EnsureDefaultExpectedComponentsAccountedForAsync(visit.Id, cancellationToken);
 
-        visit.Status = VisitStatusCodes.AwaitingFinalization;
-        visit.CompletedAtUtc = DateTime.UtcNow;
-        visit.UpdatedAtUtc = visit.CompletedAtUtc.Value;
-        visit.UpdatedByUserId = actorUserId;
+        visit.Complete(actorUserId, DateTime.UtcNow);
 
         await appointmentVisitService.MarkCompletedAsync(visit.AppointmentId, actorUserId, cancellationToken);
         await outboxPublisher.PublishAsync("visitops", "VisitCompleted", new
         {
             visitId = visit.Id,
             appointmentId = visit.AppointmentId,
+            status = visit.Status,
             completedAtUtc = visit.CompletedAtUtc
         }, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -422,63 +359,33 @@ public sealed class VisitQueries(
 
     public async Task<VisitDetailView?> CloseVisitAsync(Guid visitId, Guid? actorUserId, CancellationToken cancellationToken)
     {
-        var visit = await LoadVisitAsync(visitId, cancellationToken);
-        if (visit.Status != VisitStatusCodes.AwaitingFinalization)
-        {
-            throw new InvalidOperationException("Visit is not eligible for closure.");
-        }
-
-        visit.Status = VisitStatusCodes.Closed;
-        visit.ClosedAtUtc = DateTime.UtcNow;
-        visit.UpdatedAtUtc = visit.ClosedAtUtc.Value;
-        visit.UpdatedByUserId = actorUserId;
-
-        var detailPreview = await GetVisitAsync(visitId, actorUserId, cancellationToken, recordAccessAudit: false)
-            ?? throw new InvalidOperationException("Visit does not exist.");
+        var visit = await LoadVisitAggregateAsync(visitId, cancellationToken);
+        visit.Close(actorUserId, DateTime.UtcNow);
 
         await appointmentVisitService.MarkClosedAsync(visit.AppointmentId, actorUserId, cancellationToken);
         await outboxPublisher.PublishAsync("visitops", "VisitClosed", new
         {
             visitId = visit.Id,
             appointmentId = visit.AppointmentId,
-            finalTotalAmount = detailPreview.FinalTotalAmount,
+            status = visit.Status,
+            finalTotalAmount = visit.FinalTotalAmount,
             closedAtUtc = visit.ClosedAtUtc
         }, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
-        await auditTrailService.RecordAsync("visitops", "visit", visit.Id.ToString("D"), "CLOSE", actorUserId, null, System.Text.Json.JsonSerializer.Serialize(new { visit.Status, detailPreview.FinalTotalAmount }), cancellationToken);
+        await auditTrailService.RecordAsync("visitops", "visit", visit.Id.ToString("D"), "CLOSE", actorUserId, null, System.Text.Json.JsonSerializer.Serialize(new { visit.Status, visit.FinalTotalAmount }), cancellationToken);
         return await GetVisitAsync(visitId, actorUserId, cancellationToken);
     }
 
-    private async Task EnsureInProgressAsync(Visit visit, Guid? actorUserId, CancellationToken cancellationToken)
+    private async Task<Visit> LoadVisitAggregateAsync(Guid visitId, CancellationToken cancellationToken)
     {
-        if (visit.Status != VisitStatusCodes.Open)
-        {
-            return;
-        }
-
-        visit.Status = VisitStatusCodes.InProgress;
-        visit.StartedAtUtc ??= DateTime.UtcNow;
-        visit.UpdatedAtUtc = visit.StartedAtUtc.Value;
-        visit.UpdatedByUserId = actorUserId;
-        await appointmentVisitService.MarkInProgressAsync(visit.AppointmentId, actorUserId, cancellationToken);
-    }
-
-    private async Task<Visit> LoadVisitAsync(Guid visitId, CancellationToken cancellationToken)
-    {
-        return await dbContext.Set<Visit>().SingleOrDefaultAsync(x => x.Id == visitId, cancellationToken)
+        return await dbContext.Set<Visit>()
+                   .Include(x => x.ExecutionItems)
+                   .ThenInclude(x => x.PerformedProcedures)
+                   .Include(x => x.ExecutionItems)
+                   .ThenInclude(x => x.SkippedComponents)
+                   .Include(x => x.PriceAdjustments)
+                   .SingleOrDefaultAsync(x => x.Id == visitId, cancellationToken)
                ?? throw new InvalidOperationException("Visit does not exist.");
-    }
-
-    private static void EnsureEditable(Visit visit, bool allowAwaitingFinalization = false)
-    {
-        var editableStatuses = allowAwaitingFinalization
-            ? new[] { VisitStatusCodes.Open, VisitStatusCodes.InProgress, VisitStatusCodes.AwaitingFinalization }
-            : new[] { VisitStatusCodes.Open, VisitStatusCodes.InProgress };
-
-        if (!editableStatuses.Contains(visit.Status, StringComparer.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException("Visit is not editable in its current status.");
-        }
     }
 
     private async Task EnsureDefaultExpectedComponentsAccountedForAsync(Guid visitId, CancellationToken cancellationToken)
@@ -519,17 +426,6 @@ public sealed class VisitQueries(
 
     private static string? NormalizeOptional(string? value)
         => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-
-    private static string NormalizeRequiredCode(string? value, string message)
-    {
-        var normalized = NormalizeOptional(value);
-        if (normalized is null)
-        {
-            throw new InvalidOperationException(message);
-        }
-
-        return normalized.ToUpperInvariant();
-    }
 }
 
 public sealed record VisitPetView(Guid Id, string Name, string AnimalTypeCode, string AnimalTypeName, string BreedName, string? CoatTypeCode, string? SizeCategoryCode);
