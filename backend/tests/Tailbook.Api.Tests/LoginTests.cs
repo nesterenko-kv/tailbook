@@ -32,6 +32,50 @@ public sealed class LoginTests : IClassFixture<CustomWebApplicationFactory>
         Assert.Contains("iam.users.read", payload.User.Permissions);
     }
 
+    [Fact]
+    public async Task Identity_login_is_throttled_after_repeated_failures()
+    {
+        using var client = _factory.CreateClient();
+        var request = new
+        {
+            email = $"missing-{Guid.NewGuid():N}@test.local",
+            password = "WrongPassword123!"
+        };
+
+        for (var i = 0; i < CustomWebApplicationFactory.TestMaxFailedLoginAttempts; i++)
+        {
+            var failed = await client.PostAsJsonAsync("/api/identity/auth/login", request);
+            Assert.Equal(HttpStatusCode.Unauthorized, failed.StatusCode);
+        }
+
+        var throttled = await client.PostAsJsonAsync("/api/identity/auth/login", request);
+
+        Assert.Equal((HttpStatusCode)429, throttled.StatusCode);
+        Assert.NotNull(throttled.Headers.RetryAfter);
+    }
+
+    [Fact]
+    public async Task Client_login_is_throttled_after_repeated_failures()
+    {
+        using var client = _factory.CreateClient();
+        var request = new
+        {
+            email = $"client-missing-{Guid.NewGuid():N}@test.local",
+            password = "WrongPassword123!"
+        };
+
+        for (var i = 0; i < CustomWebApplicationFactory.TestMaxFailedLoginAttempts; i++)
+        {
+            var failed = await client.PostAsJsonAsync("/api/client/auth/login", request);
+            Assert.Equal(HttpStatusCode.Unauthorized, failed.StatusCode);
+        }
+
+        var throttled = await client.PostAsJsonAsync("/api/client/auth/login", request);
+
+        Assert.Equal((HttpStatusCode)429, throttled.StatusCode);
+        Assert.NotNull(throttled.Headers.RetryAfter);
+    }
+
     private sealed class LoginResponse
     {
         public string AccessToken { get; set; } = string.Empty;

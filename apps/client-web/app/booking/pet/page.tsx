@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequest, ApiError } from "@/lib/api";
 import type { CatalogBreed, ClientMeResponse, ClientPetSummary, PetCatalog } from "@/lib/types";
@@ -19,6 +19,14 @@ function inferAnimalTypeCode(breed: CatalogBreed | null, catalog: PetCatalog | n
 }
 
 export default function BookingPetPage() {
+  return (
+    <Suspense fallback={null}>
+      <BookingPetContent />
+    </Suspense>
+  );
+}
+
+function BookingPetContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { booking, patchBooking } = useClientBooking();

@@ -26,8 +26,15 @@ public sealed class IdentityModule : IModuleDefinition
             .Validate(x => !string.IsNullOrWhiteSpace(x.Password) && x.Password.Length >= 12, "BootstrapAdmin:Password must be at least 12 characters long.")
             .Validate(x => !string.IsNullOrWhiteSpace(x.DisplayName), "BootstrapAdmin:DisplayName is required.")
             .ValidateOnStart();
+        services.AddOptions<LoginThrottlingOptions>()
+            .Bind(configuration.GetSection(LoginThrottlingOptions.SectionName))
+            .Validate(x => x.MaxFailedAttempts > 0, "LoginThrottling:MaxFailedAttempts must be greater than zero.")
+            .Validate(x => x.FailureWindowMinutes > 0, "LoginThrottling:FailureWindowMinutes must be greater than zero.")
+            .Validate(x => x.LockoutMinutes > 0, "LoginThrottling:LockoutMinutes must be greater than zero.")
+            .ValidateOnStart();
         services.AddScoped<JwtTokenFactory>();
         services.AddScoped<PasswordHasher>();
+        services.AddSingleton<LoginThrottlingService>();
         services.AddScoped<IdentityQueries>();
         services.AddScoped<ClientPortalIdentityQueries>();
         services.AddScoped<IUserReferenceValidationService, IdentityReferenceServices>();

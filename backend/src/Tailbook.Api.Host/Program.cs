@@ -60,6 +60,13 @@ builder.Services
     .Bind(builder.Configuration.GetSection(HttpTransportOptions.SectionName))
     .ValidateOnStart();
 
+var mainConnectionString = builder.Configuration.GetConnectionString(DatabaseConnectionOptions.MainConnectionStringName);
+builder.Services.AddOptions<DatabaseConnectionOptions>()
+    .Configure(options => options.Main = mainConnectionString)
+    .Validate(DatabaseConnectionOptions.HasValidMainConnectionString,
+        "ConnectionStrings:Main must be a valid PostgreSQL connection string with Host, Database, and Username.")
+    .ValidateOnStart();
+
 builder.Services.AddOptions<JwtSigningOptions>()
     .Configure<IOptions<JwtOptions>>((options, jwtOptionsAccessor) =>
     {
@@ -116,7 +123,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddDbContextFactory<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Main")));
+    options.UseNpgsql(mainConnectionString));
 
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<AppDbContext>("postgresql");
@@ -179,4 +186,3 @@ app.MapGet("/", () => Results.Ok(new
 app.MapTailbookModules();
 
 app.Run();
-

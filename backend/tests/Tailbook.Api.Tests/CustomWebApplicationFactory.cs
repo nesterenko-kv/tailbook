@@ -26,6 +26,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     private const string TestJwtIssuer = "tailbook.tests";
     private const string TestJwtAudience = "tailbook.tests.clients";
     private const string TestJwtSigningKey = "test-signing-key-that-is-at-least-32chars";
+    public const int TestMaxFailedLoginAttempts = 3;
 
     private readonly string _databaseName = $"tailbook-tests-{Guid.NewGuid():N}";
     private readonly InMemoryDatabaseRoot _databaseRoot = new();
@@ -46,6 +47,9 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 ["Jwt:Audience"] = TestJwtAudience,
                 ["Jwt:SigningKey"] = TestJwtSigningKey,
                 ["Jwt:ExpirationMinutes"] = "120",
+                ["LoginThrottling:MaxFailedAttempts"] = TestMaxFailedLoginAttempts.ToString(),
+                ["LoginThrottling:FailureWindowMinutes"] = "15",
+                ["LoginThrottling:LockoutMinutes"] = "15",
                 ["Notifications:LocalFilePath"] = Path.Combine(Path.GetTempPath(), $"tailbook-test-notifications-{Guid.NewGuid():N}.log")
             });
         });

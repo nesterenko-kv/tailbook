@@ -4,6 +4,7 @@
 - JWT issuer/audience/signing key/expiry
 - CORS origin format
 - Bootstrap admin email/password/display name
+- PostgreSQL main connection string shape
 - Staff scheduling timezone presence
 - Notifications local sink path and poll interval
 
@@ -15,4 +16,3 @@
 ## Remaining follow-up
 - Add richer import validation for external datasets.
 - Add stronger domain-level validation around partial historical imports.
-- Add startup validation for connection string shape if desired.
