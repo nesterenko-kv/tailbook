@@ -41,6 +41,8 @@ public sealed class ClientLoginEndpoint(ClientPortalIdentityQueries identityQuer
         {
             AccessToken = result.AccessToken,
             ExpiresAtUtc = result.ExpiresAtUtc,
+            RefreshToken = result.RefreshToken,
+            RefreshTokenExpiresAtUtc = result.RefreshTokenExpiresAtUtc,
             User = result.User
         }, cancellation: ct);
     }
@@ -67,6 +69,8 @@ public sealed class ClientLoginResponse
 {
     public string AccessToken { get; set; } = string.Empty;
     public DateTime ExpiresAtUtc { get; set; }
+    public string RefreshToken { get; set; } = string.Empty;
+    public DateTime RefreshTokenExpiresAtUtc { get; set; }
     public AuthenticatedUserView User { get; set; } = default!;
 }
 

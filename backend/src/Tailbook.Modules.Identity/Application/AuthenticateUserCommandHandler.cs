@@ -1,6 +1,5 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Identity.Contracts;
 using Tailbook.Modules.Identity.Domain;
@@ -10,7 +9,7 @@ namespace Tailbook.Modules.Identity.Application;
 public class AuthenticateUserCommandHandler(
     AppDbContext dbContext,
     PasswordHasher passwordHasher,
-    JwtTokenFactory jwtTokenFactory
+    IdentitySessionService identitySessionService
 ) : ICommandHandler<AuthenticateUserCommand, LoginResult?>
 {
     public async Task<LoginResult?> ExecuteAsync(AuthenticateUserCommand command, CancellationToken cancellationToken)
@@ -35,14 +34,7 @@ public class AuthenticateUserCommandHandler(
         var roles = await GetRoleCodesAsync(user.Id, cancellationToken);
         var permissions = await GetPermissionCodesAsync(user.Id, cancellationToken);
 
-        var token = jwtTokenFactory.CreateToken(user.Id.ToString("D"), user.SubjectId, user.Email, user.DisplayName, roles, permissions);
-
-        return new LoginResult(
-            token.AccessToken,
-            token.ExpiresAtUtc,
-            new AuthenticatedUserView(user.Id, user.SubjectId, user.Email, user.DisplayName, user.Status, user.ClientId,
-                user.ContactPersonId, roles, permissions)
-        );
+        return await identitySessionService.CreateSessionAsync(user, roles, permissions, cancellationToken);
     }
 
     private async Task<HashSet<string>> GetRoleCodesAsync(Guid userId, CancellationToken cancellationToken)

@@ -28,8 +28,54 @@ public sealed class LoginTests : IClassFixture<CustomWebApplicationFactory>
         var payload = await response.Content.ReadFromJsonAsync<LoginResponse>();
         Assert.NotNull(payload);
         Assert.False(string.IsNullOrWhiteSpace(payload!.AccessToken));
+        Assert.False(string.IsNullOrWhiteSpace(payload.RefreshToken));
+        Assert.True(payload.RefreshTokenExpiresAtUtc > DateTime.UtcNow);
         Assert.Contains("admin", payload.User.Roles);
         Assert.Contains("iam.users.read", payload.User.Permissions);
+    }
+
+    [Fact]
+    public async Task Refresh_token_can_rotate_and_revoke_identity_session()
+    {
+        using var client = _factory.CreateClient();
+
+        var loginResponse = await client.PostAsJsonAsync("/api/identity/auth/login", new
+        {
+            email = "admin@test.local",
+            password = "MyV3ryC00lAdminP@ss"
+        });
+        loginResponse.EnsureSuccessStatusCode();
+        var loginPayload = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+
+        var refreshResponse = await client.PostAsJsonAsync("/api/identity/auth/refresh", new
+        {
+            refreshToken = loginPayload!.RefreshToken
+        });
+
+        Assert.Equal(HttpStatusCode.OK, refreshResponse.StatusCode);
+        var refreshPayload = await refreshResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        Assert.NotNull(refreshPayload);
+        Assert.False(string.IsNullOrWhiteSpace(refreshPayload!.AccessToken));
+        Assert.False(string.IsNullOrWhiteSpace(refreshPayload.RefreshToken));
+        Assert.NotEqual(loginPayload.RefreshToken, refreshPayload.RefreshToken);
+
+        var reuseResponse = await client.PostAsJsonAsync("/api/identity/auth/refresh", new
+        {
+            refreshToken = loginPayload.RefreshToken
+        });
+        Assert.Equal(HttpStatusCode.Unauthorized, reuseResponse.StatusCode);
+
+        var revokeResponse = await client.PostAsJsonAsync("/api/identity/auth/revoke", new
+        {
+            refreshToken = refreshPayload.RefreshToken
+        });
+        Assert.Equal(HttpStatusCode.NoContent, revokeResponse.StatusCode);
+
+        var revokedRefreshResponse = await client.PostAsJsonAsync("/api/identity/auth/refresh", new
+        {
+            refreshToken = refreshPayload.RefreshToken
+        });
+        Assert.Equal(HttpStatusCode.Unauthorized, revokedRefreshResponse.StatusCode);
     }
 
     [Fact]
@@ -79,6 +125,8 @@ public sealed class LoginTests : IClassFixture<CustomWebApplicationFactory>
     private sealed class LoginResponse
     {
         public string AccessToken { get; set; } = string.Empty;
+        public string RefreshToken { get; set; } = string.Empty;
+        public DateTime RefreshTokenExpiresAtUtc { get; set; }
         public LoginUserResponse User { get; set; } = new();
     }
 

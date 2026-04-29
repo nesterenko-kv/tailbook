@@ -6,5 +6,7 @@ public sealed class LoginResponse
 {
     public string AccessToken { get; set; } = string.Empty;
     public DateTime ExpiresAtUtc { get; set; }
+    public string RefreshToken { get; set; } = string.Empty;
+    public DateTime RefreshTokenExpiresAtUtc { get; set; }
     public AuthenticatedUserView User { get; set; } = new(Guid.Empty, string.Empty, string.Empty, string.Empty, string.Empty, Guid.Empty, Guid.Empty, [], []);
 }

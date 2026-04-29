@@ -32,9 +32,16 @@ public sealed class IdentityModule : IModuleDefinition
             .Validate(x => x.FailureWindowMinutes > 0, "LoginThrottling:FailureWindowMinutes must be greater than zero.")
             .Validate(x => x.LockoutMinutes > 0, "LoginThrottling:LockoutMinutes must be greater than zero.")
             .ValidateOnStart();
+        services.AddOptions<RefreshTokenOptions>()
+            .Bind(configuration.GetSection(RefreshTokenOptions.SectionName))
+            .Validate(x => x.ExpirationDays > 0, "RefreshTokens:ExpirationDays must be greater than zero.")
+            .Validate(x => x.TokenBytes >= 32, "RefreshTokens:TokenBytes must be at least 32.")
+            .ValidateOnStart();
         services.AddScoped<JwtTokenFactory>();
         services.AddScoped<PasswordHasher>();
         services.AddSingleton<LoginThrottlingService>();
+        services.AddScoped<RefreshTokenService>();
+        services.AddScoped<IdentitySessionService>();
         services.AddScoped<IdentityQueries>();
         services.AddScoped<ClientPortalIdentityQueries>();
         services.AddScoped<IUserReferenceValidationService, IdentityReferenceServices>();

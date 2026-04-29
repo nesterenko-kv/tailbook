@@ -43,6 +43,8 @@ public sealed class ClientRegisterEndpoint : Endpoint<ClientRegisterRequest, Cli
             {
                 AccessToken = result.AccessToken,
                 ExpiresAtUtc = result.ExpiresAtUtc,
+                RefreshToken = result.RefreshToken,
+                RefreshTokenExpiresAtUtc = result.RefreshTokenExpiresAtUtc,
                 User = result.User
             }, StatusCodes.Status201Created, ct);
         }
@@ -69,6 +71,8 @@ public sealed class ClientRegisterResponse
 {
     public string AccessToken { get; set; } = string.Empty;
     public DateTime ExpiresAtUtc { get; set; }
+    public string RefreshToken { get; set; } = string.Empty;
+    public DateTime RefreshTokenExpiresAtUtc { get; set; }
     public AuthenticatedUserView User { get; set; } = default!;
 }
 

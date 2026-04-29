@@ -33,8 +33,18 @@ public sealed class ClientPortalFlowTests : IClassFixture<CustomWebApplicationFa
         Assert.NotNull(registerPayload);
         Assert.NotNull(registerPayload!.User.ClientId);
         Assert.NotNull(registerPayload.User.ContactPersonId);
+        Assert.False(string.IsNullOrWhiteSpace(registerPayload.RefreshToken));
 
-        CustomWebApplicationFactory.SetBearer(client, registerPayload.AccessToken);
+        var refreshResponse = await client.PostAsJsonAsync("/api/client/auth/refresh", new
+        {
+            refreshToken = registerPayload.RefreshToken
+        });
+        Assert.Equal(HttpStatusCode.OK, refreshResponse.StatusCode);
+        var refreshPayload = await refreshResponse.Content.ReadFromJsonAsync<ClientLoginEnvelope>();
+        Assert.NotNull(refreshPayload);
+        Assert.NotEqual(registerPayload.RefreshToken, refreshPayload!.RefreshToken);
+
+        CustomWebApplicationFactory.SetBearer(client, refreshPayload.AccessToken);
         var meResponse = await client.GetAsync("/api/client/me");
         Assert.Equal(HttpStatusCode.OK, meResponse.StatusCode);
 
@@ -189,6 +199,7 @@ public sealed class ClientPortalFlowTests : IClassFixture<CustomWebApplicationFa
     private sealed class ClientLoginEnvelope
     {
         public string AccessToken { get; set; } = string.Empty;
+        public string RefreshToken { get; set; } = string.Empty;
         public ClientUserEnvelope User { get; set; } = new();
     }
 

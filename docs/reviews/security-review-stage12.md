@@ -9,10 +9,11 @@
 - Request logging avoids logging auth headers/body payloads.
 - Swagger remains development-only.
 - Login endpoints throttle repeated failed attempts by normalized email and return `429` with `Retry-After` while locked out.
+- Identity and client portal sessions issue hashed, persisted refresh tokens with rotation and revoke endpoints.
 - Separate admin/client/groomer API surfaces remain preserved.
 
 ## Remaining risks
 - Local production-like compose is HTTP-only unless a reverse proxy/TLS terminator is added.
-- Refresh tokens, password reset, and MFA are not implemented.
+- Password reset and MFA are not implemented.
 - Fine-grained per-entity permission scopes are still basic.
 - Secrets are still environment-driven; a real secret store is outside this repo.

@@ -4,6 +4,7 @@
 - JWT issuer/audience/signing key/expiry
 - CORS origin format
 - Bootstrap admin email/password/display name
+- Refresh token expiration and entropy settings
 - PostgreSQL main connection string shape
 - Staff scheduling timezone presence
 - Notifications local sink path and poll interval

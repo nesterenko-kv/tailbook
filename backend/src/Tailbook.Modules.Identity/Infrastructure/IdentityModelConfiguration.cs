@@ -29,6 +29,21 @@ public static class IdentityModelConfiguration
             builder.HasIndex(x => x.ContactPersonId);
         });
 
+        modelBuilder.Entity<IdentityRefreshToken>(builder =>
+        {
+            builder.ToTable("iam_refresh_tokens", "iam");
+            builder.HasKey(x => x.Id);
+
+            builder.Property(x => x.TokenHash).HasMaxLength(128).IsRequired();
+            builder.Property(x => x.ExpiresAtUtc).IsRequired();
+            builder.Property(x => x.CreatedAtUtc).IsRequired();
+            builder.Property(x => x.RevokedAtUtc);
+            builder.Property(x => x.ReplacedByTokenId);
+
+            builder.HasIndex(x => x.TokenHash).IsUnique();
+            builder.HasIndex(x => x.UserId);
+        });
+
         modelBuilder.Entity<IdentityRole>(builder =>
         {
             builder.ToTable("iam_roles", "iam");

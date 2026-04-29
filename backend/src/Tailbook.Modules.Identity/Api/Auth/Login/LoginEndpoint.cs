@@ -40,6 +40,8 @@ public sealed class LoginEndpoint(LoginThrottlingService loginThrottling) : Endp
         {
             AccessToken = result.AccessToken,
             ExpiresAtUtc = result.ExpiresAtUtc,
+            RefreshToken = result.RefreshToken,
+            RefreshTokenExpiresAtUtc = result.RefreshTokenExpiresAtUtc,
             User = result.User
         }, cancellation: ct);
     }
