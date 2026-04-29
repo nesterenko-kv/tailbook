@@ -110,16 +110,11 @@ public sealed class UpdateMyContactPreferencesRequestValidator : Validator<Updat
     public UpdateMyContactPreferencesRequestValidator()
     {
         RuleFor(x => x.Methods).NotEmpty();
-        RuleForEach(x => x.Methods).SetValidator(new UpdateMyContactMethodPayloadValidator());
-    }
-}
-
-public sealed class UpdateMyContactMethodPayloadValidator : AbstractValidator<UpdateMyContactMethodPayload>
-{
-    public UpdateMyContactMethodPayloadValidator()
-    {
-        RuleFor(x => x.MethodType).NotEmpty().MaximumLength(32);
-        RuleFor(x => x.Value).NotEmpty().MaximumLength(256);
-        RuleFor(x => x.Notes).MaximumLength(500);
+        RuleForEach(x => x.Methods).ChildRules(method =>
+        {
+            method.RuleFor(x => x.MethodType).NotEmpty().MaximumLength(32);
+            method.RuleFor(x => x.Value).NotEmpty().MaximumLength(256);
+            method.RuleFor(x => x.Notes).MaximumLength(500);
+        });
     }
 }

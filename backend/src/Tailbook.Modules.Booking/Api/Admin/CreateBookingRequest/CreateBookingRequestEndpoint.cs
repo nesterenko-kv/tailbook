@@ -73,29 +73,19 @@ public sealed class CreateBookingRequestRequestValidator : Validator<CreateBooki
     {
         RuleFor(x => x.PetId).NotEmpty();
         RuleFor(x => x.Items).NotEmpty();
-        RuleForEach(x => x.Items).SetValidator(new BookingRequestItemPayloadValidator());
-        RuleForEach(x => x.PreferredTimes).SetValidator(new PreferredTimeWindowPayloadValidator());
+        RuleForEach(x => x.Items).ChildRules(item =>
+        {
+            item.RuleFor(x => x.OfferId).NotEmpty();
+            item.RuleFor(x => x.ItemType).MaximumLength(32);
+            item.RuleFor(x => x.RequestedNotes).MaximumLength(1000);
+        });
+        RuleForEach(x => x.PreferredTimes).ChildRules(time =>
+        {
+            time.RuleFor(x => x.StartAtUtc).NotEmpty();
+            time.RuleFor(x => x.EndAtUtc).NotEmpty().GreaterThan(x => x.StartAtUtc);
+            time.RuleFor(x => x.Label).MaximumLength(200);
+        });
         RuleFor(x => x.Channel).MaximumLength(32);
         RuleFor(x => x.Notes).MaximumLength(2000);
-    }
-}
-
-public sealed class PreferredTimeWindowPayloadValidator : AbstractValidator<PreferredTimeWindowPayload>
-{
-    public PreferredTimeWindowPayloadValidator()
-    {
-        RuleFor(x => x.StartAtUtc).NotEmpty();
-        RuleFor(x => x.EndAtUtc).NotEmpty().GreaterThan(x => x.StartAtUtc);
-        RuleFor(x => x.Label).MaximumLength(200);
-    }
-}
-
-public sealed class BookingRequestItemPayloadValidator : AbstractValidator<BookingRequestItemPayload>
-{
-    public BookingRequestItemPayloadValidator()
-    {
-        RuleFor(x => x.OfferId).NotEmpty();
-        RuleFor(x => x.ItemType).MaximumLength(32);
-        RuleFor(x => x.RequestedNotes).MaximumLength(1000);
     }
 }

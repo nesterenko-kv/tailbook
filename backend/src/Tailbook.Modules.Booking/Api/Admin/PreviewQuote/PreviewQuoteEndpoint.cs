@@ -95,16 +95,11 @@ public sealed class PreviewQuoteRequestValidator : Validator<PreviewQuoteRequest
     {
         RuleFor(x => x.PetId).NotEmpty();
         RuleFor(x => x.Items).NotEmpty();
-        RuleForEach(x => x.Items).SetValidator(new PreviewQuoteItemRequestValidator());
-    }
-}
-
-public sealed class PreviewQuoteItemRequestValidator : AbstractValidator<PreviewQuoteItemRequest>
-{
-    public PreviewQuoteItemRequestValidator()
-    {
-        RuleFor(x => x.OfferId).NotEmpty();
-        RuleFor(x => x.ItemType).MaximumLength(32);
+        RuleForEach(x => x.Items).ChildRules(item =>
+        {
+            item.RuleFor(x => x.OfferId).NotEmpty();
+            item.RuleFor(x => x.ItemType).MaximumLength(32);
+        });
     }
 }
 

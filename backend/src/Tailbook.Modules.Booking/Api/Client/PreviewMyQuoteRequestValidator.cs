@@ -9,6 +9,10 @@ public sealed class PreviewMyQuoteRequestValidator : Validator<PreviewMyQuoteReq
     {
         RuleFor(x => x.PetId).NotEmpty();
         RuleFor(x => x.Items).NotEmpty();
-        RuleForEach(x => x.Items).SetValidator(new PreviewMyQuoteItemRequestValidator());
+        RuleForEach(x => x.Items).ChildRules(item =>
+        {
+            item.RuleFor(x => x.OfferId).NotEmpty();
+            item.RuleFor(x => x.ItemType).MaximumLength(32);
+        });
     }
 }

@@ -61,15 +61,10 @@ public sealed class CreateAppointmentRequestValidator : Validator<CreateAppointm
         RuleFor(x => x.GroomerId).NotEmpty();
         RuleFor(x => x.StartAtUtc).NotEmpty();
         RuleFor(x => x.Items).NotEmpty();
-        RuleForEach(x => x.Items).SetValidator(new CreateAppointmentItemPayloadValidator());
-    }
-}
-
-public sealed class CreateAppointmentItemPayloadValidator : AbstractValidator<CreateAppointmentItemPayload>
-{
-    public CreateAppointmentItemPayloadValidator()
-    {
-        RuleFor(x => x.OfferId).NotEmpty();
-        RuleFor(x => x.ItemType).MaximumLength(32);
+        RuleForEach(x => x.Items).ChildRules(item =>
+        {
+            item.RuleFor(x => x.OfferId).NotEmpty();
+            item.RuleFor(x => x.ItemType).MaximumLength(32);
+        });
     }
 }

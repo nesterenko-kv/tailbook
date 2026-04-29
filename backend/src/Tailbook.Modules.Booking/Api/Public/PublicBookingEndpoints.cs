@@ -327,7 +327,12 @@ public sealed class PublicPreviewQuoteRequestValidator : Validator<PublicPreview
     {
         RuleFor(x => x.Pet).SetValidator(new PublicPetPayloadValidator());
         RuleFor(x => x.Items).NotEmpty();
-        RuleForEach(x => x.Items).SetValidator(new PublicBookingItemPayloadValidator());
+        RuleForEach(x => x.Items).ChildRules(item =>
+        {
+            item.RuleFor(x => x.OfferId).NotEmpty();
+            item.RuleFor(x => x.ItemType).MaximumLength(32);
+            item.RuleFor(x => x.RequestedNotes).MaximumLength(1000);
+        });
     }
 }
 
@@ -337,7 +342,12 @@ public sealed class PublicBookingPlannerRequestValidator : Validator<PublicBooki
     {
         RuleFor(x => x.Pet).SetValidator(new PublicPetPayloadValidator());
         RuleFor(x => x.Items).NotEmpty();
-        RuleForEach(x => x.Items).SetValidator(new PublicBookingItemPayloadValidator());
+        RuleForEach(x => x.Items).ChildRules(item =>
+        {
+            item.RuleFor(x => x.OfferId).NotEmpty();
+            item.RuleFor(x => x.ItemType).MaximumLength(32);
+            item.RuleFor(x => x.RequestedNotes).MaximumLength(1000);
+        });
         RuleFor(x => x.LocalDate).NotEmpty();
     }
 }
@@ -348,8 +358,18 @@ public sealed class CreatePublicBookingRequestRequestValidator : Validator<Creat
     {
         RuleFor(x => x.Pet).SetValidator(new PublicPetPayloadValidator());
         RuleFor(x => x.Items).NotEmpty();
-        RuleForEach(x => x.Items).SetValidator(new PublicBookingItemPayloadValidator());
-        RuleForEach(x => x.PreferredTimes).SetValidator(new PublicPreferredTimePayloadValidator());
+        RuleForEach(x => x.Items).ChildRules(item =>
+        {
+            item.RuleFor(x => x.OfferId).NotEmpty();
+            item.RuleFor(x => x.ItemType).MaximumLength(32);
+            item.RuleFor(x => x.RequestedNotes).MaximumLength(1000);
+        });
+        RuleForEach(x => x.PreferredTimes).ChildRules(time =>
+        {
+            time.RuleFor(x => x.StartAtUtc).NotEmpty();
+            time.RuleFor(x => x.EndAtUtc).NotEmpty().GreaterThan(x => x.StartAtUtc);
+            time.RuleFor(x => x.Label).MaximumLength(200);
+        });
         RuleFor(x => x.SelectionMode).MaximumLength(32);
         RuleFor(x => x.Notes).MaximumLength(2000);
         RuleFor(x => x.Requester).SetValidator(new PublicRequesterPayloadValidator()!).When(x => x.Requester is not null);
@@ -376,26 +396,6 @@ public sealed class PublicRequesterPayloadValidator : AbstractValidator<PublicRe
         RuleFor(x => x.InstagramHandle).MaximumLength(120);
         RuleFor(x => x.Email).MaximumLength(200);
         RuleFor(x => x.PreferredContactMethodCode).MaximumLength(32);
-    }
-}
-
-public sealed class PublicPreferredTimePayloadValidator : AbstractValidator<PublicPreferredTimePayload>
-{
-    public PublicPreferredTimePayloadValidator()
-    {
-        RuleFor(x => x.StartAtUtc).NotEmpty();
-        RuleFor(x => x.EndAtUtc).NotEmpty().GreaterThan(x => x.StartAtUtc);
-        RuleFor(x => x.Label).MaximumLength(200);
-    }
-}
-
-public sealed class PublicBookingItemPayloadValidator : AbstractValidator<PublicBookingItemPayload>
-{
-    public PublicBookingItemPayloadValidator()
-    {
-        RuleFor(x => x.OfferId).NotEmpty();
-        RuleFor(x => x.ItemType).MaximumLength(32);
-        RuleFor(x => x.RequestedNotes).MaximumLength(1000);
     }
 }
 
