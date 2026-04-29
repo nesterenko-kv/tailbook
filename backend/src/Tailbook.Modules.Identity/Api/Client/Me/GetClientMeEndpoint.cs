@@ -7,7 +7,7 @@ using Tailbook.Modules.Identity.Contracts;
 namespace Tailbook.Modules.Identity.Api.Client.Me;
 
 public sealed class GetClientMeEndpoint(ICurrentUser currentUser, IClientPortalActorService actorService)
-    : EndpointWithoutRequest<ClientMeResponse>
+    : Endpoint<GetClientMeRequest, ClientMeResponse>
 {
     public override void Configure()
     {
@@ -16,15 +16,9 @@ public sealed class GetClientMeEndpoint(ICurrentUser currentUser, IClientPortalA
         PermissionsAll(PermissionCodes.ClientPortalAccess);
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(GetClientMeRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated || !Guid.TryParse(currentUser.UserId, out var userId))
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
-        var actor = await actorService.GetActorAsync(userId, ct);
+        var actor = await actorService.GetActorAsync(req.UserId, ct);
         if (actor is null)
         {
             await Send.NotFoundAsync(ct);
@@ -42,6 +36,12 @@ public sealed class GetClientMeEndpoint(ICurrentUser currentUser, IClientPortalA
             Permissions = currentUser.Permissions
         }, cancellation: ct);
     }
+}
+
+public sealed class GetClientMeRequest
+{
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid UserId { get; set; }
 }
 
 public sealed class ClientMeResponse

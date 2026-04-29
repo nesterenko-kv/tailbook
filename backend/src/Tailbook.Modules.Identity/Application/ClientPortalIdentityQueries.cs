@@ -49,15 +49,4 @@ public sealed class ClientPortalIdentityQueries(
 
         return await identitySessionService.CreateSessionAsync(user, roles, permissions, cancellationToken);
     }
-
-    public async Task<ClientPortalActor?> GetActorAsync(Guid userId, CancellationToken cancellationToken)
-    {
-        var user = await dbContext.Set<IdentityUser>().SingleOrDefaultAsync(x => x.Id == userId, cancellationToken);
-        if (user is null || user.ClientId is null || user.ContactPersonId is null)
-        {
-            return null;
-        }
-
-        return new ClientPortalActor(user.Id, user.ClientId.Value, user.ContactPersonId.Value, user.Email, user.DisplayName);
-    }
 }

@@ -5,7 +5,13 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 namespace Tailbook.Modules.Identity.Api.Me;
 
-public sealed class GetCurrentUserEndpoint(ICurrentUser currentUser, IClientPortalActorService actorService) : EndpointWithoutRequest<GetCurrentUserResponse>
+public sealed class GetCurrentUserRequest
+{
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? UserId { get; set; }
+}
+
+public sealed class GetCurrentUserEndpoint(ICurrentUser currentUser, IClientPortalActorService actorService) : Endpoint<GetCurrentUserRequest, GetCurrentUserResponse>
 {
     public override void Configure()
     {
@@ -13,23 +19,21 @@ public sealed class GetCurrentUserEndpoint(ICurrentUser currentUser, IClientPort
         Description(x => x.WithTags("Identity"));
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(GetCurrentUserRequest req, CancellationToken ct)
     {
-        Guid? parsedUserId = null;
         Guid? clientId = null;
         Guid? contactPersonId = null;
 
-        if (Guid.TryParse(currentUser.UserId, out var userId))
+        if (req.UserId.HasValue)
         {
-            parsedUserId = userId;
-            var actor = await actorService.GetActorAsync(userId, ct);
+            var actor = await actorService.GetActorAsync(req.UserId.Value, ct);
             clientId = actor?.ClientId;
             contactPersonId = actor?.ContactPersonId;
         }
 
         await Send.OkAsync(new GetCurrentUserResponse
         {
-            UserId = parsedUserId,
+            UserId = req.UserId,
             SubjectId = currentUser.SubjectId ?? string.Empty,
             Email = currentUser.Email ?? string.Empty,
             DisplayName = currentUser.DisplayName ?? string.Empty,

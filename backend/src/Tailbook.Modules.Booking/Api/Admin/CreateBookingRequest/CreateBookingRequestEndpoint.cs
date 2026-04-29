@@ -6,7 +6,7 @@ using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Admin.CreateBookingRequest;
 
-public sealed class CreateBookingRequestEndpoint(ICurrentUser currentUser, BookingManagementQueries bookingQueries)
+public sealed class CreateBookingRequestEndpoint(BookingManagementQueries bookingQueries)
     : Endpoint<CreateBookingRequestRequest, BookingRequestDetailView>
 {
     public override void Configure()
@@ -29,7 +29,7 @@ public sealed class CreateBookingRequestEndpoint(ICurrentUser currentUser, Booki
                     req.Notes,
                     req.PreferredTimes.Select(x => new PreferredTimeWindowCommand(x.StartAtUtc, x.EndAtUtc, x.Label)).ToArray(),
                     req.Items.Select(x => new CreateBookingRequestItemCommand(x.OfferId, x.ItemType, x.RequestedNotes)).ToArray()),
-                currentUser.UserId,
+                req.ActorUserId?.ToString("D"),
                 ct);
 
             await Send.ResponseAsync(result, StatusCodes.Status201Created, ct);
@@ -44,6 +44,9 @@ public sealed class CreateBookingRequestEndpoint(ICurrentUser currentUser, Booki
 
 public sealed class CreateBookingRequestRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
     public Guid? ClientId { get; set; }
     public Guid PetId { get; set; }
     public Guid? RequestedByContactId { get; set; }

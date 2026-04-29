@@ -6,7 +6,7 @@ using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Admin.PreviewQuote;
 
-public sealed class PreviewQuoteEndpoint(ICurrentUser currentUser, BookingQuoteQueries bookingQuoteQueries)
+public sealed class PreviewQuoteEndpoint(BookingQuoteQueries bookingQuoteQueries)
     : Endpoint<PreviewQuoteRequest, PreviewQuoteResponse>
 {
     public override void Configure()
@@ -22,7 +22,7 @@ public sealed class PreviewQuoteEndpoint(ICurrentUser currentUser, BookingQuoteQ
         {
             var result = await bookingQuoteQueries.PreviewQuoteAsync(
                 new PreviewQuoteCommand(req.PetId, req.GroomerId, req.Items.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray()),
-                currentUser.UserId,
+                req.ActorUserId?.ToString("D"),
                 ct);
 
             await Send.ResponseAsync(new PreviewQuoteResponse
@@ -78,6 +78,9 @@ public sealed class PreviewQuoteEndpoint(ICurrentUser currentUser, BookingQuoteQ
 
 public sealed class PreviewQuoteRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
     public Guid PetId { get; set; }
     public Guid? GroomerId { get; set; }
     public PreviewQuoteItemRequest[] Items { get; set; } = [];

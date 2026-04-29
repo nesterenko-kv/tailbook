@@ -6,7 +6,7 @@ using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.RecordPerformedProcedure;
 
-public sealed class RecordPerformedProcedureEndpoint(ICurrentUser currentUser, VisitQueries visitQueries)
+public sealed class RecordPerformedProcedureEndpoint(VisitQueries visitQueries)
     : Endpoint<RecordPerformedProcedureRequest, VisitDetailView>
 {
     public override void Configure()
@@ -18,11 +18,9 @@ public sealed class RecordPerformedProcedureEndpoint(ICurrentUser currentUser, V
 
     public override async Task HandleAsync(RecordPerformedProcedureRequest req, CancellationToken ct)
     {
-        var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
-
         try
         {
-            var result = await visitQueries.RecordPerformedProcedureAsync(req.VisitId, req.VisitExecutionItemId, req.ProcedureId, req.Note, actorUserId, ct);
+            var result = await visitQueries.RecordPerformedProcedureAsync(req.VisitId, req.VisitExecutionItemId, req.ProcedureId, req.Note, req.ActorUserId, ct);
             if (result is null)
             {
                 await Send.NotFoundAsync(ct);
@@ -41,6 +39,9 @@ public sealed class RecordPerformedProcedureEndpoint(ICurrentUser currentUser, V
 
 public sealed class RecordPerformedProcedureRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
     public Guid VisitId { get; set; }
     public Guid VisitExecutionItemId { get; set; }
     public Guid ProcedureId { get; set; }

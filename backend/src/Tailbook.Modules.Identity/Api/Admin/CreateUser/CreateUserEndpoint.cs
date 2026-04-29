@@ -25,7 +25,7 @@ public sealed class CreateUserEndpoint(ICurrentUser currentUser, IdentityQueries
 
         try
         {
-            var user = await identityQueries.CreateUserAsync(req.Email, req.DisplayName, req.Password, req.RoleCodes, ParseActorId(currentUser), ct);
+            var user = await identityQueries.CreateUserAsync(req.Email, req.DisplayName, req.Password, req.RoleCodes, req.ActorUserId, ct);
             await Send.ResponseAsync(new CreateUserResponse
             {
                 Id = user.Id,
@@ -44,8 +44,4 @@ public sealed class CreateUserEndpoint(ICurrentUser currentUser, IdentityQueries
         }
     }
 
-    private static Guid? ParseActorId(ICurrentUser currentUser)
-    {
-        return Guid.TryParse(currentUser.UserId, out var actorId) ? actorId : null;
-    }
 }

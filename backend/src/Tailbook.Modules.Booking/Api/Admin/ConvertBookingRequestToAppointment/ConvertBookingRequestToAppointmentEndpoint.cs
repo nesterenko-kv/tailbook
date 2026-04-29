@@ -6,7 +6,7 @@ using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Admin.ConvertBookingRequestToAppointment;
 
-public sealed class ConvertBookingRequestToAppointmentEndpoint(ICurrentUser currentUser, BookingManagementQueries bookingQueries)
+public sealed class ConvertBookingRequestToAppointmentEndpoint(BookingManagementQueries bookingQueries)
     : Endpoint<ConvertBookingRequestToAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()
@@ -22,7 +22,7 @@ public sealed class ConvertBookingRequestToAppointmentEndpoint(ICurrentUser curr
         {
             var result = await bookingQueries.ConvertBookingRequestToAppointmentAsync(
                 new ConvertBookingRequestToAppointmentCommand(req.BookingRequestId, req.GroomerId, req.StartAtUtc),
-                currentUser.UserId,
+                req.ActorUserId?.ToString("D"),
                 ct);
 
             await Send.ResponseAsync(result, StatusCodes.Status201Created, ct);
@@ -37,6 +37,9 @@ public sealed class ConvertBookingRequestToAppointmentEndpoint(ICurrentUser curr
 
 public sealed class ConvertBookingRequestToAppointmentRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
     public Guid BookingRequestId { get; set; }
     public Guid GroomerId { get; set; }
     public DateTime StartAtUtc { get; set; }

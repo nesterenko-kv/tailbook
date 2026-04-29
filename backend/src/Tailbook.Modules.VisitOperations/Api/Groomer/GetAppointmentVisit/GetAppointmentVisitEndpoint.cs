@@ -5,9 +5,7 @@ using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Groomer.GetAppointmentVisit;
 
-public sealed class GetAppointmentVisitEndpoint(
-    ICurrentUser currentUser,
-    GroomerVisitQueries groomerVisitQueries)
+public sealed class GetAppointmentVisitEndpoint(GroomerVisitQueries groomerVisitQueries)
     : Endpoint<GetAppointmentVisitRequest, GroomerVisitDetailView>
 {
     public override void Configure()
@@ -19,15 +17,9 @@ public sealed class GetAppointmentVisitEndpoint(
 
     public override async Task HandleAsync(GetAppointmentVisitRequest req, CancellationToken ct)
     {
-        if (!Guid.TryParse(currentUser.UserId, out var currentUserId))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
-            var result = await groomerVisitQueries.GetVisitByAppointmentAsync(currentUserId, req.AppointmentId, ct);
+            var result = await groomerVisitQueries.GetVisitByAppointmentAsync(req.UserId, req.AppointmentId, ct);
             if (result is null)
             {
                 await Send.NotFoundAsync(ct);
@@ -45,5 +37,8 @@ public sealed class GetAppointmentVisitEndpoint(
 
 public sealed class GetAppointmentVisitRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid UserId { get; set; }
+
     public Guid AppointmentId { get; set; }
 }

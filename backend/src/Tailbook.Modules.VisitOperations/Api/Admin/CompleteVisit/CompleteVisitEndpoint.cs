@@ -6,7 +6,7 @@ using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.CompleteVisit;
 
-public sealed class CompleteVisitEndpoint(ICurrentUser currentUser, VisitQueries visitQueries)
+public sealed class CompleteVisitEndpoint(VisitQueries visitQueries)
     : Endpoint<CompleteVisitRequest, VisitDetailView>
 {
     public override void Configure()
@@ -18,10 +18,9 @@ public sealed class CompleteVisitEndpoint(ICurrentUser currentUser, VisitQueries
 
     public override async Task HandleAsync(CompleteVisitRequest req, CancellationToken ct)
     {
-        var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
         try
         {
-            var result = await visitQueries.CompleteVisitAsync(req.VisitId, actorUserId, ct);
+            var result = await visitQueries.CompleteVisitAsync(req.VisitId, req.ActorUserId, ct);
             if (result is null)
             {
                 await Send.NotFoundAsync(ct);
@@ -40,6 +39,9 @@ public sealed class CompleteVisitEndpoint(ICurrentUser currentUser, VisitQueries
 
 public sealed class CompleteVisitRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
     public Guid VisitId { get; set; }
 }
 

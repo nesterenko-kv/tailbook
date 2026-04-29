@@ -6,9 +6,7 @@ using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Groomer.RecordPerformedProcedure;
 
-public sealed class RecordOwnPerformedProcedureEndpoint(
-    ICurrentUser currentUser,
-    GroomerVisitQueries groomerVisitQueries)
+public sealed class RecordOwnPerformedProcedureEndpoint(GroomerVisitQueries groomerVisitQueries)
     : Endpoint<RecordOwnPerformedProcedureRequest, GroomerVisitDetailView>
 {
     public override void Configure()
@@ -20,15 +18,9 @@ public sealed class RecordOwnPerformedProcedureEndpoint(
 
     public override async Task HandleAsync(RecordOwnPerformedProcedureRequest req, CancellationToken ct)
     {
-        if (!Guid.TryParse(currentUser.UserId, out var currentUserId))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
-            var result = await groomerVisitQueries.RecordPerformedProcedureAsync(currentUserId, req.VisitId, req.VisitExecutionItemId, req.ProcedureId, req.Note, ct);
+            var result = await groomerVisitQueries.RecordPerformedProcedureAsync(req.UserId, req.VisitId, req.VisitExecutionItemId, req.ProcedureId, req.Note, ct);
             if (result is null)
             {
                 await Send.NotFoundAsync(ct);
@@ -51,6 +43,9 @@ public sealed class RecordOwnPerformedProcedureEndpoint(
 
 public sealed class RecordOwnPerformedProcedureRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid UserId { get; set; }
+
     public Guid VisitId { get; set; }
     public Guid VisitExecutionItemId { get; set; }
     public Guid ProcedureId { get; set; }

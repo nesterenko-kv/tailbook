@@ -5,7 +5,7 @@ using Tailbook.Modules.Customer.Application;
 
 namespace Tailbook.Modules.Customer.Api.Admin.ListPetContactLinks;
 
-public sealed class ListPetContactLinksEndpoint(ICurrentUser currentUser, CustomerQueries customerQueries)
+public sealed class ListPetContactLinksEndpoint(CustomerQueries customerQueries)
     : Endpoint<ListPetContactLinksRequest, ListPetContactLinksResponse>
 {
     public override void Configure()
@@ -17,8 +17,7 @@ public sealed class ListPetContactLinksEndpoint(ICurrentUser currentUser, Custom
 
     public override async Task HandleAsync(ListPetContactLinksRequest req, CancellationToken ct)
     {
-        var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
-        var links = await customerQueries.ListPetContactLinksAsync(req.PetId, actorUserId, ct);
+        var links = await customerQueries.ListPetContactLinksAsync(req.PetId, req.ActorUserId, ct);
         if (links is null)
         {
             await Send.NotFoundAsync(ct);
@@ -54,6 +53,9 @@ public sealed class ListPetContactLinksEndpoint(ICurrentUser currentUser, Custom
 
 public sealed class ListPetContactLinksRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
     public Guid PetId { get; set; }
 }
 

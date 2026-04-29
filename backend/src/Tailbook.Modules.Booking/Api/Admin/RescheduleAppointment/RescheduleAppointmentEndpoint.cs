@@ -8,7 +8,7 @@ using ProblemDetails = Microsoft.AspNetCore.Mvc.ProblemDetails;
 
 namespace Tailbook.Modules.Booking.Api.Admin.RescheduleAppointment;
 
-public sealed class RescheduleAppointmentEndpoint(ICurrentUser currentUser, BookingManagementQueries bookingQueries)
+public sealed class RescheduleAppointmentEndpoint(BookingManagementQueries bookingQueries)
     : Endpoint<RescheduleAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()
@@ -24,7 +24,7 @@ public sealed class RescheduleAppointmentEndpoint(ICurrentUser currentUser, Book
         {
             var result = await bookingQueries.RescheduleAppointmentAsync(
                 new RescheduleAppointmentCommand(req.AppointmentId, req.GroomerId, req.StartAtUtc, req.ExpectedVersionNo),
-                currentUser.UserId,
+                req.ActorUserId?.ToString("D"),
                 ct);
 
             if (result is null)
@@ -54,6 +54,9 @@ public sealed class RescheduleAppointmentEndpoint(ICurrentUser currentUser, Book
 
 public sealed class RescheduleAppointmentRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
     public Guid AppointmentId { get; set; }
     public Guid GroomerId { get; set; }
     public DateTime StartAtUtc { get; set; }

@@ -11,7 +11,6 @@ using static Tailbook.Modules.Booking.Api.Public.PublicBookingEndpointMapper;
 namespace Tailbook.Modules.Booking.Api.Public;
 
 public sealed class ListPublicBookableOffersEndpoint(
-    ICurrentUser currentUser,
     IClientPortalActorService actorService,
     PublicBookingQueries queries)
     : Endpoint<PublicBookableOffersRequest, IReadOnlyCollection<ClientBookableOfferResponse>>
@@ -27,7 +26,7 @@ public sealed class ListPublicBookableOffersEndpoint(
     {
         try
         {
-            var actor = await ResolveActorAsync(currentUser, actorService, ct);
+            var actor = await ResolveActorAsync(req.UserId, actorService, ct);
             var result = await queries.ListBookableOffersAsync(actor, MapPet(req.Pet), ct);
             await Send.OkAsync(result.Select(x => new ClientBookableOfferResponse
             {
@@ -49,7 +48,6 @@ public sealed class ListPublicBookableOffersEndpoint(
 }
 
 public sealed class PreviewPublicQuoteEndpoint(
-    ICurrentUser currentUser,
     IClientPortalActorService actorService,
     PublicBookingQueries queries)
     : Endpoint<PublicPreviewQuoteRequest, PublicQuotePreviewResponse>
@@ -65,7 +63,7 @@ public sealed class PreviewPublicQuoteEndpoint(
     {
         try
         {
-            var actor = await ResolveActorAsync(currentUser, actorService, ct);
+            var actor = await ResolveActorAsync(req.UserId, actorService, ct);
             var result = await queries.PreviewQuoteAsync(
                 actor,
                 new PublicPreviewQuoteCommand(
@@ -84,7 +82,6 @@ public sealed class PreviewPublicQuoteEndpoint(
 }
 
 public sealed class BuildPublicBookingPlannerEndpoint(
-    ICurrentUser currentUser,
     IClientPortalActorService actorService,
     PublicBookingQueries queries)
     : Endpoint<PublicBookingPlannerRequest, PublicBookingPlannerResponse>
@@ -107,7 +104,7 @@ public sealed class BuildPublicBookingPlannerEndpoint(
 
         try
         {
-            var actor = await ResolveActorAsync(currentUser, actorService, ct);
+            var actor = await ResolveActorAsync(req.UserId, actorService, ct);
             var result = await queries.BuildPlannerAsync(
                 actor,
                 new PublicBookingPlannerCommand(
@@ -140,7 +137,6 @@ public sealed class BuildPublicBookingPlannerEndpoint(
 }
 
 public sealed class CreatePublicBookingRequestEndpoint(
-    ICurrentUser currentUser,
     IClientPortalActorService actorService,
     PublicBookingQueries publicBookingQueries,
     BookingManagementQueries bookingManagementQueries)
@@ -157,7 +153,7 @@ public sealed class CreatePublicBookingRequestEndpoint(
     {
         try
         {
-            var actor = await ResolveActorAsync(currentUser, actorService, ct);
+            var actor = await ResolveActorAsync(req.UserId, actorService, ct);
             if (actor is null && IsMissingActionableContact(req.Requester))
             {
                 AddError("Provide your name and at least one contact method so the salon can follow up.");
@@ -179,7 +175,7 @@ public sealed class CreatePublicBookingRequestEndpoint(
                     req.SelectionMode,
                     BuildGuestIntake(req, resolvedPet),
                     req.Pet.PetId.HasValue ? BookingRequestStatusCodes.Submitted : BookingRequestStatusCodes.NeedsReview),
-                currentUser.UserId,
+                req.UserId?.ToString("D"),
                 ct);
 
             await Send.ResponseAsync(result, StatusCodes.Status201Created, ct);
@@ -194,17 +190,26 @@ public sealed class CreatePublicBookingRequestEndpoint(
 
 public sealed class PublicBookableOffersRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId, isRequired: false)]
+    public Guid? UserId { get; set; }
+
     public PublicPetPayload Pet { get; set; } = new();
 }
 
 public sealed class PublicPreviewQuoteRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId, isRequired: false)]
+    public Guid? UserId { get; set; }
+
     public PublicPetPayload Pet { get; set; } = new();
     public PublicBookingItemPayload[] Items { get; set; } = [];
 }
 
 public sealed class PublicBookingPlannerRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId, isRequired: false)]
+    public Guid? UserId { get; set; }
+
     public PublicPetPayload Pet { get; set; } = new();
     public string LocalDate { get; set; } = string.Empty;
     public PublicBookingItemPayload[] Items { get; set; } = [];
@@ -212,6 +217,9 @@ public sealed class PublicBookingPlannerRequest
 
 public sealed class CreatePublicBookingRequestRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId, isRequired: false)]
+    public Guid? UserId { get; set; }
+
     public PublicPetPayload Pet { get; set; } = new();
     public PublicRequesterPayload? Requester { get; set; }
     public Guid? PreferredGroomerId { get; set; }
@@ -489,16 +497,13 @@ internal static class PublicBookingEndpointMapper
     }
 
     public static async Task<ClientPortalActor?> ResolveActorAsync(
-        ICurrentUser currentUser,
+        Guid? userId,
         IClientPortalActorService actorService,
         CancellationToken cancellationToken)
     {
-        if (!currentUser.IsAuthenticated || !Guid.TryParse(currentUser.UserId, out var userId))
-        {
-            return null;
-        }
-
-        return await actorService.GetActorAsync(userId, cancellationToken);
+        return userId.HasValue
+            ? await actorService.GetActorAsync(userId.Value, cancellationToken)
+            : null;
     }
 
     private static string? Normalize(string? value)

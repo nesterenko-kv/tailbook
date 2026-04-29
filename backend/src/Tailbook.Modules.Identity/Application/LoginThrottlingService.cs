@@ -51,7 +51,7 @@ public sealed class LoginThrottlingService(IOptions<LoginThrottlingOptions> opti
         var options = optionsAccessor.Value;
         var failureWindow = TimeSpan.FromMinutes(options.FailureWindowMinutes);
         var lockout = TimeSpan.FromMinutes(options.LockoutMinutes);
-        var state = _attempts.GetOrAdd(key, _ => new LoginAttemptState(now));
+        var state = _attempts.GetOrAdd(key, static (_, v) => new LoginAttemptState(v), now);
 
         lock (state)
         {

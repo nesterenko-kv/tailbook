@@ -6,7 +6,7 @@ using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Admin.CreateAppointment;
 
-public sealed class CreateAppointmentEndpoint(ICurrentUser currentUser, BookingManagementQueries bookingQueries)
+public sealed class CreateAppointmentEndpoint(BookingManagementQueries bookingQueries)
     : Endpoint<CreateAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()
@@ -26,7 +26,7 @@ public sealed class CreateAppointmentEndpoint(ICurrentUser currentUser, BookingM
                     req.GroomerId,
                     req.StartAtUtc,
                     req.Items.Select(x => new CreateAppointmentItemCommand(x.OfferId, x.ItemType)).ToArray()),
-                currentUser.UserId,
+                req.ActorUserId?.ToString("D"),
                 ct);
 
             await Send.ResponseAsync(result, StatusCodes.Status201Created, ct);
@@ -41,6 +41,9 @@ public sealed class CreateAppointmentEndpoint(ICurrentUser currentUser, BookingM
 
 public sealed class CreateAppointmentRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
     public Guid PetId { get; set; }
     public Guid GroomerId { get; set; }
     public DateTime StartAtUtc { get; set; }

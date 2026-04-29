@@ -5,7 +5,7 @@ using Tailbook.Modules.Customer.Application;
 
 namespace Tailbook.Modules.Customer.Api.Admin.GetClientDetail;
 
-public sealed class GetClientDetailEndpoint(ICurrentUser currentUser, CustomerQueries customerQueries)
+public sealed class GetClientDetailEndpoint(CustomerQueries customerQueries)
     : Endpoint<GetClientDetailRequest, GetClientDetailResponse>
 {
     public override void Configure()
@@ -17,8 +17,7 @@ public sealed class GetClientDetailEndpoint(ICurrentUser currentUser, CustomerQu
 
     public override async Task HandleAsync(GetClientDetailRequest req, CancellationToken ct)
     {
-        var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
-        var client = await customerQueries.GetClientDetailAsync(req.Id, actorUserId, ct);
+        var client = await customerQueries.GetClientDetailAsync(req.Id, req.ActorUserId, ct);
         if (client is null)
         {
             await Send.NotFoundAsync(ct);
@@ -67,6 +66,9 @@ public sealed class GetClientDetailEndpoint(ICurrentUser currentUser, CustomerQu
 
 public sealed class GetClientDetailRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
     public Guid Id { get; set; }
 }
 

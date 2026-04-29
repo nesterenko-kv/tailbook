@@ -6,7 +6,7 @@ namespace Tailbook.Modules.Booking.Api.Admin.GetBookingRequestDetail;
 
 public sealed class GetBookingRequestDetailEndpoint(
     BookingManagementQueries bookingQueries)
-    : EndpointWithoutRequest<BookingRequestDetailView>
+    : Endpoint<GetBookingRequestDetailRequest, BookingRequestDetailView>
 {
     public override void Configure()
     {
@@ -15,10 +15,9 @@ public sealed class GetBookingRequestDetailEndpoint(
         PermissionsAll("booking.read");
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(GetBookingRequestDetailRequest req, CancellationToken ct)
     {
-        var bookingRequestId = Route<Guid>("bookingRequestId");
-        var result = await bookingQueries.GetBookingRequestAsync(bookingRequestId, ct);
+        var result = await bookingQueries.GetBookingRequestAsync(req.BookingRequestId, ct);
         if (result is null)
         {
             await Send.NotFoundAsync(ct);
@@ -27,4 +26,9 @@ public sealed class GetBookingRequestDetailEndpoint(
 
         await Send.OkAsync(result, ct);
     }
+}
+
+public sealed class GetBookingRequestDetailRequest
+{
+    public Guid BookingRequestId { get; set; }
 }

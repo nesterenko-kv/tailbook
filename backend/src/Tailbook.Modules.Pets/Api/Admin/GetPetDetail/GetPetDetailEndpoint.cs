@@ -18,8 +18,7 @@ public sealed class GetPetDetailEndpoint(ICurrentUser currentUser, PetsQueries p
     public override async Task HandleAsync(GetPetDetailRequest req, CancellationToken ct)
     {
         var includeContacts = currentUser.HasPermission("crm.contacts.read");
-        var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
-        var pet = await petsQueries.GetPetAsync(req.Id, actorUserId, includeContacts, ct);
+        var pet = await petsQueries.GetPetAsync(req.Id, req.ActorUserId, includeContacts, ct);
         if (pet is null)
         {
             await Send.NotFoundAsync(ct);
@@ -66,6 +65,9 @@ public sealed class GetPetDetailEndpoint(ICurrentUser currentUser, PetsQueries p
 
 public sealed class GetPetDetailRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
     public Guid Id { get; set; }
 }
 

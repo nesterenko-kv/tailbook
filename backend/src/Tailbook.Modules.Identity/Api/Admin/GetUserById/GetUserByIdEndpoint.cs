@@ -7,7 +7,6 @@ using Tailbook.Modules.Identity.Application;
 namespace Tailbook.Modules.Identity.Api.Admin.GetUserById;
 
 public sealed class GetUserByIdEndpoint(
-    ICurrentUser currentUser,
     IdentityQueries identityQueries,
     IAccessAuditService accessAuditService) : Endpoint<GetUserByIdRequest, GetUserByIdResponse>
 {
@@ -27,7 +26,7 @@ public sealed class GetUserByIdEndpoint(
             return;
         }
 
-        await accessAuditService.RecordAsync("iam_user", req.Id.ToString("D"), "READ_DETAIL", ParseActorId(currentUser), ct);
+        await accessAuditService.RecordAsync("iam_user", req.Id.ToString("D"), "READ_DETAIL", req.ActorUserId, ct);
 
         await Send.OkAsync(new GetUserByIdResponse
         {
@@ -43,8 +42,4 @@ public sealed class GetUserByIdEndpoint(
         }, cancellation: ct);
     }
 
-    private static Guid? ParseActorId(ICurrentUser currentUser)
-    {
-        return Guid.TryParse(currentUser.UserId, out var actorId) ? actorId : null;
-    }
 }

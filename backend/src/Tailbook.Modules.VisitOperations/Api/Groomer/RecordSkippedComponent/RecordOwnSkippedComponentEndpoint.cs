@@ -6,9 +6,7 @@ using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Groomer.RecordSkippedComponent;
 
-public sealed class RecordOwnSkippedComponentEndpoint(
-    ICurrentUser currentUser,
-    GroomerVisitQueries groomerVisitQueries)
+public sealed class RecordOwnSkippedComponentEndpoint(GroomerVisitQueries groomerVisitQueries)
     : Endpoint<RecordOwnSkippedComponentRequest, GroomerVisitDetailView>
 {
     public override void Configure()
@@ -20,15 +18,9 @@ public sealed class RecordOwnSkippedComponentEndpoint(
 
     public override async Task HandleAsync(RecordOwnSkippedComponentRequest req, CancellationToken ct)
     {
-        if (!Guid.TryParse(currentUser.UserId, out var currentUserId))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
-            var result = await groomerVisitQueries.RecordSkippedComponentAsync(currentUserId, req.VisitId, req.VisitExecutionItemId, req.OfferVersionComponentId, req.OmissionReasonCode, req.Note, ct);
+            var result = await groomerVisitQueries.RecordSkippedComponentAsync(req.UserId, req.VisitId, req.VisitExecutionItemId, req.OfferVersionComponentId, req.OmissionReasonCode, req.Note, ct);
             if (result is null)
             {
                 await Send.NotFoundAsync(ct);
@@ -51,6 +43,9 @@ public sealed class RecordOwnSkippedComponentEndpoint(
 
 public sealed class RecordOwnSkippedComponentRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid UserId { get; set; }
+
     public Guid VisitId { get; set; }
     public Guid VisitExecutionItemId { get; set; }
     public Guid OfferVersionComponentId { get; set; }

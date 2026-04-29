@@ -6,9 +6,7 @@ using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Groomer.CheckInAppointment;
 
-public sealed class CheckInOwnAppointmentEndpoint(
-    ICurrentUser currentUser,
-    GroomerVisitQueries groomerVisitQueries)
+public sealed class CheckInOwnAppointmentEndpoint(GroomerVisitQueries groomerVisitQueries)
     : Endpoint<CheckInOwnAppointmentRequest, GroomerVisitDetailView>
 {
     public override void Configure()
@@ -20,15 +18,9 @@ public sealed class CheckInOwnAppointmentEndpoint(
 
     public override async Task HandleAsync(CheckInOwnAppointmentRequest req, CancellationToken ct)
     {
-        if (!Guid.TryParse(currentUser.UserId, out var currentUserId))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
-            var result = await groomerVisitQueries.CheckInAppointmentAsync(currentUserId, req.AppointmentId, ct);
+            var result = await groomerVisitQueries.CheckInAppointmentAsync(req.UserId, req.AppointmentId, ct);
             if (result is null)
             {
                 await Send.NotFoundAsync(ct);
@@ -51,6 +43,9 @@ public sealed class CheckInOwnAppointmentEndpoint(
 
 public sealed class CheckInOwnAppointmentRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid UserId { get; set; }
+
     public Guid AppointmentId { get; set; }
 }
 

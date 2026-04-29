@@ -6,9 +6,7 @@ using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Admin.AttachBookingRequestContext;
 
-public sealed class AttachBookingRequestContextEndpoint(
-    ICurrentUser currentUser,
-    BookingManagementQueries bookingQueries)
+public sealed class AttachBookingRequestContextEndpoint(BookingManagementQueries bookingQueries)
     : Endpoint<AttachBookingRequestContextRequest, BookingRequestDetailView>
 {
     public override void Configure()
@@ -22,14 +20,13 @@ public sealed class AttachBookingRequestContextEndpoint(
     {
         try
         {
-            var bookingRequestId = Route<Guid>("bookingRequestId");
             var result = await bookingQueries.AttachBookingRequestContextAsync(
                 new AttachBookingRequestContextCommand(
-                    bookingRequestId,
+                    req.BookingRequestId,
                     req.ClientId,
                     req.PetId,
                     req.RequestedByContactId),
-                currentUser.UserId,
+                req.ActorUserId?.ToString("D"),
                 ct);
 
             if (result is null)
@@ -50,6 +47,10 @@ public sealed class AttachBookingRequestContextEndpoint(
 
 public sealed class AttachBookingRequestContextRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
+    public Guid BookingRequestId { get; set; }
     public Guid? ClientId { get; set; }
     public Guid PetId { get; set; }
     public Guid? RequestedByContactId { get; set; }
@@ -59,6 +60,7 @@ public sealed class AttachBookingRequestContextRequestValidator : Validator<Atta
 {
     public AttachBookingRequestContextRequestValidator()
     {
+        RuleFor(x => x.BookingRequestId).NotEmpty();
         RuleFor(x => x.PetId).NotEmpty();
     }
 }

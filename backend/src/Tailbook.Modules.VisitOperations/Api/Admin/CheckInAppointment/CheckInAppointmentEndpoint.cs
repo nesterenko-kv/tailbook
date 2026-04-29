@@ -6,7 +6,7 @@ using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.CheckInAppointment;
 
-public sealed class CheckInAppointmentEndpoint(ICurrentUser currentUser, VisitQueries visitQueries)
+public sealed class CheckInAppointmentEndpoint(VisitQueries visitQueries)
     : Endpoint<CheckInAppointmentRequest, VisitDetailView>
 {
     public override void Configure()
@@ -18,10 +18,9 @@ public sealed class CheckInAppointmentEndpoint(ICurrentUser currentUser, VisitQu
 
     public override async Task HandleAsync(CheckInAppointmentRequest req, CancellationToken ct)
     {
-        var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
         try
         {
-            var result = await visitQueries.CheckInAppointmentAsync(req.AppointmentId, actorUserId, ct);
+            var result = await visitQueries.CheckInAppointmentAsync(req.AppointmentId, req.ActorUserId, ct);
             if (result is null)
             {
                 await Send.NotFoundAsync(ct);
@@ -40,6 +39,9 @@ public sealed class CheckInAppointmentEndpoint(ICurrentUser currentUser, VisitQu
 
 public sealed class CheckInAppointmentRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
     public Guid AppointmentId { get; set; }
 }
 

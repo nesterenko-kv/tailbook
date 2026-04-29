@@ -5,7 +5,7 @@ using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.GetVisitDetail;
 
-public sealed class GetVisitDetailEndpoint(ICurrentUser currentUser, VisitQueries visitQueries)
+public sealed class GetVisitDetailEndpoint(VisitQueries visitQueries)
     : Endpoint<GetVisitDetailRequest, VisitDetailView>
 {
     public override void Configure()
@@ -17,8 +17,7 @@ public sealed class GetVisitDetailEndpoint(ICurrentUser currentUser, VisitQuerie
 
     public override async Task HandleAsync(GetVisitDetailRequest req, CancellationToken ct)
     {
-        var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
-        var result = await visitQueries.GetVisitAsync(req.VisitId, actorUserId, ct);
+        var result = await visitQueries.GetVisitAsync(req.VisitId, req.ActorUserId, ct);
         if (result is null)
         {
             await Send.NotFoundAsync(ct);
@@ -31,5 +30,8 @@ public sealed class GetVisitDetailEndpoint(ICurrentUser currentUser, VisitQuerie
 
 public sealed class GetVisitDetailRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
     public Guid VisitId { get; set; }
 }

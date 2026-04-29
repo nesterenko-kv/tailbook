@@ -8,8 +8,8 @@ using Tailbook.Modules.Identity.Contracts;
 
 namespace Tailbook.Modules.Customer.Api.Client.GetMyContactPreferences;
 
-public sealed class GetMyContactPreferencesEndpoint(ICurrentUser currentUser, IClientPortalActorService actorService, ClientPortalCustomerQueries queries)
-    : EndpointWithoutRequest<ClientContactPreferencesView>
+public sealed class GetMyContactPreferencesEndpoint(IClientPortalActorService actorService, ClientPortalCustomerQueries queries)
+    : Endpoint<GetMyContactPreferencesRequest, ClientContactPreferencesView>
 {
     public override void Configure()
     {
@@ -18,15 +18,9 @@ public sealed class GetMyContactPreferencesEndpoint(ICurrentUser currentUser, IC
         PermissionsAll(PermissionCodes.ClientContactPreferencesRead);
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(GetMyContactPreferencesRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated || !Guid.TryParse(currentUser.UserId, out var userId))
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
-        var actor = await actorService.GetActorAsync(userId, ct);
+        var actor = await actorService.GetActorAsync(req.UserId, ct);
         if (actor is null)
         {
             await Send.NotFoundAsync(ct);
@@ -44,7 +38,7 @@ public sealed class GetMyContactPreferencesEndpoint(ICurrentUser currentUser, IC
     }
 }
 
-public sealed class UpdateMyContactPreferencesEndpoint(ICurrentUser currentUser, IClientPortalActorService actorService, ClientPortalCustomerQueries queries)
+public sealed class UpdateMyContactPreferencesEndpoint(IClientPortalActorService actorService, ClientPortalCustomerQueries queries)
     : Endpoint<UpdateMyContactPreferencesRequest, ClientContactPreferencesView>
 {
     public override void Configure()
@@ -56,13 +50,7 @@ public sealed class UpdateMyContactPreferencesEndpoint(ICurrentUser currentUser,
 
     public override async Task HandleAsync(UpdateMyContactPreferencesRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated || !Guid.TryParse(currentUser.UserId, out var userId))
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
-        var actor = await actorService.GetActorAsync(userId, ct);
+        var actor = await actorService.GetActorAsync(req.UserId, ct);
         if (actor is null)
         {
             await Send.NotFoundAsync(ct);
@@ -92,8 +80,17 @@ public sealed class UpdateMyContactPreferencesEndpoint(ICurrentUser currentUser,
     }
 }
 
+public sealed class GetMyContactPreferencesRequest
+{
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid UserId { get; set; }
+}
+
 public sealed class UpdateMyContactPreferencesRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid UserId { get; set; }
+
     public UpdateMyContactMethodPayload[] Methods { get; set; } = [];
 }
 

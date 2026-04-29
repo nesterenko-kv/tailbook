@@ -6,7 +6,7 @@ using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.ApplyVisitAdjustment;
 
-public sealed class ApplyVisitAdjustmentEndpoint(ICurrentUser currentUser, VisitQueries visitQueries)
+public sealed class ApplyVisitAdjustmentEndpoint(VisitQueries visitQueries)
     : Endpoint<ApplyVisitAdjustmentRequest, VisitDetailView>
 {
     public override void Configure()
@@ -18,11 +18,9 @@ public sealed class ApplyVisitAdjustmentEndpoint(ICurrentUser currentUser, Visit
 
     public override async Task HandleAsync(ApplyVisitAdjustmentRequest req, CancellationToken ct)
     {
-        var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
-
         try
         {
-            var result = await visitQueries.ApplyPriceAdjustmentAsync(req.VisitId, req.Sign, req.Amount, req.ReasonCode, req.Note, actorUserId, ct);
+            var result = await visitQueries.ApplyPriceAdjustmentAsync(req.VisitId, req.Sign, req.Amount, req.ReasonCode, req.Note, req.ActorUserId, ct);
             if (result is null)
             {
                 await Send.NotFoundAsync(ct);
@@ -41,6 +39,9 @@ public sealed class ApplyVisitAdjustmentEndpoint(ICurrentUser currentUser, Visit
 
 public sealed class ApplyVisitAdjustmentRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
     public Guid VisitId { get; set; }
     public int Sign { get; set; }
     public decimal Amount { get; set; }

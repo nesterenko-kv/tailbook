@@ -8,7 +8,7 @@ using ProblemDetails = Microsoft.AspNetCore.Mvc.ProblemDetails;
 
 namespace Tailbook.Modules.Booking.Api.Admin.CancelAppointment;
 
-public sealed class CancelAppointmentEndpoint(ICurrentUser currentUser, BookingManagementQueries bookingQueries)
+public sealed class CancelAppointmentEndpoint(BookingManagementQueries bookingQueries)
     : Endpoint<CancelAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()
@@ -24,7 +24,7 @@ public sealed class CancelAppointmentEndpoint(ICurrentUser currentUser, BookingM
         {
             var result = await bookingQueries.CancelAppointmentAsync(
                 new CancelAppointmentCommand(req.AppointmentId, req.ExpectedVersionNo, req.ReasonCode, req.Notes),
-                currentUser.UserId,
+                req.ActorUserId?.ToString("D"),
                 ct);
 
             if (result is null)
@@ -54,6 +54,9 @@ public sealed class CancelAppointmentEndpoint(ICurrentUser currentUser, BookingM
 
 public sealed class CancelAppointmentRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
     public Guid AppointmentId { get; set; }
     public int ExpectedVersionNo { get; set; }
     public string ReasonCode { get; set; } = string.Empty;

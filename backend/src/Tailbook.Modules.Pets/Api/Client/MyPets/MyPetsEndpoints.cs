@@ -7,8 +7,8 @@ using Tailbook.Modules.Pets.Application;
 
 namespace Tailbook.Modules.Pets.Api.Client.MyPets;
 
-public sealed class ListMyPetsEndpoint(ICurrentUser currentUser, IClientPortalActorService actorService, ClientPortalPetsQueries queries)
-    : EndpointWithoutRequest<IReadOnlyCollection<ClientPetSummaryView>>
+public sealed class ListMyPetsEndpoint(IClientPortalActorService actorService, ClientPortalPetsQueries queries)
+    : Endpoint<ListMyPetsRequest, IReadOnlyCollection<ClientPetSummaryView>>
 {
     public override void Configure()
     {
@@ -17,15 +17,9 @@ public sealed class ListMyPetsEndpoint(ICurrentUser currentUser, IClientPortalAc
         PermissionsAll(PermissionCodes.ClientPetsRead);
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(ListMyPetsRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated || !Guid.TryParse(currentUser.UserId, out var userId))
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
-        var actor = await actorService.GetActorAsync(userId, ct);
+        var actor = await actorService.GetActorAsync(req.UserId, ct);
         if (actor is null)
         {
             await Send.NotFoundAsync(ct);
@@ -37,8 +31,8 @@ public sealed class ListMyPetsEndpoint(ICurrentUser currentUser, IClientPortalAc
     }
 }
 
-public sealed class GetMyPetEndpoint(ICurrentUser currentUser, IClientPortalActorService actorService, ClientPortalPetsQueries queries)
-    : EndpointWithoutRequest<ClientPetDetailView>
+public sealed class GetMyPetEndpoint(IClientPortalActorService actorService, ClientPortalPetsQueries queries)
+    : Endpoint<GetMyPetRequest, ClientPetDetailView>
 {
     public override void Configure()
     {
@@ -47,29 +41,16 @@ public sealed class GetMyPetEndpoint(ICurrentUser currentUser, IClientPortalActo
         PermissionsAll(PermissionCodes.ClientPetsRead);
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(GetMyPetRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated || !Guid.TryParse(currentUser.UserId, out var userId))
-        {
-            await Send.UnauthorizedAsync(ct);
-            return;
-        }
-
-        if (!Route<Guid?>("petId").HasValue)
-        {
-            await Send.NotFoundAsync(ct);
-            return;
-        }
-
-        var actor = await actorService.GetActorAsync(userId, ct);
+        var actor = await actorService.GetActorAsync(req.UserId, ct);
         if (actor is null)
         {
             await Send.NotFoundAsync(ct);
             return;
         }
 
-        var petId = Route<Guid>("petId");
-        var result = await queries.GetMyPetAsync(actor.ClientId, petId, ct);
+        var result = await queries.GetMyPetAsync(actor.ClientId, req.PetId, ct);
         if (result is null)
         {
             await Send.NotFoundAsync(ct);
@@ -78,4 +59,18 @@ public sealed class GetMyPetEndpoint(ICurrentUser currentUser, IClientPortalActo
 
         await Send.OkAsync(result, cancellation: ct);
     }
+}
+
+public sealed class ListMyPetsRequest
+{
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid UserId { get; set; }
+}
+
+public sealed class GetMyPetRequest
+{
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid UserId { get; set; }
+
+    public Guid PetId { get; set; }
 }

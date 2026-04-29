@@ -5,9 +5,7 @@ using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Groomer.GetVisitDetail;
 
-public sealed class GetOwnVisitDetailEndpoint(
-    ICurrentUser currentUser,
-    GroomerVisitQueries groomerVisitQueries)
+public sealed class GetOwnVisitDetailEndpoint(GroomerVisitQueries groomerVisitQueries)
     : Endpoint<GetOwnVisitDetailRequest, GroomerVisitDetailView>
 {
     public override void Configure()
@@ -19,15 +17,9 @@ public sealed class GetOwnVisitDetailEndpoint(
 
     public override async Task HandleAsync(GetOwnVisitDetailRequest req, CancellationToken ct)
     {
-        if (!Guid.TryParse(currentUser.UserId, out var currentUserId))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
-            var result = await groomerVisitQueries.GetVisitAsync(currentUserId, req.VisitId, ct);
+            var result = await groomerVisitQueries.GetVisitAsync(req.UserId, req.VisitId, ct);
             if (result is null)
             {
                 await Send.NotFoundAsync(ct);
@@ -45,5 +37,8 @@ public sealed class GetOwnVisitDetailEndpoint(
 
 public sealed class GetOwnVisitDetailRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid UserId { get; set; }
+
     public Guid VisitId { get; set; }
 }

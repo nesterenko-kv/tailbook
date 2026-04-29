@@ -6,7 +6,7 @@ using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.RecordSkippedComponent;
 
-public sealed class RecordSkippedComponentEndpoint(ICurrentUser currentUser, VisitQueries visitQueries)
+public sealed class RecordSkippedComponentEndpoint(VisitQueries visitQueries)
     : Endpoint<RecordSkippedComponentRequest, VisitDetailView>
 {
     public override void Configure()
@@ -18,11 +18,9 @@ public sealed class RecordSkippedComponentEndpoint(ICurrentUser currentUser, Vis
 
     public override async Task HandleAsync(RecordSkippedComponentRequest req, CancellationToken ct)
     {
-        var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
-
         try
         {
-            var result = await visitQueries.RecordSkippedComponentAsync(req.VisitId, req.VisitExecutionItemId, req.OfferVersionComponentId, req.OmissionReasonCode, req.Note, actorUserId, ct);
+            var result = await visitQueries.RecordSkippedComponentAsync(req.VisitId, req.VisitExecutionItemId, req.OfferVersionComponentId, req.OmissionReasonCode, req.Note, req.ActorUserId, ct);
             if (result is null)
             {
                 await Send.NotFoundAsync(ct);
@@ -41,6 +39,9 @@ public sealed class RecordSkippedComponentEndpoint(ICurrentUser currentUser, Vis
 
 public sealed class RecordSkippedComponentRequest
 {
+    [FromClaim(TailbookClaimTypes.UserId)]
+    public Guid? ActorUserId { get; set; }
+
     public Guid VisitId { get; set; }
     public Guid VisitExecutionItemId { get; set; }
     public Guid OfferVersionComponentId { get; set; }

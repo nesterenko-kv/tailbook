@@ -5,7 +5,7 @@ using Tailbook.Modules.Identity.Application;
 
 namespace Tailbook.Modules.Identity.Api.Admin.AssignRoles;
 
-public sealed class AssignRolesEndpoint(ICurrentUser currentUser, IdentityQueries identityQueries)
+public sealed class AssignRolesEndpoint(IdentityQueries identityQueries)
     : Endpoint<AssignRolesRequest, AssignRolesResponse>
 {
     public override void Configure()
@@ -19,7 +19,7 @@ public sealed class AssignRolesEndpoint(ICurrentUser currentUser, IdentityQuerie
     {
         try
         {
-            var user = await identityQueries.AssignRolesAsync(req.Id, req.RoleCodes, ParseActorId(currentUser), ct);
+            var user = await identityQueries.AssignRolesAsync(req.Id, req.RoleCodes, req.ActorUserId, ct);
             if (user is null)
             {
                 await Send.NotFoundAsync(ct);
@@ -41,8 +41,4 @@ public sealed class AssignRolesEndpoint(ICurrentUser currentUser, IdentityQuerie
         }
     }
 
-    private static Guid? ParseActorId(ICurrentUser currentUser)
-    {
-        return Guid.TryParse(currentUser.UserId, out var actorId) ? actorId : null;
-    }
 }
