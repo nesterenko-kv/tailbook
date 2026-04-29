@@ -5,18 +5,19 @@ using Tailbook.Modules.Identity.Application;
 
 namespace Tailbook.Modules.Identity.Api.Admin.CreateUser;
 
-public sealed class CreateUserEndpoint(ICurrentUser currentUser, IIdentityAccessPolicy accessPolicy, IdentityQueries identityQueries)
+public sealed class CreateUserEndpoint(ICurrentUser currentUser, IdentityQueries identityQueries)
     : Endpoint<CreateUserRequest, CreateUserResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/iam/users");
         Description(x => x.WithTags("Admin IAM"));
+        PermissionsAll("iam.users.write");
     }
 
     public override async Task HandleAsync(CreateUserRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteUsers(currentUser) || (req.RoleCodes.Count > 0 && !accessPolicy.CanAssignRoles(currentUser)))
+        if (req.RoleCodes.Count > 0 && !currentUser.HasPermission("iam.roles.assign"))
         {
             await Send.ForbiddenAsync(ct);
             return;

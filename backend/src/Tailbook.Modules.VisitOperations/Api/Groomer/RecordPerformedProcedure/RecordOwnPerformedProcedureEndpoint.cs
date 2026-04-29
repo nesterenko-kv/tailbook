@@ -8,7 +8,6 @@ namespace Tailbook.Modules.VisitOperations.Api.Groomer.RecordPerformedProcedure;
 
 public sealed class RecordOwnPerformedProcedureEndpoint(
     ICurrentUser currentUser,
-    IGroomerVisitAccessPolicy accessPolicy,
     GroomerVisitQueries groomerVisitQueries)
     : Endpoint<RecordOwnPerformedProcedureRequest, GroomerVisitDetailView>
 {
@@ -16,16 +15,11 @@ public sealed class RecordOwnPerformedProcedureEndpoint(
     {
         Post("/api/groomer/visits/{visitId:guid}/performed-procedures");
         Description(x => x.WithTags("Groomer Visits"));
+        PermissionsAll("app.groomer.access", "groomer.visits.write");
     }
 
     public override async Task HandleAsync(RecordOwnPerformedProcedureRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteOwnVisits(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         if (!Guid.TryParse(currentUser.UserId, out var currentUserId))
         {
             await Send.ForbiddenAsync(ct);

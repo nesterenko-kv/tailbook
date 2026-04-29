@@ -7,7 +7,6 @@ namespace Tailbook.Modules.VisitOperations.Api.Groomer.GetVisitDetail;
 
 public sealed class GetOwnVisitDetailEndpoint(
     ICurrentUser currentUser,
-    IGroomerVisitAccessPolicy accessPolicy,
     GroomerVisitQueries groomerVisitQueries)
     : Endpoint<GetOwnVisitDetailRequest, GroomerVisitDetailView>
 {
@@ -15,16 +14,11 @@ public sealed class GetOwnVisitDetailEndpoint(
     {
         Get("/api/groomer/visits/{visitId:guid}");
         Description(x => x.WithTags("Groomer Visits"));
+        PermissionsAll("app.groomer.access", "groomer.visits.read");
     }
 
     public override async Task HandleAsync(GetOwnVisitDetailRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanReadOwnVisits(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         if (!Guid.TryParse(currentUser.UserId, out var currentUserId))
         {
             await Send.ForbiddenAsync(ct);

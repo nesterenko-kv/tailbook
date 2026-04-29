@@ -1,29 +1,23 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Staff.Application;
 using Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
 namespace Tailbook.Modules.Staff.Api.Admin.AddCapability;
 
-public sealed class AddCapabilityEndpoint(ICurrentUser currentUser, IStaffAccessPolicy accessPolicy, StaffQueries staffQueries)
+public sealed class AddCapabilityEndpoint(StaffQueries staffQueries)
     : Endpoint<AddCapabilityRequest, GroomerCapabilityResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/groomers/{GroomerId:guid}/capabilities");
         Description(x => x.WithTags("Admin Staff"));
+        PermissionsAll("staff.write");
     }
 
     public override async Task HandleAsync(AddCapabilityRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteStaff(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var capability = await staffQueries.AddCapabilityAsync(

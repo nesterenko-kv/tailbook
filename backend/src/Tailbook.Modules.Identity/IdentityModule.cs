@@ -30,7 +30,6 @@ public sealed class IdentityModule : IModuleDefinition
         services.AddScoped<PasswordHasher>();
         services.AddScoped<IdentityQueries>();
         services.AddScoped<ClientPortalIdentityQueries>();
-        services.AddScoped<IIdentityAccessPolicy, IdentityAccessPolicy>();
         services.AddScoped<IUserReferenceValidationService, IdentityReferenceServices>();
         services.AddScoped<IClientPortalActorService, IdentityReferenceServices>();
         services.AddScoped<IDataSeeder, IdentitySeeder>();

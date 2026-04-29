@@ -12,7 +12,7 @@ public sealed class GetVisitDetailEndpoint(ICurrentUser currentUser, VisitQuerie
     {
         Get("/api/admin/visits/{visitId:guid}");
         Description(x => x.WithTags("Admin Visits"));
-        Permissions("visit.read");
+        PermissionsAll("visit.read");
     }
 
     public override async Task HandleAsync(GetVisitDetailRequest req, CancellationToken ct)

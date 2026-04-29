@@ -14,7 +14,7 @@ public sealed class GetMyAppointmentEndpoint(
     {
         Get("/api/client/appointments/{appointmentId:guid}");
         Description(x => x.WithTags("Client Portal Booking"));
-        Permissions("client.appointments.read");
+        PermissionsAll("client.appointments.read");
     }
 
     public override async Task HandleAsync(GetMyAppointmentRequest req, CancellationToken ct)

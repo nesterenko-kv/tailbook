@@ -1,28 +1,22 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Staff.Application;
 
 namespace Tailbook.Modules.Staff.Api.Admin.GetGroomerSchedule;
 
-public sealed class GetGroomerScheduleEndpoint(ICurrentUser currentUser, IStaffAccessPolicy accessPolicy, StaffQueries staffQueries)
+public sealed class GetGroomerScheduleEndpoint(StaffQueries staffQueries)
     : Endpoint<GetGroomerScheduleRequest, GetGroomerScheduleResponse>
 {
     public override void Configure()
     {
         Get("/api/admin/groomers/{GroomerId:guid}/schedule");
         Description(x => x.WithTags("Admin Staff"));
+        PermissionsAll("staff.read");
     }
 
     public override async Task HandleAsync(GetGroomerScheduleRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanReadStaff(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var schedule = await staffQueries.GetScheduleAsync(req.GroomerId, req.FromUtc, req.ToUtc, ct);

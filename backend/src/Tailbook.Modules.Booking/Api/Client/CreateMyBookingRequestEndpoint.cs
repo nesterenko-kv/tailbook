@@ -14,7 +14,7 @@ public sealed class CreateMyBookingRequestEndpoint(
     {
         Post("/api/client/booking-requests");
         Description(x => x.WithTags("Client Portal Booking"));
-        Permissions("client.booking.write");
+        PermissionsAll("client.booking.write");
     }
 
     public override async Task HandleAsync(CreateMyBookingRequestRequest req, CancellationToken ct)

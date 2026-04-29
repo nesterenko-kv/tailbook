@@ -1,27 +1,21 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Customer.Application;
 
 namespace Tailbook.Modules.Customer.Api.Admin.ListClients;
 
-public sealed class ListClientsEndpoint(ICurrentUser currentUser, ICustomerAccessPolicy accessPolicy, CustomerQueries customerQueries)
+public sealed class ListClientsEndpoint(CustomerQueries customerQueries)
     : Endpoint<ListClientsRequest, ListClientsResponse>
 {
     public override void Configure()
     {
         Get("/api/admin/clients");
         Description(x => x.WithTags("Admin CRM"));
+        PermissionsAll("crm.clients.read");
     }
 
     public override async Task HandleAsync(ListClientsRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanReadClients(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var result = await customerQueries.ListClientsAsync(req.Search, req.Page, req.PageSize, ct);
         await Send.OkAsync(new ListClientsResponse
         {

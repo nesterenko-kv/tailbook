@@ -1,27 +1,21 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Catalog.Application;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.ListProcedures;
 
-public sealed class ListProceduresEndpoint(ICurrentUser currentUser, ICatalogAccessPolicy accessPolicy, CatalogQueries catalogQueries)
+public sealed class ListProceduresEndpoint(CatalogQueries catalogQueries)
     : EndpointWithoutRequest<IReadOnlyCollection<ProcedureItemResponse>>
 {
     public override void Configure()
     {
         Get("/api/admin/catalog/procedures");
         Description(x => x.WithTags("Admin Catalog"));
+        PermissionsAll("catalog.read");
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        if (!accessPolicy.CanReadCatalog(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var procedures = await catalogQueries.ListProceduresAsync(ct);
         await Send.OkAsync(procedures.Select(x => new ProcedureItemResponse
         {

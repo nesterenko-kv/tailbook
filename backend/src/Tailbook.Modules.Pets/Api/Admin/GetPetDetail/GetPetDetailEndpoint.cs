@@ -5,24 +5,19 @@ using Tailbook.Modules.Pets.Application;
 
 namespace Tailbook.Modules.Pets.Api.Admin.GetPetDetail;
 
-public sealed class GetPetDetailEndpoint(ICurrentUser currentUser, IPetsAccessPolicy accessPolicy, PetsQueries petsQueries)
+public sealed class GetPetDetailEndpoint(ICurrentUser currentUser, PetsQueries petsQueries)
     : Endpoint<GetPetDetailRequest, GetPetDetailResponse>
 {
     public override void Configure()
     {
         Get("/api/admin/pets/{id:guid}");
         Description(x => x.WithTags("Admin Pets"));
+        PermissionsAll("pets.read");
     }
 
     public override async Task HandleAsync(GetPetDetailRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanReadPets(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
-        var includeContacts = accessPolicy.CanReadContactData(currentUser);
+        var includeContacts = currentUser.HasPermission("crm.contacts.read");
         var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
         var pet = await petsQueries.GetPetAsync(req.Id, actorUserId, includeContacts, ct);
         if (pet is null)

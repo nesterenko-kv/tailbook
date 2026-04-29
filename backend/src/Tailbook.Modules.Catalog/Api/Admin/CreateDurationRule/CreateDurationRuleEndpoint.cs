@@ -1,29 +1,23 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Catalog.Application;
 using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreateDurationRule;
 
-public sealed class CreateDurationRuleEndpoint(ICurrentUser currentUser, ICatalogAccessPolicy accessPolicy, CatalogPricingQueries pricingQueries)
+public sealed class CreateDurationRuleEndpoint(CatalogPricingQueries pricingQueries)
     : Endpoint<CreateDurationRuleRequest, CreateDurationRuleResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/duration/rule-sets/{ruleSetId:guid}/rules");
         Description(x => x.WithTags("Admin Duration"));
+        PermissionsAll("catalog.write");
     }
 
     public override async Task HandleAsync(CreateDurationRuleRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteCatalog(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var result = await pricingQueries.CreateDurationRuleAsync(

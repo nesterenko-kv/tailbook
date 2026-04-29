@@ -13,7 +13,7 @@ public sealed class ApplyVisitAdjustmentEndpoint(ICurrentUser currentUser, Visit
     {
         Post("/api/admin/visits/{visitId:guid}/adjustments");
         Description(x => x.WithTags("Admin Visits"));
-        Permissions("visit.write");
+        PermissionsAll("visit.write");
     }
 
     public override async Task HandleAsync(ApplyVisitAdjustmentRequest req, CancellationToken ct)

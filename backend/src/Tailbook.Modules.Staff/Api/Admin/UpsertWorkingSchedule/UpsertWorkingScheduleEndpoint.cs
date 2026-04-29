@@ -1,29 +1,23 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Staff.Application;
 using Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
 namespace Tailbook.Modules.Staff.Api.Admin.UpsertWorkingSchedule;
 
-public sealed class UpsertWorkingScheduleEndpoint(ICurrentUser currentUser, IStaffAccessPolicy accessPolicy, StaffQueries staffQueries)
+public sealed class UpsertWorkingScheduleEndpoint(StaffQueries staffQueries)
     : Endpoint<UpsertWorkingScheduleRequest, WorkingScheduleResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/groomers/{GroomerId:guid}/working-schedules");
         Description(x => x.WithTags("Admin Staff"));
+        PermissionsAll("staff.write");
     }
 
     public override async Task HandleAsync(UpsertWorkingScheduleRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteStaff(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var schedule = await staffQueries.UpsertWorkingScheduleAsync(req.GroomerId, req.Weekday, req.StartLocalTime, req.EndLocalTime, ct);

@@ -13,7 +13,7 @@ public sealed class CompleteVisitEndpoint(ICurrentUser currentUser, VisitQueries
     {
         Post("/api/admin/visits/{visitId:guid}/complete");
         Description(x => x.WithTags("Admin Visits"));
-        Permissions("visit.write");
+        PermissionsAll("visit.write");
     }
 
     public override async Task HandleAsync(CompleteVisitRequest req, CancellationToken ct)

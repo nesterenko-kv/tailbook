@@ -1,27 +1,21 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Pets.Application;
 
 namespace Tailbook.Modules.Pets.Api.Admin.GetPetCatalog;
 
-public sealed class GetPetCatalogEndpoint(ICurrentUser currentUser, IPetsAccessPolicy accessPolicy, PetsQueries petsQueries)
+public sealed class GetPetCatalogEndpoint(PetsQueries petsQueries)
     : EndpointWithoutRequest<GetPetCatalogResponse>
 {
     public override void Configure()
     {
         Get("/api/admin/pets/catalog");
         Description(x => x.WithTags("Admin Pets"));
+        Permissions("pets.catalog.read", "pets.read");
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        if (!accessPolicy.CanReadCatalog(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var catalog = await petsQueries.GetCatalogAsync(ct);
         await Send.OkAsync(new GetPetCatalogResponse
         {

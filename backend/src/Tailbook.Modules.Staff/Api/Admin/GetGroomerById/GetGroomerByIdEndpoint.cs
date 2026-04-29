@@ -1,28 +1,22 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Staff.Application;
 using Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
 namespace Tailbook.Modules.Staff.Api.Admin.GetGroomerById;
 
-public sealed class GetGroomerByIdEndpoint(ICurrentUser currentUser, IStaffAccessPolicy accessPolicy, StaffQueries staffQueries)
+public sealed class GetGroomerByIdEndpoint(StaffQueries staffQueries)
     : Endpoint<GetGroomerByIdRequest, CreateGroomerResponse>
 {
     public override void Configure()
     {
         Get("/api/admin/groomers/{GroomerId:guid}");
         Description(x => x.WithTags("Admin Staff"));
+        PermissionsAll("staff.read");
     }
 
     public override async Task HandleAsync(GetGroomerByIdRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanReadStaff(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var groomer = await staffQueries.GetGroomerAsync(req.GroomerId, ct);
         if (groomer is null)
         {

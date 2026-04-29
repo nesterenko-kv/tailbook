@@ -8,7 +8,6 @@ namespace Tailbook.Modules.Identity.Api.Admin.GetUserById;
 
 public sealed class GetUserByIdEndpoint(
     ICurrentUser currentUser,
-    IIdentityAccessPolicy accessPolicy,
     IdentityQueries identityQueries,
     IAccessAuditService accessAuditService) : Endpoint<GetUserByIdRequest, GetUserByIdResponse>
 {
@@ -16,16 +15,11 @@ public sealed class GetUserByIdEndpoint(
     {
         Get("/api/admin/iam/users/{id:guid}");
         Description(x => x.WithTags("Admin IAM"));
+        PermissionsAll("iam.users.read");
     }
 
     public override async Task HandleAsync(GetUserByIdRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanReadUsers(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var user = await identityQueries.GetUserAsync(req.Id, ct);
         if (user is null)
         {

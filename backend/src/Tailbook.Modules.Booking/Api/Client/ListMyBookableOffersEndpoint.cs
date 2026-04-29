@@ -15,7 +15,7 @@ public sealed class ListMyBookableOffersEndpoint(
     {
         Get("/api/client/booking-offers");
         Description(x => x.WithTags("Client Portal Booking"));
-        Permissions("client.booking.write");
+        PermissionsAll("client.booking.write");
     }
 
     public override async Task HandleAsync(ListMyBookableOffersRequest req, CancellationToken ct)

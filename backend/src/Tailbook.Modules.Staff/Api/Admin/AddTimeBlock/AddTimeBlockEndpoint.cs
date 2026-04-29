@@ -1,28 +1,22 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Staff.Application;
 
 namespace Tailbook.Modules.Staff.Api.Admin.AddTimeBlock;
 
-public sealed class AddTimeBlockEndpoint(ICurrentUser currentUser, IStaffAccessPolicy accessPolicy, StaffQueries staffQueries)
+public sealed class AddTimeBlockEndpoint(StaffQueries staffQueries)
     : Endpoint<AddTimeBlockRequest, AddTimeBlockResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/groomers/{GroomerId:guid}/time-blocks");
         Description(x => x.WithTags("Admin Staff"));
+        PermissionsAll("staff.write");
     }
 
     public override async Task HandleAsync(AddTimeBlockRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteStaff(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var block = await staffQueries.AddTimeBlockAsync(req.GroomerId, req.StartAtUtc, req.EndAtUtc, req.ReasonCode, req.Notes, ct);

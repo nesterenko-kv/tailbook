@@ -14,7 +14,7 @@ public sealed class PreviewMyQuoteEndpoint(
     {
         Post("/api/client/quotes/preview");
         Description(x => x.WithTags("Client Portal Booking"));
-        Permissions("client.booking.write");
+        PermissionsAll("client.booking.write");
     }
 
     public override async Task HandleAsync(PreviewMyQuoteRequest req, CancellationToken ct)

@@ -1,27 +1,21 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Identity.Application;
 
 namespace Tailbook.Modules.Identity.Api.Admin.ListUsers;
 
-public sealed class ListUsersEndpoint(ICurrentUser currentUser, IIdentityAccessPolicy accessPolicy, IdentityQueries identityQueries)
+public sealed class ListUsersEndpoint(IdentityQueries identityQueries)
     : Endpoint<ListUsersRequest, ListUsersResponse>
 {
     public override void Configure()
     {
         Get("/api/admin/iam/users");
         Description(x => x.WithTags("Admin IAM"));
+        PermissionsAll("iam.users.read");
     }
 
     public override async Task HandleAsync(ListUsersRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanReadUsers(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var result = await identityQueries.ListUsersAsync(req.Page, req.PageSize, ct);
 
         await Send.OkAsync(new ListUsersResponse

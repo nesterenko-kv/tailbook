@@ -5,23 +5,18 @@ using Tailbook.Modules.Customer.Application;
 
 namespace Tailbook.Modules.Customer.Api.Admin.ListPetContactLinks;
 
-public sealed class ListPetContactLinksEndpoint(ICurrentUser currentUser, ICustomerAccessPolicy accessPolicy, CustomerQueries customerQueries)
+public sealed class ListPetContactLinksEndpoint(ICurrentUser currentUser, CustomerQueries customerQueries)
     : Endpoint<ListPetContactLinksRequest, ListPetContactLinksResponse>
 {
     public override void Configure()
     {
         Get("/api/admin/pets/{petId:guid}/contacts");
         Description(x => x.WithTags("Admin CRM"));
+        PermissionsAll("crm.contacts.read");
     }
 
     public override async Task HandleAsync(ListPetContactLinksRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanReadContacts(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
         var links = await customerQueries.ListPetContactLinksAsync(req.PetId, actorUserId, ct);
         if (links is null)

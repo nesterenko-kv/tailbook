@@ -1,28 +1,22 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Customer.Application;
 
 namespace Tailbook.Modules.Customer.Api.Admin.AddContactPerson;
 
-public sealed class AddContactPersonEndpoint(ICurrentUser currentUser, ICustomerAccessPolicy accessPolicy, CustomerQueries customerQueries)
+public sealed class AddContactPersonEndpoint(CustomerQueries customerQueries)
     : Endpoint<AddContactPersonRequest, AddContactPersonResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/clients/{clientId:guid}/contacts");
         Description(x => x.WithTags("Admin CRM"));
+        PermissionsAll("crm.contacts.write");
     }
 
     public override async Task HandleAsync(AddContactPersonRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteContacts(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var contact = await customerQueries.AddContactPersonAsync(req.ClientId, req.FirstName, req.LastName, req.Notes, req.TrustLevel, ct);
         if (contact is null)
         {

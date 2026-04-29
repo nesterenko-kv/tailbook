@@ -1,28 +1,22 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Staff.Application;
 
 namespace Tailbook.Modules.Staff.Api.Admin.CheckAvailability;
 
-public sealed class CheckAvailabilityEndpoint(ICurrentUser currentUser, IStaffAccessPolicy accessPolicy, StaffQueries staffQueries)
+public sealed class CheckAvailabilityEndpoint(StaffQueries staffQueries)
     : Endpoint<CheckAvailabilityRequest, CheckAvailabilityResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/groomers/{GroomerId:guid}/availability/check");
         Description(x => x.WithTags("Admin Staff"));
+        PermissionsAll("staff.read");
     }
 
     public override async Task HandleAsync(CheckAvailabilityRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanReadStaff(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var result = await staffQueries.CheckAvailabilityAsync(

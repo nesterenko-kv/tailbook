@@ -19,7 +19,6 @@ public sealed class ReportingModule : IModuleDefinition
 
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<IReportingAccessPolicy, ReportingAccessPolicy>();
         services.AddScoped<ReportingQueries>();
         return services;
     }

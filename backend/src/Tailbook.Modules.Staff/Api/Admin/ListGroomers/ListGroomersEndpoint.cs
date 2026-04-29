@@ -1,27 +1,21 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Staff.Application;
 
 namespace Tailbook.Modules.Staff.Api.Admin.ListGroomers;
 
-public sealed class ListGroomersEndpoint(ICurrentUser currentUser, IStaffAccessPolicy accessPolicy, StaffQueries staffQueries)
+public sealed class ListGroomersEndpoint(StaffQueries staffQueries)
     : EndpointWithoutRequest<ListGroomersResponse>
 {
     public override void Configure()
     {
         Get("/api/admin/groomers");
         Description(x => x.WithTags("Admin Staff"));
+        PermissionsAll("staff.read");
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        if (!accessPolicy.CanReadStaff(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var items = await staffQueries.ListGroomersAsync(ct);
         await Send.ResponseAsync(new ListGroomersResponse
         {

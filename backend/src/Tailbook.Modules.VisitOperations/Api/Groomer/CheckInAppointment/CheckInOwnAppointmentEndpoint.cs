@@ -8,7 +8,6 @@ namespace Tailbook.Modules.VisitOperations.Api.Groomer.CheckInAppointment;
 
 public sealed class CheckInOwnAppointmentEndpoint(
     ICurrentUser currentUser,
-    IGroomerVisitAccessPolicy accessPolicy,
     GroomerVisitQueries groomerVisitQueries)
     : Endpoint<CheckInOwnAppointmentRequest, GroomerVisitDetailView>
 {
@@ -16,16 +15,11 @@ public sealed class CheckInOwnAppointmentEndpoint(
     {
         Post("/api/groomer/appointments/{appointmentId:guid}/check-in");
         Description(x => x.WithTags("Groomer Visits"));
+        PermissionsAll("app.groomer.access", "groomer.visits.write");
     }
 
     public override async Task HandleAsync(CheckInOwnAppointmentRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteOwnVisits(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         if (!Guid.TryParse(currentUser.UserId, out var currentUserId))
         {
             await Send.ForbiddenAsync(ct);

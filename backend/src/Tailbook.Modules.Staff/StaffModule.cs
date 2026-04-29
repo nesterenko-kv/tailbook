@@ -25,7 +25,6 @@ public sealed class StaffModule : IModuleDefinition
             .ValidateOnStart();
         services.AddSingleton<SalonTimeZoneProvider>();
         services.AddScoped<StaffQueries>();
-        services.AddScoped<IStaffAccessPolicy, StaffAccessPolicy>();
         services.AddScoped<IStaffSchedulingService, StaffSchedulingService>();
         services.AddScoped<IGroomerProfileReadService, GroomerProfileReadService>();
         return services;

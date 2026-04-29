@@ -13,7 +13,7 @@ public sealed class CloseVisitEndpoint(ICurrentUser currentUser, VisitQueries vi
     {
         Post("/api/admin/visits/{visitId:guid}/close");
         Description(x => x.WithTags("Admin Visits"));
-        Permissions("visit.write");
+        PermissionsAll("visit.write");
     }
 
     public override async Task HandleAsync(CloseVisitRequest req, CancellationToken ct)

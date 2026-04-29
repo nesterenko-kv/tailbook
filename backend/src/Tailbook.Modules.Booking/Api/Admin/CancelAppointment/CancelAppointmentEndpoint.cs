@@ -8,23 +8,18 @@ using ProblemDetails = Microsoft.AspNetCore.Mvc.ProblemDetails;
 
 namespace Tailbook.Modules.Booking.Api.Admin.CancelAppointment;
 
-public sealed class CancelAppointmentEndpoint(ICurrentUser currentUser, IBookingAccessPolicy accessPolicy, BookingManagementQueries bookingQueries)
+public sealed class CancelAppointmentEndpoint(ICurrentUser currentUser, BookingManagementQueries bookingQueries)
     : Endpoint<CancelAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()
     {
         Post("/api/admin/appointments/{appointmentId:guid}/cancel");
         Description(x => x.WithTags("Admin Booking"));
+        PermissionsAll("booking.write");
     }
 
     public override async Task HandleAsync(CancelAppointmentRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteBooking(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var result = await bookingQueries.CancelAppointmentAsync(

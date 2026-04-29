@@ -13,7 +13,7 @@ public sealed class CheckInAppointmentEndpoint(ICurrentUser currentUser, VisitQu
     {
         Post("/api/admin/appointments/{appointmentId:guid}/check-in");
         Description(x => x.WithTags("Admin Visits"));
-        Permissions("visit.write");
+        PermissionsAll("visit.write");
     }
 
     public override async Task HandleAsync(CheckInAppointmentRequest req, CancellationToken ct)

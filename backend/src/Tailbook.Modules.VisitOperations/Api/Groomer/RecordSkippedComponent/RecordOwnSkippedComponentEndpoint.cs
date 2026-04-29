@@ -8,7 +8,6 @@ namespace Tailbook.Modules.VisitOperations.Api.Groomer.RecordSkippedComponent;
 
 public sealed class RecordOwnSkippedComponentEndpoint(
     ICurrentUser currentUser,
-    IGroomerVisitAccessPolicy accessPolicy,
     GroomerVisitQueries groomerVisitQueries)
     : Endpoint<RecordOwnSkippedComponentRequest, GroomerVisitDetailView>
 {
@@ -16,16 +15,11 @@ public sealed class RecordOwnSkippedComponentEndpoint(
     {
         Post("/api/groomer/visits/{visitId:guid}/skipped-components");
         Description(x => x.WithTags("Groomer Visits"));
+        PermissionsAll("app.groomer.access", "groomer.visits.write");
     }
 
     public override async Task HandleAsync(RecordOwnSkippedComponentRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteOwnVisits(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         if (!Guid.TryParse(currentUser.UserId, out var currentUserId))
         {
             await Send.ForbiddenAsync(ct);

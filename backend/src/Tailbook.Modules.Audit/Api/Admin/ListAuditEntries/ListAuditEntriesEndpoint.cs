@@ -14,7 +14,7 @@ public sealed class ListAuditEntriesEndpoint(AppDbContext dbContext)
     {
         Get("/api/admin/audit");
         Description(x => x.WithTags("Audit"));
-        Permissions("audit.trail.read");
+        PermissionsAll("audit.trail.read");
     }
 
     public override async Task HandleAsync(ListAuditEntriesRequest req, CancellationToken ct)

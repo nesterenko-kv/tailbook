@@ -13,7 +13,7 @@ public sealed class RecordSkippedComponentEndpoint(ICurrentUser currentUser, Vis
     {
         Post("/api/admin/visits/{visitId:guid}/skipped-components");
         Description(x => x.WithTags("Admin Visits"));
-        Permissions("visit.write");
+        PermissionsAll("visit.write");
     }
 
     public override async Task HandleAsync(RecordSkippedComponentRequest req, CancellationToken ct)

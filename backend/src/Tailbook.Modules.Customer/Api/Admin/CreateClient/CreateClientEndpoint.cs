@@ -1,28 +1,22 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Customer.Application;
 
 namespace Tailbook.Modules.Customer.Api.Admin.CreateClient;
 
-public sealed class CreateClientEndpoint(ICurrentUser currentUser, ICustomerAccessPolicy accessPolicy, CustomerQueries customerQueries)
+public sealed class CreateClientEndpoint(CustomerQueries customerQueries)
     : Endpoint<CreateClientRequest, CreateClientResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/clients");
         Description(x => x.WithTags("Admin CRM"));
+        PermissionsAll("crm.clients.write");
     }
 
     public override async Task HandleAsync(CreateClientRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteClients(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var client = await customerQueries.CreateClientAsync(req.DisplayName, req.Notes, ct);
         await Send.ResponseAsync(new CreateClientResponse
         {

@@ -1,28 +1,22 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Catalog.Application;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreateProcedure;
 
-public sealed class CreateProcedureEndpoint(ICurrentUser currentUser, ICatalogAccessPolicy accessPolicy, CatalogQueries catalogQueries)
+public sealed class CreateProcedureEndpoint(CatalogQueries catalogQueries)
     : Endpoint<CreateProcedureRequest, CreateProcedureResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/catalog/procedures");
         Description(x => x.WithTags("Admin Catalog"));
+        PermissionsAll("catalog.write");
     }
 
     public override async Task HandleAsync(CreateProcedureRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteCatalog(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var procedure = await catalogQueries.CreateProcedureAsync(req.Code, req.Name, ct);

@@ -1,28 +1,22 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Customer.Application;
 
 namespace Tailbook.Modules.Customer.Api.Admin.LinkContactToPet;
 
-public sealed class LinkContactToPetEndpoint(ICurrentUser currentUser, ICustomerAccessPolicy accessPolicy, CustomerQueries customerQueries)
+public sealed class LinkContactToPetEndpoint(CustomerQueries customerQueries)
     : Endpoint<LinkContactToPetRequest, LinkContactToPetResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/pets/{petId:guid}/contacts/{contactId:guid}");
         Description(x => x.WithTags("Admin CRM"));
+        PermissionsAll("crm.contacts.write");
     }
 
     public override async Task HandleAsync(LinkContactToPetRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteContacts(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var link = await customerQueries.LinkContactToPetAsync(req.PetId, req.ContactId, req.RoleCodes, req.IsPrimary, req.CanPickUp, req.CanPay, req.ReceivesNotifications, ct);
         if (link is null)
         {

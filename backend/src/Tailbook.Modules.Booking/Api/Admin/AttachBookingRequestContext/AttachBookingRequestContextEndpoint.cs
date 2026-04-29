@@ -8,7 +8,6 @@ namespace Tailbook.Modules.Booking.Api.Admin.AttachBookingRequestContext;
 
 public sealed class AttachBookingRequestContextEndpoint(
     ICurrentUser currentUser,
-    IBookingAccessPolicy accessPolicy,
     BookingManagementQueries bookingQueries)
     : Endpoint<AttachBookingRequestContextRequest, BookingRequestDetailView>
 {
@@ -16,16 +15,11 @@ public sealed class AttachBookingRequestContextEndpoint(
     {
         Post("/api/admin/booking-requests/{bookingRequestId:guid}/attach-context");
         Description(x => x.WithTags("Admin Booking"));
+        PermissionsAll("booking.write");
     }
 
     public override async Task HandleAsync(AttachBookingRequestContextRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteBooking(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var bookingRequestId = Route<Guid>("bookingRequestId");

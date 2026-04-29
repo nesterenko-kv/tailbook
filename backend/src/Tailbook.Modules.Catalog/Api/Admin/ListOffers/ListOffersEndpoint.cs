@@ -1,27 +1,21 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Catalog.Application;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.ListOffers;
 
-public sealed class ListOffersEndpoint(ICurrentUser currentUser, ICatalogAccessPolicy accessPolicy, CatalogQueries catalogQueries)
+public sealed class ListOffersEndpoint(CatalogQueries catalogQueries)
     : EndpointWithoutRequest<IReadOnlyCollection<OfferListItemResponse>>
 {
     public override void Configure()
     {
         Get("/api/admin/catalog/offers");
         Description(x => x.WithTags("Admin Catalog"));
+        PermissionsAll("catalog.read");
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        if (!accessPolicy.CanReadCatalog(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var offers = await catalogQueries.ListOffersAsync(ct);
         await Send.OkAsync(offers.Select(x => new OfferListItemResponse
         {

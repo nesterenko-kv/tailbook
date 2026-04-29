@@ -21,7 +21,6 @@ public sealed class PetsModule : IModuleDefinition
     {
         services.AddScoped<PetsQueries>();
         services.AddScoped<ClientPortalPetsQueries>();
-        services.AddScoped<IPetsAccessPolicy, PetsAccessPolicy>();
         services.AddScoped<IPetReferenceValidationService, PetReferenceServices>();
         services.AddScoped<IPetReadModelService, PetReferenceServices>();
         services.AddScoped<IPetSummaryReadService, PetReferenceServices>();

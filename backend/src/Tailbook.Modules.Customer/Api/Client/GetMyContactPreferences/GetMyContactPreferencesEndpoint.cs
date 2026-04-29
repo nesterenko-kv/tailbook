@@ -15,11 +15,12 @@ public sealed class GetMyContactPreferencesEndpoint(ICurrentUser currentUser, IC
     {
         Get("/api/client/me/contact-preferences");
         Description(x => x.WithTags("Client Portal CRM"));
+        PermissionsAll(PermissionCodes.ClientContactPreferencesRead);
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated || !currentUser.HasPermission(PermissionCodes.ClientContactPreferencesRead) || !Guid.TryParse(currentUser.UserId, out var userId))
+        if (!currentUser.IsAuthenticated || !Guid.TryParse(currentUser.UserId, out var userId))
         {
             await Send.UnauthorizedAsync(ct);
             return;
@@ -50,11 +51,12 @@ public sealed class UpdateMyContactPreferencesEndpoint(ICurrentUser currentUser,
     {
         Patch("/api/client/me/contact-preferences");
         Description(x => x.WithTags("Client Portal CRM"));
+        PermissionsAll(PermissionCodes.ClientContactPreferencesWrite);
     }
 
     public override async Task HandleAsync(UpdateMyContactPreferencesRequest req, CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated || !currentUser.HasPermission(PermissionCodes.ClientContactPreferencesWrite) || !Guid.TryParse(currentUser.UserId, out var userId))
+        if (!currentUser.IsAuthenticated || !Guid.TryParse(currentUser.UserId, out var userId))
         {
             await Send.UnauthorizedAsync(ct);
             return;

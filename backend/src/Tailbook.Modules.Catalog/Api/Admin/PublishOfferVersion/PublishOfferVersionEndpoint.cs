@@ -1,28 +1,22 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Catalog.Application;
 using Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.PublishOfferVersion;
 
-public sealed class PublishOfferVersionEndpoint(ICurrentUser currentUser, ICatalogAccessPolicy accessPolicy, CatalogQueries catalogQueries)
+public sealed class PublishOfferVersionEndpoint(CatalogQueries catalogQueries)
     : Endpoint<PublishOfferVersionRequest, OfferVersionResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/catalog/offer-versions/{versionId:guid}/publish");
         Description(x => x.WithTags("Admin Catalog"));
+        PermissionsAll("catalog.write");
     }
 
     public override async Task HandleAsync(PublishOfferVersionRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteCatalog(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var version = await catalogQueries.PublishOfferVersionAsync(req.VersionId, ct);

@@ -1,29 +1,23 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Catalog.Application;
 using Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreateOfferVersion;
 
-public sealed class CreateOfferVersionEndpoint(ICurrentUser currentUser, ICatalogAccessPolicy accessPolicy, CatalogQueries catalogQueries)
+public sealed class CreateOfferVersionEndpoint(CatalogQueries catalogQueries)
     : Endpoint<CreateOfferVersionRequest, OfferVersionResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/catalog/offers/{offerId:guid}/versions");
         Description(x => x.WithTags("Admin Catalog"));
+        PermissionsAll("catalog.write");
     }
 
     public override async Task HandleAsync(CreateOfferVersionRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteCatalog(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         if (req.ValidFromUtc.HasValue && req.ValidToUtc.HasValue && req.ValidToUtc.Value < req.ValidFromUtc.Value)
         {
             AddError("ValidToUtc must be greater than or equal to ValidFromUtc.");

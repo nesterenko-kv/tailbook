@@ -5,23 +5,18 @@ using Tailbook.Modules.Identity.Application;
 
 namespace Tailbook.Modules.Identity.Api.Admin.AssignRoles;
 
-public sealed class AssignRolesEndpoint(ICurrentUser currentUser, IIdentityAccessPolicy accessPolicy, IdentityQueries identityQueries)
+public sealed class AssignRolesEndpoint(ICurrentUser currentUser, IdentityQueries identityQueries)
     : Endpoint<AssignRolesRequest, AssignRolesResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/iam/users/{id:guid}/roles");
         Description(x => x.WithTags("Admin IAM"));
+        PermissionsAll("iam.roles.assign");
     }
 
     public override async Task HandleAsync(AssignRolesRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanAssignRoles(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var user = await identityQueries.AssignRolesAsync(req.Id, req.RoleCodes, ParseActorId(currentUser), ct);

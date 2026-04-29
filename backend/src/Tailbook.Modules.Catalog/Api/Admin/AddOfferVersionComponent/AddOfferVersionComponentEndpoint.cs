@@ -1,29 +1,23 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Catalog.Application;
 using Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.AddOfferVersionComponent;
 
-public sealed class AddOfferVersionComponentEndpoint(ICurrentUser currentUser, ICatalogAccessPolicy accessPolicy, CatalogQueries catalogQueries)
+public sealed class AddOfferVersionComponentEndpoint(CatalogQueries catalogQueries)
     : Endpoint<AddOfferVersionComponentRequest, OfferVersionComponentResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/catalog/offer-versions/{versionId:guid}/components");
         Description(x => x.WithTags("Admin Catalog"));
+        PermissionsAll("catalog.write");
     }
 
     public override async Task HandleAsync(AddOfferVersionComponentRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteCatalog(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var component = await catalogQueries.AddComponentAsync(req.VersionId, req.ProcedureId, req.ComponentRole, req.SequenceNo, req.DefaultExpected, ct);

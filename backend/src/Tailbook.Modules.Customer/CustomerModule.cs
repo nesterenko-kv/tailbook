@@ -21,7 +21,6 @@ public sealed class CustomerModule : IModuleDefinition
     {
         services.AddScoped<CustomerQueries>();
         services.AddScoped<ClientPortalCustomerQueries>();
-        services.AddScoped<ICustomerAccessPolicy, CustomerAccessPolicy>();
         services.AddScoped<IClientReferenceValidationService, CustomerReferenceServices>();
         services.AddScoped<IContactReferenceValidationService, CustomerReferenceServices>();
         services.AddScoped<IPetContactReadModelService, CustomerReferenceServices>();

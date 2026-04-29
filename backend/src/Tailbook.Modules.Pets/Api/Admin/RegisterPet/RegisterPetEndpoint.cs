@@ -1,28 +1,22 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Pets.Application;
 
 namespace Tailbook.Modules.Pets.Api.Admin.RegisterPet;
 
-public sealed class RegisterPetEndpoint(ICurrentUser currentUser, IPetsAccessPolicy accessPolicy, PetsQueries petsQueries)
+public sealed class RegisterPetEndpoint(PetsQueries petsQueries)
     : Endpoint<RegisterPetRequest, RegisterPetResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/pets");
         Description(x => x.WithTags("Admin Pets"));
+        PermissionsAll("pets.write");
     }
 
     public override async Task HandleAsync(RegisterPetRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWritePets(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var pet = await petsQueries.RegisterPetAsync(new RegisterPetCommand(req.ClientId, req.Name, req.AnimalTypeCode, req.BreedId, req.CoatTypeCode, req.SizeCategoryCode, req.BirthDate, req.WeightKg, req.Notes), ct);

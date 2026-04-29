@@ -13,7 +13,7 @@ public sealed class RecordPerformedProcedureEndpoint(ICurrentUser currentUser, V
     {
         Post("/api/admin/visits/{visitId:guid}/performed-procedures");
         Description(x => x.WithTags("Admin Visits"));
-        Permissions("visit.write");
+        PermissionsAll("visit.write");
     }
 
     public override async Task HandleAsync(RecordPerformedProcedureRequest req, CancellationToken ct)

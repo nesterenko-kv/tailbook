@@ -8,23 +8,18 @@ using ProblemDetails = Microsoft.AspNetCore.Mvc.ProblemDetails;
 
 namespace Tailbook.Modules.Booking.Api.Admin.RescheduleAppointment;
 
-public sealed class RescheduleAppointmentEndpoint(ICurrentUser currentUser, IBookingAccessPolicy accessPolicy, BookingManagementQueries bookingQueries)
+public sealed class RescheduleAppointmentEndpoint(ICurrentUser currentUser, BookingManagementQueries bookingQueries)
     : Endpoint<RescheduleAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()
     {
         Post("/api/admin/appointments/{appointmentId:guid}/reschedule");
         Description(x => x.WithTags("Admin Booking"));
+        PermissionsAll("booking.write");
     }
 
     public override async Task HandleAsync(RescheduleAppointmentRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteBooking(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var result = await bookingQueries.RescheduleAppointmentAsync(

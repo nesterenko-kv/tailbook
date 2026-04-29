@@ -13,11 +13,12 @@ public sealed class GetClientMeEndpoint(ICurrentUser currentUser, IClientPortalA
     {
         Get("/api/client/me");
         Description(x => x.WithTags("Client Portal Identity"));
+        PermissionsAll(PermissionCodes.ClientPortalAccess);
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated || !currentUser.HasPermission(PermissionCodes.ClientPortalAccess) || !Guid.TryParse(currentUser.UserId, out var userId))
+        if (!currentUser.IsAuthenticated || !Guid.TryParse(currentUser.UserId, out var userId))
         {
             await Send.UnauthorizedAsync(ct);
             return;

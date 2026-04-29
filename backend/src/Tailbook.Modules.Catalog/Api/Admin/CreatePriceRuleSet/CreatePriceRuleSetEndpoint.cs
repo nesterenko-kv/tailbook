@@ -1,29 +1,23 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Catalog.Application;
 using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreatePriceRuleSet;
 
-public sealed class CreatePriceRuleSetEndpoint(ICurrentUser currentUser, ICatalogAccessPolicy accessPolicy, CatalogPricingQueries pricingQueries)
+public sealed class CreatePriceRuleSetEndpoint(CatalogPricingQueries pricingQueries)
     : Endpoint<CreatePriceRuleSetRequest, CreatePriceRuleSetResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/pricing/rule-sets");
         Description(x => x.WithTags("Admin Pricing"));
+        PermissionsAll("catalog.write");
     }
 
     public override async Task HandleAsync(CreatePriceRuleSetRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteCatalog(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var result = await pricingQueries.CreatePriceRuleSetAsync(req.ValidFromUtc, req.ValidToUtc, ct);
         await Send.ResponseAsync(new CreatePriceRuleSetResponse
         {

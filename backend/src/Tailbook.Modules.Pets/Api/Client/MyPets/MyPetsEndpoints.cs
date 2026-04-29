@@ -14,11 +14,12 @@ public sealed class ListMyPetsEndpoint(ICurrentUser currentUser, IClientPortalAc
     {
         Get("/api/client/me/pets");
         Description(x => x.WithTags("Client Portal Pets"));
+        PermissionsAll(PermissionCodes.ClientPetsRead);
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated || !currentUser.HasPermission(PermissionCodes.ClientPetsRead) || !Guid.TryParse(currentUser.UserId, out var userId))
+        if (!currentUser.IsAuthenticated || !Guid.TryParse(currentUser.UserId, out var userId))
         {
             await Send.UnauthorizedAsync(ct);
             return;
@@ -43,11 +44,12 @@ public sealed class GetMyPetEndpoint(ICurrentUser currentUser, IClientPortalActo
     {
         Get("/api/client/me/pets/{petId:guid}");
         Description(x => x.WithTags("Client Portal Pets"));
+        PermissionsAll(PermissionCodes.ClientPetsRead);
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        if (!currentUser.IsAuthenticated || !currentUser.HasPermission(PermissionCodes.ClientPetsRead) || !Guid.TryParse(currentUser.UserId, out var userId))
+        if (!currentUser.IsAuthenticated || !Guid.TryParse(currentUser.UserId, out var userId))
         {
             await Send.UnauthorizedAsync(ct);
             return;

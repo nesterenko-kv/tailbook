@@ -12,7 +12,7 @@ public sealed class ListAppointmentsEndpoint(BookingManagementQueries bookingQue
     {
         Get("/api/admin/appointments");
         Description(x => x.WithTags("Admin Booking"));
-        Permissions("booking.read");
+        PermissionsAll("booking.read");
     }
 
     public override async Task HandleAsync(ListAppointmentsRequest req, CancellationToken ct)

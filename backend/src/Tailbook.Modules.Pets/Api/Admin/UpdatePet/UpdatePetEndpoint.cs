@@ -1,28 +1,22 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Pets.Application;
 
 namespace Tailbook.Modules.Pets.Api.Admin.UpdatePet;
 
-public sealed class UpdatePetEndpoint(ICurrentUser currentUser, IPetsAccessPolicy accessPolicy, PetsQueries petsQueries)
+public sealed class UpdatePetEndpoint(PetsQueries petsQueries)
     : Endpoint<UpdatePetRequest, UpdatePetResponse>
 {
     public override void Configure()
     {
         Patch("/api/admin/pets/{id:guid}");
         Description(x => x.WithTags("Admin Pets"));
+        PermissionsAll("pets.write");
     }
 
     public override async Task HandleAsync(UpdatePetRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWritePets(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var pet = await petsQueries.UpdatePetAsync(req.Id, new UpdatePetCommand(req.Name, req.AnimalTypeCode, req.BreedId, req.CoatTypeCode, req.SizeCategoryCode, req.BirthDate, req.WeightKg, req.Notes), ct);

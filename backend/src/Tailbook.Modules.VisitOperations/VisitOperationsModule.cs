@@ -19,7 +19,6 @@ public sealed class VisitOperationsModule : IModuleDefinition
 
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<IGroomerVisitAccessPolicy, GroomerVisitAccessPolicy>();
         services.AddScoped<VisitQueries>();
         services.AddScoped<GroomerVisitQueries>();
         return services;

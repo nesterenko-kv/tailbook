@@ -6,6 +6,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
+// TODO: rename to more appropriate
 public sealed class Stage11FoundationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;

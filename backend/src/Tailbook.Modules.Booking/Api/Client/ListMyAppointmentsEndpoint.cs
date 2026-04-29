@@ -15,7 +15,7 @@ public sealed class ListMyAppointmentsEndpoint(
     {
         Get("/api/client/appointments");
         Description(x => x.WithTags("Client Portal Booking"));
-        Permissions(PermissionCodes.ClientAppointmentsRead);
+        PermissionsAll(PermissionCodes.ClientAppointmentsRead);
     }
 
     public override async Task HandleAsync(ListMyAppointmentsRequest req, CancellationToken ct)

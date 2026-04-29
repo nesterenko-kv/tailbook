@@ -5,23 +5,18 @@ using Tailbook.Modules.Customer.Application;
 
 namespace Tailbook.Modules.Customer.Api.Admin.GetClientDetail;
 
-public sealed class GetClientDetailEndpoint(ICurrentUser currentUser, ICustomerAccessPolicy accessPolicy, CustomerQueries customerQueries)
+public sealed class GetClientDetailEndpoint(ICurrentUser currentUser, CustomerQueries customerQueries)
     : Endpoint<GetClientDetailRequest, GetClientDetailResponse>
 {
     public override void Configure()
     {
         Get("/api/admin/clients/{id:guid}");
         Description(x => x.WithTags("Admin CRM"));
+        PermissionsAll("crm.clients.read", "crm.contacts.read");
     }
 
     public override async Task HandleAsync(GetClientDetailRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanReadClients(currentUser) || !accessPolicy.CanReadContacts(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         var actorUserId = Guid.TryParse(currentUser.UserId, out var parsed) ? parsed : (Guid?)null;
         var client = await customerQueries.GetClientDetailAsync(req.Id, actorUserId, ct);
         if (client is null)

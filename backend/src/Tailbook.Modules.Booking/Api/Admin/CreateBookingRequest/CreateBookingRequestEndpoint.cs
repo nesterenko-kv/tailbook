@@ -6,23 +6,18 @@ using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Admin.CreateBookingRequest;
 
-public sealed class CreateBookingRequestEndpoint(ICurrentUser currentUser, IBookingAccessPolicy accessPolicy, BookingManagementQueries bookingQueries)
+public sealed class CreateBookingRequestEndpoint(ICurrentUser currentUser, BookingManagementQueries bookingQueries)
     : Endpoint<CreateBookingRequestRequest, BookingRequestDetailView>
 {
     public override void Configure()
     {
         Post("/api/admin/booking-requests");
         Description(x => x.WithTags("Admin Booking"));
+        PermissionsAll("booking.write");
     }
 
     public override async Task HandleAsync(CreateBookingRequestRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteBooking(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var result = await bookingQueries.CreateBookingRequestAsync(

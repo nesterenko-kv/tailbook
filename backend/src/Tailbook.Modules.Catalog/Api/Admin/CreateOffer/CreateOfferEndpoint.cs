@@ -1,28 +1,22 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.Modules.Catalog.Application;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
-public sealed class CreateOfferEndpoint(ICurrentUser currentUser, ICatalogAccessPolicy accessPolicy, CatalogQueries catalogQueries)
+public sealed class CreateOfferEndpoint(CatalogQueries catalogQueries)
     : Endpoint<CreateOfferRequest, OfferResponse>
 {
     public override void Configure()
     {
         Post("/api/admin/catalog/offers");
         Description(x => x.WithTags("Admin Catalog"));
+        PermissionsAll("catalog.write");
     }
 
     public override async Task HandleAsync(CreateOfferRequest req, CancellationToken ct)
     {
-        if (!accessPolicy.CanWriteCatalog(currentUser))
-        {
-            await Send.ForbiddenAsync(ct);
-            return;
-        }
-
         try
         {
             var offer = await catalogQueries.CreateOfferAsync(req.Code, req.OfferType, req.DisplayName, ct);
