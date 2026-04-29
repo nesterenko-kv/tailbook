@@ -51,9 +51,9 @@ export function SuccessBanner({ message }: { message?: string | null }) {
   return <div className="rounded-2xl border border-emerald-700/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">{message}</div>;
 }
 
-export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+export function Field({ label, hint, children, className }: { label: string; hint?: string; children: ReactNode; className?: string }) {
   return (
-    <label className="block space-y-2">
+    <label className={cn("block space-y-2", className)}>
       <span className="block text-sm font-medium text-slate-200">{label}</span>
       {children}
       {hint ? <span className="block text-xs text-slate-500">{hint}</span> : null}

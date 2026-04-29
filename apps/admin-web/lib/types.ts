@@ -311,6 +311,16 @@ export type WorkingSchedule = {
     updatedAtUtc: string;
 };
 
+export type TimeBlock = {
+    id: string;
+    groomerId: string;
+    startAtUtc: string;
+    endAtUtc: string;
+    reasonCode: string;
+    notes?: string | null;
+    createdAtUtc: string;
+};
+
 export type GroomerDetail = {
     id: string;
     userId?: string | null;
