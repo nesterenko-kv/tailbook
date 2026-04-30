@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Pets.Api.Public.GetPublicPetCatalog;
 
-public sealed class GetPublicPetCatalogEndpoint(IPetsQueries petsQueries)
+public sealed class GetPublicPetCatalogEndpoint(IPetsReadService petsReadService)
     : EndpointWithoutRequest<GetPublicPetCatalogResponse>
 {
     public override void Configure()
@@ -15,7 +15,7 @@ public sealed class GetPublicPetCatalogEndpoint(IPetsQueries petsQueries)
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var catalog = await petsQueries.GetCatalogAsync(ct);
+        var catalog = await petsReadService.GetCatalogAsync(ct);
         await Send.OkAsync(new GetPublicPetCatalogResponse
         {
             AnimalTypes = catalog.AnimalTypes.Select(x => new PublicAnimalTypeResponse { Id = x.Id, Code = x.Code, Name = x.Name }).ToArray(),

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 namespace Tailbook.Modules.Booking.Api.Groomer.GetMyAppointmentDetail;
 
 public sealed class GetMyAppointmentDetailEndpoint(
-    IGroomerBookingQueries groomerBookingQueries)
+    IGroomerBookingReadService groomerBookingReadService)
     : Endpoint<GetMyAppointmentDetailRequest, GroomerAppointmentDetailView>
 {
     public override void Configure()
@@ -18,7 +18,7 @@ public sealed class GetMyAppointmentDetailEndpoint(
     {
         try
         {
-            var result = await groomerBookingQueries.GetAssignedAppointmentAsync(req.UserId, req.AppointmentId, ct);
+        var result = await groomerBookingReadService.GetAssignedAppointmentAsync(req.UserId, req.AppointmentId, ct);
             if (result is null)
             {
                 await Send.NotFoundAsync(ct);

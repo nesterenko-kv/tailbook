@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.RecordSkippedComponent;
 
-public sealed class RecordSkippedComponentEndpoint(IVisitQueries visitQueries)
+public sealed class RecordSkippedComponentEndpoint()
     : Endpoint<RecordSkippedComponentRequest, VisitDetailView>
 {
     public override void Configure()
@@ -18,7 +18,7 @@ public sealed class RecordSkippedComponentEndpoint(IVisitQueries visitQueries)
 
     public override async Task HandleAsync(RecordSkippedComponentRequest req, CancellationToken ct)
     {
-        var result = await visitQueries.RecordSkippedComponentAsync(req.VisitId, req.VisitExecutionItemId, req.OfferVersionComponentId, req.OmissionReasonCode, req.Note, req.ActorUserId, ct);
+        var result = await new RecordSkippedComponentUseCaseCommand(req.VisitId, req.VisitExecutionItemId, req.OfferVersionComponentId, req.OmissionReasonCode, req.Note, req.ActorUserId).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

@@ -34,13 +34,15 @@ Each `Tailbook.Modules.*` project remains intact and uses the same internal shap
 - `Api/Admin`, `Api/Client`, `Api/Groomer`, `Api/Public` - endpoint classes and HTTP contracts
 - `Application/Abstractions` - module-owned ports
 - `Application/Common` - validation/errors shared by use cases
-- `Application/<Feature>/Commands|Queries|Models` - use-case interfaces, DTOs, and application-facing models
+- `Application/<Feature>/Commands|Queries|Models` - FastEndpoints command contracts for mutating use cases, read interfaces/query helpers, DTOs, and application-facing models
 - `Domain/Aggregates`, `Domain/Entities`, `Domain/ValueObjects` - framework-free business model
 - `Infrastructure/Persistence/Configurations` - EF Core mappings
 - `Infrastructure/Services`, `Infrastructure/Options`, `Infrastructure/BackgroundJobs`, `Infrastructure/Seeding` - technical implementations
 - `Contracts` - existing stable constants/contracts
 
 Module `GlobalUsings.cs` files intentionally avoid Infrastructure namespaces. `<ModuleName>Module.cs` files import Infrastructure explicitly to wire implementations to Application interfaces and BuildingBlocks abstractions.
+
+Mutating endpoint flows use FastEndpoints command records under module `Application/.../Commands` and Infrastructure command handlers. Read endpoints depend on read-service interfaces such as `I*ReadService`; remaining `*Queries` services are read-only helpers/projections.
 
 ## Operations
 - `ops/runbooks/local-production.md`

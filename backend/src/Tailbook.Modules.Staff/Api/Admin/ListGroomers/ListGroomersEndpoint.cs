@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Staff.Api.Admin.ListGroomers;
 
-public sealed class ListGroomersEndpoint(IStaffQueries staffQueries)
+public sealed class ListGroomersEndpoint(IStaffReadService staffReadService)
     : EndpointWithoutRequest<ListGroomersResponse>
 {
     public override void Configure()
@@ -15,7 +15,7 @@ public sealed class ListGroomersEndpoint(IStaffQueries staffQueries)
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var items = await staffQueries.ListGroomersAsync(ct);
+        var items = await staffReadService.ListGroomersAsync(ct);
         await Send.ResponseAsync(new ListGroomersResponse
         {
             Items = items.Select(x => new GroomerListItemResponse

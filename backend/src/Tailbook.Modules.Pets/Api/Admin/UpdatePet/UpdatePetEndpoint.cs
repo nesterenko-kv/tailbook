@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Pets.Api.Admin.UpdatePet;
 
-public sealed class UpdatePetEndpoint(IPetsQueries petsQueries)
+public sealed class UpdatePetEndpoint()
     : Endpoint<UpdatePetRequest, UpdatePetResponse>
 {
     public override void Configure()
@@ -17,7 +17,10 @@ public sealed class UpdatePetEndpoint(IPetsQueries petsQueries)
 
     public override async Task HandleAsync(UpdatePetRequest req, CancellationToken ct)
     {
-        var result = await petsQueries.UpdatePetAsync(req.Id, new UpdatePetCommand(req.Name, req.AnimalTypeCode, req.BreedId, req.CoatTypeCode, req.SizeCategoryCode, req.BirthDate, req.WeightKg, req.Notes), ct);
+        var result = await new UpdatePetUseCaseCommand(
+            req.Id,
+            new UpdatePetCommand(req.Name, req.AnimalTypeCode, req.BreedId, req.CoatTypeCode, req.SizeCategoryCode, req.BirthDate, req.WeightKg, req.Notes))
+            .ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

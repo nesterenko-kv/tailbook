@@ -4,7 +4,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 namespace Tailbook.Modules.Customer.Api.Admin.ListPetContactLinks;
 
-public sealed class ListPetContactLinksEndpoint(ICustomerQueries customerQueries)
+public sealed class ListPetContactLinksEndpoint(ICustomerReadService customerReadService)
     : Endpoint<ListPetContactLinksRequest, ListPetContactLinksResponse>
 {
     public override void Configure()
@@ -16,7 +16,7 @@ public sealed class ListPetContactLinksEndpoint(ICustomerQueries customerQueries
 
     public override async Task HandleAsync(ListPetContactLinksRequest req, CancellationToken ct)
     {
-        var links = await customerQueries.ListPetContactLinksAsync(req.PetId, req.ActorUserId, ct);
+        var links = await customerReadService.ListPetContactLinksAsync(req.PetId, req.ActorUserId, ct);
         if (links is null)
         {
             await Send.NotFoundAsync(ct);

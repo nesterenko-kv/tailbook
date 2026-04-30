@@ -5,7 +5,7 @@ using Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.PublishOfferVersion;
 
-public sealed class PublishOfferVersionEndpoint(ICatalogQueries catalogQueries)
+public sealed class PublishOfferVersionEndpoint()
     : Endpoint<PublishOfferVersionRequest, OfferVersionResponse>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class PublishOfferVersionEndpoint(ICatalogQueries catalogQueries)
 
     public override async Task HandleAsync(PublishOfferVersionRequest req, CancellationToken ct)
     {
-        var result = await catalogQueries.PublishOfferVersionAsync(req.VersionId, ct);
+        var result = await new PublishCatalogOfferVersionCommand(req.VersionId).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

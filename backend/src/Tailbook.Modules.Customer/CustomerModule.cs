@@ -19,10 +19,10 @@ public sealed class CustomerModule : IModuleDefinition
 
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<CustomerQueries>();
-        services.AddScoped<ICustomerQueries>(sp => sp.GetRequiredService<CustomerQueries>());
-        services.AddScoped<ClientPortalCustomerQueries>();
-        services.AddScoped<IClientPortalCustomerQueries>(sp => sp.GetRequiredService<ClientPortalCustomerQueries>());
+        services.AddScoped<CustomerUseCases>();
+        services.AddScoped<ICustomerReadService>(sp => sp.GetRequiredService<CustomerUseCases>());
+        services.AddScoped<ClientPortalCustomerUseCases>();
+        services.AddScoped<IClientPortalCustomerReadService>(sp => sp.GetRequiredService<ClientPortalCustomerUseCases>());
         services.AddScoped<IClientReferenceValidationService, CustomerReferenceServices>();
         services.AddScoped<IContactReferenceValidationService, CustomerReferenceServices>();
         services.AddScoped<IPetContactReadModelService, CustomerReferenceServices>();

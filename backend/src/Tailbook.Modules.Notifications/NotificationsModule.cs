@@ -27,8 +27,8 @@ public sealed class NotificationsModule : IModuleDefinition
             .Validate(x => x.BackgroundPollIntervalSeconds >= 5, "Notifications:BackgroundPollIntervalSeconds must be at least 5 seconds.")
             .Validate(x => !string.IsNullOrWhiteSpace(x.LocalFilePath), "Notifications:LocalFilePath is required.")
             .ValidateOnStart();
-        services.AddScoped<NotificationQueries>();
-        services.AddScoped<INotificationQueries>(sp => sp.GetRequiredService<NotificationQueries>());
+        services.AddScoped<NotificationUseCases>();
+        services.AddScoped<INotificationReadService>(sp => sp.GetRequiredService<NotificationUseCases>());
         services.AddScoped<INotificationSink, LocalFileNotificationSink>();
         services.AddHostedService<OutboxProcessorBackgroundService>();
         services.AddScoped<IDataSeeder, NotificationTemplateSeeder>();

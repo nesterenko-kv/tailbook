@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 namespace Tailbook.Modules.Booking.Api.Groomer.ListMyAppointments;
 
 public sealed class ListMyAppointmentsEndpoint(
-    IGroomerBookingQueries groomerBookingQueries)
+    IGroomerBookingReadService groomerBookingReadService)
     : Endpoint<ListMyAppointmentsRequest, PagedResult<GroomerAppointmentListItemView>>
 {
     public override void Configure()
@@ -18,7 +18,7 @@ public sealed class ListMyAppointmentsEndpoint(
     {
         try
         {
-            var result = await groomerBookingQueries.ListAssignedAppointmentsAsync(req.UserId, req.FromUtc, req.ToUtc, req.Page, req.PageSize, ct);
+        var result = await groomerBookingReadService.ListAssignedAppointmentsAsync(req.UserId, req.FromUtc, req.ToUtc, req.Page, req.PageSize, ct);
             await Send.OkAsync(result, ct);
         }
         catch (UnauthorizedAccessException)

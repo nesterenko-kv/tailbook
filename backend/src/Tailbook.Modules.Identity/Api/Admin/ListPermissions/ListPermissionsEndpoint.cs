@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Identity.Api.Admin.ListPermissions;
 
-public sealed class ListPermissionsEndpoint(IIdentityQueries identityQueries)
+public sealed class ListPermissionsEndpoint(IIdentityReadService identityReadService)
     : EndpointWithoutRequest<IReadOnlyCollection<PermissionItemResponse>>
 {
     public override void Configure()
@@ -15,7 +15,7 @@ public sealed class ListPermissionsEndpoint(IIdentityQueries identityQueries)
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var items = await identityQueries.ListPermissionsAsync(ct);
+        var items = await identityReadService.ListPermissionsAsync(ct);
         await Send.OkAsync(items.Select(x => new PermissionItemResponse
         {
             Id = x.Id,

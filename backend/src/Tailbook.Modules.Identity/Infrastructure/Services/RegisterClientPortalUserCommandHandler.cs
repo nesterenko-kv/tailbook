@@ -15,7 +15,7 @@ public class RegisterClientPortalUserCommandHandler(
     public async Task<ErrorOr<bool>> ExecuteResultAsync(RegisterClientPortalUserCommand command,
         CancellationToken cancellationToken)
     {
-        var normalizedEmail = IdentityQueries.NormalizeEmail(command.Email);
+        var normalizedEmail = IdentityUseCases.NormalizeEmail(command.Email);
         var exists = await dbContext.Set<IdentityUser>()
             .AnyAsync(x => x.NormalizedEmail == normalizedEmail, cancellationToken);
         if (exists)

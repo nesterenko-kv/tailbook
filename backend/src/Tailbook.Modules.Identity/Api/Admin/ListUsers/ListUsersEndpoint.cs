@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Identity.Api.Admin.ListUsers;
 
-public sealed class ListUsersEndpoint(IIdentityQueries identityQueries)
+public sealed class ListUsersEndpoint(IIdentityReadService identityReadService)
     : Endpoint<ListUsersRequest, ListUsersResponse>
 {
     public override void Configure()
@@ -15,7 +15,7 @@ public sealed class ListUsersEndpoint(IIdentityQueries identityQueries)
 
     public override async Task HandleAsync(ListUsersRequest req, CancellationToken ct)
     {
-        var result = await identityQueries.ListUsersAsync(req.Page, req.PageSize, ct);
+        var result = await identityReadService.ListUsersAsync(req.Page, req.PageSize, ct);
 
         await Send.OkAsync(new ListUsersResponse
         {

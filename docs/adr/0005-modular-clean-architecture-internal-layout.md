@@ -25,10 +25,12 @@ Module-to-module project references are not allowed. Cross-module runtime needs 
 
 - Existing module projects and endpoint behavior remain intact.
 - EF Core mappings live under `Infrastructure/Persistence/Configurations`.
-- API endpoints depend on Application query/service interfaces for module use cases, not Infrastructure concrete services or `AppDbContext`.
+- API endpoints depend on Application read/service interfaces and FastEndpoints command contracts for module use cases, not Infrastructure concrete services or `AppDbContext`.
+- Application `Commands` folders may reference FastEndpoints command abstractions. Other Application folders remain framework-light and do not reference FastEndpoints.
+- Services named `*Queries` are read-only. Mutating use cases are exposed through command records and handled by Infrastructure command handlers that delegate to module use-case implementations.
 - Module-wide `GlobalUsings.cs` files do not import Infrastructure namespaces; module composition files import Infrastructure explicitly where they wire implementations.
-- Application source is guarded from Infrastructure, API, EF Core, ASP.NET, and FastEndpoints references.
+- Application source is guarded from Infrastructure, API, EF Core, ASP.NET, and non-command FastEndpoints references.
 - Domain source is guarded from Application, Infrastructure, API, EF Core, ASP.NET, and FastEndpoints references.
-- Architecture tests enforce module assembly boundaries, layer source/type boundaries, API persistence isolation, BuildingBlocks module independence, and SharedKernel framework-light constraints.
+- Architecture tests enforce module assembly boundaries, layer source/type boundaries, API persistence isolation, command-only FastEndpoints usage in Application, read-only `*Queries` services, BuildingBlocks module independence, and SharedKernel framework-light constraints.
 
 Existing EF migration designer snapshots still contain historical entity-name strings from prior namespaces. No schema migration was created for this structural refactor.

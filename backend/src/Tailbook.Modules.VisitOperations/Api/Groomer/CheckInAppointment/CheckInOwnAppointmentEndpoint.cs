@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Groomer.CheckInAppointment;
 
-public sealed class CheckInOwnAppointmentEndpoint(IGroomerVisitQueries groomerVisitQueries)
+public sealed class CheckInOwnAppointmentEndpoint()
     : Endpoint<CheckInOwnAppointmentRequest, GroomerVisitDetailView>
 {
     public override void Configure()
@@ -18,7 +18,7 @@ public sealed class CheckInOwnAppointmentEndpoint(IGroomerVisitQueries groomerVi
 
     public override async Task HandleAsync(CheckInOwnAppointmentRequest req, CancellationToken ct)
     {
-        var result = await groomerVisitQueries.CheckInAppointmentAsync(req.UserId, req.AppointmentId, ct);
+        var result = await new CheckInOwnAppointmentUseCaseCommand(req.UserId, req.AppointmentId).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

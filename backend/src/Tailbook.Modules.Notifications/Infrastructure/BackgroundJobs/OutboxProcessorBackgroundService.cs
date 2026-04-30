@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tailbook.Modules.Notifications.Infrastructure.Options;
+using Tailbook.Modules.Notifications.Infrastructure.Services;
 
 namespace Tailbook.Modules.Notifications.Infrastructure.BackgroundJobs;
 
@@ -45,8 +46,8 @@ public sealed class OutboxProcessorBackgroundService(
     private async Task ProcessOnceAsync(CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
-        var queries = scope.ServiceProvider.GetRequiredService<INotificationQueries>();
-        var processed = await queries.ProcessOutboxAsync(cancellationToken);
+        var useCases = scope.ServiceProvider.GetRequiredService<NotificationUseCases>();
+        var processed = await useCases.ProcessOutboxAsync(cancellationToken);
         if (processed > 0)
         {
             logger.LogInformation("Background outbox processor handled {ProcessedCount} message(s).", processed);

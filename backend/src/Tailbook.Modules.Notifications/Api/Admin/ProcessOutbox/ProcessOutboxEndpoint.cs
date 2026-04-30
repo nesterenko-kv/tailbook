@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Notifications.Api.Admin.ProcessOutbox;
 
-public sealed class ProcessOutboxEndpoint(INotificationQueries notificationQueries)
+public sealed class ProcessOutboxEndpoint()
     : EndpointWithoutRequest<ProcessOutboxResponse>
 {
     public override void Configure()
@@ -15,7 +15,7 @@ public sealed class ProcessOutboxEndpoint(INotificationQueries notificationQueri
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var processed = await notificationQueries.ProcessOutboxAsync(ct);
+        var processed = await new ProcessNotificationOutboxCommand().ExecuteAsync(ct);
         await Send.OkAsync(new ProcessOutboxResponse { ProcessedCount = processed }, ct);
     }
 }

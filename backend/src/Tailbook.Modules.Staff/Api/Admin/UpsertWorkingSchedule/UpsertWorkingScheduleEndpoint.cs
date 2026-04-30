@@ -6,7 +6,7 @@ using Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
 namespace Tailbook.Modules.Staff.Api.Admin.UpsertWorkingSchedule;
 
-public sealed class UpsertWorkingScheduleEndpoint(IStaffQueries staffQueries)
+public sealed class UpsertWorkingScheduleEndpoint()
     : Endpoint<UpsertWorkingScheduleRequest, WorkingScheduleResponse>
 {
     public override void Configure()
@@ -18,7 +18,7 @@ public sealed class UpsertWorkingScheduleEndpoint(IStaffQueries staffQueries)
 
     public override async Task HandleAsync(UpsertWorkingScheduleRequest req, CancellationToken ct)
     {
-        var result = await staffQueries.UpsertWorkingScheduleAsync(req.GroomerId, req.Weekday, req.StartLocalTime, req.EndLocalTime, ct);
+        var result = await new UpsertGroomerWorkingScheduleUseCaseCommand(req.GroomerId, req.Weekday, req.StartLocalTime, req.EndLocalTime).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

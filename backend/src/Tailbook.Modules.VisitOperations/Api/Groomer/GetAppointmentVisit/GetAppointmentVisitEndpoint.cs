@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Groomer.GetAppointmentVisit;
 
-public sealed class GetAppointmentVisitEndpoint(IGroomerVisitQueries groomerVisitQueries)
+public sealed class GetAppointmentVisitEndpoint(IGroomerVisitReadService groomerVisitReadService)
     : Endpoint<GetAppointmentVisitRequest, GroomerVisitDetailView>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class GetAppointmentVisitEndpoint(IGroomerVisitQueries groomerVisi
 
     public override async Task HandleAsync(GetAppointmentVisitRequest req, CancellationToken ct)
     {
-        var result = await groomerVisitQueries.GetVisitByAppointmentAsync(req.UserId, req.AppointmentId, ct);
+        var result = await groomerVisitReadService.GetVisitByAppointmentAsync(req.UserId, req.AppointmentId, ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

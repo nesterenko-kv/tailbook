@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Identity.Api.Admin.CreateUser;
 
-public sealed class CreateUserEndpoint(ICurrentUser currentUser, IIdentityQueries identityQueries)
+public sealed class CreateUserEndpoint(ICurrentUser currentUser)
     : Endpoint<CreateUserRequest, CreateUserResponse>
 {
     public override void Configure()
@@ -23,7 +23,7 @@ public sealed class CreateUserEndpoint(ICurrentUser currentUser, IIdentityQuerie
             return;
         }
 
-        var result = await identityQueries.CreateUserAsync(req.Email, req.DisplayName, req.Password, req.RoleCodes, req.ActorUserId, ct);
+        var result = await new CreateIdentityUserCommand(req.Email, req.DisplayName, req.Password, req.RoleCodes, req.ActorUserId).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 namespace Tailbook.Modules.Booking.Api.Admin.GetBookingRequestDetail;
 
 public sealed class GetBookingRequestDetailEndpoint(
-    IBookingManagementQueries bookingQueries)
+    IBookingManagementReadService bookingReadService)
     : Endpoint<GetBookingRequestDetailRequest, BookingRequestDetailView>
 {
     public override void Configure()
@@ -16,7 +16,7 @@ public sealed class GetBookingRequestDetailEndpoint(
 
     public override async Task HandleAsync(GetBookingRequestDetailRequest req, CancellationToken ct)
     {
-        var result = await bookingQueries.GetBookingRequestAsync(req.BookingRequestId, ct);
+        var result = await bookingReadService.GetBookingRequestAsync(req.BookingRequestId, ct);
         if (result is null)
         {
             await Send.NotFoundAsync(ct);

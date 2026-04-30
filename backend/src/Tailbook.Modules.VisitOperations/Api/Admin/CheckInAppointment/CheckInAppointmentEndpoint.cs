@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.CheckInAppointment;
 
-public sealed class CheckInAppointmentEndpoint(IVisitQueries visitQueries)
+public sealed class CheckInAppointmentEndpoint()
     : Endpoint<CheckInAppointmentRequest, VisitDetailView>
 {
     public override void Configure()
@@ -18,7 +18,7 @@ public sealed class CheckInAppointmentEndpoint(IVisitQueries visitQueries)
 
     public override async Task HandleAsync(CheckInAppointmentRequest req, CancellationToken ct)
     {
-        var result = await visitQueries.CheckInAppointmentAsync(req.AppointmentId, req.ActorUserId, ct);
+        var result = await new CheckInAppointmentUseCaseCommand(req.AppointmentId, req.ActorUserId).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

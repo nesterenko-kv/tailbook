@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Pets.Api.Admin.RegisterPet;
 
-public sealed class RegisterPetEndpoint(IPetsQueries petsQueries)
+public sealed class RegisterPetEndpoint()
     : Endpoint<RegisterPetRequest, RegisterPetResponse>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class RegisterPetEndpoint(IPetsQueries petsQueries)
 
     public override async Task HandleAsync(RegisterPetRequest req, CancellationToken ct)
     {
-        var result = await petsQueries.RegisterPetAsync(new RegisterPetCommand(req.ClientId, req.Name, req.AnimalTypeCode, req.BreedId, req.CoatTypeCode, req.SizeCategoryCode, req.BirthDate, req.WeightKg, req.Notes), ct);
+        var result = await new RegisterPetUseCaseCommand(req.ClientId, req.Name, req.AnimalTypeCode, req.BreedId, req.CoatTypeCode, req.SizeCategoryCode, req.BirthDate, req.WeightKg, req.Notes).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

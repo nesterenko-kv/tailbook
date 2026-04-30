@@ -4,7 +4,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.GetVisitDetail;
 
-public sealed class GetVisitDetailEndpoint(IVisitQueries visitQueries)
+public sealed class GetVisitDetailEndpoint(IVisitReadService visitReadService)
     : Endpoint<GetVisitDetailRequest, VisitDetailView>
 {
     public override void Configure()
@@ -16,7 +16,7 @@ public sealed class GetVisitDetailEndpoint(IVisitQueries visitQueries)
 
     public override async Task HandleAsync(GetVisitDetailRequest req, CancellationToken ct)
     {
-        var result = await visitQueries.GetVisitAsync(req.VisitId, req.ActorUserId, ct);
+        var result = await visitReadService.GetVisitAsync(req.VisitId, req.ActorUserId, ct);
         if (result is null)
         {
             await Send.NotFoundAsync(ct);

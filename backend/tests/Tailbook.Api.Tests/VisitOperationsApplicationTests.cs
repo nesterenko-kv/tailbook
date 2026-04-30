@@ -108,7 +108,7 @@ public sealed class VisitOperationsApplicationTests
 
     private sealed class VisitApplicationHarness : IAsyncDisposable
     {
-        private VisitApplicationHarness(AppDbContext dbContext, VisitQueries queries, Guid visitId, Guid executionItemId)
+        private VisitApplicationHarness(AppDbContext dbContext, VisitUseCases queries, Guid visitId, Guid executionItemId)
         {
             DbContext = dbContext;
             Queries = queries;
@@ -117,7 +117,7 @@ public sealed class VisitOperationsApplicationTests
         }
 
         public AppDbContext DbContext { get; }
-        public VisitQueries Queries { get; }
+        public VisitUseCases Queries { get; }
         public Guid VisitId { get; }
         public Guid ExecutionItemId { get; }
 
@@ -130,7 +130,7 @@ public sealed class VisitOperationsApplicationTests
 
             var dbContext = new AppDbContext(options);
             var appointmentVisitService = new StubAppointmentVisitService();
-            var queries = new VisitQueries(
+            var queries = new VisitUseCases(
                 dbContext,
                 appointmentVisitService,
                 new StubVisitCatalogReadService(),

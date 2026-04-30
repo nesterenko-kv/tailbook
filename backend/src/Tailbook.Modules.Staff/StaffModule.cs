@@ -25,8 +25,8 @@ public sealed class StaffModule : IModuleDefinition
             .Validate(x => !string.IsNullOrWhiteSpace(x.TimeZoneId), "StaffScheduling:TimeZoneId is required.")
             .ValidateOnStart();
         services.AddSingleton<SalonTimeZoneProvider>();
-        services.AddScoped<StaffQueries>();
-        services.AddScoped<IStaffQueries>(sp => sp.GetRequiredService<StaffQueries>());
+        services.AddScoped<StaffUseCases>();
+        services.AddScoped<IStaffReadService>(sp => sp.GetRequiredService<StaffUseCases>());
         services.AddScoped<IStaffSchedulingService, StaffSchedulingService>();
         services.AddScoped<IGroomerProfileReadService, GroomerProfileReadService>();
         return services;

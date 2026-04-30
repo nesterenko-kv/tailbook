@@ -5,7 +5,7 @@ using Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreateOfferVersion;
 
-public sealed class CreateOfferVersionEndpoint(ICatalogQueries catalogQueries)
+public sealed class CreateOfferVersionEndpoint()
     : Endpoint<CreateOfferVersionRequest, OfferVersionResponse>
 {
     public override void Configure()
@@ -24,7 +24,7 @@ public sealed class CreateOfferVersionEndpoint(ICatalogQueries catalogQueries)
             return;
         }
 
-        var version = await catalogQueries.CreateOfferVersionAsync(req.OfferId, req.ValidFromUtc, req.ValidToUtc, req.PolicyText, req.ChangeNote, ct);
+        var version = await new CreateCatalogOfferVersionCommand(req.OfferId, req.ValidFromUtc, req.ValidToUtc, req.PolicyText, req.ChangeNote).ExecuteAsync(ct);
         if (version is null)
         {
             await Send.NotFoundAsync(ct);

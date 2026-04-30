@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.AttachBookingRequestContext;
 
-public sealed class AttachBookingRequestContextEndpoint(IBookingManagementQueries bookingQueries)
+public sealed class AttachBookingRequestContextEndpoint()
     : Endpoint<AttachBookingRequestContextRequest, BookingRequestDetailView>
 {
     public override void Configure()
@@ -18,14 +18,14 @@ public sealed class AttachBookingRequestContextEndpoint(IBookingManagementQuerie
 
     public override async Task HandleAsync(AttachBookingRequestContextRequest req, CancellationToken ct)
     {
-        var result = await bookingQueries.AttachBookingRequestContextAsync(
+        var result = await new AttachBookingRequestContextUseCaseCommand(
             new AttachBookingRequestContextCommand(
                 req.BookingRequestId,
                 req.ClientId,
                 req.PetId,
                 req.RequestedByContactId),
-            req.ActorUserId?.ToString("D"),
-            ct);
+            req.ActorUserId?.ToString("D"))
+            .ExecuteAsync(ct);
 
         if (result.IsError)
         {

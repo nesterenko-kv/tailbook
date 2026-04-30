@@ -6,7 +6,7 @@ namespace Tailbook.Modules.Booking.Api.Client;
 
 public sealed class GetMyAppointmentEndpoint(
     IClientPortalActorService actorService,
-    IClientPortalBookingQueries queries)
+    IClientPortalBookingReadService bookingReadService)
     : Endpoint<GetMyAppointmentRequest, ClientAppointmentDetailView>
 {
     public override void Configure()
@@ -25,7 +25,7 @@ public sealed class GetMyAppointmentEndpoint(
             return;
         }
 
-        var result = await queries.GetMyAppointmentAsync(actor.ClientId, req.AppointmentId, ct);
+        var result = await bookingReadService.GetMyAppointmentAsync(actor.ClientId, req.AppointmentId, ct);
         if (result is null)
         {
             await Send.NotFoundAsync(ct);

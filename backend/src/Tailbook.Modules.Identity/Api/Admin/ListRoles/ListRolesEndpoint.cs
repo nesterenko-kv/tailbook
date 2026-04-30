@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Identity.Api.Admin.ListRoles;
 
-public sealed class ListRolesEndpoint(IIdentityQueries identityQueries)
+public sealed class ListRolesEndpoint(IIdentityReadService identityReadService)
     : EndpointWithoutRequest<IReadOnlyCollection<RoleItemResponse>>
 {
     public override void Configure()
@@ -15,7 +15,7 @@ public sealed class ListRolesEndpoint(IIdentityQueries identityQueries)
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var items = await identityQueries.ListRolesAsync(ct);
+        var items = await identityReadService.ListRolesAsync(ct);
         await Send.OkAsync(items.Select(x => new RoleItemResponse
         {
             Id = x.Id,

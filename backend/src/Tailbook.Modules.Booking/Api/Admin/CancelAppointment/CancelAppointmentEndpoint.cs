@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.CancelAppointment;
 
-public sealed class CancelAppointmentEndpoint(IBookingManagementQueries bookingQueries)
+public sealed class CancelAppointmentEndpoint()
     : Endpoint<CancelAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()
@@ -18,10 +18,10 @@ public sealed class CancelAppointmentEndpoint(IBookingManagementQueries bookingQ
 
     public override async Task HandleAsync(CancelAppointmentRequest req, CancellationToken ct)
     {
-        var result = await bookingQueries.CancelAppointmentAsync(
+        var result = await new CancelAppointmentUseCaseCommand(
             new CancelAppointmentCommand(req.AppointmentId, req.ExpectedVersionNo, req.ReasonCode, req.Notes),
-            req.ActorUserId?.ToString("D"),
-            ct);
+            req.ActorUserId?.ToString("D"))
+            .ExecuteAsync(ct);
 
         if (result.IsError)
         {

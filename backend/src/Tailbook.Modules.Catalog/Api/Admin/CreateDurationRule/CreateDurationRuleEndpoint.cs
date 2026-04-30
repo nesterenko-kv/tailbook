@@ -6,7 +6,7 @@ using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreateDurationRule;
 
-public sealed class CreateDurationRuleEndpoint(ICatalogPricingQueries pricingQueries)
+public sealed class CreateDurationRuleEndpoint()
     : Endpoint<CreateDurationRuleRequest, CreateDurationRuleResponse>
 {
     public override void Configure()
@@ -18,7 +18,7 @@ public sealed class CreateDurationRuleEndpoint(ICatalogPricingQueries pricingQue
 
     public override async Task HandleAsync(CreateDurationRuleRequest req, CancellationToken ct)
     {
-        var result = await pricingQueries.CreateDurationRuleAsync(
+        var result = await new CreateCatalogDurationRuleCommand(
             new CreateDurationRuleCommand(
                 req.RuleSetId,
                 req.OfferId,
@@ -26,8 +26,8 @@ public sealed class CreateDurationRuleEndpoint(ICatalogPricingQueries pricingQue
                 req.BaseMinutes,
                 req.BufferBeforeMinutes,
                 req.BufferAfterMinutes,
-                new RuleConditionInput(req.AnimalTypeId, req.BreedId, req.BreedGroupId, req.CoatTypeId, req.SizeCategoryId)),
-            ct);
+                new RuleConditionInput(req.AnimalTypeId, req.BreedId, req.BreedGroupId, req.CoatTypeId, req.SizeCategoryId)))
+            .ExecuteAsync(ct);
 
         if (result.IsError)
         {

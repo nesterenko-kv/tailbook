@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.CreateBookingRequest;
 
-public sealed class CreateBookingRequestEndpoint(IBookingManagementQueries bookingQueries)
+public sealed class CreateBookingRequestEndpoint()
     : Endpoint<CreateBookingRequestRequest, BookingRequestDetailView>
 {
     public override void Configure()
@@ -18,7 +18,7 @@ public sealed class CreateBookingRequestEndpoint(IBookingManagementQueries booki
 
     public override async Task HandleAsync(CreateBookingRequestRequest req, CancellationToken ct)
     {
-        var result = await bookingQueries.CreateBookingRequestAsync(
+        var result = await new CreateBookingRequestUseCaseCommand(
             new CreateBookingRequestCommand(
                 req.ClientId,
                 req.PetId,
@@ -27,8 +27,8 @@ public sealed class CreateBookingRequestEndpoint(IBookingManagementQueries booki
                 req.Notes,
                 req.PreferredTimes.Select(x => new PreferredTimeWindowCommand(x.StartAtUtc, x.EndAtUtc, x.Label)).ToArray(),
                 req.Items.Select(x => new CreateBookingRequestItemCommand(x.OfferId, x.ItemType, x.RequestedNotes)).ToArray()),
-            req.ActorUserId?.ToString("D"),
-            ct);
+            req.ActorUserId?.ToString("D"))
+            .ExecuteAsync(ct);
 
         if (result.IsError)
         {

@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Staff.Api.Admin.CheckAvailability;
 
-public sealed class CheckAvailabilityEndpoint(IStaffQueries staffQueries)
+public sealed class CheckAvailabilityEndpoint(IStaffReadService staffReadService)
     : Endpoint<CheckAvailabilityRequest, CheckAvailabilityResponse>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class CheckAvailabilityEndpoint(IStaffQueries staffQueries)
 
     public override async Task HandleAsync(CheckAvailabilityRequest req, CancellationToken ct)
     {
-        var result = await staffQueries.CheckAvailabilityAsync(
+        var result = await staffReadService.CheckAvailabilityAsync(
             new CheckGroomerAvailabilityCommand(req.GroomerId, req.PetId, req.StartAtUtc, req.ReservedMinutes, req.OfferIds),
             ct);
 

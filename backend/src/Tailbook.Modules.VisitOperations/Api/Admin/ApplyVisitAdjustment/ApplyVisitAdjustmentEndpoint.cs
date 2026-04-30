@@ -7,7 +7,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.ApplyVisitAdjustment;
 
-public sealed class ApplyVisitAdjustmentEndpoint(IVisitQueries visitQueries)
+public sealed class ApplyVisitAdjustmentEndpoint()
     : Endpoint<ApplyVisitAdjustmentRequest, VisitDetailView>
 {
     public override void Configure()
@@ -19,7 +19,7 @@ public sealed class ApplyVisitAdjustmentEndpoint(IVisitQueries visitQueries)
 
     public override async Task HandleAsync(ApplyVisitAdjustmentRequest req, CancellationToken ct)
     {
-        var result = await visitQueries.ApplyPriceAdjustmentAsync(req.VisitId, req.Sign, req.Amount, req.ReasonCode, req.Note, req.ActorUserId, ct);
+        var result = await new ApplyVisitPriceAdjustmentUseCaseCommand(req.VisitId, req.Sign, req.Amount, req.ReasonCode, req.Note, req.ActorUserId).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

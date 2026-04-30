@@ -4,7 +4,7 @@ using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.ListPriceRuleSets;
 
-public sealed class ListPriceRuleSetsEndpoint(ICatalogPricingQueries pricingQueries)
+public sealed class ListPriceRuleSetsEndpoint(ICatalogPricingReadService pricingReadService)
     : EndpointWithoutRequest<ListPriceRuleSetsResponse>
 {
     public override void Configure()
@@ -16,7 +16,7 @@ public sealed class ListPriceRuleSetsEndpoint(ICatalogPricingQueries pricingQuer
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var items = await pricingQueries.ListPriceRuleSetsAsync(ct);
+        var items = await pricingReadService.ListPriceRuleSetsAsync(ct);
         await Send.ResponseAsync(new ListPriceRuleSetsResponse
         {
             Items = items.Select(PriceRuleSetResponseBase.FromView).ToArray()

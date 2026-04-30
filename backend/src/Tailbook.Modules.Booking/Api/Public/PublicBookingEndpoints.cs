@@ -132,8 +132,7 @@ public sealed class BuildPublicBookingPlannerEndpoint(
 
 public sealed class CreatePublicBookingRequestEndpoint(
     IClientPortalActorService actorService,
-    PublicBookingQueries publicBookingQueries,
-    IBookingManagementQueries bookingManagementQueries)
+    PublicBookingQueries publicBookingQueries)
     : Endpoint<CreatePublicBookingRequestRequest, BookingRequestDetailView>
 {
     public override void Configure()
@@ -160,7 +159,7 @@ public sealed class CreatePublicBookingRequestEndpoint(
             return;
         }
 
-        var result = await bookingManagementQueries.CreateBookingRequestAsync(
+        var result = await new CreateBookingRequestUseCaseCommand(
             new CreateBookingRequestCommand(
                 actor?.ClientId,
                 req.Pet.PetId,
@@ -173,8 +172,8 @@ public sealed class CreatePublicBookingRequestEndpoint(
                 req.SelectionMode,
                 BuildGuestIntake(req, resolvedPet.Value),
                 req.Pet.PetId.HasValue ? BookingRequestStatusCodes.Submitted : BookingRequestStatusCodes.NeedsReview),
-            req.UserId?.ToString("D"),
-            ct);
+            req.UserId?.ToString("D"))
+            .ExecuteAsync(ct);
 
         if (result.IsError)
         {

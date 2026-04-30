@@ -19,10 +19,10 @@ public sealed class CatalogModule : IModuleDefinition
 
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<CatalogQueries>();
-        services.AddScoped<ICatalogQueries>(sp => sp.GetRequiredService<CatalogQueries>());
-        services.AddScoped<CatalogPricingQueries>();
-        services.AddScoped<ICatalogPricingQueries>(sp => sp.GetRequiredService<CatalogPricingQueries>());
+        services.AddScoped<CatalogUseCases>();
+        services.AddScoped<ICatalogReadService>(sp => sp.GetRequiredService<CatalogUseCases>());
+        services.AddScoped<CatalogPricingUseCases>();
+        services.AddScoped<ICatalogPricingReadService>(sp => sp.GetRequiredService<CatalogPricingUseCases>());
         services.AddScoped<ICatalogQuoteResolver, CatalogQuoteResolver>();
         services.AddScoped<ICatalogOfferReadService, CatalogOfferReadService>();
         services.AddScoped<IOfferReferenceValidationService, CatalogReferenceServices>();

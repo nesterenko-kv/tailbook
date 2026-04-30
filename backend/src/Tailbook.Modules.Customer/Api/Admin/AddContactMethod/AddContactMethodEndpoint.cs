@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Customer.Api.Admin.AddContactMethod;
 
-public sealed class AddContactMethodEndpoint(ICustomerQueries customerQueries)
+public sealed class AddContactMethodEndpoint()
     : Endpoint<AddContactMethodRequest, AddContactMethodResponse>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class AddContactMethodEndpoint(ICustomerQueries customerQueries)
 
     public override async Task HandleAsync(AddContactMethodRequest req, CancellationToken ct)
     {
-        var result = await customerQueries.AddContactMethodAsync(req.ContactId, req.MethodType, req.Value, req.DisplayValue, req.IsPreferred, req.VerificationStatus, req.Notes, ct);
+        var result = await new AddCustomerContactMethodCommand(req.ContactId, req.MethodType, req.Value, req.DisplayValue, req.IsPreferred, req.VerificationStatus, req.Notes).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

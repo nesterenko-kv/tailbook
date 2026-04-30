@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Customer.Api.Admin.CreateClient;
 
-public sealed class CreateClientEndpoint(ICustomerQueries customerQueries)
+public sealed class CreateClientEndpoint()
     : Endpoint<CreateClientRequest, CreateClientResponse>
 {
     public override void Configure()
@@ -16,7 +16,7 @@ public sealed class CreateClientEndpoint(ICustomerQueries customerQueries)
 
     public override async Task HandleAsync(CreateClientRequest req, CancellationToken ct)
     {
-        var client = await customerQueries.CreateClientAsync(req.DisplayName, req.Notes, ct);
+        var client = await new CreateCustomerClientCommand(req.DisplayName, req.Notes).ExecuteAsync(ct);
         await Send.ResponseAsync(new CreateClientResponse
         {
             Id = client.Id,

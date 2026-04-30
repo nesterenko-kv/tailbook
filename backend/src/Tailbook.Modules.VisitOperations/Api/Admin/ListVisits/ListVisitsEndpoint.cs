@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.ListVisits;
 
-public sealed class ListVisitsEndpoint(IVisitQueries visitQueries)
+public sealed class ListVisitsEndpoint(IVisitReadService visitReadService)
     : Endpoint<ListVisitsRequest, PagedResult<VisitListItemView>>
 {
     public override void Configure()
@@ -23,7 +23,7 @@ public sealed class ListVisitsEndpoint(IVisitQueries visitQueries)
             status = statusValues.FirstOrDefault();
         }
 
-        var result = await visitQueries.ListVisitsAsync(
+        var result = await visitReadService.ListVisitsAsync(
             status,
             req.FromUtc,
             req.ToUtc,

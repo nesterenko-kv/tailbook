@@ -90,7 +90,6 @@ public sealed class ModuleBoundaryTests
             $"{assemblyName}.Infrastructure",
             $"{assemblyName}.Api",
             "Tailbook.BuildingBlocks.Infrastructure",
-            "FastEndpoints",
             "Microsoft.AspNetCore",
             "Microsoft.EntityFrameworkCore");
 
@@ -100,9 +99,100 @@ public sealed class ModuleBoundaryTests
             $"{assemblyName}.Infrastructure",
             $"{assemblyName}.Api",
             "Tailbook.BuildingBlocks.Infrastructure",
-            "FastEndpoints",
             "Microsoft.AspNetCore",
             "Microsoft.EntityFrameworkCore");
+    }
+
+    [Theory]
+    [InlineData("Tailbook.Modules.Identity")]
+    [InlineData("Tailbook.Modules.Customer")]
+    [InlineData("Tailbook.Modules.Pets")]
+    [InlineData("Tailbook.Modules.Catalog")]
+    [InlineData("Tailbook.Modules.Booking")]
+    [InlineData("Tailbook.Modules.VisitOperations")]
+    [InlineData("Tailbook.Modules.Staff")]
+    [InlineData("Tailbook.Modules.Notifications")]
+    [InlineData("Tailbook.Modules.Audit")]
+    [InlineData("Tailbook.Modules.Reporting")]
+    public void Application_layer_should_only_use_fastendpoints_for_commands(string assemblyName)
+    {
+        var modulePath = GetModuleSourcePath(assemblyName);
+        var applicationPath = Path.Combine(modulePath, "Application");
+        if (!Directory.Exists(applicationPath))
+        {
+            return;
+        }
+
+        var sourceViolations = Directory.EnumerateFiles(applicationPath, "*.cs", SearchOption.AllDirectories)
+            .Where(path => !IsGeneratedPath(path))
+            .Where(path => !IsCommandsPath(path))
+            .Where(path => File.ReadAllText(path).Contains("FastEndpoints", StringComparison.Ordinal))
+            .Select(path => $"{Path.GetRelativePath(SourceRoot, path)} references FastEndpoints outside Application/Commands")
+            .ToArray();
+
+        Assert.Empty(sourceViolations);
+
+        var assembly = Assembly.Load(assemblyName);
+        var typeViolations = GetLoadableTypes(assembly)
+            .Where(type => type.Namespace?.Contains(".Application.", StringComparison.Ordinal) == true)
+            .Where(type => type.Namespace?.Contains(".Commands", StringComparison.Ordinal) != true)
+            .SelectMany(type => GetReferencedTypes(type)
+                .Where(reference => IsForbidden(reference, ["FastEndpoints"]))
+                .Select(reference => $"{type.FullName} references {reference.FullName} outside Application.Commands"))
+            .Distinct()
+            .OrderBy(x => x)
+            .ToArray();
+
+        Assert.Empty(typeViolations);
+    }
+
+    [Theory]
+    [InlineData("Tailbook.Modules.Identity")]
+    [InlineData("Tailbook.Modules.Customer")]
+    [InlineData("Tailbook.Modules.Pets")]
+    [InlineData("Tailbook.Modules.Catalog")]
+    [InlineData("Tailbook.Modules.Booking")]
+    [InlineData("Tailbook.Modules.VisitOperations")]
+    [InlineData("Tailbook.Modules.Staff")]
+    [InlineData("Tailbook.Modules.Notifications")]
+    [InlineData("Tailbook.Modules.Audit")]
+    [InlineData("Tailbook.Modules.Reporting")]
+    public void Query_services_should_not_expose_write_operations(string assemblyName)
+    {
+        var writePrefixes = new[]
+        {
+            "Create",
+            "Update",
+            "Add",
+            "Assign",
+            "Cancel",
+            "Publish",
+            "Process",
+            "Register",
+            "CheckIn",
+            "Complete",
+            "Close",
+            "Record",
+            "Apply",
+            "Convert",
+            "Attach",
+            "Reschedule",
+            "Revoke",
+            "Request",
+            "Reset"
+        };
+
+        var assembly = Assembly.Load(assemblyName);
+        var violations = GetLoadableTypes(assembly)
+            .Where(type => type.Name.EndsWith("Queries", StringComparison.Ordinal))
+            .SelectMany(type => type
+                .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .Where(method => writePrefixes.Any(prefix => method.Name.StartsWith(prefix, StringComparison.Ordinal)))
+                .Select(method => $"{type.FullName}.{method.Name} should be a command/use case, not a query service method"))
+            .OrderBy(x => x)
+            .ToArray();
+
+        Assert.Empty(violations);
     }
 
     [Theory]
@@ -221,8 +311,7 @@ public sealed class ModuleBoundaryTests
         }
 
         var violations = Directory.EnumerateFiles(layerPath, "*.cs", SearchOption.AllDirectories)
-            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
-            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+            .Where(path => !IsGeneratedPath(path))
             .SelectMany(path =>
             {
                 var text = File.ReadAllText(path);
@@ -233,6 +322,17 @@ public sealed class ModuleBoundaryTests
             .ToArray();
 
         Assert.Empty(violations);
+    }
+
+    private static bool IsGeneratedPath(string path)
+    {
+        return path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase) ||
+               path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsCommandsPath(string path)
+    {
+        return path.Contains($"{Path.DirectorySeparatorChar}Commands{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase);
     }
 
     private static void AssertNoTypeReferences(string assemblyName, string layerSegment, params string[] forbiddenNamespacePrefixes)

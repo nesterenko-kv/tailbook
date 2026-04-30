@@ -5,7 +5,7 @@ using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreateDurationRuleSet;
 
-public sealed class CreateDurationRuleSetEndpoint(ICatalogPricingQueries pricingQueries)
+public sealed class CreateDurationRuleSetEndpoint()
     : Endpoint<CreateDurationRuleSetRequest, CreateDurationRuleSetResponse>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class CreateDurationRuleSetEndpoint(ICatalogPricingQueries pricing
 
     public override async Task HandleAsync(CreateDurationRuleSetRequest req, CancellationToken ct)
     {
-        var result = await pricingQueries.CreateDurationRuleSetAsync(req.ValidFromUtc, req.ValidToUtc, ct);
+        var result = await new CreateCatalogDurationRuleSetCommand(req.ValidFromUtc, req.ValidToUtc).ExecuteAsync(ct);
         await Send.ResponseAsync(new CreateDurationRuleSetResponse
         {
             Id = result.Id,

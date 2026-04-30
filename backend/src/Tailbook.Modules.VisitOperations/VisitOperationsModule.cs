@@ -19,10 +19,10 @@ public sealed class VisitOperationsModule : IModuleDefinition
 
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<VisitQueries>();
-        services.AddScoped<IVisitQueries>(sp => sp.GetRequiredService<VisitQueries>());
-        services.AddScoped<GroomerVisitQueries>();
-        services.AddScoped<IGroomerVisitQueries>(sp => sp.GetRequiredService<GroomerVisitQueries>());
+        services.AddScoped<VisitUseCases>();
+        services.AddScoped<IVisitReadService>(sp => sp.GetRequiredService<VisitUseCases>());
+        services.AddScoped<GroomerVisitUseCases>();
+        services.AddScoped<IGroomerVisitReadService>(sp => sp.GetRequiredService<GroomerVisitUseCases>());
         return services;
     }
 

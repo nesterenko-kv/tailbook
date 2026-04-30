@@ -4,7 +4,7 @@ using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.ListDurationRuleSets;
 
-public sealed class ListDurationRuleSetsEndpoint(ICatalogPricingQueries pricingQueries)
+public sealed class ListDurationRuleSetsEndpoint(ICatalogPricingReadService pricingReadService)
     : EndpointWithoutRequest<ListDurationRuleSetsResponse>
 {
     public override void Configure()
@@ -16,7 +16,7 @@ public sealed class ListDurationRuleSetsEndpoint(ICatalogPricingQueries pricingQ
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var items = await pricingQueries.ListDurationRuleSetsAsync(ct);
+        var items = await pricingReadService.ListDurationRuleSetsAsync(ct);
         await Send.ResponseAsync(new ListDurationRuleSetsResponse
         {
             Items = items.Select(DurationRuleSetResponseBase.FromView).ToArray()

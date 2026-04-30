@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.RescheduleAppointment;
 
-public sealed class RescheduleAppointmentEndpoint(IBookingManagementQueries bookingQueries)
+public sealed class RescheduleAppointmentEndpoint()
     : Endpoint<RescheduleAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()
@@ -18,10 +18,10 @@ public sealed class RescheduleAppointmentEndpoint(IBookingManagementQueries book
 
     public override async Task HandleAsync(RescheduleAppointmentRequest req, CancellationToken ct)
     {
-        var result = await bookingQueries.RescheduleAppointmentAsync(
+        var result = await new RescheduleAppointmentUseCaseCommand(
             new RescheduleAppointmentCommand(req.AppointmentId, req.GroomerId, req.StartAtUtc, req.ExpectedVersionNo),
-            req.ActorUserId?.ToString("D"),
-            ct);
+            req.ActorUserId?.ToString("D"))
+            .ExecuteAsync(ct);
 
         if (result.IsError)
         {

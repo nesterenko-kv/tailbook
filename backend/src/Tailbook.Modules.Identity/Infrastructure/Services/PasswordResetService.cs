@@ -21,7 +21,7 @@ public sealed class PasswordResetService(
 
     public async Task RequestResetAsync(string email, CancellationToken cancellationToken)
     {
-        var normalizedEmail = IdentityQueries.NormalizeEmail(email);
+        var normalizedEmail = IdentityUseCases.NormalizeEmail(email);
         var user = await dbContext.Set<IdentityUser>()
             .SingleOrDefaultAsync(x => x.NormalizedEmail == normalizedEmail && x.Status == UserStatusCodes.Active, cancellationToken);
 

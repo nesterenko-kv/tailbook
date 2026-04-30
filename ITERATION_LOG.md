@@ -1003,3 +1003,34 @@ Risks:
 - Frontend checks were not rerun in this continuation because no frontend contract files or response shapes changed.
 Next:
 - Review the large move/refactor diff carefully before commit, with special attention to DI registrations and Identity auth flows.
+
+## 2026-04-30 — FastEndpoints command and read-service split
+Status: PASS
+Date: 2026-04-30
+Goal:
+- Split mutating operations out of `*Queries` services and route write endpoints through FastEndpoints commands where the module had mixed query/write services.
+Modules touched:
+- Booking, Catalog, Customer, Identity, Notifications, Pets, Staff, VisitOperations.
+Structure changes:
+- Added `Application/.../Commands` command records for mutating use cases.
+- Added Infrastructure command handlers that delegate to existing module use-case implementations.
+- Renamed mixed query interfaces to read-service interfaces and renamed mixed implementations to `*UseCases`.
+- Kept read-only query helpers such as reporting queries, audit queries, public booking queries, and quote-preview queries intact.
+Tests:
+- Updated architecture tests to allow FastEndpoints only in Application command contracts.
+- Added an architecture guard preventing `*Queries` services from exposing write-operation method prefixes.
+Commands run:
+- `dotnet restore backend\Tailbook.slnx`
+- `dotnet build backend\Tailbook.slnx --no-restore`
+- `dotnet test backend\Tailbook.slnx --no-build`
+- `git diff --check`
+Results:
+- Restore passed; all backend projects restored successfully.
+- Backend build passed with 0 warnings and 0 errors.
+- Backend tests passed: Architecture 82 tests, API 124 tests.
+- `git diff --check` passed with repository line-ending warnings only.
+Risks:
+- FastEndpoints 8.1.0 in the local package cache exposes command abstractions but no query abstraction, so reads remain Application read-service/query interfaces for now.
+- Frontend checks were not rerun because routes, request contracts, and response shapes were intentionally preserved.
+Next:
+- Review the command/read-service split diff before commit.

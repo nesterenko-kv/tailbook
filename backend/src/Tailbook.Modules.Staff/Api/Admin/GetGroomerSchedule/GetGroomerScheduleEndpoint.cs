@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Staff.Api.Admin.GetGroomerSchedule;
 
-public sealed class GetGroomerScheduleEndpoint(IStaffQueries staffQueries)
+public sealed class GetGroomerScheduleEndpoint(IStaffReadService staffReadService)
     : Endpoint<GetGroomerScheduleRequest, GetGroomerScheduleResponse>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class GetGroomerScheduleEndpoint(IStaffQueries staffQueries)
 
     public override async Task HandleAsync(GetGroomerScheduleRequest req, CancellationToken ct)
     {
-        var result = await staffQueries.GetScheduleAsync(req.GroomerId, req.FromUtc, req.ToUtc, ct);
+        var result = await staffReadService.GetScheduleAsync(req.GroomerId, req.FromUtc, req.ToUtc, ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

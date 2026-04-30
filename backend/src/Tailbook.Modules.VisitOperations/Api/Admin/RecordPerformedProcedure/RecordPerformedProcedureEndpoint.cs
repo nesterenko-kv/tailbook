@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.RecordPerformedProcedure;
 
-public sealed class RecordPerformedProcedureEndpoint(IVisitQueries visitQueries)
+public sealed class RecordPerformedProcedureEndpoint()
     : Endpoint<RecordPerformedProcedureRequest, VisitDetailView>
 {
     public override void Configure()
@@ -18,7 +18,7 @@ public sealed class RecordPerformedProcedureEndpoint(IVisitQueries visitQueries)
 
     public override async Task HandleAsync(RecordPerformedProcedureRequest req, CancellationToken ct)
     {
-        var result = await visitQueries.RecordPerformedProcedureAsync(req.VisitId, req.VisitExecutionItemId, req.ProcedureId, req.Note, req.ActorUserId, ct);
+        var result = await new RecordPerformedProcedureUseCaseCommand(req.VisitId, req.VisitExecutionItemId, req.ProcedureId, req.Note, req.ActorUserId).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

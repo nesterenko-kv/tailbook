@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Groomer.RecordPerformedProcedure;
 
-public sealed class RecordOwnPerformedProcedureEndpoint(IGroomerVisitQueries groomerVisitQueries)
+public sealed class RecordOwnPerformedProcedureEndpoint()
     : Endpoint<RecordOwnPerformedProcedureRequest, GroomerVisitDetailView>
 {
     public override void Configure()
@@ -18,7 +18,7 @@ public sealed class RecordOwnPerformedProcedureEndpoint(IGroomerVisitQueries gro
 
     public override async Task HandleAsync(RecordOwnPerformedProcedureRequest req, CancellationToken ct)
     {
-        var result = await groomerVisitQueries.RecordPerformedProcedureAsync(req.UserId, req.VisitId, req.VisitExecutionItemId, req.ProcedureId, req.Note, ct);
+        var result = await new RecordOwnPerformedProcedureUseCaseCommand(req.UserId, req.VisitId, req.VisitExecutionItemId, req.ProcedureId, req.Note).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

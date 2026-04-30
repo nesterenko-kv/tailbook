@@ -4,7 +4,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 namespace Tailbook.Modules.Customer.Api.Admin.GetClientDetail;
 
-public sealed class GetClientDetailEndpoint(ICustomerQueries customerQueries)
+public sealed class GetClientDetailEndpoint(ICustomerReadService customerReadService)
     : Endpoint<GetClientDetailRequest, GetClientDetailResponse>
 {
     public override void Configure()
@@ -16,7 +16,7 @@ public sealed class GetClientDetailEndpoint(ICustomerQueries customerQueries)
 
     public override async Task HandleAsync(GetClientDetailRequest req, CancellationToken ct)
     {
-        var client = await customerQueries.GetClientDetailAsync(req.Id, req.ActorUserId, ct);
+        var client = await customerReadService.GetClientDetailAsync(req.Id, req.ActorUserId, ct);
         if (client is null)
         {
             await Send.NotFoundAsync(ct);

@@ -55,10 +55,10 @@ public sealed class IdentityModule : IModuleDefinition
         services.AddScoped<IMfaFactorService>(sp => sp.GetRequiredService<MfaFactorService>());
         services.AddScoped<IdentitySessionService>();
         services.AddScoped<IIdentitySessionService>(sp => sp.GetRequiredService<IdentitySessionService>());
-        services.AddScoped<IdentityQueries>();
-        services.AddScoped<IIdentityQueries>(sp => sp.GetRequiredService<IdentityQueries>());
-        services.AddScoped<ClientPortalIdentityQueries>();
-        services.AddScoped<IClientPortalIdentityQueries>(sp => sp.GetRequiredService<ClientPortalIdentityQueries>());
+        services.AddScoped<IdentityUseCases>();
+        services.AddScoped<IIdentityReadService>(sp => sp.GetRequiredService<IdentityUseCases>());
+        services.AddScoped<ClientPortalIdentityAuthenticationService>();
+        services.AddScoped<IClientPortalIdentityAuthenticationService>(sp => sp.GetRequiredService<ClientPortalIdentityAuthenticationService>());
         services.AddScoped<AuthenticateUserCommandHandler>();
         services.AddScoped<IAuthenticateUserService>(sp => sp.GetRequiredService<AuthenticateUserCommandHandler>());
         services.AddScoped<RegisterClientPortalUserCommandHandler>();

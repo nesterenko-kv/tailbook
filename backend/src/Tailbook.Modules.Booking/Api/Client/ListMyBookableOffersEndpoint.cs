@@ -6,7 +6,7 @@ namespace Tailbook.Modules.Booking.Api.Client;
 
 public sealed class ListMyBookableOffersEndpoint(
     IClientPortalActorService actorService,
-    IClientPortalBookingQueries queries
+    IClientPortalBookingReadService bookingReadService
 )
     : Endpoint<ListMyBookableOffersRequest, IReadOnlyCollection<ClientBookableOfferResponse>>
 {
@@ -27,7 +27,7 @@ public sealed class ListMyBookableOffersEndpoint(
         }
 
         var petId = req.PetId;
-        var result = await queries.ListMyBookableOffersAsync(actor.ClientId, petId, ct);
+        var result = await bookingReadService.ListMyBookableOffersAsync(actor.ClientId, petId, ct);
         if (result is null)
         {
             await Send.NotFoundAsync(ct);

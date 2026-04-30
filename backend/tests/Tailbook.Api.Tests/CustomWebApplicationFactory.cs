@@ -129,7 +129,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
             Id = Guid.NewGuid(),
             SubjectId = $"usr_{Guid.NewGuid():N}",
             Email = email,
-            NormalizedEmail = IdentityQueries.NormalizeEmail(email),
+            NormalizedEmail = IdentityUseCases.NormalizeEmail(email),
             DisplayName = displayName,
             PasswordHash = passwordHasher.Hash(password),
             Status = UserStatusCodes.Active,

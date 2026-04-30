@@ -6,7 +6,7 @@ using Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
 namespace Tailbook.Modules.Staff.Api.Admin.AddCapability;
 
-public sealed class AddCapabilityEndpoint(IStaffQueries staffQueries)
+public sealed class AddCapabilityEndpoint()
     : Endpoint<AddCapabilityRequest, GroomerCapabilityResponse>
 {
     public override void Configure()
@@ -18,9 +18,9 @@ public sealed class AddCapabilityEndpoint(IStaffQueries staffQueries)
 
     public override async Task HandleAsync(AddCapabilityRequest req, CancellationToken ct)
     {
-        var result = await staffQueries.AddCapabilityAsync(
-            new AddGroomerCapabilityCommand(req.GroomerId, req.AnimalTypeId, req.BreedId, req.BreedGroupId, req.CoatTypeId, req.SizeCategoryId, req.OfferId, req.CapabilityMode, req.ReservedDurationModifierMinutes, req.Notes),
-            ct);
+        var result = await new AddGroomerCapabilityUseCaseCommand(
+            new AddGroomerCapabilityCommand(req.GroomerId, req.AnimalTypeId, req.BreedId, req.BreedGroupId, req.CoatTypeId, req.SizeCategoryId, req.OfferId, req.CapabilityMode, req.ReservedDurationModifierMinutes, req.Notes))
+            .ExecuteAsync(ct);
 
         if (result.IsError)
         {

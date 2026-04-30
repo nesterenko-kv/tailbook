@@ -6,7 +6,7 @@ using Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.AddOfferVersionComponent;
 
-public sealed class AddOfferVersionComponentEndpoint(ICatalogQueries catalogQueries)
+public sealed class AddOfferVersionComponentEndpoint()
     : Endpoint<AddOfferVersionComponentRequest, OfferVersionComponentResponse>
 {
     public override void Configure()
@@ -18,7 +18,7 @@ public sealed class AddOfferVersionComponentEndpoint(ICatalogQueries catalogQuer
 
     public override async Task HandleAsync(AddOfferVersionComponentRequest req, CancellationToken ct)
     {
-        var result = await catalogQueries.AddComponentAsync(req.VersionId, req.ProcedureId, req.ComponentRole, req.SequenceNo, req.DefaultExpected, ct);
+        var result = await new AddCatalogOfferVersionComponentCommand(req.VersionId, req.ProcedureId, req.ComponentRole, req.SequenceNo, req.DefaultExpected).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

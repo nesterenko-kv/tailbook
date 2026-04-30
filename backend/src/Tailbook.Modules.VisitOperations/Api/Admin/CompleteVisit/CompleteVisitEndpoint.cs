@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.CompleteVisit;
 
-public sealed class CompleteVisitEndpoint(IVisitQueries visitQueries)
+public sealed class CompleteVisitEndpoint()
     : Endpoint<CompleteVisitRequest, VisitDetailView>
 {
     public override void Configure()
@@ -18,7 +18,7 @@ public sealed class CompleteVisitEndpoint(IVisitQueries visitQueries)
 
     public override async Task HandleAsync(CompleteVisitRequest req, CancellationToken ct)
     {
-        var result = await visitQueries.CompleteVisitAsync(req.VisitId, req.ActorUserId, ct);
+        var result = await new CompleteVisitUseCaseCommand(req.VisitId, req.ActorUserId).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

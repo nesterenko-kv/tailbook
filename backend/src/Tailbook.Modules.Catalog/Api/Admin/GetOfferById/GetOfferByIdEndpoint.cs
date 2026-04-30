@@ -4,7 +4,7 @@ using Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.GetOfferById;
 
-public sealed class GetOfferByIdEndpoint(ICatalogQueries catalogQueries)
+public sealed class GetOfferByIdEndpoint(ICatalogReadService catalogReadService)
     : Endpoint<GetOfferByIdRequest, OfferResponse>
 {
     public override void Configure()
@@ -16,7 +16,7 @@ public sealed class GetOfferByIdEndpoint(ICatalogQueries catalogQueries)
 
     public override async Task HandleAsync(GetOfferByIdRequest req, CancellationToken ct)
     {
-        var offer = await catalogQueries.GetOfferAsync(req.Id, ct);
+        var offer = await catalogReadService.GetOfferAsync(req.Id, ct);
         if (offer is null)
         {
             await Send.NotFoundAsync(ct);

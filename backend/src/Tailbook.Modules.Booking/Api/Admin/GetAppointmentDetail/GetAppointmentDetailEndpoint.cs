@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.GetAppointmentDetail;
 
-public sealed class GetAppointmentDetailEndpoint(IBookingManagementQueries bookingQueries)
+public sealed class GetAppointmentDetailEndpoint(IBookingManagementReadService bookingReadService)
     : Endpoint<GetAppointmentDetailRequest, AppointmentDetailView>
 {
     public override void Configure()
@@ -15,7 +15,7 @@ public sealed class GetAppointmentDetailEndpoint(IBookingManagementQueries booki
 
     public override async Task HandleAsync(GetAppointmentDetailRequest req, CancellationToken ct)
     {
-        var result = await bookingQueries.GetAppointmentAsync(req.AppointmentId, ct);
+        var result = await bookingReadService.GetAppointmentAsync(req.AppointmentId, ct);
         if (result is null)
         {
             await Send.NotFoundAsync(ct);

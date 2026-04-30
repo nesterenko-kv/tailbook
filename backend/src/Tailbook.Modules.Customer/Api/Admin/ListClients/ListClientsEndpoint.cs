@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Customer.Api.Admin.ListClients;
 
-public sealed class ListClientsEndpoint(ICustomerQueries customerQueries)
+public sealed class ListClientsEndpoint(ICustomerReadService customerReadService)
     : Endpoint<ListClientsRequest, ListClientsResponse>
 {
     public override void Configure()
@@ -15,7 +15,7 @@ public sealed class ListClientsEndpoint(ICustomerQueries customerQueries)
 
     public override async Task HandleAsync(ListClientsRequest req, CancellationToken ct)
     {
-        var result = await customerQueries.ListClientsAsync(req.Search, req.Page, req.PageSize, ct);
+        var result = await customerReadService.ListClientsAsync(req.Search, req.Page, req.PageSize, ct);
         await Send.OkAsync(new ListClientsResponse
         {
             Items = result.Items.Select(x => new ClientListItemResponse

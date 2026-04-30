@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.ListAppointments;
 
-public sealed class ListAppointmentsEndpoint(IBookingManagementQueries bookingQueries)
+public sealed class ListAppointmentsEndpoint(IBookingManagementReadService bookingReadService)
     : Endpoint<ListAppointmentsRequest, PagedResult<AppointmentListItemView>>
 {
     public override void Configure()
@@ -16,7 +16,7 @@ public sealed class ListAppointmentsEndpoint(IBookingManagementQueries bookingQu
 
     public override async Task HandleAsync(ListAppointmentsRequest req, CancellationToken ct)
     {
-        var result = await bookingQueries.ListAppointmentsAsync(req.FromUtc, req.ToUtc, req.GroomerId, req.Page, req.PageSize, ct);
+        var result = await bookingReadService.ListAppointmentsAsync(req.FromUtc, req.ToUtc, req.GroomerId, req.Page, req.PageSize, ct);
         await Send.ResponseAsync(result, cancellation: ct);
     }
 }

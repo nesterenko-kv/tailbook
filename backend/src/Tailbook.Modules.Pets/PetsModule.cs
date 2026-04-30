@@ -20,7 +20,8 @@ public sealed class PetsModule : IModuleDefinition
 
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<IPetsQueries, PetsQueries>();
+        services.AddScoped<PetsUseCases>();
+        services.AddScoped<IPetsReadService>(sp => sp.GetRequiredService<PetsUseCases>());
         services.AddScoped<IClientPortalPetsQueries, ClientPortalPetsQueries>();
         services.AddScoped<IPetReferenceValidationService, PetReferenceServices>();
         services.AddScoped<IPetReadModelService, PetReferenceServices>();

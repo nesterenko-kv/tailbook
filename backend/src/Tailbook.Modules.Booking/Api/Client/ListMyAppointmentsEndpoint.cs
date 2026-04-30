@@ -7,7 +7,7 @@ namespace Tailbook.Modules.Booking.Api.Client;
 
 public sealed class ListMyAppointmentsEndpoint(
     IClientPortalActorService actorService,
-    IClientPortalBookingQueries queries)
+    IClientPortalBookingReadService bookingReadService)
     : Endpoint<ListMyAppointmentsRequest, IReadOnlyCollection<ClientAppointmentSummaryView>>
 {
     public override void Configure()
@@ -26,7 +26,7 @@ public sealed class ListMyAppointmentsEndpoint(
             return;
         }
 
-        var result = await queries.ListMyAppointmentsAsync(actor.ClientId, req.FromUtc, ct);
+        var result = await bookingReadService.ListMyAppointmentsAsync(actor.ClientId, req.FromUtc, ct);
         await Send.OkAsync(result, ct);
     }
 }

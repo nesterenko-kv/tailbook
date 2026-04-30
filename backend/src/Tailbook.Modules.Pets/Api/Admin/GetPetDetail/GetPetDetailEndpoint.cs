@@ -4,7 +4,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 namespace Tailbook.Modules.Pets.Api.Admin.GetPetDetail;
 
-public sealed class GetPetDetailEndpoint(ICurrentUser currentUser, IPetsQueries petsQueries)
+public sealed class GetPetDetailEndpoint(ICurrentUser currentUser, IPetsReadService petsReadService)
     : Endpoint<GetPetDetailRequest, GetPetDetailResponse>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class GetPetDetailEndpoint(ICurrentUser currentUser, IPetsQueries 
     public override async Task HandleAsync(GetPetDetailRequest req, CancellationToken ct)
     {
         var includeContacts = currentUser.HasPermission("crm.contacts.read");
-        var pet = await petsQueries.GetPetAsync(req.Id, req.ActorUserId, includeContacts, ct);
+        var pet = await petsReadService.GetPetAsync(req.Id, req.ActorUserId, includeContacts, ct);
         if (pet is null)
         {
             await Send.NotFoundAsync(ct);

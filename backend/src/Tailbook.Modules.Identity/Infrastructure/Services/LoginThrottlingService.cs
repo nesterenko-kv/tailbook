@@ -84,7 +84,7 @@ public sealed class LoginThrottlingService(IOptions<LoginThrottlingOptions> opti
         }
     }
 
-    private static string NormalizeKey(string email) => IdentityQueries.NormalizeEmail(email);
+    private static string NormalizeKey(string email) => IdentityUseCases.NormalizeEmail(email);
 
     private sealed class LoginAttemptState(DateTime firstFailureUtc)
     {

@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
-public sealed class CreateGroomerEndpoint(IStaffQueries staffQueries)
+public sealed class CreateGroomerEndpoint()
     : Endpoint<CreateGroomerRequest, CreateGroomerResponse>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class CreateGroomerEndpoint(IStaffQueries staffQueries)
 
     public override async Task HandleAsync(CreateGroomerRequest req, CancellationToken ct)
     {
-        var result = await staffQueries.CreateGroomerAsync(req.DisplayName, req.UserId, ct);
+        var result = await new CreateGroomerUseCaseCommand(req.DisplayName, req.UserId).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Pets.Api.Admin.ListPets;
 
-public sealed class ListPetsEndpoint(IPetsQueries petsQueries)
+public sealed class ListPetsEndpoint(IPetsReadService petsReadService)
     : Endpoint<ListPetsRequest, PagedResult<PetListItemView>>
 {
     public override void Configure()
@@ -16,7 +16,7 @@ public sealed class ListPetsEndpoint(IPetsQueries petsQueries)
 
     public override async Task HandleAsync(ListPetsRequest req, CancellationToken ct)
     {
-        var result = await petsQueries.ListPetsAsync(
+        var result = await petsReadService.ListPetsAsync(
             req.Search,
             req.ClientId,
             req.AnimalTypeCode,

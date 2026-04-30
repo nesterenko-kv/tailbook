@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreateProcedure;
 
-public sealed class CreateProcedureEndpoint(ICatalogQueries catalogQueries)
+public sealed class CreateProcedureEndpoint()
     : Endpoint<CreateProcedureRequest, CreateProcedureResponse>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class CreateProcedureEndpoint(ICatalogQueries catalogQueries)
 
     public override async Task HandleAsync(CreateProcedureRequest req, CancellationToken ct)
     {
-        var result = await catalogQueries.CreateProcedureAsync(req.Code, req.Name, ct);
+        var result = await new CreateCatalogProcedureCommand(req.Code, req.Name).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

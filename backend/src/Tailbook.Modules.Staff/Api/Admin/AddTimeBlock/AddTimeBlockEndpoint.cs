@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Staff.Api.Admin.AddTimeBlock;
 
-public sealed class AddTimeBlockEndpoint(IStaffQueries staffQueries)
+public sealed class AddTimeBlockEndpoint()
     : Endpoint<AddTimeBlockRequest, AddTimeBlockResponse>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class AddTimeBlockEndpoint(IStaffQueries staffQueries)
 
     public override async Task HandleAsync(AddTimeBlockRequest req, CancellationToken ct)
     {
-        var result = await staffQueries.AddTimeBlockAsync(req.GroomerId, req.StartAtUtc, req.EndAtUtc, req.ReasonCode, req.Notes, ct);
+        var result = await new AddGroomerTimeBlockUseCaseCommand(req.GroomerId, req.StartAtUtc, req.EndAtUtc, req.ReasonCode, req.Notes).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

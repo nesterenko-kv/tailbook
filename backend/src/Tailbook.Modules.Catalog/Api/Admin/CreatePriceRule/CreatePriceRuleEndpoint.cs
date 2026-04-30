@@ -6,7 +6,7 @@ using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreatePriceRule;
 
-public sealed class CreatePriceRuleEndpoint(ICatalogPricingQueries pricingQueries)
+public sealed class CreatePriceRuleEndpoint()
     : Endpoint<CreatePriceRuleRequest, CreatePriceRuleResponse>
 {
     public override void Configure()
@@ -18,15 +18,15 @@ public sealed class CreatePriceRuleEndpoint(ICatalogPricingQueries pricingQuerie
 
     public override async Task HandleAsync(CreatePriceRuleRequest req, CancellationToken ct)
     {
-        var result = await pricingQueries.CreatePriceRuleAsync(
+        var result = await new CreateCatalogPriceRuleCommand(
             new CreatePriceRuleCommand(
                 req.RuleSetId,
                 req.OfferId,
                 req.Priority,
                 req.FixedAmount,
                 req.Currency,
-                new RuleConditionInput(req.AnimalTypeId, req.BreedId, req.BreedGroupId, req.CoatTypeId, req.SizeCategoryId)),
-            ct);
+                new RuleConditionInput(req.AnimalTypeId, req.BreedId, req.BreedGroupId, req.CoatTypeId, req.SizeCategoryId)))
+            .ExecuteAsync(ct);
 
         if (result.IsError)
         {

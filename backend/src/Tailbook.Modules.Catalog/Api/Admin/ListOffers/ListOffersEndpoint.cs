@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.ListOffers;
 
-public sealed class ListOffersEndpoint(ICatalogQueries catalogQueries)
+public sealed class ListOffersEndpoint(ICatalogReadService catalogReadService)
     : EndpointWithoutRequest<IReadOnlyCollection<OfferListItemResponse>>
 {
     public override void Configure()
@@ -15,7 +15,7 @@ public sealed class ListOffersEndpoint(ICatalogQueries catalogQueries)
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var offers = await catalogQueries.ListOffersAsync(ct);
+        var offers = await catalogReadService.ListOffersAsync(ct);
         await Send.OkAsync(offers.Select(x => new OfferListItemResponse
         {
             Id = x.Id,

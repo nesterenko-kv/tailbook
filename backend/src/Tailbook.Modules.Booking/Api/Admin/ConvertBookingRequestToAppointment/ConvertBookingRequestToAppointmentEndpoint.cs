@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.ConvertBookingRequestToAppointment;
 
-public sealed class ConvertBookingRequestToAppointmentEndpoint(IBookingManagementQueries bookingQueries)
+public sealed class ConvertBookingRequestToAppointmentEndpoint()
     : Endpoint<ConvertBookingRequestToAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()
@@ -18,10 +18,10 @@ public sealed class ConvertBookingRequestToAppointmentEndpoint(IBookingManagemen
 
     public override async Task HandleAsync(ConvertBookingRequestToAppointmentRequest req, CancellationToken ct)
     {
-        var result = await bookingQueries.ConvertBookingRequestToAppointmentAsync(
+        var result = await new ConvertBookingRequestToAppointmentUseCaseCommand(
             new ConvertBookingRequestToAppointmentCommand(req.BookingRequestId, req.GroomerId, req.StartAtUtc),
-            req.ActorUserId?.ToString("D"),
-            ct);
+            req.ActorUserId?.ToString("D"))
+            .ExecuteAsync(ct);
 
         if (result.IsError)
         {

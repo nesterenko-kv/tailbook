@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Groomer.GetVisitDetail;
 
-public sealed class GetOwnVisitDetailEndpoint(IGroomerVisitQueries groomerVisitQueries)
+public sealed class GetOwnVisitDetailEndpoint(IGroomerVisitReadService groomerVisitReadService)
     : Endpoint<GetOwnVisitDetailRequest, GroomerVisitDetailView>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class GetOwnVisitDetailEndpoint(IGroomerVisitQueries groomerVisitQ
 
     public override async Task HandleAsync(GetOwnVisitDetailRequest req, CancellationToken ct)
     {
-        var result = await groomerVisitQueries.GetVisitAsync(req.UserId, req.VisitId, ct);
+        var result = await groomerVisitReadService.GetVisitAsync(req.UserId, req.VisitId, ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

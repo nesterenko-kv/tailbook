@@ -5,7 +5,7 @@ using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreatePriceRuleSet;
 
-public sealed class CreatePriceRuleSetEndpoint(ICatalogPricingQueries pricingQueries)
+public sealed class CreatePriceRuleSetEndpoint()
     : Endpoint<CreatePriceRuleSetRequest, CreatePriceRuleSetResponse>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class CreatePriceRuleSetEndpoint(ICatalogPricingQueries pricingQue
 
     public override async Task HandleAsync(CreatePriceRuleSetRequest req, CancellationToken ct)
     {
-        var result = await pricingQueries.CreatePriceRuleSetAsync(req.ValidFromUtc, req.ValidToUtc, ct);
+        var result = await new CreateCatalogPriceRuleSetCommand(req.ValidFromUtc, req.ValidToUtc).ExecuteAsync(ct);
         await Send.ResponseAsync(new CreatePriceRuleSetResponse
         {
             Id = result.Id,

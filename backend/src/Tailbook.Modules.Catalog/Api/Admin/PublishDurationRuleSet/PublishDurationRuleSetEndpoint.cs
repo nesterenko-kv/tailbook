@@ -5,7 +5,7 @@ using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.PublishDurationRuleSet;
 
-public sealed class PublishDurationRuleSetEndpoint(ICatalogPricingQueries pricingQueries)
+public sealed class PublishDurationRuleSetEndpoint()
     : Endpoint<PublishDurationRuleSetRequest, PublishDurationRuleSetResponse>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class PublishDurationRuleSetEndpoint(ICatalogPricingQueries pricin
 
     public override async Task HandleAsync(PublishDurationRuleSetRequest req, CancellationToken ct)
     {
-        var result = await pricingQueries.PublishDurationRuleSetAsync(req.RuleSetId, ct);
+        var result = await new PublishCatalogDurationRuleSetCommand(req.RuleSetId).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

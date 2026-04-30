@@ -7,7 +7,7 @@ namespace Tailbook.Modules.Booking.Api.Client;
 
 public sealed class PreviewMyQuoteEndpoint(
     IClientPortalActorService actorService,
-    IClientPortalBookingQueries queries)
+    IClientPortalBookingReadService bookingReadService)
     : Endpoint<PreviewMyQuoteRequest, PreviewMyQuoteResponse>
 {
     public override void Configure()
@@ -26,7 +26,7 @@ public sealed class PreviewMyQuoteEndpoint(
             return;
         }
 
-        var result = await queries.PreviewMyQuoteAsync(
+        var result = await bookingReadService.PreviewMyQuoteAsync(
             actor,
             new PreviewQuoteCommand(req.PetId, null,
                 req.Items.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray()),

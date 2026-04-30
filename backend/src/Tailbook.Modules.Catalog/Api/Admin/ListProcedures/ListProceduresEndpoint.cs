@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.ListProcedures;
 
-public sealed class ListProceduresEndpoint(ICatalogQueries catalogQueries)
+public sealed class ListProceduresEndpoint(ICatalogReadService catalogReadService)
     : EndpointWithoutRequest<IReadOnlyCollection<ProcedureItemResponse>>
 {
     public override void Configure()
@@ -15,7 +15,7 @@ public sealed class ListProceduresEndpoint(ICatalogQueries catalogQueries)
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var procedures = await catalogQueries.ListProceduresAsync(ct);
+        var procedures = await catalogReadService.ListProceduresAsync(ct);
         await Send.OkAsync(procedures.Select(x => new ProcedureItemResponse
         {
             Id = x.Id,

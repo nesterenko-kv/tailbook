@@ -4,7 +4,7 @@ using Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
 namespace Tailbook.Modules.Staff.Api.Admin.GetGroomerById;
 
-public sealed class GetGroomerByIdEndpoint(IStaffQueries staffQueries)
+public sealed class GetGroomerByIdEndpoint(IStaffReadService staffReadService)
     : Endpoint<GetGroomerByIdRequest, CreateGroomerResponse>
 {
     public override void Configure()
@@ -16,7 +16,7 @@ public sealed class GetGroomerByIdEndpoint(IStaffQueries staffQueries)
 
     public override async Task HandleAsync(GetGroomerByIdRequest req, CancellationToken ct)
     {
-        var groomer = await staffQueries.GetGroomerAsync(req.GroomerId, ct);
+        var groomer = await staffReadService.GetGroomerAsync(req.GroomerId, ct);
         if (groomer is null)
         {
             await Send.NotFoundAsync(ct);

@@ -84,7 +84,7 @@ public sealed class IdentitySeeder(IOptions<BootstrapAdminOptions> bootstrapAdmi
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var options = bootstrapAdminOptions.Value;
-        var normalizedEmail = IdentityQueries.NormalizeEmail(options.Email);
+        var normalizedEmail = IdentityUseCases.NormalizeEmail(options.Email);
         var adminUser = await dbContext.Set<IdentityUser>()
             .SingleOrDefaultAsync(x => x.NormalizedEmail == normalizedEmail, cancellationToken);
 

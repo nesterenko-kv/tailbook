@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Customer.Api.Admin.LinkContactToPet;
 
-public sealed class LinkContactToPetEndpoint(ICustomerQueries customerQueries)
+public sealed class LinkContactToPetEndpoint()
     : Endpoint<LinkContactToPetRequest, LinkContactToPetResponse>
 {
     public override void Configure()
@@ -16,7 +16,7 @@ public sealed class LinkContactToPetEndpoint(ICustomerQueries customerQueries)
 
     public override async Task HandleAsync(LinkContactToPetRequest req, CancellationToken ct)
     {
-        var link = await customerQueries.LinkContactToPetAsync(req.PetId, req.ContactId, req.RoleCodes, req.IsPrimary, req.CanPickUp, req.CanPay, req.ReceivesNotifications, ct);
+        var link = await new LinkCustomerContactToPetCommand(req.PetId, req.ContactId, req.RoleCodes, req.IsPrimary, req.CanPickUp, req.CanPay, req.ReceivesNotifications).ExecuteAsync(ct);
         if (link is null)
         {
             await Send.NotFoundAsync(ct);

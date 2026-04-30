@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Notifications.Api.Admin.ListNotificationJobs;
 
-public sealed class ListNotificationJobsEndpoint(INotificationQueries notificationQueries)
+public sealed class ListNotificationJobsEndpoint(INotificationReadService notificationReadService)
     : Endpoint<ListNotificationJobsRequest, ListNotificationJobsResponse>
 {
     public override void Configure()
@@ -15,7 +15,7 @@ public sealed class ListNotificationJobsEndpoint(INotificationQueries notificati
 
     public override async Task HandleAsync(ListNotificationJobsRequest req, CancellationToken ct)
     {
-        var items = await notificationQueries.ListJobsAsync(req.Status, ct);
+        var items = await notificationReadService.ListJobsAsync(req.Status, ct);
         await Send.OkAsync(new ListNotificationJobsResponse { Items = items }, ct);
     }
 }

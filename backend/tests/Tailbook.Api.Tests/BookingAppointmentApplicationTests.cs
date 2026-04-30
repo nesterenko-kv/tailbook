@@ -190,7 +190,7 @@ public sealed class BookingAppointmentApplicationTests
     {
         private BookingApplicationHarness(
             AppDbContext dbContext,
-            BookingManagementQueries queries,
+            BookingManagementUseCases queries,
             StubStaffSchedulingService staffSchedulingService,
             Guid petId,
             Guid groomerId,
@@ -205,7 +205,7 @@ public sealed class BookingAppointmentApplicationTests
         }
 
         public AppDbContext DbContext { get; }
-        public BookingManagementQueries Queries { get; }
+        public BookingManagementUseCases Queries { get; }
         public StubStaffSchedulingService StaffSchedulingService { get; }
         public Guid PetId { get; }
         public Guid GroomerId { get; }
@@ -223,7 +223,7 @@ public sealed class BookingAppointmentApplicationTests
             var groomerId = Guid.NewGuid();
             var petQuoteProfileService = new StubPetQuoteProfileService(petId);
             var staffSchedulingService = new StubStaffSchedulingService();
-            var queries = new BookingManagementQueries(
+            var queries = new BookingManagementUseCases(
                 dbContext,
                 new BookingSnapshotComposer(
                     dbContext,

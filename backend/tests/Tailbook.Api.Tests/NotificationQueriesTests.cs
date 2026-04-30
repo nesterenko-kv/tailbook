@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class NotificationQueriesTests
+public sealed class NotificationUseCasesTests
 {
     [Fact]
     public async Task ProcessOutboxAsync_marks_unhandled_event_processed_without_creating_job()
@@ -17,7 +17,7 @@ public sealed class NotificationQueriesTests
         var message = AddOutboxMessage(dbContext, "CustomerCreated", """{"email":"client@test.local"}""");
         await dbContext.SaveChangesAsync();
         var sink = new CapturingNotificationSink();
-        var queries = new NotificationQueries(dbContext, sink);
+        var queries = new NotificationUseCases(dbContext, sink);
 
         var processed = await queries.ProcessOutboxAsync(CancellationToken.None);
 
@@ -42,7 +42,7 @@ public sealed class NotificationQueriesTests
             """{"Email":"owner@test.local","ResetToken":"abc123","ExpiresAtUtc":"2026-05-01T00:00:00Z"}""");
         await dbContext.SaveChangesAsync();
         var sink = new CapturingNotificationSink();
-        var queries = new NotificationQueries(dbContext, sink);
+        var queries = new NotificationUseCases(dbContext, sink);
 
         var processed = await queries.ProcessOutboxAsync(CancellationToken.None);
 
@@ -83,7 +83,7 @@ public sealed class NotificationQueriesTests
         });
         await dbContext.SaveChangesAsync();
         var sink = new CapturingNotificationSink();
-        var queries = new NotificationQueries(dbContext, sink);
+        var queries = new NotificationUseCases(dbContext, sink);
 
         var processed = await queries.ProcessOutboxAsync(CancellationToken.None);
 
@@ -103,7 +103,7 @@ public sealed class NotificationQueriesTests
         var message = AddOutboxMessage(dbContext, "VisitClosed", """{"visitId":"visit_123"}""");
         await dbContext.SaveChangesAsync();
         var sink = new CapturingNotificationSink(new string('x', 1100));
-        var queries = new NotificationQueries(dbContext, sink);
+        var queries = new NotificationUseCases(dbContext, sink);
 
         var processed = await queries.ProcessOutboxAsync(CancellationToken.None);
 

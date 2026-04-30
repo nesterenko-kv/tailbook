@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Identity.Api.Admin.AssignRoles;
 
-public sealed class AssignRolesEndpoint(IIdentityQueries identityQueries)
+public sealed class AssignRolesEndpoint()
     : Endpoint<AssignRolesRequest, AssignRolesResponse>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class AssignRolesEndpoint(IIdentityQueries identityQueries)
 
     public override async Task HandleAsync(AssignRolesRequest req, CancellationToken ct)
     {
-        var result = await identityQueries.AssignRolesAsync(req.Id, req.RoleCodes, req.ActorUserId, ct);
+        var result = await new AssignIdentityRolesCommand(req.Id, req.RoleCodes, req.ActorUserId).ExecuteAsync(ct);
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());

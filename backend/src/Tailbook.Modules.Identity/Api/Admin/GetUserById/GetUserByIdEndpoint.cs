@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 namespace Tailbook.Modules.Identity.Api.Admin.GetUserById;
 
 public sealed class GetUserByIdEndpoint(
-    IIdentityQueries identityQueries,
+    IIdentityReadService identityReadService,
     IAccessAuditService accessAuditService) : Endpoint<GetUserByIdRequest, GetUserByIdResponse>
 {
     public override void Configure()
@@ -18,7 +18,7 @@ public sealed class GetUserByIdEndpoint(
 
     public override async Task HandleAsync(GetUserByIdRequest req, CancellationToken ct)
     {
-        var user = await identityQueries.GetUserAsync(req.Id, ct);
+        var user = await identityReadService.GetUserAsync(req.Id, ct);
         if (user is null)
         {
             await Send.NotFoundAsync(ct);

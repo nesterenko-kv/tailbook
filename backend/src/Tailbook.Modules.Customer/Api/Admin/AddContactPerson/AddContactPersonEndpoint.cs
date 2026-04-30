@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Customer.Api.Admin.AddContactPerson;
 
-public sealed class AddContactPersonEndpoint(ICustomerQueries customerQueries)
+public sealed class AddContactPersonEndpoint()
     : Endpoint<AddContactPersonRequest, AddContactPersonResponse>
 {
     public override void Configure()
@@ -16,7 +16,7 @@ public sealed class AddContactPersonEndpoint(ICustomerQueries customerQueries)
 
     public override async Task HandleAsync(AddContactPersonRequest req, CancellationToken ct)
     {
-        var contact = await customerQueries.AddContactPersonAsync(req.ClientId, req.FirstName, req.LastName, req.Notes, req.TrustLevel, ct);
+        var contact = await new AddCustomerContactPersonCommand(req.ClientId, req.FirstName, req.LastName, req.Notes, req.TrustLevel).ExecuteAsync(ct);
         if (contact is null)
         {
             await Send.NotFoundAsync(ct);
