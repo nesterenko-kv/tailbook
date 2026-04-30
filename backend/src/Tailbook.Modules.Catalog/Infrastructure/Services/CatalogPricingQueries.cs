@@ -6,7 +6,7 @@ using Tailbook.Modules.Catalog.Contracts;
 
 namespace Tailbook.Modules.Catalog.Infrastructure.Services;
 
-public sealed class CatalogPricingQueries(AppDbContext dbContext, IPetTaxonomyValidationService petTaxonomyValidationService)
+public sealed class CatalogPricingQueries(AppDbContext dbContext, IPetTaxonomyValidationService petTaxonomyValidationService) : ICatalogPricingQueries
 {
     public async Task<IReadOnlyCollection<PriceRuleSetView>> ListPriceRuleSetsAsync(CancellationToken cancellationToken)
     {
@@ -342,29 +342,44 @@ public sealed class CatalogPricingQueries(AppDbContext dbContext, IPetTaxonomyVa
 
     private async Task<ErrorOr<RuleConditionInput>> ValidateTaxonomyAsync(RuleConditionInput condition, CancellationToken cancellationToken)
     {
-        if (condition.AnimalTypeId is not null && !await petTaxonomyValidationService.AnimalTypeExistsAsync(condition.AnimalTypeId.Value, cancellationToken))
+        if (condition.AnimalTypeId is not null)
         {
-            return Error.NotFound("Catalog.AnimalTypeNotFound", "Animal type does not exist.");
+            if (!await petTaxonomyValidationService.AnimalTypeExistsAsync(condition.AnimalTypeId.Value, cancellationToken))
+            {
+                return Error.NotFound("Catalog.AnimalTypeNotFound", "Animal type does not exist.");
+            }
         }
 
-        if (condition.BreedId is not null && !await petTaxonomyValidationService.BreedExistsAsync(condition.BreedId.Value, cancellationToken))
+        if (condition.BreedId is not null)
         {
-            return Error.NotFound("Catalog.BreedNotFound", "Breed does not exist.");
+            if (!await petTaxonomyValidationService.BreedExistsAsync(condition.BreedId.Value, cancellationToken))
+            {
+                return Error.NotFound("Catalog.BreedNotFound", "Breed does not exist.");
+            }
         }
 
-        if (condition.BreedGroupId is not null && !await petTaxonomyValidationService.BreedGroupExistsAsync(condition.BreedGroupId.Value, cancellationToken))
+        if (condition.BreedGroupId is not null)
         {
-            return Error.NotFound("Catalog.BreedGroupNotFound", "Breed group does not exist.");
+            if (!await petTaxonomyValidationService.BreedGroupExistsAsync(condition.BreedGroupId.Value, cancellationToken))
+            {
+                return Error.NotFound("Catalog.BreedGroupNotFound", "Breed group does not exist.");
+            }
         }
 
-        if (condition.CoatTypeId is not null && !await petTaxonomyValidationService.CoatTypeExistsAsync(condition.CoatTypeId.Value, cancellationToken))
+        if (condition.CoatTypeId is not null)
         {
-            return Error.NotFound("Catalog.CoatTypeNotFound", "Coat type does not exist.");
+            if (!await petTaxonomyValidationService.CoatTypeExistsAsync(condition.CoatTypeId.Value, cancellationToken))
+            {
+                return Error.NotFound("Catalog.CoatTypeNotFound", "Coat type does not exist.");
+            }
         }
 
-        if (condition.SizeCategoryId is not null && !await petTaxonomyValidationService.SizeCategoryExistsAsync(condition.SizeCategoryId.Value, cancellationToken))
+        if (condition.SizeCategoryId is not null)
         {
-            return Error.NotFound("Catalog.SizeCategoryNotFound", "Size category does not exist.");
+            if (!await petTaxonomyValidationService.SizeCategoryExistsAsync(condition.SizeCategoryId.Value, cancellationToken))
+            {
+                return Error.NotFound("Catalog.SizeCategoryNotFound", "Size category does not exist.");
+            }
         }
 
         return condition;

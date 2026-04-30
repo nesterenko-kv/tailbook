@@ -2,7 +2,7 @@ using ErrorOr;
 
 namespace Tailbook.Modules.Booking.Application.Booking.Queries;
 
-public sealed class BookingQuoteQueries(BookingSnapshotComposer bookingSnapshotComposer)
+public sealed class BookingQuoteQueries(IBookingSnapshotComposer bookingSnapshotComposer)
 {
     public async Task<ErrorOr<QuotePreviewView>> PreviewQuoteAsync(PreviewQuoteCommand command, string? actorUserId, CancellationToken cancellationToken)
     {

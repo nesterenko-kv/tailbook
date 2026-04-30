@@ -8,13 +8,13 @@ namespace Tailbook.Modules.Booking.Infrastructure.Services;
 
 public sealed class ClientPortalBookingQueries(
     AppDbContext dbContext,
-    BookingManagementQueries bookingManagementQueries,
+    IBookingManagementQueries bookingManagementQueries,
     BookingQuoteQueries bookingQuoteQueries,
     IPetSummaryReadService petSummaryReadService,
     IPetQuoteProfileService petQuoteProfileService,
     ICatalogQuoteResolver catalogQuoteResolver,
     ICatalogOfferReadService catalogOfferReadService
-)
+) : IClientPortalBookingQueries
 {
     public Task<ErrorOr<BookingRequestDetailView>> CreateMyBookingRequestAsync(ClientPortalActor actor,
         CreateClientBookingRequestCommand command, CancellationToken cancellationToken)

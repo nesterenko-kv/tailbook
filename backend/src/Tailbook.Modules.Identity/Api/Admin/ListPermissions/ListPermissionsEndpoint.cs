@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Identity.Api.Admin.ListPermissions;
 
-public sealed class ListPermissionsEndpoint(IdentityQueries identityQueries)
+public sealed class ListPermissionsEndpoint(IIdentityQueries identityQueries)
     : EndpointWithoutRequest<IReadOnlyCollection<PermissionItemResponse>>
 {
     public override void Configure()

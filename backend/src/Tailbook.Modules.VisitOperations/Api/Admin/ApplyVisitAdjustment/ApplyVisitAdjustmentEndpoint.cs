@@ -7,7 +7,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.ApplyVisitAdjustment;
 
-public sealed class ApplyVisitAdjustmentEndpoint(VisitQueries visitQueries)
+public sealed class ApplyVisitAdjustmentEndpoint(IVisitQueries visitQueries)
     : Endpoint<ApplyVisitAdjustmentRequest, VisitDetailView>
 {
     public override void Configure()

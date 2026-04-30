@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Options;
+using Tailbook.Modules.Notifications.Infrastructure.Options;
 
 namespace Tailbook.Modules.Notifications.Infrastructure.Services;
 

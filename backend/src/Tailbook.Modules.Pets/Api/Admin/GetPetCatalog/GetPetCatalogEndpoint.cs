@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Pets.Api.Admin.GetPetCatalog;
 
-public sealed class GetPetCatalogEndpoint(PetsQueries petsQueries)
+public sealed class GetPetCatalogEndpoint(IPetsQueries petsQueries)
     : EndpointWithoutRequest<GetPetCatalogResponse>
 {
     public override void Configure()

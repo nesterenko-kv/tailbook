@@ -4,7 +4,7 @@ using Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
 namespace Tailbook.Modules.Staff.Api.Admin.GetGroomerById;
 
-public sealed class GetGroomerByIdEndpoint(StaffQueries staffQueries)
+public sealed class GetGroomerByIdEndpoint(IStaffQueries staffQueries)
     : Endpoint<GetGroomerByIdRequest, CreateGroomerResponse>
 {
     public override void Configure()

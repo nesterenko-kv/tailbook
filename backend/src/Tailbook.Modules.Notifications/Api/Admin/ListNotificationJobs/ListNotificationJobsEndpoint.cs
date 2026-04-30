@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Notifications.Api.Admin.ListNotificationJobs;
 
-public sealed class ListNotificationJobsEndpoint(NotificationQueries notificationQueries)
+public sealed class ListNotificationJobsEndpoint(INotificationQueries notificationQueries)
     : Endpoint<ListNotificationJobsRequest, ListNotificationJobsResponse>
 {
     public override void Configure()

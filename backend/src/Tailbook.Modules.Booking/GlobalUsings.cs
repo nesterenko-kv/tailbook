@@ -7,5 +7,3 @@ global using Tailbook.Modules.Booking.Contracts;
 global using Tailbook.Modules.Booking.Domain.Aggregates;
 global using Tailbook.Modules.Booking.Domain.Entities;
 global using Tailbook.Modules.Booking.Domain.ValueObjects;
-global using Tailbook.Modules.Booking.Infrastructure.Persistence.Configurations;
-global using Tailbook.Modules.Booking.Infrastructure.Services;

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 namespace Tailbook.Modules.Booking.Api.Groomer.ListMyAppointments;
 
 public sealed class ListMyAppointmentsEndpoint(
-    GroomerBookingQueries groomerBookingQueries)
+    IGroomerBookingQueries groomerBookingQueries)
     : Endpoint<ListMyAppointmentsRequest, PagedResult<GroomerAppointmentListItemView>>
 {
     public override void Configure()

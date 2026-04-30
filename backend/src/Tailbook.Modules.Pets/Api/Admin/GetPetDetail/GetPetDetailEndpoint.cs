@@ -4,7 +4,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 namespace Tailbook.Modules.Pets.Api.Admin.GetPetDetail;
 
-public sealed class GetPetDetailEndpoint(ICurrentUser currentUser, PetsQueries petsQueries)
+public sealed class GetPetDetailEndpoint(ICurrentUser currentUser, IPetsQueries petsQueries)
     : Endpoint<GetPetDetailRequest, GetPetDetailResponse>
 {
     public override void Configure()

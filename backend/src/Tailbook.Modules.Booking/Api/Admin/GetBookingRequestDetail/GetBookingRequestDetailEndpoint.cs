@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 namespace Tailbook.Modules.Booking.Api.Admin.GetBookingRequestDetail;
 
 public sealed class GetBookingRequestDetailEndpoint(
-    BookingManagementQueries bookingQueries)
+    IBookingManagementQueries bookingQueries)
     : Endpoint<GetBookingRequestDetailRequest, BookingRequestDetailView>
 {
     public override void Configure()

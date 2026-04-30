@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Identity.Api.Client.Auth.Login;
 
-public sealed class ClientLoginEndpoint(ClientPortalIdentityQueries identityQueries, LoginThrottlingService loginThrottling) : Endpoint<ClientLoginRequest, ClientLoginResponse>
+public sealed class ClientLoginEndpoint(IClientPortalIdentityQueries identityQueries, ILoginThrottlingService loginThrottling) : Endpoint<ClientLoginRequest, ClientLoginResponse>
 {
     public override void Configure()
     {

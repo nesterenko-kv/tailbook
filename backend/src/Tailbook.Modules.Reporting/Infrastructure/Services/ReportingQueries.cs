@@ -3,7 +3,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
 namespace Tailbook.Modules.Reporting.Infrastructure.Services;
 
-public sealed class ReportingQueries(AppDbContext dbContext)
+public sealed class ReportingQueries(AppDbContext dbContext) : IReportingQueries
 {
     public async Task<IReadOnlyCollection<EstimateAccuracyReportItemView>> GetEstimateAccuracyAsync(DateTime? fromUtc, DateTime? toUtc, CancellationToken cancellationToken)
     {

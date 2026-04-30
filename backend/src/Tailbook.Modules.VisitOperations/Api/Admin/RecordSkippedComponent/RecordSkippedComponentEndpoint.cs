@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.RecordSkippedComponent;
 
-public sealed class RecordSkippedComponentEndpoint(VisitQueries visitQueries)
+public sealed class RecordSkippedComponentEndpoint(IVisitQueries visitQueries)
     : Endpoint<RecordSkippedComponentRequest, VisitDetailView>
 {
     public override void Configure()

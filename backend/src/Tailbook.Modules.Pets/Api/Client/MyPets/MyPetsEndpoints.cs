@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 namespace Tailbook.Modules.Pets.Api.Client.MyPets;
 
-public sealed class ListMyPetsEndpoint(IClientPortalActorService actorService, ClientPortalPetsQueries queries)
+public sealed class ListMyPetsEndpoint(IClientPortalActorService actorService, IClientPortalPetsQueries queries)
     : Endpoint<ListMyPetsRequest, IReadOnlyCollection<ClientPetSummaryView>>
 {
     public override void Configure()
@@ -30,7 +30,7 @@ public sealed class ListMyPetsEndpoint(IClientPortalActorService actorService, C
     }
 }
 
-public sealed class GetMyPetEndpoint(IClientPortalActorService actorService, ClientPortalPetsQueries queries)
+public sealed class GetMyPetEndpoint(IClientPortalActorService actorService, IClientPortalPetsQueries queries)
     : Endpoint<GetMyPetRequest, ClientPetDetailView>
 {
     public override void Configure()

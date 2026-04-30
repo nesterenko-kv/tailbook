@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Identity.Api.Admin.ListUsers;
 
-public sealed class ListUsersEndpoint(IdentityQueries identityQueries)
+public sealed class ListUsersEndpoint(IIdentityQueries identityQueries)
     : Endpoint<ListUsersRequest, ListUsersResponse>
 {
     public override void Configure()

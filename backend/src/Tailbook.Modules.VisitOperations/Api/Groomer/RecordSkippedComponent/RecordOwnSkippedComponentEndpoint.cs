@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Groomer.RecordSkippedComponent;
 
-public sealed class RecordOwnSkippedComponentEndpoint(GroomerVisitQueries groomerVisitQueries)
+public sealed class RecordOwnSkippedComponentEndpoint(IGroomerVisitQueries groomerVisitQueries)
     : Endpoint<RecordOwnSkippedComponentRequest, GroomerVisitDetailView>
 {
     public override void Configure()

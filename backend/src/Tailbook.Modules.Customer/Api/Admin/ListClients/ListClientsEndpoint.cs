@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Customer.Api.Admin.ListClients;
 
-public sealed class ListClientsEndpoint(CustomerQueries customerQueries)
+public sealed class ListClientsEndpoint(ICustomerQueries customerQueries)
     : Endpoint<ListClientsRequest, ListClientsResponse>
 {
     public override void Configure()

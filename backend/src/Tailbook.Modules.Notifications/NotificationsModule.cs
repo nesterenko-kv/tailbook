@@ -3,6 +3,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
+using Tailbook.Modules.Notifications.Infrastructure.BackgroundJobs;
+using Tailbook.Modules.Notifications.Infrastructure.Options;
+using Tailbook.Modules.Notifications.Infrastructure.Persistence.Configurations;
+using Tailbook.Modules.Notifications.Infrastructure.Seeding;
+using Tailbook.Modules.Notifications.Infrastructure.Services;
 
 namespace Tailbook.Modules.Notifications;
 
@@ -23,6 +28,7 @@ public sealed class NotificationsModule : IModuleDefinition
             .Validate(x => !string.IsNullOrWhiteSpace(x.LocalFilePath), "Notifications:LocalFilePath is required.")
             .ValidateOnStart();
         services.AddScoped<NotificationQueries>();
+        services.AddScoped<INotificationQueries>(sp => sp.GetRequiredService<NotificationQueries>());
         services.AddScoped<INotificationSink, LocalFileNotificationSink>();
         services.AddHostedService<OutboxProcessorBackgroundService>();
         services.AddScoped<IDataSeeder, NotificationTemplateSeeder>();

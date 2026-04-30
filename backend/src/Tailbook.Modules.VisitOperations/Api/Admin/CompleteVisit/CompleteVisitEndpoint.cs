@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.CompleteVisit;
 
-public sealed class CompleteVisitEndpoint(VisitQueries visitQueries)
+public sealed class CompleteVisitEndpoint(IVisitQueries visitQueries)
     : Endpoint<CompleteVisitRequest, VisitDetailView>
 {
     public override void Configure()

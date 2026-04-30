@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
-public sealed class CreateGroomerEndpoint(StaffQueries staffQueries)
+public sealed class CreateGroomerEndpoint(IStaffQueries staffQueries)
     : Endpoint<CreateGroomerRequest, CreateGroomerResponse>
 {
     public override void Configure()

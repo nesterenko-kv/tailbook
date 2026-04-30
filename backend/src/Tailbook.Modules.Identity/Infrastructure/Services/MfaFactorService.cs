@@ -4,7 +4,7 @@ using Tailbook.Modules.Identity.Contracts;
 
 namespace Tailbook.Modules.Identity.Infrastructure.Services;
 
-public sealed class MfaFactorService(AppDbContext dbContext)
+public sealed class MfaFactorService(AppDbContext dbContext) : IMfaFactorService
 {
     public async Task<IReadOnlyCollection<MfaFactorView>> ListFactorsAsync(Guid userId, CancellationToken cancellationToken)
     {

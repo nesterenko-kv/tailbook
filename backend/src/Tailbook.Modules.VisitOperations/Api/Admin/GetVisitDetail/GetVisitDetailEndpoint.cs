@@ -4,7 +4,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.GetVisitDetail;
 
-public sealed class GetVisitDetailEndpoint(VisitQueries visitQueries)
+public sealed class GetVisitDetailEndpoint(IVisitQueries visitQueries)
     : Endpoint<GetVisitDetailRequest, VisitDetailView>
 {
     public override void Configure()

@@ -7,8 +7,8 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 namespace Tailbook.Modules.Identity.Api.Client.Auth.Register;
 
 public sealed class ClientRegisterEndpoint(
-    RegisterClientPortalUserCommandHandler registerHandler,
-    AuthenticateUserCommandHandler authenticateUserHandler) : Endpoint<ClientRegisterRequest, ClientRegisterResponse>
+    IRegisterClientPortalUserHandler registerHandler,
+    IAuthenticateUserService authenticateUserHandler) : Endpoint<ClientRegisterRequest, ClientRegisterResponse>
 {
     public override void Configure()
     {
@@ -36,7 +36,7 @@ public sealed class ClientRegisterEndpoint(
             return;
         }
 
-        var result = await authenticateUserHandler.ExecuteAsync(new AuthenticateUserCommand(req.Email, req.Password), ct);
+        var result = await authenticateUserHandler.AuthenticateAsync(req.Email, req.Password, ct);
         if (result is null)
         {
             Logger.Log(LogLevel.Warning, "Client portal registration finished without an active login session.");

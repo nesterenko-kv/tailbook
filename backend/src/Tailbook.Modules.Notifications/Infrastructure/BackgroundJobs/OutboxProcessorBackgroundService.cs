@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Tailbook.Modules.Notifications.Infrastructure.Options;
 
 namespace Tailbook.Modules.Notifications.Infrastructure.BackgroundJobs;
 
@@ -44,7 +45,7 @@ public sealed class OutboxProcessorBackgroundService(
     private async Task ProcessOnceAsync(CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
-        var queries = scope.ServiceProvider.GetRequiredService<NotificationQueries>();
+        var queries = scope.ServiceProvider.GetRequiredService<INotificationQueries>();
         var processed = await queries.ProcessOutboxAsync(cancellationToken);
         if (processed > 0)
         {

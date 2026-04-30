@@ -3,6 +3,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
+using Tailbook.Modules.Pets.Infrastructure.Persistence.Configurations;
+using Tailbook.Modules.Pets.Infrastructure.Seeding;
+using Tailbook.Modules.Pets.Infrastructure.Services;
 
 namespace Tailbook.Modules.Pets;
 
@@ -17,8 +20,8 @@ public sealed class PetsModule : IModuleDefinition
 
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<PetsQueries>();
-        services.AddScoped<ClientPortalPetsQueries>();
+        services.AddScoped<IPetsQueries, PetsQueries>();
+        services.AddScoped<IClientPortalPetsQueries, ClientPortalPetsQueries>();
         services.AddScoped<IPetReferenceValidationService, PetReferenceServices>();
         services.AddScoped<IPetReadModelService, PetReferenceServices>();
         services.AddScoped<IPetSummaryReadService, PetReferenceServices>();

@@ -8,7 +8,7 @@ namespace Tailbook.Modules.Identity.Infrastructure.Services;
 public sealed class ClientPortalIdentityQueries(
     AppDbContext dbContext,
     PasswordHasher passwordHasher,
-    IdentitySessionService identitySessionService)
+    IdentitySessionService identitySessionService) : IClientPortalIdentityQueries
 {
     public async Task<LoginResult?> AuthenticateClientAsync(string email, string password, CancellationToken cancellationToken)
     {

@@ -5,7 +5,7 @@ using Tailbook.Modules.Identity.Api.Client.Auth.Login;
 
 namespace Tailbook.Modules.Identity.Api.Client.Auth.Refresh;
 
-public sealed class ClientRefreshTokenEndpoint(IdentitySessionService identitySessionService) : Endpoint<RefreshTokenRequest, ClientLoginResponse>
+public sealed class ClientRefreshTokenEndpoint(IIdentitySessionService identitySessionService) : Endpoint<RefreshTokenRequest, ClientLoginResponse>
 {
     public override void Configure()
     {
@@ -34,7 +34,7 @@ public sealed class ClientRefreshTokenEndpoint(IdentitySessionService identitySe
     }
 }
 
-public sealed class ClientRevokeRefreshTokenEndpoint(IdentitySessionService identitySessionService) : Endpoint<RefreshTokenRequest>
+public sealed class ClientRevokeRefreshTokenEndpoint(IIdentitySessionService identitySessionService) : Endpoint<RefreshTokenRequest>
 {
     public override void Configure()
     {

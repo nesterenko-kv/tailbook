@@ -4,7 +4,7 @@ using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.ListDurationRuleSets;
 
-public sealed class ListDurationRuleSetsEndpoint(CatalogPricingQueries pricingQueries)
+public sealed class ListDurationRuleSetsEndpoint(ICatalogPricingQueries pricingQueries)
     : EndpointWithoutRequest<ListDurationRuleSetsResponse>
 {
     public override void Configure()

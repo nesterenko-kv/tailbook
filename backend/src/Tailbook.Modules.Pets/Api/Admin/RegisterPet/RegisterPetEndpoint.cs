@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Pets.Api.Admin.RegisterPet;
 
-public sealed class RegisterPetEndpoint(PetsQueries petsQueries)
+public sealed class RegisterPetEndpoint(IPetsQueries petsQueries)
     : Endpoint<RegisterPetRequest, RegisterPetResponse>
 {
     public override void Configure()

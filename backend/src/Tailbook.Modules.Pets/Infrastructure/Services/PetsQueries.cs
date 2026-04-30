@@ -9,7 +9,7 @@ public sealed class PetsQueries(
     AppDbContext dbContext,
     IClientReferenceValidationService clientReferenceValidationService,
     IPetContactReadModelService petContactReadModelService,
-    IAccessAuditService accessAuditService)
+    IAccessAuditService accessAuditService) : IPetsQueries
 {
     public async Task<PetCatalogView> GetCatalogAsync(CancellationToken cancellationToken)
     {

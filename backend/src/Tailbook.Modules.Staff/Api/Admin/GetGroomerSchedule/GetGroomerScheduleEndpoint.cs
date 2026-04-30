@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Staff.Api.Admin.GetGroomerSchedule;
 
-public sealed class GetGroomerScheduleEndpoint(StaffQueries staffQueries)
+public sealed class GetGroomerScheduleEndpoint(IStaffQueries staffQueries)
     : Endpoint<GetGroomerScheduleRequest, GetGroomerScheduleResponse>
 {
     public override void Configure()

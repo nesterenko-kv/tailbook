@@ -8,7 +8,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Customer.Api.Client.GetMyContactPreferences;
 
-public sealed class GetMyContactPreferencesEndpoint(IClientPortalActorService actorService, ClientPortalCustomerQueries queries)
+public sealed class GetMyContactPreferencesEndpoint(IClientPortalActorService actorService, IClientPortalCustomerQueries queries)
     : Endpoint<GetMyContactPreferencesRequest, ClientContactPreferencesView>
 {
     public override void Configure()
@@ -38,7 +38,7 @@ public sealed class GetMyContactPreferencesEndpoint(IClientPortalActorService ac
     }
 }
 
-public sealed class UpdateMyContactPreferencesEndpoint(IClientPortalActorService actorService, ClientPortalCustomerQueries queries)
+public sealed class UpdateMyContactPreferencesEndpoint(IClientPortalActorService actorService, IClientPortalCustomerQueries queries)
     : Endpoint<UpdateMyContactPreferencesRequest, ClientContactPreferencesView>
 {
     public override void Configure()

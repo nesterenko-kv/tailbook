@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Groomer.RecordPerformedProcedure;
 
-public sealed class RecordOwnPerformedProcedureEndpoint(GroomerVisitQueries groomerVisitQueries)
+public sealed class RecordOwnPerformedProcedureEndpoint(IGroomerVisitQueries groomerVisitQueries)
     : Endpoint<RecordOwnPerformedProcedureRequest, GroomerVisitDetailView>
 {
     public override void Configure()

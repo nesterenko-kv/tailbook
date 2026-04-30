@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Groomer.GetAppointmentVisit;
 
-public sealed class GetAppointmentVisitEndpoint(GroomerVisitQueries groomerVisitQueries)
+public sealed class GetAppointmentVisitEndpoint(IGroomerVisitQueries groomerVisitQueries)
     : Endpoint<GetAppointmentVisitRequest, GroomerVisitDetailView>
 {
     public override void Configure()

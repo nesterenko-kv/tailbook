@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Customer.Api.Admin.AddContactPerson;
 
-public sealed class AddContactPersonEndpoint(CustomerQueries customerQueries)
+public sealed class AddContactPersonEndpoint(ICustomerQueries customerQueries)
     : Endpoint<AddContactPersonRequest, AddContactPersonResponse>
 {
     public override void Configure()

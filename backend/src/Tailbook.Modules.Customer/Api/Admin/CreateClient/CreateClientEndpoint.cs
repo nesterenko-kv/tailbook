@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Customer.Api.Admin.CreateClient;
 
-public sealed class CreateClientEndpoint(CustomerQueries customerQueries)
+public sealed class CreateClientEndpoint(ICustomerQueries customerQueries)
     : Endpoint<CreateClientRequest, CreateClientResponse>
 {
     public override void Configure()

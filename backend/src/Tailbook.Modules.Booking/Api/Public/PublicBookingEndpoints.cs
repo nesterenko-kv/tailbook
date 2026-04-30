@@ -133,7 +133,7 @@ public sealed class BuildPublicBookingPlannerEndpoint(
 public sealed class CreatePublicBookingRequestEndpoint(
     IClientPortalActorService actorService,
     PublicBookingQueries publicBookingQueries,
-    BookingManagementQueries bookingManagementQueries)
+    IBookingManagementQueries bookingManagementQueries)
     : Endpoint<CreatePublicBookingRequestRequest, BookingRequestDetailView>
 {
     public override void Configure()

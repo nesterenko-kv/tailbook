@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.ListBookingRequests;
 
-public sealed class ListBookingRequestsEndpoint(BookingManagementQueries bookingQueries)
+public sealed class ListBookingRequestsEndpoint(IBookingManagementQueries bookingQueries)
     : Endpoint<ListBookingRequestsRequest, PagedResult<BookingRequestListItemView>>
 {
     public override void Configure()

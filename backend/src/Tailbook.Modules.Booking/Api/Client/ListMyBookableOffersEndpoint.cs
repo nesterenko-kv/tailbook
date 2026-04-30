@@ -6,7 +6,7 @@ namespace Tailbook.Modules.Booking.Api.Client;
 
 public sealed class ListMyBookableOffersEndpoint(
     IClientPortalActorService actorService,
-    ClientPortalBookingQueries queries
+    IClientPortalBookingQueries queries
 )
     : Endpoint<ListMyBookableOffersRequest, IReadOnlyCollection<ClientBookableOfferResponse>>
 {

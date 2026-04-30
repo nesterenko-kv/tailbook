@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Http;
 namespace Tailbook.Modules.Identity.Api.Auth.Login;
 
 public sealed class LoginEndpoint(
-    LoginThrottlingService loginThrottling,
-    AuthenticateUserCommandHandler authenticateUserHandler) : Endpoint<LoginRequest, LoginResponse>
+    ILoginThrottlingService loginThrottling,
+    IAuthenticateUserService authenticateUserHandler) : Endpoint<LoginRequest, LoginResponse>
 {
     public override void Configure()
     {
@@ -28,7 +28,7 @@ public sealed class LoginEndpoint(
             return;
         }
 
-        var result = await authenticateUserHandler.ExecuteAsync(new AuthenticateUserCommand(req.Email, req.Password), ct);
+        var result = await authenticateUserHandler.AuthenticateAsync(req.Email, req.Password, ct);
         if (result is null)
         {
             loginThrottling.RecordFailure(req.Email);

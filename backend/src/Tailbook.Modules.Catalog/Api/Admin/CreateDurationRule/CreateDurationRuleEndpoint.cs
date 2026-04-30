@@ -6,7 +6,7 @@ using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreateDurationRule;
 
-public sealed class CreateDurationRuleEndpoint(CatalogPricingQueries pricingQueries)
+public sealed class CreateDurationRuleEndpoint(ICatalogPricingQueries pricingQueries)
     : Endpoint<CreateDurationRuleRequest, CreateDurationRuleResponse>
 {
     public override void Configure()

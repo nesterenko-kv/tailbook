@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Staff.Api.Admin.AddTimeBlock;
 
-public sealed class AddTimeBlockEndpoint(StaffQueries staffQueries)
+public sealed class AddTimeBlockEndpoint(IStaffQueries staffQueries)
     : Endpoint<AddTimeBlockRequest, AddTimeBlockResponse>
 {
     public override void Configure()

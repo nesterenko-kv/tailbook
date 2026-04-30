@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.AttachBookingRequestContext;
 
-public sealed class AttachBookingRequestContextEndpoint(BookingManagementQueries bookingQueries)
+public sealed class AttachBookingRequestContextEndpoint(IBookingManagementQueries bookingQueries)
     : Endpoint<AttachBookingRequestContextRequest, BookingRequestDetailView>
 {
     public override void Configure()

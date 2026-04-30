@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Reporting.Api.Admin.GetEstimateAccuracy;
 
-public sealed class GetEstimateAccuracyEndpoint(ReportingQueries reportingQueries)
+public sealed class GetEstimateAccuracyEndpoint(IReportingQueries reportingQueries)
     : Endpoint<GetEstimateAccuracyRequest, GetEstimateAccuracyResponse>
 {
     public override void Configure()

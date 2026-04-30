@@ -4,7 +4,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 namespace Tailbook.Modules.Identity.Api.Me.Mfa;
 
-public sealed class EnableEmailMfaEndpoint(MfaFactorService mfaFactorService)
+public sealed class EnableEmailMfaEndpoint(IMfaFactorService mfaFactorService)
     : Endpoint<EnableEmailMfaRequest, MfaFactorView>
 {
     public override void Configure()

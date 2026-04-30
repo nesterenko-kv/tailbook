@@ -5,7 +5,7 @@ using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.PublishPriceRuleSet;
 
-public sealed class PublishPriceRuleSetEndpoint(CatalogPricingQueries pricingQueries)
+public sealed class PublishPriceRuleSetEndpoint(ICatalogPricingQueries pricingQueries)
     : Endpoint<PublishPriceRuleSetRequest, PublishPriceRuleSetResponse>
 {
     public override void Configure()

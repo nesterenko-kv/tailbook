@@ -9,7 +9,7 @@ namespace Tailbook.Modules.Booking.Infrastructure.Services;
 
 public sealed class BookingManagementQueries(
     AppDbContext dbContext,
-    BookingSnapshotComposer bookingSnapshotComposer,
+    IBookingSnapshotComposer bookingSnapshotComposer,
     IPetQuoteProfileService petQuoteProfileService,
     IPetSummaryReadService petSummaryReadService,
     IClientReferenceValidationService clientReferenceValidationService,
@@ -18,7 +18,7 @@ public sealed class BookingManagementQueries(
     IStaffSchedulingService staffSchedulingService,
     IGroomerProfileReadService groomerProfileReadService,
     IAuditTrailService auditTrailService,
-    IOutboxPublisher outboxPublisher)
+    IOutboxPublisher outboxPublisher) : IBookingManagementQueries
 {
     public async Task<ErrorOr<BookingRequestDetailView>> CreateBookingRequestAsync(CreateBookingRequestCommand command, string? actorUserId, CancellationToken cancellationToken)
     {

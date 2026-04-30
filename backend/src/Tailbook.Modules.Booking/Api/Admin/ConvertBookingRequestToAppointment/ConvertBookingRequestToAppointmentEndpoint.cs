@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.ConvertBookingRequestToAppointment;
 
-public sealed class ConvertBookingRequestToAppointmentEndpoint(BookingManagementQueries bookingQueries)
+public sealed class ConvertBookingRequestToAppointmentEndpoint(IBookingManagementQueries bookingQueries)
     : Endpoint<ConvertBookingRequestToAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()

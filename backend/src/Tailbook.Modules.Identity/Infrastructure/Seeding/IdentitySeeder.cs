@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Identity.Contracts;
+using Tailbook.Modules.Identity.Infrastructure.Options;
+using Tailbook.Modules.Identity.Infrastructure.Services;
 
 namespace Tailbook.Modules.Identity.Infrastructure.Seeding;
 

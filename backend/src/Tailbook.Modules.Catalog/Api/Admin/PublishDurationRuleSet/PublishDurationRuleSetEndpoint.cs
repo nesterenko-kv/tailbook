@@ -5,7 +5,7 @@ using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.PublishDurationRuleSet;
 
-public sealed class PublishDurationRuleSetEndpoint(CatalogPricingQueries pricingQueries)
+public sealed class PublishDurationRuleSetEndpoint(ICatalogPricingQueries pricingQueries)
     : Endpoint<PublishDurationRuleSetRequest, PublishDurationRuleSetResponse>
 {
     public override void Configure()

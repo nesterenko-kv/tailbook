@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.GetAppointmentDetail;
 
-public sealed class GetAppointmentDetailEndpoint(BookingManagementQueries bookingQueries)
+public sealed class GetAppointmentDetailEndpoint(IBookingManagementQueries bookingQueries)
     : Endpoint<GetAppointmentDetailRequest, AppointmentDetailView>
 {
     public override void Configure()

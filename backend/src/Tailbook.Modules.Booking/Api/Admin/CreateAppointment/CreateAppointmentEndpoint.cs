@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.CreateAppointment;
 
-public sealed class CreateAppointmentEndpoint(BookingManagementQueries bookingQueries)
+public sealed class CreateAppointmentEndpoint(IBookingManagementQueries bookingQueries)
     : Endpoint<CreateAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()

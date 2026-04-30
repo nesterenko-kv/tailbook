@@ -7,9 +7,9 @@ namespace Tailbook.Modules.VisitOperations.Infrastructure.Services;
 
 public sealed class GroomerVisitQueries(
     AppDbContext dbContext,
-    VisitQueries visitQueries,
+    IVisitQueries visitQueries,
     IAppointmentVisitService appointmentVisitService,
-    IGroomerProfileReadService groomerProfileReadService)
+    IGroomerProfileReadService groomerProfileReadService) : IGroomerVisitQueries
 {
     public async Task<ErrorOr<GroomerVisitDetailView>> CheckInAppointmentAsync(Guid currentUserId, Guid appointmentId, CancellationToken cancellationToken)
     {

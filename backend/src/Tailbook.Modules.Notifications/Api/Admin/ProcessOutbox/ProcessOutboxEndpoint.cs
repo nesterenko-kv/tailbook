@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Notifications.Api.Admin.ProcessOutbox;
 
-public sealed class ProcessOutboxEndpoint(NotificationQueries notificationQueries)
+public sealed class ProcessOutboxEndpoint(INotificationQueries notificationQueries)
     : EndpointWithoutRequest<ProcessOutboxResponse>
 {
     public override void Configure()

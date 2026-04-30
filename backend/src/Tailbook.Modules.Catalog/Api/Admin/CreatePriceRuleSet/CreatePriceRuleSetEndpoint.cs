@@ -5,7 +5,7 @@ using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreatePriceRuleSet;
 
-public sealed class CreatePriceRuleSetEndpoint(CatalogPricingQueries pricingQueries)
+public sealed class CreatePriceRuleSetEndpoint(ICatalogPricingQueries pricingQueries)
     : Endpoint<CreatePriceRuleSetRequest, CreatePriceRuleSetResponse>
 {
     public override void Configure()

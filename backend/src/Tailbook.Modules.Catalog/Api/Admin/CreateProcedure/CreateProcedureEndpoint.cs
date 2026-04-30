@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreateProcedure;
 
-public sealed class CreateProcedureEndpoint(CatalogQueries catalogQueries)
+public sealed class CreateProcedureEndpoint(ICatalogQueries catalogQueries)
     : Endpoint<CreateProcedureRequest, CreateProcedureResponse>
 {
     public override void Configure()

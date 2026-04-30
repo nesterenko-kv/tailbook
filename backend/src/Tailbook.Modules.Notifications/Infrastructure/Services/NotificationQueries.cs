@@ -6,7 +6,7 @@ using Tailbook.Modules.Notifications.Contracts;
 
 namespace Tailbook.Modules.Notifications.Infrastructure.Services;
 
-public sealed class NotificationQueries(AppDbContext dbContext, INotificationSink notificationSink)
+public sealed class NotificationQueries(AppDbContext dbContext, INotificationSink notificationSink) : INotificationQueries
 {
     public async Task<int> ProcessOutboxAsync(CancellationToken cancellationToken)
     {

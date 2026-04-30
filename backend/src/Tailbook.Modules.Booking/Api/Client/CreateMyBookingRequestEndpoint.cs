@@ -7,7 +7,7 @@ namespace Tailbook.Modules.Booking.Api.Client;
 
 public sealed class CreateMyBookingRequestEndpoint(
     IClientPortalActorService actorService,
-    ClientPortalBookingQueries queries)
+    IClientPortalBookingQueries queries)
     : Endpoint<CreateMyBookingRequestRequest, BookingRequestDetailView>
 {
     public override void Configure()

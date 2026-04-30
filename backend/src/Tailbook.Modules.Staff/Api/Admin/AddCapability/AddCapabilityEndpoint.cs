@@ -6,7 +6,7 @@ using Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
 namespace Tailbook.Modules.Staff.Api.Admin.AddCapability;
 
-public sealed class AddCapabilityEndpoint(StaffQueries staffQueries)
+public sealed class AddCapabilityEndpoint(IStaffQueries staffQueries)
     : Endpoint<AddCapabilityRequest, GroomerCapabilityResponse>
 {
     public override void Configure()

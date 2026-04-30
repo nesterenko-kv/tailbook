@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Customer.Api.Admin.LinkContactToPet;
 
-public sealed class LinkContactToPetEndpoint(CustomerQueries customerQueries)
+public sealed class LinkContactToPetEndpoint(ICustomerQueries customerQueries)
     : Endpoint<LinkContactToPetRequest, LinkContactToPetResponse>
 {
     public override void Configure()

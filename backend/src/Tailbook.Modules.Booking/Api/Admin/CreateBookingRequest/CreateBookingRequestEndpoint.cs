@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.CreateBookingRequest;
 
-public sealed class CreateBookingRequestEndpoint(BookingManagementQueries bookingQueries)
+public sealed class CreateBookingRequestEndpoint(IBookingManagementQueries bookingQueries)
     : Endpoint<CreateBookingRequestRequest, BookingRequestDetailView>
 {
     public override void Configure()

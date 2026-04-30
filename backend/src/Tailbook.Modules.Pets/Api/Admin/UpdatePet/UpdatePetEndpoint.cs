@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Pets.Api.Admin.UpdatePet;
 
-public sealed class UpdatePetEndpoint(PetsQueries petsQueries)
+public sealed class UpdatePetEndpoint(IPetsQueries petsQueries)
     : Endpoint<UpdatePetRequest, UpdatePetResponse>
 {
     public override void Configure()

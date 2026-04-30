@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.ListOffers;
 
-public sealed class ListOffersEndpoint(CatalogQueries catalogQueries)
+public sealed class ListOffersEndpoint(ICatalogQueries catalogQueries)
     : EndpointWithoutRequest<IReadOnlyCollection<OfferListItemResponse>>
 {
     public override void Configure()

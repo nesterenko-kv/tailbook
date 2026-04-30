@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 namespace Tailbook.Modules.Identity.Api.Me.Mfa;
 
-public sealed class DisableMfaFactorEndpoint(MfaFactorService mfaFactorService)
+public sealed class DisableMfaFactorEndpoint(IMfaFactorService mfaFactorService)
     : Endpoint<DisableMfaFactorRequest>
 {
     public override void Configure()

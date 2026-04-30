@@ -5,7 +5,7 @@ using Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.PublishOfferVersion;
 
-public sealed class PublishOfferVersionEndpoint(CatalogQueries catalogQueries)
+public sealed class PublishOfferVersionEndpoint(ICatalogQueries catalogQueries)
     : Endpoint<PublishOfferVersionRequest, OfferVersionResponse>
 {
     public override void Configure()

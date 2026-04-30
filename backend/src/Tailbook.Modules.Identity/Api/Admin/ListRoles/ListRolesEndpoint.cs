@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Identity.Api.Admin.ListRoles;
 
-public sealed class ListRolesEndpoint(IdentityQueries identityQueries)
+public sealed class ListRolesEndpoint(IIdentityQueries identityQueries)
     : EndpointWithoutRequest<IReadOnlyCollection<RoleItemResponse>>
 {
     public override void Configure()

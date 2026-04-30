@@ -10,7 +10,7 @@ public class RegisterClientPortalUserCommandHandler(
     AppDbContext dbContext,
     PasswordHasher passwordHasher,
     IClientOnboardingService clientOnboardingService
-)
+) : IRegisterClientPortalUserHandler
 {
     public async Task<ErrorOr<bool>> ExecuteResultAsync(RegisterClientPortalUserCommand command,
         CancellationToken cancellationToken)

@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Identity.Api.Admin.CreateUser;
 
-public sealed class CreateUserEndpoint(ICurrentUser currentUser, IdentityQueries identityQueries)
+public sealed class CreateUserEndpoint(ICurrentUser currentUser, IIdentityQueries identityQueries)
     : Endpoint<CreateUserRequest, CreateUserResponse>
 {
     public override void Configure()

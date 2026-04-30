@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.ListProcedures;
 
-public sealed class ListProceduresEndpoint(CatalogQueries catalogQueries)
+public sealed class ListProceduresEndpoint(ICatalogQueries catalogQueries)
     : EndpointWithoutRequest<IReadOnlyCollection<ProcedureItemResponse>>
 {
     public override void Configure()

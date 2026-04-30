@@ -4,6 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
+using Tailbook.Modules.Identity.Infrastructure.Options;
+using Tailbook.Modules.Identity.Infrastructure.Persistence.Configurations;
+using Tailbook.Modules.Identity.Infrastructure.Seeding;
+using Tailbook.Modules.Identity.Infrastructure.Services;
 
 namespace Tailbook.Modules.Identity;
 
@@ -43,14 +47,22 @@ public sealed class IdentityModule : IModuleDefinition
         services.AddScoped<JwtTokenFactory>();
         services.AddScoped<PasswordHasher>();
         services.AddSingleton<LoginThrottlingService>();
+        services.AddSingleton<ILoginThrottlingService>(sp => sp.GetRequiredService<LoginThrottlingService>());
         services.AddScoped<RefreshTokenService>();
         services.AddScoped<PasswordResetService>();
+        services.AddScoped<IPasswordResetService>(sp => sp.GetRequiredService<PasswordResetService>());
         services.AddScoped<MfaFactorService>();
+        services.AddScoped<IMfaFactorService>(sp => sp.GetRequiredService<MfaFactorService>());
         services.AddScoped<IdentitySessionService>();
+        services.AddScoped<IIdentitySessionService>(sp => sp.GetRequiredService<IdentitySessionService>());
         services.AddScoped<IdentityQueries>();
+        services.AddScoped<IIdentityQueries>(sp => sp.GetRequiredService<IdentityQueries>());
         services.AddScoped<ClientPortalIdentityQueries>();
+        services.AddScoped<IClientPortalIdentityQueries>(sp => sp.GetRequiredService<ClientPortalIdentityQueries>());
         services.AddScoped<AuthenticateUserCommandHandler>();
+        services.AddScoped<IAuthenticateUserService>(sp => sp.GetRequiredService<AuthenticateUserCommandHandler>());
         services.AddScoped<RegisterClientPortalUserCommandHandler>();
+        services.AddScoped<IRegisterClientPortalUserHandler>(sp => sp.GetRequiredService<RegisterClientPortalUserCommandHandler>());
         services.AddScoped<IUserReferenceValidationService, IdentityReferenceServices>();
         services.AddScoped<IClientPortalActorService, IdentityReferenceServices>();
         services.AddScoped<IDataSeeder, IdentitySeeder>();

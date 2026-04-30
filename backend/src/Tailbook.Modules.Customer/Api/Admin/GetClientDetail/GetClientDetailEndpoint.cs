@@ -4,7 +4,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 namespace Tailbook.Modules.Customer.Api.Admin.GetClientDetail;
 
-public sealed class GetClientDetailEndpoint(CustomerQueries customerQueries)
+public sealed class GetClientDetailEndpoint(ICustomerQueries customerQueries)
     : Endpoint<GetClientDetailRequest, GetClientDetailResponse>
 {
     public override void Configure()

@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Customer.Api.Admin.AddContactMethod;
 
-public sealed class AddContactMethodEndpoint(CustomerQueries customerQueries)
+public sealed class AddContactMethodEndpoint(ICustomerQueries customerQueries)
     : Endpoint<AddContactMethodRequest, AddContactMethodResponse>
 {
     public override void Configure()

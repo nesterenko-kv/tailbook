@@ -6,7 +6,7 @@ using Tailbook.Modules.Customer.Contracts;
 
 namespace Tailbook.Modules.Customer.Infrastructure.Services;
 
-public sealed class ClientPortalCustomerQueries(AppDbContext dbContext)
+public sealed class ClientPortalCustomerQueries(AppDbContext dbContext) : IClientPortalCustomerQueries
 {
     public async Task<ClientContactPreferencesView?> GetContactPreferencesAsync(Guid contactPersonId, CancellationToken cancellationToken)
     {

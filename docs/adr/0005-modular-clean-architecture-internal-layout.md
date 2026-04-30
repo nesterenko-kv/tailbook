@@ -25,8 +25,10 @@ Module-to-module project references are not allowed. Cross-module runtime needs 
 
 - Existing module projects and endpoint behavior remain intact.
 - EF Core mappings live under `Infrastructure/Persistence/Configurations`.
+- API endpoints depend on Application query/service interfaces for module use cases, not Infrastructure concrete services or `AppDbContext`.
+- Module-wide `GlobalUsings.cs` files do not import Infrastructure namespaces; module composition files import Infrastructure explicitly where they wire implementations.
 - Application source is guarded from Infrastructure, API, EF Core, ASP.NET, and FastEndpoints references.
 - Domain source is guarded from Application, Infrastructure, API, EF Core, ASP.NET, and FastEndpoints references.
-- Architecture tests enforce module assembly boundaries, layer source boundaries, BuildingBlocks module independence, and SharedKernel framework-light constraints.
+- Architecture tests enforce module assembly boundaries, layer source/type boundaries, API persistence isolation, BuildingBlocks module independence, and SharedKernel framework-light constraints.
 
 Existing EF migration designer snapshots still contain historical entity-name strings from prior namespaces. No schema migration was created for this structural refactor.

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Identity.Api.Auth.PasswordReset;
 
-public sealed class RequestPasswordResetEndpoint(PasswordResetService passwordResetService)
+public sealed class RequestPasswordResetEndpoint(IPasswordResetService passwordResetService)
     : Endpoint<RequestPasswordResetRequest>
 {
     public override void Configure()

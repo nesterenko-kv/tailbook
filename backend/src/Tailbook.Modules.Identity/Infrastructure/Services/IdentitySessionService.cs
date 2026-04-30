@@ -8,7 +8,7 @@ namespace Tailbook.Modules.Identity.Infrastructure.Services;
 public sealed class IdentitySessionService(
     AppDbContext dbContext,
     JwtTokenFactory jwtTokenFactory,
-    RefreshTokenService refreshTokenService)
+    RefreshTokenService refreshTokenService) : IIdentitySessionService
 {
     public async Task<LoginResult> CreateSessionAsync(
         IdentityUser user,

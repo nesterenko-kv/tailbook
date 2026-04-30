@@ -4,7 +4,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 namespace Tailbook.Modules.Customer.Api.Admin.ListPetContactLinks;
 
-public sealed class ListPetContactLinksEndpoint(CustomerQueries customerQueries)
+public sealed class ListPetContactLinksEndpoint(ICustomerQueries customerQueries)
     : Endpoint<ListPetContactLinksRequest, ListPetContactLinksResponse>
 {
     public override void Configure()

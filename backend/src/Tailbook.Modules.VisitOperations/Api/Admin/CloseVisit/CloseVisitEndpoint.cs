@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.CloseVisit;
 
-public sealed class CloseVisitEndpoint(VisitQueries visitQueries)
+public sealed class CloseVisitEndpoint(IVisitQueries visitQueries)
     : Endpoint<CloseVisitRequest, VisitDetailView>
 {
     public override void Configure()

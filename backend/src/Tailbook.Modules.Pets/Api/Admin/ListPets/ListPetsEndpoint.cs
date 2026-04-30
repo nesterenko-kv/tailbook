@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Pets.Api.Admin.ListPets;
 
-public sealed class ListPetsEndpoint(PetsQueries petsQueries)
+public sealed class ListPetsEndpoint(IPetsQueries petsQueries)
     : Endpoint<ListPetsRequest, PagedResult<PetListItemView>>
 {
     public override void Configure()

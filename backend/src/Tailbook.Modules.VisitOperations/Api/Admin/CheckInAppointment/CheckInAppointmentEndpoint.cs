@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.CheckInAppointment;
 
-public sealed class CheckInAppointmentEndpoint(VisitQueries visitQueries)
+public sealed class CheckInAppointmentEndpoint(IVisitQueries visitQueries)
     : Endpoint<CheckInAppointmentRequest, VisitDetailView>
 {
     public override void Configure()

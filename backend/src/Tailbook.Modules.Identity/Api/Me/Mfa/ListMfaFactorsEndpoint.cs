@@ -4,7 +4,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 namespace Tailbook.Modules.Identity.Api.Me.Mfa;
 
-public sealed class ListMfaFactorsEndpoint(MfaFactorService mfaFactorService)
+public sealed class ListMfaFactorsEndpoint(IMfaFactorService mfaFactorService)
     : Endpoint<ListMfaFactorsRequest, ListMfaFactorsResponse>
 {
     public override void Configure()

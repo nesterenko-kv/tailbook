@@ -11,7 +11,7 @@ public sealed class CustomerQueries(
     AppDbContext dbContext,
     IPetReadModelService petReadModelService,
     IPetReferenceValidationService petReferenceValidationService,
-    IAccessAuditService accessAuditService)
+    IAccessAuditService accessAuditService) : ICustomerQueries
 {
     public async Task<PagedResult<ClientListItemView>> ListClientsAsync(string? search, int page, int pageSize, CancellationToken cancellationToken)
     {

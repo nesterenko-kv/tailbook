@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 namespace Tailbook.Modules.Identity.Api.Admin.GetUserById;
 
 public sealed class GetUserByIdEndpoint(
-    IdentityQueries identityQueries,
+    IIdentityQueries identityQueries,
     IAccessAuditService accessAuditService) : Endpoint<GetUserByIdRequest, GetUserByIdResponse>
 {
     public override void Configure()

@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.RescheduleAppointment;
 
-public sealed class RescheduleAppointmentEndpoint(BookingManagementQueries bookingQueries)
+public sealed class RescheduleAppointmentEndpoint(IBookingManagementQueries bookingQueries)
     : Endpoint<RescheduleAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()

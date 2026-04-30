@@ -5,7 +5,7 @@ using Tailbook.Modules.Catalog.Contracts;
 
 namespace Tailbook.Modules.Catalog.Infrastructure.Services;
 
-public sealed class CatalogQueries(AppDbContext dbContext)
+public sealed class CatalogQueries(AppDbContext dbContext) : ICatalogQueries
 {
     public async Task<IReadOnlyCollection<ProcedureView>> ListProceduresAsync(CancellationToken cancellationToken)
     {

@@ -11,7 +11,7 @@ using Tailbook.Modules.Identity.Contracts;
 
 namespace Tailbook.Modules.Identity.Infrastructure.Services;
 
-public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passwordHasher, IAuditTrailService auditTrailService)
+public sealed class IdentityQueries(AppDbContext dbContext, PasswordHasher passwordHasher, IAuditTrailService auditTrailService) : IIdentityQueries
 {
     public async Task<IReadOnlyList<RoleView>> ListRolesAsync(CancellationToken cancellationToken)
     {

@@ -4,7 +4,7 @@ using Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.GetOfferById;
 
-public sealed class GetOfferByIdEndpoint(CatalogQueries catalogQueries)
+public sealed class GetOfferByIdEndpoint(ICatalogQueries catalogQueries)
     : Endpoint<GetOfferByIdRequest, OfferResponse>
 {
     public override void Configure()

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Reporting.Api.Admin.GetPackagePerformance;
 
-public sealed class GetPackagePerformanceEndpoint(ReportingQueries reportingQueries)
+public sealed class GetPackagePerformanceEndpoint(IReportingQueries reportingQueries)
     : Endpoint<GetPackagePerformanceRequest, GetPackagePerformanceResponse>
 {
     public override void Configure()

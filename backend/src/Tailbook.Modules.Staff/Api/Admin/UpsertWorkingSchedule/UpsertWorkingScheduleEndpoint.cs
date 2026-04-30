@@ -6,7 +6,7 @@ using Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
 namespace Tailbook.Modules.Staff.Api.Admin.UpsertWorkingSchedule;
 
-public sealed class UpsertWorkingScheduleEndpoint(StaffQueries staffQueries)
+public sealed class UpsertWorkingScheduleEndpoint(IStaffQueries staffQueries)
     : Endpoint<UpsertWorkingScheduleRequest, WorkingScheduleResponse>
 {
     public override void Configure()

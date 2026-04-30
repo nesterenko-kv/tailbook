@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.CancelAppointment;
 
-public sealed class CancelAppointmentEndpoint(BookingManagementQueries bookingQueries)
+public sealed class CancelAppointmentEndpoint(IBookingManagementQueries bookingQueries)
     : Endpoint<CancelAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()

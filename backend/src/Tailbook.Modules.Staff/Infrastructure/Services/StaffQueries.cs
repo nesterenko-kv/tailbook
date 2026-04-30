@@ -12,7 +12,7 @@ public sealed class StaffQueries(
     IOfferReferenceValidationService offerReferenceValidationService,
     IPetTaxonomyValidationService petTaxonomyValidationService,
     IStaffSchedulingService staffSchedulingService,
-    SalonTimeZoneProvider salonTimeZoneProvider)
+    SalonTimeZoneProvider salonTimeZoneProvider) : IStaffQueries
 {
     public async Task<IReadOnlyCollection<GroomerListItemView>> ListGroomersAsync(CancellationToken cancellationToken)
     {

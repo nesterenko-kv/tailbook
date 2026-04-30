@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Staff.Api.Admin.ListGroomers;
 
-public sealed class ListGroomersEndpoint(StaffQueries staffQueries)
+public sealed class ListGroomersEndpoint(IStaffQueries staffQueries)
     : EndpointWithoutRequest<ListGroomersResponse>
 {
     public override void Configure()

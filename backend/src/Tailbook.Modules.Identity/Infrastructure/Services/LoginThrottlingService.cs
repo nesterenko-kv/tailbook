@@ -1,9 +1,10 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Options;
+using Tailbook.Modules.Identity.Infrastructure.Options;
 
 namespace Tailbook.Modules.Identity.Infrastructure.Services;
 
-public sealed class LoginThrottlingService(IOptions<LoginThrottlingOptions> optionsAccessor)
+public sealed class LoginThrottlingService(IOptions<LoginThrottlingOptions> optionsAccessor) : ILoginThrottlingService
 {
     private readonly ConcurrentDictionary<string, LoginAttemptState> _attempts = new(StringComparer.OrdinalIgnoreCase);
 
@@ -91,11 +92,4 @@ public sealed class LoginThrottlingService(IOptions<LoginThrottlingOptions> opti
         public int FailedAttempts { get; set; }
         public DateTime? LockoutUntilUtc { get; set; }
     }
-}
-
-public readonly record struct LoginThrottleDecision(bool IsLockedOut, TimeSpan? RetryAfter)
-{
-    public static LoginThrottleDecision Allowed => new(false, null);
-
-    public static LoginThrottleDecision Locked(TimeSpan retryAfter) => new(true, retryAfter);
 }

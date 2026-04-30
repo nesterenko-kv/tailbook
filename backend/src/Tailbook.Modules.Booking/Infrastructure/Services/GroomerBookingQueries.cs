@@ -8,7 +8,7 @@ public sealed class GroomerBookingQueries(
     AppDbContext dbContext,
     IGroomerProfileReadService groomerProfileReadService,
     IPetOperationalReadService petOperationalReadService,
-    IVisitCatalogReadService visitCatalogReadService)
+    IVisitCatalogReadService visitCatalogReadService) : IGroomerBookingQueries
 {
     public async Task<PagedResult<GroomerAppointmentListItemView>> ListAssignedAppointmentsAsync(Guid currentUserId, DateTime? fromUtc, DateTime? toUtc, int page, int pageSize, CancellationToken cancellationToken)
     {

@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Staff.Api.Admin.CheckAvailability;
 
-public sealed class CheckAvailabilityEndpoint(StaffQueries staffQueries)
+public sealed class CheckAvailabilityEndpoint(IStaffQueries staffQueries)
     : Endpoint<CheckAvailabilityRequest, CheckAvailabilityResponse>
 {
     public override void Configure()

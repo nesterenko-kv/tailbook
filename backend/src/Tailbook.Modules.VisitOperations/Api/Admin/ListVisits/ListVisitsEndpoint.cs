@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.ListVisits;
 
-public sealed class ListVisitsEndpoint(VisitQueries visitQueries)
+public sealed class ListVisitsEndpoint(IVisitQueries visitQueries)
     : Endpoint<ListVisitsRequest, PagedResult<VisitListItemView>>
 {
     public override void Configure()

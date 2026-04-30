@@ -93,6 +93,70 @@ public sealed class ModuleBoundaryTests
             "FastEndpoints",
             "Microsoft.AspNetCore",
             "Microsoft.EntityFrameworkCore");
+
+        AssertNoTypeReferences(
+            assemblyName,
+            ".Application",
+            $"{assemblyName}.Infrastructure",
+            $"{assemblyName}.Api",
+            "Tailbook.BuildingBlocks.Infrastructure",
+            "FastEndpoints",
+            "Microsoft.AspNetCore",
+            "Microsoft.EntityFrameworkCore");
+    }
+
+    [Theory]
+    [InlineData("Tailbook.Modules.Identity")]
+    [InlineData("Tailbook.Modules.Customer")]
+    [InlineData("Tailbook.Modules.Pets")]
+    [InlineData("Tailbook.Modules.Catalog")]
+    [InlineData("Tailbook.Modules.Booking")]
+    [InlineData("Tailbook.Modules.VisitOperations")]
+    [InlineData("Tailbook.Modules.Staff")]
+    [InlineData("Tailbook.Modules.Notifications")]
+    [InlineData("Tailbook.Modules.Audit")]
+    [InlineData("Tailbook.Modules.Reporting")]
+    public void Api_layer_should_not_reference_module_infrastructure_or_persistence(string assemblyName)
+    {
+        var modulePath = GetModuleSourcePath(assemblyName);
+        var apiPath = Path.Combine(modulePath, "Api");
+
+        AssertNoSourceReferences(
+            apiPath,
+            $"{assemblyName}.Infrastructure",
+            "Tailbook.BuildingBlocks.Infrastructure.Persistence",
+            "Microsoft.EntityFrameworkCore",
+            "AppDbContext");
+
+        AssertNoTypeReferences(
+            assemblyName,
+            ".Api",
+            $"{assemblyName}.Infrastructure",
+            "Tailbook.BuildingBlocks.Infrastructure.Persistence",
+            "Microsoft.EntityFrameworkCore");
+    }
+
+    [Theory]
+    [InlineData("Tailbook.Modules.Identity")]
+    [InlineData("Tailbook.Modules.Customer")]
+    [InlineData("Tailbook.Modules.Pets")]
+    [InlineData("Tailbook.Modules.Catalog")]
+    [InlineData("Tailbook.Modules.Booking")]
+    [InlineData("Tailbook.Modules.VisitOperations")]
+    [InlineData("Tailbook.Modules.Staff")]
+    [InlineData("Tailbook.Modules.Notifications")]
+    [InlineData("Tailbook.Modules.Audit")]
+    [InlineData("Tailbook.Modules.Reporting")]
+    public void Module_global_usings_should_not_import_infrastructure_namespaces(string assemblyName)
+    {
+        var globalUsingsPath = Path.Combine(GetModuleSourcePath(assemblyName), "GlobalUsings.cs");
+        if (!File.Exists(globalUsingsPath))
+        {
+            return;
+        }
+
+        var text = File.ReadAllText(globalUsingsPath);
+        Assert.DoesNotContain(".Infrastructure.", text, StringComparison.Ordinal);
     }
 
     [Theory]
@@ -112,6 +176,7 @@ public sealed class ModuleBoundaryTests
         var infrastructurePath = Path.Combine(modulePath, "Infrastructure");
 
         AssertNoSourceReferences(infrastructurePath, $"{assemblyName}.Api");
+        AssertNoTypeReferences(assemblyName, ".Infrastructure", $"{assemblyName}.Api");
     }
 
     [Fact]
@@ -168,6 +233,84 @@ public sealed class ModuleBoundaryTests
             .ToArray();
 
         Assert.Empty(violations);
+    }
+
+    private static void AssertNoTypeReferences(string assemblyName, string layerSegment, params string[] forbiddenNamespacePrefixes)
+    {
+        var assembly = Assembly.Load(assemblyName);
+        var violations = GetLoadableTypes(assembly)
+            .Where(type => type.Namespace?.Contains(layerSegment, StringComparison.Ordinal) == true)
+            .SelectMany(type => GetReferencedTypes(type)
+                .Where(reference => IsForbidden(reference, forbiddenNamespacePrefixes))
+                .Select(reference => $"{type.FullName} references {reference.FullName}"))
+            .Distinct()
+            .OrderBy(x => x)
+            .ToArray();
+
+        Assert.Empty(violations);
+    }
+
+    private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
+    {
+        try
+        {
+            return assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            return ex.Types.Where(type => type is not null)!;
+        }
+    }
+
+    private static IEnumerable<Type> GetReferencedTypes(Type type)
+    {
+        const BindingFlags Flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
+        var references = new List<Type?>();
+
+        references.Add(type.BaseType);
+        references.AddRange(type.GetInterfaces());
+        references.AddRange(type.GetFields(Flags).Select(x => x.FieldType));
+        references.AddRange(type.GetProperties(Flags).Select(x => x.PropertyType));
+        references.AddRange(type.GetEvents(Flags).Select(x => x.EventHandlerType));
+        references.AddRange(type.GetConstructors(Flags).SelectMany(x => x.GetParameters()).Select(x => x.ParameterType));
+        references.AddRange(type.GetMethods(Flags).Select(x => x.ReturnType));
+        references.AddRange(type.GetMethods(Flags).SelectMany(x => x.GetParameters()).Select(x => x.ParameterType));
+
+        return references
+            .OfType<Type>()
+            .SelectMany(ExpandType)
+            .Distinct();
+    }
+
+    private static IEnumerable<Type> ExpandType(Type type)
+    {
+        if (type.IsArray && type.GetElementType() is { } elementType)
+        {
+            foreach (var expanded in ExpandType(elementType))
+            {
+                yield return expanded;
+            }
+        }
+
+        if (type.IsGenericType)
+        {
+            yield return type.GetGenericTypeDefinition();
+            foreach (var argument in type.GetGenericArguments())
+            {
+                foreach (var expanded in ExpandType(argument))
+                {
+                    yield return expanded;
+                }
+            }
+        }
+
+        yield return type;
+    }
+
+    private static bool IsForbidden(Type type, string[] forbiddenNamespacePrefixes)
+    {
+        var fullName = type.FullName ?? type.Name;
+        return forbiddenNamespacePrefixes.Any(prefix => fullName.StartsWith(prefix, StringComparison.Ordinal));
     }
 
     private static string FindSourceRoot()

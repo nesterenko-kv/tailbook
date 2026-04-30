@@ -9,13 +9,15 @@ public class AuthenticateUserCommandHandler(
     AppDbContext dbContext,
     PasswordHasher passwordHasher,
     IdentitySessionService identitySessionService
-) : ICommandHandler<AuthenticateUserCommand, LoginResult?>
+) : ICommandHandler<AuthenticateUserCommand, LoginResult?>, IAuthenticateUserService
 {
-    public async Task<LoginResult?> ExecuteAsync(AuthenticateUserCommand command, CancellationToken cancellationToken)
+    public Task<LoginResult?> ExecuteAsync(AuthenticateUserCommand command, CancellationToken cancellationToken)
     {
-        var password = command.Password;
-        var email = command.Email;
+        return AuthenticateAsync(command.Email, command.Password, cancellationToken);
+    }
 
+    public async Task<LoginResult?> AuthenticateAsync(string email, string password, CancellationToken cancellationToken)
+    {
         var normalizedEmail = NormalizeEmail(email);
         var user = await dbContext.Set<IdentityUser>()
             .SingleOrDefaultAsync(x => x.NormalizedEmail == normalizedEmail, cancellationToken);

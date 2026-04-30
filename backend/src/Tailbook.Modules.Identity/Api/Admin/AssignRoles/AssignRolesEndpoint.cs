@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Identity.Api.Admin.AssignRoles;
 
-public sealed class AssignRolesEndpoint(IdentityQueries identityQueries)
+public sealed class AssignRolesEndpoint(IIdentityQueries identityQueries)
     : Endpoint<AssignRolesRequest, AssignRolesResponse>
 {
     public override void Configure()

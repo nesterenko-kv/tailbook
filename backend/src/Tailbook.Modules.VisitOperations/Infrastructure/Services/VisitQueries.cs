@@ -13,7 +13,7 @@ public sealed class VisitQueries(
     IPetSummaryReadService petSummaryReadService,
     IAccessAuditService accessAuditService,
     IAuditTrailService auditTrailService,
-    IOutboxPublisher outboxPublisher)
+    IOutboxPublisher outboxPublisher) : IVisitQueries
 {
     public async Task<ErrorOr<VisitDetailView>> CheckInAppointmentAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
     {

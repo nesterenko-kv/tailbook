@@ -6,6 +6,7 @@ using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 using Tailbook.Modules.Identity.Contracts;
+using Tailbook.Modules.Identity.Infrastructure.Options;
 
 namespace Tailbook.Modules.Identity.Infrastructure.Services;
 
@@ -13,7 +14,7 @@ public sealed class PasswordResetService(
     AppDbContext dbContext,
     PasswordHasher passwordHasher,
     IAuditTrailService auditTrailService,
-    IOptions<PasswordResetOptions> optionsAccessor)
+    IOptions<PasswordResetOptions> optionsAccessor) : IPasswordResetService
 {
     private const string ModuleCode = "identity";
     private const string PasswordResetRequestedEventType = "Tailbook.Modules.Identity.Integration.PasswordResetRequested";
@@ -134,12 +135,4 @@ public sealed class PasswordResetService(
     }
 
     private sealed record PasswordResetRequestedPayload(string Email, string DisplayName, string ResetToken, DateTime ExpiresAtUtc);
-}
-
-public enum PasswordResetResult
-{
-    Success,
-    InvalidToken,
-    TokenExpired,
-    TokenAlreadyUsed
 }

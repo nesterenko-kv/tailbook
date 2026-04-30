@@ -5,7 +5,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
-public sealed class CreateOfferEndpoint(CatalogQueries catalogQueries)
+public sealed class CreateOfferEndpoint(ICatalogQueries catalogQueries)
     : Endpoint<CreateOfferRequest, OfferResponse>
 {
     public override void Configure()

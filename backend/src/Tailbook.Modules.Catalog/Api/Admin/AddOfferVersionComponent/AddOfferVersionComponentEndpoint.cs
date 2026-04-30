@@ -6,7 +6,7 @@ using Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.AddOfferVersionComponent;
 
-public sealed class AddOfferVersionComponentEndpoint(CatalogQueries catalogQueries)
+public sealed class AddOfferVersionComponentEndpoint(ICatalogQueries catalogQueries)
     : Endpoint<AddOfferVersionComponentRequest, OfferVersionComponentResponse>
 {
     public override void Configure()

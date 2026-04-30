@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using Tailbook.Modules.Staff.Infrastructure.Options;
 
 namespace Tailbook.Modules.Staff.Infrastructure.Services;
 

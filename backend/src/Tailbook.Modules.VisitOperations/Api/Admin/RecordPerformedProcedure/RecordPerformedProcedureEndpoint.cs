@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.RecordPerformedProcedure;
 
-public sealed class RecordPerformedProcedureEndpoint(VisitQueries visitQueries)
+public sealed class RecordPerformedProcedureEndpoint(IVisitQueries visitQueries)
     : Endpoint<RecordPerformedProcedureRequest, VisitDetailView>
 {
     public override void Configure()

@@ -974,3 +974,32 @@ Risks:
 - Handoff is documentation-based; no additional product behavior was changed in this final iteration.
 Next:
 - Review, commit, and open a PR when ready.
+
+## 2026-04-30 — Modular Clean Architecture continuation
+Status: PASS
+Date: 2026-04-30
+Goal:
+- Continue the modular Clean Architecture refactor by closing API-to-Infrastructure leaks left after the structural file move.
+Modules touched:
+- Audit, Booking, Catalog, Customer, Identity, Notifications, Pets, Reporting, Staff, VisitOperations.
+Implementation:
+- Moved Audit list-query EF code out of API endpoints into Infrastructure read services behind Application query interfaces.
+- Added Application interfaces for module query/orchestration services consumed by endpoints, then updated APIs to depend on those interfaces instead of Infrastructure concrete classes.
+- Kept concrete Infrastructure implementations registered for internal collaborators while wiring Application interfaces for endpoint injection.
+- Removed module-wide Infrastructure global usings and added explicit Infrastructure usings in module composition/implementation files.
+- Added reflection-backed architecture tests for API/Application type dependencies and a guard against Infrastructure imports in module global usings.
+Tests:
+- `dotnet restore backend/Tailbook.slnx`
+- `dotnet build backend/Tailbook.slnx --no-restore`
+- `dotnet test backend/Tailbook.slnx --no-build`
+- `git diff --check`
+Results:
+- Restore passed.
+- Backend build passed with 0 warnings and 0 errors.
+- Backend tests passed: Architecture 62 tests, API 124 tests.
+- `git diff --check` passed with repository line-ending warnings only.
+Risks:
+- No API route, request, response, auth permission, or schema behavior was intentionally changed.
+- Frontend checks were not rerun in this continuation because no frontend contract files or response shapes changed.
+Next:
+- Review the large move/refactor diff carefully before commit, with special attention to DI registrations and Identity auth flows.

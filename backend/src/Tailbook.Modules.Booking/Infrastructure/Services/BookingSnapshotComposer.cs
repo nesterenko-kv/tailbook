@@ -9,7 +9,7 @@ public sealed class BookingSnapshotComposer(
     AppDbContext dbContext,
     IPetQuoteProfileService petQuoteProfileService,
     ICatalogQuoteResolver catalogQuoteResolver,
-    IStaffSchedulingService staffSchedulingService)
+    IStaffSchedulingService staffSchedulingService) : IBookingSnapshotComposer
 {
     public async Task<ErrorOr<QuotePreviewView>> CreatePreviewAsync(PreviewQuoteCommand command, string? actorUserId, CancellationToken cancellationToken)
     {
