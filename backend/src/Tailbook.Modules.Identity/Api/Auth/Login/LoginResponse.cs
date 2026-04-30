@@ -1,4 +1,3 @@
-using Tailbook.Modules.Identity.Application;
 
 namespace Tailbook.Modules.Identity.Api.Auth.Login;
 

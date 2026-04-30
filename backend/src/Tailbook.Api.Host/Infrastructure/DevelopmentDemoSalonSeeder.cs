@@ -2,9 +2,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Catalog.Contracts;
-using Tailbook.Modules.Catalog.Domain;
-using Tailbook.Modules.Pets.Domain;
-using Tailbook.Modules.Staff.Domain;
+using Tailbook.Modules.Catalog.Domain.Aggregates;
+using Tailbook.Modules.Catalog.Domain.Entities;
+using Tailbook.Modules.Pets.Domain.Entities;
+using Tailbook.Modules.Staff.Domain.Aggregates;
+using Tailbook.Modules.Staff.Domain.Entities;
 
 namespace Tailbook.Api.Host.Infrastructure;
 

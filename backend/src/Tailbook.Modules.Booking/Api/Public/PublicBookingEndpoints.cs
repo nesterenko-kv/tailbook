@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Http;
-using Tailbook.Modules.Booking.Application;
 using Tailbook.Modules.Booking.Api.Client;
 using Tailbook.Modules.Booking.Contracts;
 using static Tailbook.Modules.Booking.Api.Public.PublicBookingEndpointMapper;

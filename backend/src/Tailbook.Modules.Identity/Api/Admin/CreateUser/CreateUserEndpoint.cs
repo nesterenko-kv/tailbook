@@ -2,7 +2,6 @@ using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Http;
-using Tailbook.Modules.Identity.Application;
 
 namespace Tailbook.Modules.Identity.Api.Admin.CreateUser;
 

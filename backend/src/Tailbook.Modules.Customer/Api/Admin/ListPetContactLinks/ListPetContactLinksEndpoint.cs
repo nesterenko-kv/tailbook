@@ -1,7 +1,6 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
-using Tailbook.Modules.Customer.Application;
 
 namespace Tailbook.Modules.Customer.Api.Admin.ListPetContactLinks;
 

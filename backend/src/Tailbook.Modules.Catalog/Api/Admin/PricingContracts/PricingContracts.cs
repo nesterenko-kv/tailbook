@@ -1,4 +1,3 @@
-using Tailbook.Modules.Catalog.Application;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 

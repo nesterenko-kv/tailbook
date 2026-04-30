@@ -1,6 +1,5 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.Modules.Staff.Application;
 
 namespace Tailbook.Modules.Staff.Api.Admin.ListGroomers;
 

@@ -3,8 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.VisitOperations.Application;
-using Tailbook.Modules.VisitOperations.Infrastructure;
 
 namespace Tailbook.Modules.VisitOperations;
 

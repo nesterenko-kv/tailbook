@@ -1,6 +1,5 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.Modules.Identity.Application;
 using Tailbook.Modules.Identity.Api.Auth.Refresh;
 using Tailbook.Modules.Identity.Api.Client.Auth.Login;
 

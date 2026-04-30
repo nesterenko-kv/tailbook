@@ -1,7 +1,6 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
-using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.GetVisitDetail;
 

@@ -1,6 +1,5 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.Modules.Catalog.Application;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.ListOffers;
 

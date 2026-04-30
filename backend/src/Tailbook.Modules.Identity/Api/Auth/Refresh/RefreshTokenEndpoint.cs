@@ -1,7 +1,6 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.Modules.Identity.Application;
 using Tailbook.Modules.Identity.Api.Auth.Login;
 
 namespace Tailbook.Modules.Identity.Api.Auth.Refresh;

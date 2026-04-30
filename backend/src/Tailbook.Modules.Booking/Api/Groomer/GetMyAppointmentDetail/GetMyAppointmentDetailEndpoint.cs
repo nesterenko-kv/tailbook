@@ -1,6 +1,5 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Groomer.GetMyAppointmentDetail;
 

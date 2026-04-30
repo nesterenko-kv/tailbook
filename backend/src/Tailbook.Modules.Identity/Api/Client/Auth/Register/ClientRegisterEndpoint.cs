@@ -3,11 +3,12 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Tailbook.BuildingBlocks.Infrastructure.Http;
-using Tailbook.Modules.Identity.Application;
 
 namespace Tailbook.Modules.Identity.Api.Client.Auth.Register;
 
-public sealed class ClientRegisterEndpoint(RegisterClientPortalUserCommandHandler registerHandler) : Endpoint<ClientRegisterRequest, ClientRegisterResponse>
+public sealed class ClientRegisterEndpoint(
+    RegisterClientPortalUserCommandHandler registerHandler,
+    AuthenticateUserCommandHandler authenticateUserHandler) : Endpoint<ClientRegisterRequest, ClientRegisterResponse>
 {
     public override void Configure()
     {
@@ -35,7 +36,7 @@ public sealed class ClientRegisterEndpoint(RegisterClientPortalUserCommandHandle
             return;
         }
 
-        var result = await new AuthenticateUserCommand(req.Email, req.Password).ExecuteAsync(ct);
+        var result = await authenticateUserHandler.ExecuteAsync(new AuthenticateUserCommand(req.Email, req.Password), ct);
         if (result is null)
         {
             Logger.Log(LogLevel.Warning, "Client portal registration finished without an active login session.");

@@ -1,7 +1,6 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.Modules.Catalog.Application;
 using Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreatePriceRuleSet;

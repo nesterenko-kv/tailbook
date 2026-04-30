@@ -3,7 +3,6 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Http;
-using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.CloseVisit;
 

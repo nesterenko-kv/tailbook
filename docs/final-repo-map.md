@@ -15,17 +15,30 @@
 ## Backend
 - `Tailbook.Api.Host` - ASP.NET Core host, auth, health, startup, Swagger
 - `Tailbook.BuildingBlocks` - shared persistence, outbox, auth helpers, cross-module abstractions
-- `Tailbook.Modules.Identity`
-- `Tailbook.Modules.Customer`
-- `Tailbook.Modules.Pets`
-- `Tailbook.Modules.Catalog`
-- `Tailbook.Modules.Booking`
-- `Tailbook.Modules.VisitOperations`
-- `Tailbook.Modules.Staff`
-- `Tailbook.Modules.Notifications`
-- `Tailbook.Modules.Audit`
-- `Tailbook.Modules.Reporting`
+- `Tailbook.Modules.Identity` - identity, roles, permissions, sessions, password reset, MFA
+- `Tailbook.Modules.Customer` - clients, contacts, contact preferences, pet contact links
+- `Tailbook.Modules.Pets` - pets, pet photos, taxonomy, breed compatibility
+- `Tailbook.Modules.Catalog` - offers, versions, procedures, pricing and duration rules
+- `Tailbook.Modules.Booking` - booking requests, appointments, quote previews, snapshots
+- `Tailbook.Modules.VisitOperations` - visits, execution items, performed/skipped work, adjustments
+- `Tailbook.Modules.Staff` - groomers, capabilities, schedules, availability
+- `Tailbook.Modules.Notifications` - notification jobs, templates, outbox processing
+- `Tailbook.Modules.Audit` - audit trail and access audit records
+- `Tailbook.Modules.Reporting` - reporting read models and calculations
 - `Tailbook.SharedKernel`
+
+## Module internal layout
+Each `Tailbook.Modules.*` project remains intact and uses the same internal shape where applicable:
+
+- `<ModuleName>Module.cs` - module registration and persistence model registration
+- `Api/Admin`, `Api/Client`, `Api/Groomer`, `Api/Public` - endpoint classes and HTTP contracts
+- `Application/Abstractions` - module-owned ports
+- `Application/Common` - validation/errors shared by use cases
+- `Application/<Feature>/Commands|Queries|Models` - use-case DTOs and application-facing models
+- `Domain/Aggregates`, `Domain/Entities`, `Domain/ValueObjects` - framework-free business model
+- `Infrastructure/Persistence/Configurations` - EF Core mappings
+- `Infrastructure/Services`, `Infrastructure/Options`, `Infrastructure/BackgroundJobs`, `Infrastructure/Seeding` - technical implementations
+- `Contracts` - existing stable constants/contracts
 
 ## Operations
 - `ops/runbooks/local-production.md`

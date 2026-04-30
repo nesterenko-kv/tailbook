@@ -1,6 +1,5 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.Modules.Staff.Application;
 using Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
 namespace Tailbook.Modules.Staff.Api.Admin.GetGroomerById;

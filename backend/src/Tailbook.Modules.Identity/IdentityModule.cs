@@ -4,8 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.Identity.Application;
-using Tailbook.Modules.Identity.Infrastructure;
 
 namespace Tailbook.Modules.Identity;
 
@@ -51,6 +49,7 @@ public sealed class IdentityModule : IModuleDefinition
         services.AddScoped<IdentitySessionService>();
         services.AddScoped<IdentityQueries>();
         services.AddScoped<ClientPortalIdentityQueries>();
+        services.AddScoped<AuthenticateUserCommandHandler>();
         services.AddScoped<RegisterClientPortalUserCommandHandler>();
         services.AddScoped<IUserReferenceValidationService, IdentityReferenceServices>();
         services.AddScoped<IClientPortalActorService, IdentityReferenceServices>();

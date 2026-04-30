@@ -2,7 +2,6 @@ using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Http;
-using Tailbook.Modules.Catalog.Application;
 using Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.AddOfferVersionComponent;

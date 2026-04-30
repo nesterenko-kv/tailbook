@@ -1,6 +1,5 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.Modules.Reporting.Application;
 
 namespace Tailbook.Modules.Reporting.Api.Admin.GetPackagePerformance;
 

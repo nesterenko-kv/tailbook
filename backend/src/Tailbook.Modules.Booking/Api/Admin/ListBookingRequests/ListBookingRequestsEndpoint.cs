@@ -1,7 +1,6 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Admin.ListBookingRequests;
 

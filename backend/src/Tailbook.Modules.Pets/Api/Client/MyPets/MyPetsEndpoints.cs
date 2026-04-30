@@ -1,9 +1,8 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.BuildingBlocks.Abstractions.Security;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
-using Tailbook.Modules.Identity.Contracts;
-using Tailbook.Modules.Pets.Application;
 
 namespace Tailbook.Modules.Pets.Api.Client.MyPets;
 

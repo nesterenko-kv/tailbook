@@ -3,7 +3,6 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Http;
-using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Admin.CreateBookingRequest;
 

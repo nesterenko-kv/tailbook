@@ -1,6 +1,5 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.Modules.Customer.Application;
 
 namespace Tailbook.Modules.Customer.Api.Admin.ListClients;
 

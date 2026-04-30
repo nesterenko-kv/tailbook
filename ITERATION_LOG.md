@@ -2,6 +2,54 @@
 
 This log records each strict engineering iteration with scope, verification, and residual risk.
 
+## 2026-04-30 08:52:24 +03:00 - Modular Clean Architecture internal layout
+Status: PASS
+Date: 2026-04-30 08:52:24 +03:00
+Goal:
+- Refactor every backend module to a consistent internal Clean Architecture folder layout while preserving projects and behavior.
+Modules touched:
+- Identity, Customer, Pets, Catalog, Booking, VisitOperations, Staff, Notifications, Audit, Reporting.
+Structure changes:
+- Moved domain types into `Domain/Aggregates`, `Domain/Entities`, and `Domain/ValueObjects`.
+- Moved EF mappings into `Infrastructure/Persistence/Configurations`.
+- Moved options, seeders, background processors, local sinks/storage, and EF-backed services into `Infrastructure/*`.
+- Kept application-facing commands, models, ports, and validation helpers under `Application/*`.
+- Removed direct Customer/Pets/Booking/VisitOperations project references to Identity.
+- Added shared permission constants needed outside Identity under `Tailbook.BuildingBlocks.Abstractions.Security`.
+Files changed:
+- All `backend/src/Tailbook.Modules.*` projects had structural moves and namespace updates.
+- `backend/tests/Tailbook.Architecture.Tests/ModuleBoundaryTests.cs`
+- `backend/tests/Tailbook.Api.Tests/GlobalUsings.cs`
+- `docs/adr/0005-modular-clean-architecture-internal-layout.md`
+- `docs/final-repo-map.md`
+- `docs/adr/README.md`
+- `ITERATION_LOG.md`
+Tests:
+- Added architecture tests for module direct references, Domain layer purity, Application layer dependencies, Infrastructure-to-API dependency prevention, BuildingBlocks module independence, and SharedKernel framework-light boundaries.
+Commands run:
+- `dotnet restore backend\Tailbook.slnx`
+- `dotnet build backend\Tailbook.slnx --no-restore`
+- `dotnet test backend\Tailbook.slnx --no-build`
+- `dotnet test backend\tests\Tailbook.Architecture.Tests\Tailbook.Architecture.Tests.csproj --no-build`
+- `pnpm install`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm build`
+Results:
+- `dotnet restore`: PASS.
+- `dotnet build`: PASS, 0 warnings, 0 errors.
+- `dotnet test`: PASS, 166 total backend tests passed after fixes.
+- Architecture tests: PASS, 42 checks.
+- `pnpm install`: PASS, lockfile up to date.
+- `pnpm lint`: PASS, 3 frontend lint tasks replayed from Turbo cache.
+- `pnpm typecheck`: PASS, 3 frontend typecheck tasks replayed from Turbo cache.
+- `pnpm build`: PASS, 6 frontend build/typecheck tasks replayed from Turbo cache.
+Risks:
+- Existing EF migration designer snapshots still contain historical entity-name strings from old namespaces; no migration was generated because the runtime schema did not change.
+- Some endpoint classes still inject concrete module services; the new tests prevent Application/Domain leakage but do not yet require API constructors to depend only on Application interfaces.
+Next:
+- If a later iteration wants stricter API purity, introduce Application interfaces for concrete Infrastructure service implementations and update endpoint constructors without changing route contracts.
+
 ## 2026-04-29 15:11:42 +03:00 - Repository guidance and baseline validation
 Status: PASS
 Date: 2026-04-29 15:11:42 +03:00

@@ -1,7 +1,6 @@
-﻿using FastEndpoints;
+using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Abstractions;
-using Tailbook.Modules.Booking.Application;
 
 namespace Tailbook.Modules.Booking.Api.Client;
 

@@ -3,8 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.Booking.Application;
-using Tailbook.Modules.Booking.Infrastructure;
 
 namespace Tailbook.Modules.Booking;
 

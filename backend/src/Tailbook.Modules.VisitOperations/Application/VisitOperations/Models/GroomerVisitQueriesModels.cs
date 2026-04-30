@@ -1,0 +1,8 @@
+namespace Tailbook.Modules.VisitOperations.Application.VisitOperations.Models;
+
+public sealed record GroomerVisitPetView(Guid Id, string Name, string AnimalTypeCode, string AnimalTypeName, string BreedName, string? CoatTypeCode, string? SizeCategoryCode);
+public sealed record GroomerVisitExpectedComponentView(Guid Id, Guid ProcedureId, string ProcedureCode, string ProcedureName, string ComponentRole, int SequenceNo, bool DefaultExpected, bool IsSkipped);
+public sealed record GroomerVisitPerformedProcedureView(Guid Id, Guid ProcedureId, string ProcedureCode, string ProcedureName, string Status, string? Note, DateTime RecordedAtUtc);
+public sealed record GroomerVisitSkippedComponentView(Guid Id, Guid OfferVersionComponentId, Guid ProcedureId, string ProcedureCode, string ProcedureName, string OmissionReasonCode, string? Note, DateTime RecordedAtUtc);
+public sealed record GroomerVisitExecutionItemView(Guid Id, Guid AppointmentItemId, string ItemType, Guid OfferId, Guid OfferVersionId, string OfferCode, string OfferDisplayName, int Quantity, int ServiceMinutes, int ReservedMinutes, IReadOnlyCollection<GroomerVisitExpectedComponentView> ExpectedComponents, IReadOnlyCollection<GroomerVisitPerformedProcedureView> PerformedProcedures, IReadOnlyCollection<GroomerVisitSkippedComponentView> SkippedComponents);
+public sealed record GroomerVisitDetailView(Guid Id, Guid AppointmentId, GroomerVisitPetView Pet, string Status, DateTime CheckedInAtUtc, DateTime? StartedAtUtc, DateTime? CompletedAtUtc, DateTime? ClosedAtUtc, int ServiceMinutes, int ReservedMinutes, IReadOnlyCollection<GroomerVisitExecutionItemView> Items, DateTime CreatedAtUtc, DateTime UpdatedAtUtc);

@@ -2,7 +2,6 @@ using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.Audit.Domain;
 
 namespace Tailbook.Modules.Audit.Api.Admin.ListAccessAuditEntries;
 

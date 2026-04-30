@@ -1,11 +1,12 @@
 using System.Globalization;
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.Modules.Identity.Application;
 
 namespace Tailbook.Modules.Identity.Api.Auth.Login;
 
-public sealed class LoginEndpoint(LoginThrottlingService loginThrottling) : Endpoint<LoginRequest, LoginResponse>
+public sealed class LoginEndpoint(
+    LoginThrottlingService loginThrottling,
+    AuthenticateUserCommandHandler authenticateUserHandler) : Endpoint<LoginRequest, LoginResponse>
 {
     public override void Configure()
     {
@@ -27,7 +28,7 @@ public sealed class LoginEndpoint(LoginThrottlingService loginThrottling) : Endp
             return;
         }
 
-        var result = await new AuthenticateUserCommand(req.Email, req.Password).ExecuteAsync(ct);
+        var result = await authenticateUserHandler.ExecuteAsync(new AuthenticateUserCommand(req.Email, req.Password), ct);
         if (result is null)
         {
             loginThrottling.RecordFailure(req.Email);
