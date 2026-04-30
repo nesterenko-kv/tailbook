@@ -239,7 +239,7 @@ public sealed class BookingAppointmentAggregateTests
     [Fact]
     public async Task Appointment_aggregate_round_trips_through_ef_core()
     {
-        new BookingModule().ConfigurePersistence();
+        TestModelConfiguration.Configure();
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase($"booking-appointment-{Guid.NewGuid():N}")
             .Options;

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -17,14 +18,17 @@ public sealed class VisitOperationsApplicationTests
     {
         await using var harness = await VisitApplicationHarness.CreateAsync();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => harness.Queries.ApplyPriceAdjustmentAsync(
+        var result = await harness.Queries.ApplyPriceAdjustmentAsync(
             harness.VisitId,
             -1,
             5000m,
             "INVALID_REDUCTION",
             null,
             null,
-            CancellationToken.None));
+            CancellationToken.None);
+
+        Assert.True(result.IsError);
+        Assert.Contains(result.Errors, error => error.Code == "VisitOperations.NegativeFinalTotal");
 
         var visit = await harness.DbContext.Set<Visit>()
             .Include(x => x.PriceAdjustments)
@@ -61,10 +65,13 @@ public sealed class VisitOperationsApplicationTests
     {
         await using var harness = await VisitApplicationHarness.CreateAsync();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => harness.Queries.CloseVisitAsync(
+        var result = await harness.Queries.CloseVisitAsync(
             harness.VisitId,
             null,
-            CancellationToken.None));
+            CancellationToken.None);
+
+        Assert.True(result.IsError);
+        Assert.Contains(result.Errors, error => error.Code == "VisitOperations.VisitCloseFailed");
 
         var visit = await harness.DbContext.Set<Visit>().SingleAsync(x => x.Id == harness.VisitId);
         Assert.Equal(VisitStatusCodes.Open, visit.Status);
@@ -116,7 +123,7 @@ public sealed class VisitOperationsApplicationTests
 
         public static async Task<VisitApplicationHarness> CreateAsync()
         {
-            new VisitOperationsModule().ConfigurePersistence();
+            TestModelConfiguration.Configure();
             var options = new DbContextOptionsBuilder<AppDbContext>()
                 .UseInMemoryDatabase($"visit-application-{Guid.NewGuid():N}")
                 .Options;
@@ -190,24 +197,24 @@ public sealed class VisitOperationsApplicationTests
             return Task.FromResult(result);
         }
 
-        public Task MarkCheckedInAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
+        public Task<ErrorOr<bool>> MarkCheckedInAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            return Task.FromResult<ErrorOr<bool>>(true);
         }
 
-        public Task MarkInProgressAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
+        public Task<ErrorOr<bool>> MarkInProgressAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            return Task.FromResult<ErrorOr<bool>>(true);
         }
 
-        public Task MarkCompletedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
+        public Task<ErrorOr<bool>> MarkCompletedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            return Task.FromResult<ErrorOr<bool>>(true);
         }
 
-        public Task MarkClosedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
+        public Task<ErrorOr<bool>> MarkClosedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            return Task.FromResult<ErrorOr<bool>>(true);
         }
 
         private VisitAppointmentInfo CreateAppointment()

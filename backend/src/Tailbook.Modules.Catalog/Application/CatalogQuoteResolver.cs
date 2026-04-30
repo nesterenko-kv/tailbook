@@ -1,3 +1,4 @@
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -8,11 +9,11 @@ namespace Tailbook.Modules.Catalog.Application;
 
 public sealed class CatalogQuoteResolver(AppDbContext dbContext) : ICatalogQuoteResolver
 {
-    public async Task<CatalogQuoteResolution> ResolveAsync(PetQuoteProfile pet, IReadOnlyCollection<QuotePreviewCatalogItem> items, CancellationToken cancellationToken)
+    public async Task<ErrorOr<CatalogQuoteResolution>> ResolveAsync(PetQuoteProfile pet, IReadOnlyCollection<QuotePreviewCatalogItem> items, CancellationToken cancellationToken)
     {
         if (items.Count == 0)
         {
-            throw new InvalidOperationException("At least one commercial item is required for quote preview.");
+            return Error.Validation("Catalog.QuoteItemRequired", "At least one commercial item is required for quote preview.");
         }
 
         var utcNow = DateTime.UtcNow;
@@ -21,15 +22,21 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext) : ICatalogQuote
             .Where(x => x.Status == RuleSetStatusCodes.Published && x.ValidFromUtc <= utcNow && (x.ValidToUtc == null || x.ValidToUtc >= utcNow))
             .OrderByDescending(x => x.ValidFromUtc)
             .ThenByDescending(x => x.VersionNo)
-            .FirstOrDefaultAsync(cancellationToken)
-            ?? throw new InvalidOperationException("No published price rule set is available.");
+            .FirstOrDefaultAsync(cancellationToken);
+        if (priceRuleSet is null)
+        {
+            return Error.Validation("Catalog.PublishedPriceRuleSetRequired", "No published price rule set is available.");
+        }
 
         var durationRuleSet = await dbContext.Set<DurationRuleSet>()
             .Where(x => x.Status == RuleSetStatusCodes.Published && x.ValidFromUtc <= utcNow && (x.ValidToUtc == null || x.ValidToUtc >= utcNow))
             .OrderByDescending(x => x.ValidFromUtc)
             .ThenByDescending(x => x.VersionNo)
-            .FirstOrDefaultAsync(cancellationToken)
-            ?? throw new InvalidOperationException("No published duration rule set is available.");
+            .FirstOrDefaultAsync(cancellationToken);
+        if (durationRuleSet is null)
+        {
+            return Error.Validation("Catalog.PublishedDurationRuleSetRequired", "No published duration rule set is available.");
+        }
 
         var offerIds = items.Select(x => x.OfferId).Distinct().ToArray();
         var offers = await dbContext.Set<CommercialOffer>()
@@ -38,7 +45,7 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext) : ICatalogQuote
 
         if (offers.Count != offerIds.Length)
         {
-            throw new InvalidOperationException("One or more requested offers do not exist or are inactive.");
+            return Error.NotFound("Catalog.OfferNotFound", "One or more requested offers do not exist or are inactive.");
         }
 
         var publishedOfferVersions = await dbContext.Set<OfferVersion>()
@@ -54,7 +61,7 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext) : ICatalogQuote
         {
             if (!publishedOfferVersions.ContainsKey(offerId))
             {
-                throw new InvalidOperationException("Each requested offer must have a published offer version before quote preview.");
+                return Error.Validation("Catalog.PublishedOfferVersionRequired", "Each requested offer must have a published offer version before quote preview.");
             }
         }
 
@@ -88,7 +95,7 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext) : ICatalogQuote
             if (!string.IsNullOrWhiteSpace(requestedItem.ItemType)
                 && !string.Equals(requestedItem.ItemType, offer.OfferType, StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException($"Requested item type '{requestedItem.ItemType}' does not match offer type '{offer.OfferType}'.");
+                return Error.Validation("Catalog.OfferTypeMismatch", $"Requested item type '{requestedItem.ItemType}' does not match offer type '{offer.OfferType}'.");
             }
 
             var offerVersion = publishedOfferVersions[offer.Id];
@@ -104,7 +111,7 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext) : ICatalogQuote
 
             if (matchingPriceRule is null)
             {
-                throw new InvalidOperationException($"No matching price rule exists for offer '{offer.DisplayName}'.");
+                return Error.Validation("Catalog.MatchingPriceRuleRequired", $"No matching price rule exists for offer '{offer.DisplayName}'.");
             }
 
             var matchingDurationRule = durationRules
@@ -118,13 +125,13 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext) : ICatalogQuote
 
             if (matchingDurationRule is null)
             {
-                throw new InvalidOperationException($"No matching duration rule exists for offer '{offer.DisplayName}'.");
+                return Error.Validation("Catalog.MatchingDurationRuleRequired", $"No matching duration rule exists for offer '{offer.DisplayName}'.");
             }
 
             currency ??= matchingPriceRule.Rule.Currency;
             if (!string.Equals(currency, matchingPriceRule.Rule.Currency, StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException("All matched price rules in one quote preview must resolve to the same currency.");
+                return Error.Validation("Catalog.MixedQuoteCurrencies", "All matched price rules in one quote preview must resolve to the same currency.");
             }
 
             var amount = matchingPriceRule.Rule.FixedAmount;

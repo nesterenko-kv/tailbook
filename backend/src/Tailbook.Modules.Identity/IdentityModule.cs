@@ -51,6 +51,7 @@ public sealed class IdentityModule : IModuleDefinition
         services.AddScoped<IdentitySessionService>();
         services.AddScoped<IdentityQueries>();
         services.AddScoped<ClientPortalIdentityQueries>();
+        services.AddScoped<RegisterClientPortalUserCommandHandler>();
         services.AddScoped<IUserReferenceValidationService, IdentityReferenceServices>();
         services.AddScoped<IClientPortalActorService, IdentityReferenceServices>();
         services.AddScoped<IDataSeeder, IdentitySeeder>();

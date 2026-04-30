@@ -48,28 +48,27 @@ public sealed class ClientPortalBookingQueries(
 
         var result = new List<ClientBookableOfferView>();
         foreach (var offer in offers)
-            try
+        {
+            var resolutionResult = await catalogQuoteResolver.ResolveAsync(
+                pet,
+                [new QuotePreviewCatalogItem(offer.Id, offer.OfferType)],
+                cancellationToken);
+            if (resolutionResult.IsError)
             {
-                var resolution = await catalogQuoteResolver.ResolveAsync(
-                    pet,
-                    [new QuotePreviewCatalogItem(offer.Id, offer.OfferType)],
-                    cancellationToken);
+                continue;
+            }
 
-                var item = resolution.Items.Single();
-                result.Add(new ClientBookableOfferView(
-                    item.OfferId,
-                    item.OfferType,
-                    item.DisplayName,
-                    resolution.Currency,
-                    item.PriceAmount,
-                    item.ServiceMinutes,
-                    item.ReservedMinutes));
-            }
-            catch (InvalidOperationException)
-            {
-                // Skip offers that are currently not bookable for this pet because
-                // they do not have a published version or matching active price/duration rules.
-            }
+            var resolution = resolutionResult.Value;
+            var item = resolution.Items.Single();
+            result.Add(new ClientBookableOfferView(
+                item.OfferId,
+                item.OfferType,
+                item.DisplayName,
+                resolution.Currency,
+                item.PriceAmount,
+                item.ServiceMinutes,
+                item.ReservedMinutes));
+        }
 
         return result
             .OrderBy(x => x.DisplayName)

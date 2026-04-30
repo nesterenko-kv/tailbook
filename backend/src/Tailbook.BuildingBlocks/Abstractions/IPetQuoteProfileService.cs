@@ -1,9 +1,11 @@
+using ErrorOr;
+
 namespace Tailbook.BuildingBlocks.Abstractions;
 
 public interface IPetQuoteProfileService
 {
     Task<PetQuoteProfile?> GetPetAsync(Guid petId, CancellationToken cancellationToken);
-    Task<PetQuoteProfile> CreateAdHocAsync(PetQuoteProfileInput input, CancellationToken cancellationToken);
+    Task<ErrorOr<PetQuoteProfile>> CreateAdHocAsync(PetQuoteProfileInput input, CancellationToken cancellationToken);
 }
 
 public sealed record PetQuoteProfileInput(

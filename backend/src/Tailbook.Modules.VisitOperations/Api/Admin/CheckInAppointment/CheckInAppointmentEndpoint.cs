@@ -2,6 +2,7 @@ using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.CheckInAppointment;
@@ -18,22 +19,14 @@ public sealed class CheckInAppointmentEndpoint(VisitQueries visitQueries)
 
     public override async Task HandleAsync(CheckInAppointmentRequest req, CancellationToken ct)
     {
-        try
+        var result = await visitQueries.CheckInAppointmentAsync(req.AppointmentId, req.ActorUserId, ct);
+        if (result.IsError)
         {
-            var result = await visitQueries.CheckInAppointmentAsync(req.AppointmentId, req.ActorUserId, ct);
-            if (result is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
 
-            await Send.ResponseAsync(result, StatusCodes.Status201Created, ct);
-        }
-        catch (InvalidOperationException ex)
-        {
-            AddError(ex.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+        await Send.ResponseAsync(result.Value, StatusCodes.Status201Created, ct);
     }
 }
 

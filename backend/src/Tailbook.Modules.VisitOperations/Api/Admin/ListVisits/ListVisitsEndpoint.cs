@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.ListVisits;
@@ -17,31 +18,28 @@ public sealed class ListVisitsEndpoint(VisitQueries visitQueries)
 
     public override async Task HandleAsync(ListVisitsRequest req, CancellationToken ct)
     {
-        try
+        var status = req.VisitStatus;
+        if (string.IsNullOrWhiteSpace(status) && HttpContext.Request.Query.TryGetValue("status", out var statusValues))
         {
-            var status = req.VisitStatus;
-            if (string.IsNullOrWhiteSpace(status) && HttpContext.Request.Query.TryGetValue("status", out var statusValues))
-            {
-                status = statusValues.FirstOrDefault();
-            }
-
-            var result = await visitQueries.ListVisitsAsync(
-                status,
-                req.FromUtc,
-                req.ToUtc,
-                req.GroomerId,
-                req.AppointmentId,
-                req.Page,
-                req.PageSize,
-                ct);
-
-            await Send.OkAsync(result, ct);
+            status = statusValues.FirstOrDefault();
         }
-        catch (InvalidOperationException exception)
+
+        var result = await visitQueries.ListVisitsAsync(
+            status,
+            req.FromUtc,
+            req.ToUtc,
+            req.GroomerId,
+            req.AppointmentId,
+            req.Page,
+            req.PageSize,
+            ct);
+        if (result.IsError)
         {
-            AddError(exception.Message);
-            await Send.ErrorsAsync(cancellation: ct);
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
         }
+
+        await Send.OkAsync(result.Value, ct);
     }
 }
 

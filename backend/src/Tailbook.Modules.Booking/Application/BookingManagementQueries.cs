@@ -87,6 +87,12 @@ public sealed class BookingManagementQueries(
             selectionMode = selectionModeResult.Value;
         }
 
+        var preferredTimeJson = SerializePreferredTimes(command.PreferredTimes);
+        if (preferredTimeJson.IsError)
+        {
+            return preferredTimeJson.Errors;
+        }
+
         var utcNow = DateTime.UtcNow;
         var entity = new BookingRequest
         {
@@ -99,7 +105,7 @@ public sealed class BookingManagementQueries(
             Status = status.Value,
             SelectionMode = selectionMode,
             GuestIntakeJson = SerializeGuestIntake(command.GuestIntake),
-            PreferredTimeJson = SerializePreferredTimes(command.PreferredTimes),
+            PreferredTimeJson = preferredTimeJson.Value,
             Notes = NormalizeOptional(command.Notes),
             CreatedAtUtc = utcNow,
             UpdatedAtUtc = utcNow
@@ -356,21 +362,23 @@ public sealed class BookingManagementQueries(
         string? actorUserId,
         CancellationToken cancellationToken)
     {
-        var normalizedStartAtUtc = BookingTimeInputNormalizer.AssumeUtc(startAtUtc, nameof(startAtUtc));
-        AppointmentCompositionResult composition;
-        try
+        var compositionResult = await bookingSnapshotComposer.ComposeAppointmentAsync(
+            petId,
+            groomerId,
+            startAtUtc,
+            items,
+            actorUserId,
+            cancellationToken);
+        if (compositionResult.IsError)
         {
-            composition = await bookingSnapshotComposer.ComposeAppointmentAsync(
-                petId,
-                groomerId,
-                normalizedStartAtUtc,
-                items,
-                actorUserId,
-                cancellationToken);
+            return compositionResult.Errors;
         }
-        catch (InvalidOperationException ex)
+
+        var composition = compositionResult.Value;
+        var appointmentPeriod = BookingTimeInputNormalizer.TryCreatePeriod(composition.StartAtUtc, composition.EndAtUtc);
+        if (appointmentPeriod.IsError)
         {
-            return Error.Validation("Booking.AppointmentCompositionFailed", ex.Message);
+            return appointmentPeriod.Errors;
         }
 
         var utcNow = DateTime.UtcNow;
@@ -380,7 +388,7 @@ public sealed class BookingManagementQueries(
             bookingRequestId,
             petId,
             groomerId,
-            BookingTimeInputNormalizer.CreatePeriod(composition.StartAtUtc, composition.EndAtUtc),
+            appointmentPeriod.Value,
             composition.Items.Select(x => new AppointmentItemDraft(
                 x.OfferType,
                 x.OfferId,
@@ -485,8 +493,11 @@ public sealed class BookingManagementQueries(
             .Where(x => items.Select(y => y.DurationSnapshotId).Contains(x.Id))
             .ToDictionaryAsync(x => x.Id, cancellationToken);
 
-        var pet = await petQuoteProfileService.GetPetAsync(appointment.PetId, cancellationToken)
-            ?? throw new InvalidOperationException("Pet does not exist.");
+        var pet = await petQuoteProfileService.GetPetAsync(appointment.PetId, cancellationToken);
+        if (pet is null)
+        {
+            return null;
+        }
 
         return new AppointmentDetailView(
             appointment.Id,
@@ -534,15 +545,18 @@ public sealed class BookingManagementQueries(
             return version.Errors;
         }
 
-        try
+        if (appointment.Status is AppointmentStatusCodes.Cancelled or AppointmentStatusCodes.Closed)
         {
-            appointment.EnsureCanBeRescheduled();
+            return Error.Conflict("Booking.AppointmentNotMutable", "Appointment is not mutable in its current status.");
         }
-        catch (InvalidOperationException ex)
+
+        var normalizedStartAtUtcResult = BookingTimeInputNormalizer.TryAssumeUtc(command.StartAtUtc, nameof(command.StartAtUtc));
+        if (normalizedStartAtUtcResult.IsError)
         {
-            return Error.Conflict("Booking.AppointmentNotMutable", ex.Message);
+            return normalizedStartAtUtcResult.Errors;
         }
-        var normalizedStartAtUtc = BookingTimeInputNormalizer.AssumeUtc(command.StartAtUtc, nameof(command.StartAtUtc));
+
+        var normalizedStartAtUtc = normalizedStartAtUtcResult.Value;
 
         var items = await dbContext.Set<AppointmentItem>()
             .Where(x => x.AppointmentId == appointment.Id)
@@ -586,18 +600,17 @@ public sealed class BookingManagementQueries(
             return Error.Validation("Booking.AppointmentSlotUnavailable", string.Join(" ", availability.Reasons));
         }
 
-        try
+        var appointmentPeriod = BookingTimeInputNormalizer.TryCreatePeriod(normalizedStartAtUtc, availability.EndAtUtc);
+        if (appointmentPeriod.IsError)
         {
-            appointment.Reschedule(
-                command.GroomerId,
-                BookingTimeInputNormalizer.CreatePeriod(normalizedStartAtUtc, availability.EndAtUtc),
-                ParseGuid(actorUserId),
-                DateTime.UtcNow);
+            return appointmentPeriod.Errors;
         }
-        catch (InvalidOperationException ex)
-        {
-            return Error.Validation("Booking.AppointmentRescheduleFailed", ex.Message);
-        }
+
+        appointment.Reschedule(
+            command.GroomerId,
+            appointmentPeriod.Value,
+            ParseGuid(actorUserId),
+            DateTime.UtcNow);
 
         await outboxPublisher.PublishAsync("booking", "AppointmentRescheduled", new
         {
@@ -626,15 +639,17 @@ public sealed class BookingManagementQueries(
             return version.Errors;
         }
 
-        try
+        if (appointment.Status is AppointmentStatusCodes.Cancelled or AppointmentStatusCodes.Closed)
         {
-            appointment.EnsureCanBeCancelled();
-            appointment.Cancel(command.ReasonCode, command.Notes, ParseGuid(actorUserId), DateTime.UtcNow);
+            return Error.Conflict("Booking.AppointmentCancellationFailed", "Appointment is not mutable in its current status.");
         }
-        catch (InvalidOperationException ex)
+
+        if (string.IsNullOrWhiteSpace(command.ReasonCode))
         {
-            return Error.Conflict("Booking.AppointmentCancellationFailed", ex.Message);
+            return Error.Validation("Booking.CancellationReasonRequired", "Cancellation reason code is required.");
         }
+
+        appointment.Cancel(command.ReasonCode, command.Notes, ParseGuid(actorUserId), DateTime.UtcNow);
 
         await outboxPublisher.PublishAsync("booking", "AppointmentCancelled", new
         {
@@ -739,17 +754,37 @@ public sealed class BookingManagementQueries(
         };
     }
 
-    private static string? SerializePreferredTimes(IReadOnlyCollection<PreferredTimeWindowCommand> windows)
+    private static ErrorOr<string?> SerializePreferredTimes(IReadOnlyCollection<PreferredTimeWindowCommand> windows)
     {
         if (windows.Count == 0)
         {
-            return null;
+            return (string?)null;
         }
 
-        return JsonSerializer.Serialize(windows.Select(x => new PreferredTimeWindowView(
-            BookingTimeInputNormalizer.AssumeUtc(x.StartAtUtc, nameof(x.StartAtUtc)),
-            BookingTimeInputNormalizer.AssumeUtc(x.EndAtUtc, nameof(x.EndAtUtc)),
-            NormalizeOptional(x.Label))).ToArray());
+        var normalizedWindows = new List<PreferredTimeWindowView>();
+        foreach (var window in windows)
+        {
+            var startAtUtc = BookingTimeInputNormalizer.TryAssumeUtc(window.StartAtUtc, nameof(window.StartAtUtc));
+            if (startAtUtc.IsError)
+            {
+                return startAtUtc.Errors;
+            }
+
+            var endAtUtc = BookingTimeInputNormalizer.TryAssumeUtc(window.EndAtUtc, nameof(window.EndAtUtc));
+            if (endAtUtc.IsError)
+            {
+                return endAtUtc.Errors;
+            }
+
+            if (endAtUtc.Value <= startAtUtc.Value)
+            {
+                return Error.Validation("Booking.InvalidPreferredTimeWindow", "Preferred time window end time must be after start time.");
+            }
+
+            normalizedWindows.Add(new PreferredTimeWindowView(startAtUtc.Value, endAtUtc.Value, NormalizeOptional(window.Label)));
+        }
+
+        return JsonSerializer.Serialize(normalizedWindows);
     }
 
     private static IReadOnlyCollection<PreferredTimeWindowView> DeserializePreferredTimes(string? json)

@@ -1,8 +1,10 @@
+using ErrorOr;
+
 namespace Tailbook.BuildingBlocks.Abstractions;
 
 public interface ICatalogQuoteResolver
 {
-    Task<CatalogQuoteResolution> ResolveAsync(
+    Task<ErrorOr<CatalogQuoteResolution>> ResolveAsync(
         PetQuoteProfile pet,
         IReadOnlyCollection<QuotePreviewCatalogItem> items,
         CancellationToken cancellationToken);

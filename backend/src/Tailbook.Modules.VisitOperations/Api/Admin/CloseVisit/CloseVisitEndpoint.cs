@@ -2,6 +2,7 @@ using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Admin.CloseVisit;
@@ -18,22 +19,14 @@ public sealed class CloseVisitEndpoint(VisitQueries visitQueries)
 
     public override async Task HandleAsync(CloseVisitRequest req, CancellationToken ct)
     {
-        try
+        var result = await visitQueries.CloseVisitAsync(req.VisitId, req.ActorUserId, ct);
+        if (result.IsError)
         {
-            var result = await visitQueries.CloseVisitAsync(req.VisitId, req.ActorUserId, ct);
-            if (result is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
 
-            await Send.OkAsync(result, ct);
-        }
-        catch (InvalidOperationException ex)
-        {
-            AddError(ex.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+        await Send.OkAsync(result.Value, ct);
     }
 }
 

@@ -92,10 +92,13 @@ public sealed class BookingAppointmentApplicationTests
     {
         await using var harness = await BookingApplicationHarness.CreateAsync();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => harness.Queries.CancelAppointmentAsync(
+        var result = await harness.Queries.CancelAppointmentAsync(
             new CancelAppointmentCommand(harness.AppointmentId!.Value, 1, " ", null),
             null,
-            CancellationToken.None));
+            CancellationToken.None);
+
+        Assert.True(result.IsError);
+        Assert.Contains(result.Errors, error => error.Code == "Booking.CancellationReasonRequired");
 
         var appointment = await harness.DbContext.Set<Appointment>().SingleAsync(x => x.Id == harness.AppointmentId);
         Assert.Equal(AppointmentStatusCodes.Confirmed, appointment.Status);
@@ -109,10 +112,13 @@ public sealed class BookingAppointmentApplicationTests
         await using var harness = await BookingApplicationHarness.CreateAsync();
         harness.StaffSchedulingService.IsAvailable = false;
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => harness.Queries.RescheduleAppointmentAsync(
+        var result = await harness.Queries.RescheduleAppointmentAsync(
             new RescheduleAppointmentCommand(harness.AppointmentId!.Value, harness.GroomerId, Unspecified("2026-04-22T09:00:00"), 1),
             null,
-            CancellationToken.None));
+            CancellationToken.None);
+
+        Assert.True(result.IsError);
+        Assert.Contains(result.Errors, error => error.Code == "Booking.AppointmentSlotUnavailable");
 
         var appointment = await harness.DbContext.Set<Appointment>().SingleAsync(x => x.Id == harness.AppointmentId);
         Assert.Equal(AppointmentStatusCodes.Confirmed, appointment.Status);
@@ -207,7 +213,7 @@ public sealed class BookingAppointmentApplicationTests
 
         public static async Task<BookingApplicationHarness> CreateAsync(bool seedAppointment = true)
         {
-            new BookingModule().ConfigurePersistence();
+            TestModelConfiguration.Configure();
             var options = new DbContextOptionsBuilder<AppDbContext>()
                 .UseInMemoryDatabase($"booking-application-{Guid.NewGuid():N}")
                 .Options;
@@ -322,15 +328,15 @@ public sealed class BookingAppointmentApplicationTests
             return Task.FromResult(pet);
         }
 
-        public Task<PetQuoteProfile> CreateAdHocAsync(PetQuoteProfileInput input, CancellationToken cancellationToken)
+        public Task<ErrorOr<PetQuoteProfile>> CreateAdHocAsync(PetQuoteProfileInput input, CancellationToken cancellationToken)
         {
-            throw new NotSupportedException();
+            return Task.FromResult<ErrorOr<PetQuoteProfile>>(Error.Unexpected("Test.NotSupported", "Ad hoc pets are not supported by this stub."));
         }
     }
 
     private sealed class StubCatalogQuoteResolver : ICatalogQuoteResolver
     {
-        public Task<CatalogQuoteResolution> ResolveAsync(
+        public Task<ErrorOr<CatalogQuoteResolution>> ResolveAsync(
             PetQuoteProfile pet,
             IReadOnlyCollection<QuotePreviewCatalogItem> items,
             CancellationToken cancellationToken)
@@ -345,7 +351,7 @@ public sealed class BookingAppointmentApplicationTests
                 60,
                 90)).ToArray();
 
-            return Task.FromResult(new CatalogQuoteResolution(
+            return Task.FromResult<ErrorOr<CatalogQuoteResolution>>(new CatalogQuoteResolution(
                 null,
                 null,
                 "UAH",

@@ -124,7 +124,7 @@ public sealed class VisitOperationsFlowTests : IClassFixture<CustomWebApplicatio
         Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
 
         var secondResponse = await client.PostAsJsonAsync($"/api/admin/appointments/{appointment.Id:D}/check-in", new { appointmentId = appointment.Id });
-        Assert.Equal(HttpStatusCode.BadRequest, secondResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, secondResponse.StatusCode);
     }
 
     private static async Task<Guid> CreateClientAsync(HttpClient client, string displayName)

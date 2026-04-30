@@ -1,6 +1,8 @@
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
+using Tailbook.Modules.Booking.Contracts;
 using Tailbook.Modules.Booking.Domain;
 
 namespace Tailbook.Modules.Booking.Application;
@@ -87,33 +89,84 @@ public sealed class AppointmentVisitService(AppDbContext dbContext) : IAppointme
                     .ToArray()));
     }
 
-    public async Task MarkCheckedInAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<bool>> MarkCheckedInAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
     {
         var appointment = await LoadAsync(appointmentId, cancellationToken);
-        appointment.MarkCheckedIn(actorUserId, DateTime.UtcNow);
+        if (appointment.IsError)
+        {
+            return appointment.Errors;
+        }
+
+        if (appointment.Value.Status is not AppointmentStatusCodes.Confirmed and not AppointmentStatusCodes.Rescheduled)
+        {
+            return Error.Conflict("Booking.AppointmentCheckInNotAllowed", "Appointment is not eligible for check-in.");
+        }
+
+        appointment.Value.MarkCheckedIn(actorUserId, DateTime.UtcNow);
+        return true;
     }
 
-    public async Task MarkInProgressAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<bool>> MarkInProgressAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
     {
         var appointment = await LoadAsync(appointmentId, cancellationToken);
-        appointment.MarkInProgress(actorUserId, DateTime.UtcNow);
+        if (appointment.IsError)
+        {
+            return appointment.Errors;
+        }
+
+        if (appointment.Value.Status == AppointmentStatusCodes.InProgress)
+        {
+            return true;
+        }
+
+        if (appointment.Value.Status != AppointmentStatusCodes.CheckedIn)
+        {
+            return Error.Conflict("Booking.AppointmentInProgressNotAllowed", "Appointment is not eligible to enter in-progress state.");
+        }
+
+        appointment.Value.MarkInProgress(actorUserId, DateTime.UtcNow);
+        return true;
     }
 
-    public async Task MarkCompletedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<bool>> MarkCompletedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
     {
         var appointment = await LoadAsync(appointmentId, cancellationToken);
-        appointment.MarkCompleted(actorUserId, DateTime.UtcNow);
+        if (appointment.IsError)
+        {
+            return appointment.Errors;
+        }
+
+        if (appointment.Value.Status is not AppointmentStatusCodes.CheckedIn and not AppointmentStatusCodes.InProgress)
+        {
+            return Error.Conflict("Booking.AppointmentCompletionNotAllowed", "Appointment is not eligible for completion.");
+        }
+
+        appointment.Value.MarkCompleted(actorUserId, DateTime.UtcNow);
+        return true;
     }
 
-    public async Task MarkClosedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<bool>> MarkClosedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
     {
         var appointment = await LoadAsync(appointmentId, cancellationToken);
-        appointment.MarkClosed(actorUserId, DateTime.UtcNow);
+        if (appointment.IsError)
+        {
+            return appointment.Errors;
+        }
+
+        if (appointment.Value.Status != AppointmentStatusCodes.Completed)
+        {
+            return Error.Conflict("Booking.AppointmentClosureNotAllowed", "Appointment is not eligible for closure.");
+        }
+
+        appointment.Value.MarkClosed(actorUserId, DateTime.UtcNow);
+        return true;
     }
 
-    private async Task<Appointment> LoadAsync(Guid appointmentId, CancellationToken cancellationToken)
+    private async Task<ErrorOr<Appointment>> LoadAsync(Guid appointmentId, CancellationToken cancellationToken)
     {
-        return await dbContext.Set<Appointment>().SingleOrDefaultAsync(x => x.Id == appointmentId, cancellationToken)
-               ?? throw new InvalidOperationException("Appointment does not exist.");
+        var appointment = await dbContext.Set<Appointment>().SingleOrDefaultAsync(x => x.Id == appointmentId, cancellationToken);
+        return appointment is null
+            ? Error.NotFound("Booking.AppointmentNotFound", "Appointment does not exist.")
+            : appointment;
     }
 }

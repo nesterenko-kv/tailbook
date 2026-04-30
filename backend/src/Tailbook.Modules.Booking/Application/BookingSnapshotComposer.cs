@@ -1,3 +1,4 @@
+using ErrorOr;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Booking.Contracts;
@@ -11,17 +12,31 @@ public sealed class BookingSnapshotComposer(
     ICatalogQuoteResolver catalogQuoteResolver,
     IStaffSchedulingService staffSchedulingService)
 {
-    public async Task<QuotePreviewView> CreatePreviewAsync(PreviewQuoteCommand command, string? actorUserId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<QuotePreviewView>> CreatePreviewAsync(PreviewQuoteCommand command, string? actorUserId, CancellationToken cancellationToken)
     {
-        var pet = await petQuoteProfileService.GetPetAsync(command.PetId, cancellationToken)
-            ?? throw new InvalidOperationException("Pet does not exist.");
+        var pet = await petQuoteProfileService.GetPetAsync(command.PetId, cancellationToken);
+        if (pet is null)
+        {
+            return Error.NotFound("Booking.PetNotFound", "Pet does not exist.");
+        }
 
-        var resolution = await catalogQuoteResolver.ResolveAsync(
+        var resolutionResult = await catalogQuoteResolver.ResolveAsync(
             pet,
             command.Items.Select(x => new QuotePreviewCatalogItem(x.OfferId, x.ItemType)).ToArray(),
             cancellationToken);
+        if (resolutionResult.IsError)
+        {
+            return resolutionResult.Errors;
+        }
 
-        var durationResolution = await ResolveDurationAsync(command.GroomerId, command.PetId, resolution, cancellationToken);
+        var resolution = resolutionResult.Value;
+        var durationResolutionResult = await ResolveDurationAsync(command.GroomerId, command.PetId, resolution, cancellationToken);
+        if (durationResolutionResult.IsError)
+        {
+            return durationResolutionResult.Errors;
+        }
+
+        var durationResolution = durationResolutionResult.Value;
         var actorGuid = ParseGuid(actorUserId);
 
         var priceSnapshot = new PriceSnapshot
@@ -86,7 +101,7 @@ public sealed class BookingSnapshotComposer(
             resolution.Items.Select(x => new QuotePreviewItemView(x.OfferId, x.OfferVersionId, x.OfferCode, x.OfferType, x.DisplayName, x.PriceAmount, x.ServiceMinutes, x.ReservedMinutes)).ToArray());
     }
 
-    public async Task<AppointmentCompositionResult> ComposeAppointmentAsync(
+    public async Task<ErrorOr<AppointmentCompositionResult>> ComposeAppointmentAsync(
         Guid petId,
         Guid groomerId,
         DateTime startAtUtc,
@@ -94,19 +109,34 @@ public sealed class BookingSnapshotComposer(
         string? actorUserId,
         CancellationToken cancellationToken)
     {
-        var normalizedStartAtUtc = BookingTimeInputNormalizer.AssumeUtc(startAtUtc, nameof(startAtUtc));
-        if (items.Count == 0)
+        var normalizedStartAtUtcResult = BookingTimeInputNormalizer.TryAssumeUtc(startAtUtc, nameof(startAtUtc));
+        if (normalizedStartAtUtcResult.IsError)
         {
-            throw new InvalidOperationException("At least one appointment item is required.");
+            return normalizedStartAtUtcResult.Errors;
         }
 
-        var pet = await petQuoteProfileService.GetPetAsync(petId, cancellationToken)
-            ?? throw new InvalidOperationException("Pet does not exist.");
+        var normalizedStartAtUtc = normalizedStartAtUtcResult.Value;
+        if (items.Count == 0)
+        {
+            return Error.Validation("Booking.AppointmentItemRequired", "At least one appointment item is required.");
+        }
 
-        var overallResolution = await catalogQuoteResolver.ResolveAsync(
+        var pet = await petQuoteProfileService.GetPetAsync(petId, cancellationToken);
+        if (pet is null)
+        {
+            return Error.NotFound("Booking.PetNotFound", "Pet does not exist.");
+        }
+
+        var overallResolutionResult = await catalogQuoteResolver.ResolveAsync(
             pet,
             items.Select(x => new QuotePreviewCatalogItem(x.OfferId, x.ItemType)).ToArray(),
             cancellationToken);
+        if (overallResolutionResult.IsError)
+        {
+            return overallResolutionResult.Errors;
+        }
+
+        var overallResolution = overallResolutionResult.Value;
 
         var availabilityResult = await staffSchedulingService.CheckAvailabilityAsync(
             groomerId,
@@ -118,13 +148,13 @@ public sealed class BookingSnapshotComposer(
             cancellationToken);
         if (availabilityResult.IsError)
         {
-            throw new InvalidOperationException(availabilityResult.FirstError.Description);
+            return availabilityResult.Errors;
         }
 
         var availability = availabilityResult.Value;
         if (!availability.IsAvailable)
         {
-            throw new InvalidOperationException(string.Join(" ", availability.Reasons));
+            return Error.Validation("Booking.AppointmentSlotUnavailable", string.Join(" ", availability.Reasons));
         }
 
         var actorGuid = ParseGuid(actorUserId);
@@ -132,11 +162,16 @@ public sealed class BookingSnapshotComposer(
 
         foreach (var item in items)
         {
-            var singleResolution = await catalogQuoteResolver.ResolveAsync(
+            var singleResolutionResult = await catalogQuoteResolver.ResolveAsync(
                 pet,
                 [new QuotePreviewCatalogItem(item.OfferId, item.ItemType)],
                 cancellationToken);
+            if (singleResolutionResult.IsError)
+            {
+                return singleResolutionResult.Errors;
+            }
 
+            var singleResolution = singleResolutionResult.Value;
             var resolvedItem = singleResolution.Items.Single();
             var priceSnapshot = new PriceSnapshot
             {
@@ -242,7 +277,7 @@ public sealed class BookingSnapshotComposer(
             perItemCompositions);
     }
 
-    private async Task<ResolvedDurationLines> ResolveDurationAsync(Guid? groomerId, Guid petId, CatalogQuoteResolution resolution, CancellationToken cancellationToken)
+    private async Task<ErrorOr<ResolvedDurationLines>> ResolveDurationAsync(Guid? groomerId, Guid petId, CatalogQuoteResolution resolution, CancellationToken cancellationToken)
     {
         var effectiveReservedMinutes = resolution.ReservedMinutes;
         var durationLines = resolution.DurationLines.ToList();
@@ -257,7 +292,7 @@ public sealed class BookingSnapshotComposer(
                 cancellationToken);
             if (durationResolutionResult.IsError)
             {
-                throw new InvalidOperationException(durationResolutionResult.FirstError.Description);
+                return durationResolutionResult.Errors;
             }
 
             var durationResolution = durationResolutionResult.Value;

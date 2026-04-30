@@ -1,3 +1,4 @@
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -11,26 +12,36 @@ public sealed class GroomerVisitQueries(
     IAppointmentVisitService appointmentVisitService,
     IGroomerProfileReadService groomerProfileReadService)
 {
-    public async Task<GroomerVisitDetailView?> CheckInAppointmentAsync(Guid currentUserId, Guid appointmentId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<GroomerVisitDetailView>> CheckInAppointmentAsync(Guid currentUserId, Guid appointmentId, CancellationToken cancellationToken)
     {
         var groomer = await GetLinkedActiveGroomerAsync(currentUserId, cancellationToken);
-        var appointment = await appointmentVisitService.GetAppointmentAsync(appointmentId, cancellationToken);
-        if (appointment is null || appointment.GroomerId != groomer.GroomerId)
+        if (groomer.IsError)
         {
-            return null;
+            return groomer.Errors;
+        }
+
+        var appointment = await appointmentVisitService.GetAppointmentAsync(appointmentId, cancellationToken);
+        if (appointment is null || appointment.GroomerId != groomer.Value.GroomerId)
+        {
+            return Error.NotFound("VisitOperations.AppointmentNotFound", "Appointment does not exist.");
         }
 
         var result = await visitQueries.CheckInAppointmentAsync(appointmentId, currentUserId, cancellationToken);
-        return result is null ? null : Map(result);
+        return result.IsError ? result.Errors : Map(result.Value);
     }
 
-    public async Task<GroomerVisitDetailView?> GetVisitByAppointmentAsync(Guid currentUserId, Guid appointmentId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<GroomerVisitDetailView>> GetVisitByAppointmentAsync(Guid currentUserId, Guid appointmentId, CancellationToken cancellationToken)
     {
         var groomer = await GetLinkedActiveGroomerAsync(currentUserId, cancellationToken);
-        var appointment = await appointmentVisitService.GetAppointmentAsync(appointmentId, cancellationToken);
-        if (appointment is null || appointment.GroomerId != groomer.GroomerId)
+        if (groomer.IsError)
         {
-            return null;
+            return groomer.Errors;
+        }
+
+        var appointment = await appointmentVisitService.GetAppointmentAsync(appointmentId, cancellationToken);
+        if (appointment is null || appointment.GroomerId != groomer.Value.GroomerId)
+        {
+            return Error.NotFound("VisitOperations.AppointmentNotFound", "Appointment does not exist.");
         }
 
         var visitId = await dbContext.Set<Visit>()
@@ -40,55 +51,62 @@ public sealed class GroomerVisitQueries(
 
         if (!visitId.HasValue)
         {
-            return null;
+            return Error.NotFound("VisitOperations.VisitNotFound", "Visit does not exist.");
         }
 
         var result = await visitQueries.GetVisitAsync(visitId.Value, currentUserId, cancellationToken, recordAccessAudit: false);
-        return result is null ? null : Map(result);
+        return result is null
+            ? Error.NotFound("VisitOperations.VisitNotFound", "Visit does not exist.")
+            : Map(result);
     }
 
-    public async Task<GroomerVisitDetailView?> GetVisitAsync(Guid currentUserId, Guid visitId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<GroomerVisitDetailView>> GetVisitAsync(Guid currentUserId, Guid visitId, CancellationToken cancellationToken)
     {
         var groomer = await GetLinkedActiveGroomerAsync(currentUserId, cancellationToken);
-        var result = await visitQueries.GetVisitAsync(visitId, currentUserId, cancellationToken, recordAccessAudit: false);
-        if (result is null || result.GroomerId != groomer.GroomerId)
+        if (groomer.IsError)
         {
-            return null;
+            return groomer.Errors;
+        }
+
+        var result = await visitQueries.GetVisitAsync(visitId, currentUserId, cancellationToken, recordAccessAudit: false);
+        if (result is null || result.GroomerId != groomer.Value.GroomerId)
+        {
+            return Error.NotFound("VisitOperations.VisitNotFound", "Visit does not exist.");
         }
 
         return Map(result);
     }
 
-    public async Task<GroomerVisitDetailView?> RecordPerformedProcedureAsync(Guid currentUserId, Guid visitId, Guid visitExecutionItemId, Guid procedureId, string? note, CancellationToken cancellationToken)
+    public async Task<ErrorOr<GroomerVisitDetailView>> RecordPerformedProcedureAsync(Guid currentUserId, Guid visitId, Guid visitExecutionItemId, Guid procedureId, string? note, CancellationToken cancellationToken)
     {
         var existing = await GetVisitAsync(currentUserId, visitId, cancellationToken);
-        if (existing is null)
+        if (existing.IsError)
         {
-            return null;
+            return existing.Errors;
         }
 
         var result = await visitQueries.RecordPerformedProcedureAsync(visitId, visitExecutionItemId, procedureId, note, currentUserId, cancellationToken);
-        return result is null ? null : Map(result);
+        return result.IsError ? result.Errors : Map(result.Value);
     }
 
-    public async Task<GroomerVisitDetailView?> RecordSkippedComponentAsync(Guid currentUserId, Guid visitId, Guid visitExecutionItemId, Guid offerVersionComponentId, string omissionReasonCode, string? note, CancellationToken cancellationToken)
+    public async Task<ErrorOr<GroomerVisitDetailView>> RecordSkippedComponentAsync(Guid currentUserId, Guid visitId, Guid visitExecutionItemId, Guid offerVersionComponentId, string omissionReasonCode, string? note, CancellationToken cancellationToken)
     {
         var existing = await GetVisitAsync(currentUserId, visitId, cancellationToken);
-        if (existing is null)
+        if (existing.IsError)
         {
-            return null;
+            return existing.Errors;
         }
 
         var result = await visitQueries.RecordSkippedComponentAsync(visitId, visitExecutionItemId, offerVersionComponentId, omissionReasonCode, note, currentUserId, cancellationToken);
-        return result is null ? null : Map(result);
+        return result.IsError ? result.Errors : Map(result.Value);
     }
 
-    private async Task<GroomerProfileReadModel> GetLinkedActiveGroomerAsync(Guid currentUserId, CancellationToken cancellationToken)
+    private async Task<ErrorOr<GroomerProfileReadModel>> GetLinkedActiveGroomerAsync(Guid currentUserId, CancellationToken cancellationToken)
     {
         var groomer = await groomerProfileReadService.GetByUserIdAsync(currentUserId, cancellationToken);
         if (groomer is null || !groomer.Active)
         {
-            throw new UnauthorizedAccessException("Current user is not linked to an active groomer profile.");
+            return Error.Forbidden("VisitOperations.GroomerProfileRequired", "Current user is not linked to an active groomer profile.");
         }
 
         return groomer;

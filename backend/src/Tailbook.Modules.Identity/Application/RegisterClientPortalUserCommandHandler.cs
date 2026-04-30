@@ -1,4 +1,3 @@
-﻿using FastEndpoints;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
@@ -12,18 +11,8 @@ public class RegisterClientPortalUserCommandHandler(
     AppDbContext dbContext,
     PasswordHasher passwordHasher,
     IClientOnboardingService clientOnboardingService
-) : ICommandHandler<RegisterClientPortalUserCommand>
+)
 {
-    public async Task ExecuteAsync(RegisterClientPortalUserCommand command,
-        CancellationToken cancellationToken)
-    {
-        var result = await ExecuteResultAsync(command, cancellationToken);
-        if (result.IsError)
-        {
-            throw new InvalidOperationException(result.FirstError.Description);
-        }
-    }
-
     public async Task<ErrorOr<bool>> ExecuteResultAsync(RegisterClientPortalUserCommand command,
         CancellationToken cancellationToken)
     {

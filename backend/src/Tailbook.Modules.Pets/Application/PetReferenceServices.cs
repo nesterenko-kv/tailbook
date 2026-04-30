@@ -1,3 +1,4 @@
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -121,12 +122,18 @@ public sealed class PetReferenceServices(AppDbContext dbContext)
             return null;
         }
 
-        var taxonomy = await ResolveQuoteTaxonomyAsync(
+        var taxonomyResult = await ResolveQuoteTaxonomyAsync(
             pet.AnimalType.Id,
             pet.Breed.Id,
             pet.Pet.CoatTypeId,
             pet.Pet.SizeCategoryId,
             cancellationToken);
+        if (taxonomyResult.IsError)
+        {
+            return null;
+        }
+
+        var taxonomy = taxonomyResult.Value;
 
         return new PetQuoteProfile(
             pet.Pet.Id,
@@ -148,14 +155,20 @@ public sealed class PetReferenceServices(AppDbContext dbContext)
             taxonomy.SizeCategory?.Name);
     }
 
-    public async Task<PetQuoteProfile> CreateAdHocAsync(PetQuoteProfileInput input, CancellationToken cancellationToken)
+    public async Task<ErrorOr<PetQuoteProfile>> CreateAdHocAsync(PetQuoteProfileInput input, CancellationToken cancellationToken)
     {
-        var taxonomy = await ResolveQuoteTaxonomyAsync(
+        var taxonomyResult = await ResolveQuoteTaxonomyAsync(
             input.AnimalTypeId,
             input.BreedId,
             input.CoatTypeId,
             input.SizeCategoryId,
             cancellationToken);
+        if (taxonomyResult.IsError)
+        {
+            return taxonomyResult.Errors;
+        }
+
+        var taxonomy = taxonomyResult.Value;
 
         return new PetQuoteProfile(
             Guid.Empty,
@@ -177,7 +190,7 @@ public sealed class PetReferenceServices(AppDbContext dbContext)
             taxonomy.SizeCategory?.Name);
     }
 
-    private async Task<ResolvedQuoteTaxonomy> ResolveQuoteTaxonomyAsync(
+    private async Task<ErrorOr<ResolvedQuoteTaxonomy>> ResolveQuoteTaxonomyAsync(
         Guid animalTypeId,
         Guid breedId,
         Guid? coatTypeId,
@@ -185,16 +198,22 @@ public sealed class PetReferenceServices(AppDbContext dbContext)
         CancellationToken cancellationToken)
     {
         var animalType = await dbContext.Set<AnimalType>()
-            .SingleOrDefaultAsync(x => x.Id == animalTypeId, cancellationToken)
-            ?? throw new InvalidOperationException("Animal type does not exist.");
+            .SingleOrDefaultAsync(x => x.Id == animalTypeId, cancellationToken);
+        if (animalType is null)
+        {
+            return Error.NotFound("Pets.AnimalTypeNotFound", "Animal type does not exist.");
+        }
 
         var breed = await dbContext.Set<Breed>()
-            .SingleOrDefaultAsync(x => x.Id == breedId, cancellationToken)
-            ?? throw new InvalidOperationException("Breed does not exist.");
+            .SingleOrDefaultAsync(x => x.Id == breedId, cancellationToken);
+        if (breed is null)
+        {
+            return Error.NotFound("Pets.BreedNotFound", "Breed does not exist.");
+        }
 
         if (breed.AnimalTypeId != animalType.Id)
         {
-            throw new InvalidOperationException("Breed must belong to the selected animal type.");
+            return Error.Validation("Pets.BreedAnimalTypeMismatch", "Breed must belong to the selected animal type.");
         }
 
         BreedGroup? breedGroup = null;
@@ -208,12 +227,15 @@ public sealed class PetReferenceServices(AppDbContext dbContext)
         if (coatTypeId is not null)
         {
             coatType = await dbContext.Set<CoatType>()
-                .SingleOrDefaultAsync(x => x.Id == coatTypeId.Value, cancellationToken)
-                ?? throw new InvalidOperationException("Coat type does not exist.");
+                .SingleOrDefaultAsync(x => x.Id == coatTypeId.Value, cancellationToken);
+            if (coatType is null)
+            {
+                return Error.NotFound("Pets.CoatTypeNotFound", "Coat type does not exist.");
+            }
 
             if (coatType.AnimalTypeId is not null && coatType.AnimalTypeId != animalType.Id)
             {
-                throw new InvalidOperationException("Coat type must belong to the selected animal type when scoped by animal type.");
+                return Error.Validation("Pets.CoatTypeAnimalTypeMismatch", "Coat type must belong to the selected animal type when scoped by animal type.");
             }
 
             var isAllowedForBreed = await dbContext.Set<BreedAllowedCoatType>()
@@ -221,7 +243,7 @@ public sealed class PetReferenceServices(AppDbContext dbContext)
 
             if (!isAllowedForBreed)
             {
-                throw new InvalidOperationException($"Coat type '{coatType.Name}' is not allowed for breed '{breed.Name}'.");
+                return Error.Validation("Pets.CoatTypeBreedMismatch", $"Coat type '{coatType.Name}' is not allowed for breed '{breed.Name}'.");
             }
         }
 
@@ -229,12 +251,15 @@ public sealed class PetReferenceServices(AppDbContext dbContext)
         if (sizeCategoryId is not null)
         {
             sizeCategory = await dbContext.Set<SizeCategory>()
-                .SingleOrDefaultAsync(x => x.Id == sizeCategoryId.Value, cancellationToken)
-                ?? throw new InvalidOperationException("Size category does not exist.");
+                .SingleOrDefaultAsync(x => x.Id == sizeCategoryId.Value, cancellationToken);
+            if (sizeCategory is null)
+            {
+                return Error.NotFound("Pets.SizeCategoryNotFound", "Size category does not exist.");
+            }
 
             if (sizeCategory.AnimalTypeId is not null && sizeCategory.AnimalTypeId != animalType.Id)
             {
-                throw new InvalidOperationException("Size category must belong to the selected animal type when scoped by animal type.");
+                return Error.Validation("Pets.SizeCategoryAnimalTypeMismatch", "Size category must belong to the selected animal type when scoped by animal type.");
             }
 
             var isAllowedForBreed = await dbContext.Set<BreedAllowedSizeCategory>()
@@ -242,7 +267,7 @@ public sealed class PetReferenceServices(AppDbContext dbContext)
 
             if (!isAllowedForBreed)
             {
-                throw new InvalidOperationException($"Size category '{sizeCategory.Name}' is not allowed for breed '{breed.Name}'.");
+                return Error.Validation("Pets.SizeCategoryBreedMismatch", $"Size category '{sizeCategory.Name}' is not allowed for breed '{breed.Name}'.");
             }
         }
 

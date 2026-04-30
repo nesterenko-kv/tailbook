@@ -1,6 +1,7 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Groomer.GetAppointmentVisit;
@@ -17,21 +18,14 @@ public sealed class GetAppointmentVisitEndpoint(GroomerVisitQueries groomerVisit
 
     public override async Task HandleAsync(GetAppointmentVisitRequest req, CancellationToken ct)
     {
-        try
+        var result = await groomerVisitQueries.GetVisitByAppointmentAsync(req.UserId, req.AppointmentId, ct);
+        if (result.IsError)
         {
-            var result = await groomerVisitQueries.GetVisitByAppointmentAsync(req.UserId, req.AppointmentId, ct);
-            if (result is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
 
-            await Send.OkAsync(result, ct);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            await Send.ForbiddenAsync(ct);
-        }
+        await Send.OkAsync(result.Value, ct);
     }
 }
 

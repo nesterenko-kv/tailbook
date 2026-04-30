@@ -121,6 +121,7 @@ public sealed class NotificationQueriesTests
 
     private static AppDbContext CreateDbContext()
     {
+        TestModelConfiguration.Configure();
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase($"tailbook-notifications-{Guid.NewGuid():N}")
             .Options;

@@ -6,14 +6,7 @@ public sealed class BookingQuoteQueries(BookingSnapshotComposer bookingSnapshotC
 {
     public async Task<ErrorOr<QuotePreviewView>> PreviewQuoteAsync(PreviewQuoteCommand command, string? actorUserId, CancellationToken cancellationToken)
     {
-        try
-        {
-            return await bookingSnapshotComposer.CreatePreviewAsync(command, actorUserId, cancellationToken);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Error.Validation("Booking.QuotePreviewFailed", ex.Message);
-        }
+        return await bookingSnapshotComposer.CreatePreviewAsync(command, actorUserId, cancellationToken);
     }
 }
 

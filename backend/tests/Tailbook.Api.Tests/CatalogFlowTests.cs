@@ -105,7 +105,7 @@ public sealed class CatalogFlowTests : IClassFixture<CustomWebApplicationFactory
             sequenceNo = 2,
             defaultExpected = true
         });
-        Assert.Equal(HttpStatusCode.BadRequest, addAfterPublishResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, addAfterPublishResponse.StatusCode);
     }
 
     [Fact]

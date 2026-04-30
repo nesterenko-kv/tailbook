@@ -51,8 +51,12 @@ public sealed class PublicBookingQueries(
                 command.CoatTypeId,
                 command.SizeCategoryId),
             cancellationToken);
+        if (guestPet.IsError)
+        {
+            return guestPet.Errors;
+        }
 
-        return new PublicPetResolutionView(guestPet, false);
+        return new PublicPetResolutionView(guestPet.Value, false);
     }
 
     public async Task<ErrorOr<IReadOnlyCollection<ClientBookableOfferView>>> ListBookableOffersAsync(
@@ -78,27 +82,25 @@ public sealed class PublicBookingQueries(
         var result = new List<ClientBookableOfferView>();
         foreach (var offer in offers)
         {
-            try
+            var resolutionResult = await catalogQuoteResolver.ResolveAsync(
+                resolvedPet.Value.Pet,
+                [new QuotePreviewCatalogItem(offer.Id, offer.OfferType)],
+                cancellationToken);
+            if (resolutionResult.IsError)
             {
-                var resolution = await catalogQuoteResolver.ResolveAsync(
-                    resolvedPet.Value.Pet,
-                    [new QuotePreviewCatalogItem(offer.Id, offer.OfferType)],
-                    cancellationToken);
+                continue;
+            }
 
-                var item = resolution.Items.Single();
-                result.Add(new ClientBookableOfferView(
-                    item.OfferId,
-                    item.OfferType,
-                    item.DisplayName,
-                    resolution.Currency,
-                    item.PriceAmount,
-                    item.ServiceMinutes,
-                    item.ReservedMinutes));
-            }
-            catch (InvalidOperationException)
-            {
-                // Skip offers that are not currently bookable for the selected pet profile.
-            }
+            var resolution = resolutionResult.Value;
+            var item = resolution.Items.Single();
+            result.Add(new ClientBookableOfferView(
+                item.OfferId,
+                item.OfferType,
+                item.DisplayName,
+                resolution.Currency,
+                item.PriceAmount,
+                item.ServiceMinutes,
+                item.ReservedMinutes));
         }
 
         return result
@@ -145,80 +147,67 @@ public sealed class PublicBookingQueries(
         var groomerViews = new List<PublicPlannerGroomerView>();
         foreach (var groomer in groomers)
         {
-            try
-            {
-                var durationResult = await staffSchedulingService.ResolveReservedDurationAsync(
-                    groomer.GroomerId,
-                    resolvedPet.Value.Pet,
-                    offerIds,
-                    quote.Value.DurationSnapshot.ReservedMinutes,
-                    cancellationToken);
-                if (durationResult.IsError)
-                {
-                    groomerViews.Add(new PublicPlannerGroomerView(
-                        groomer.GroomerId,
-                        groomer.DisplayName,
-                        false,
-                        quote.Value.DurationSnapshot.ReservedMinutes,
-                        durationResult.Errors.Select(error => error.Description).ToArray(),
-                        []));
-                    continue;
-                }
-
-                var duration = durationResult.Value;
-
-                var windows = await staffSchedulingService.GetAvailabilityWindowsAsync(
-                    groomer.GroomerId,
-                    command.LocalDate,
-                    cancellationToken);
-
-                var slots = new List<PublicPlannerSlotView>();
-                foreach (var window in windows)
-                {
-                    foreach (var slotStartAtUtc in GenerateSlotStarts(window, duration.EffectiveReservedMinutes, earliestStartAtUtc))
-                    {
-                        var availabilityResult = await staffSchedulingService.CheckAvailabilityAsync(
-                            groomer.GroomerId,
-                            resolvedPet.Value.Pet,
-                            offerIds,
-                            slotStartAtUtc,
-                            quote.Value.DurationSnapshot.ReservedMinutes,
-                            null,
-                            cancellationToken);
-                        if (availabilityResult.IsError)
-                        {
-                            continue;
-                        }
-
-                        var availability = availabilityResult.Value;
-                        if (availability.IsAvailable)
-                        {
-                            slots.Add(new PublicPlannerSlotView(
-                                slotStartAtUtc,
-                                availability.EndAtUtc,
-                                [groomer.GroomerId]));
-                        }
-                    }
-                }
-
-                groomerViews.Add(new PublicPlannerGroomerView(
-                    groomer.GroomerId,
-                    groomer.DisplayName,
-                    true,
-                    duration.EffectiveReservedMinutes,
-                    slots.Count > 0 ? duration.Reasons : duration.Reasons.Concat(["No exact slots available on the selected date."]).ToArray(),
-                    slots));
-            }
-            catch (InvalidOperationException ex)
+            var durationResult = await staffSchedulingService.ResolveReservedDurationAsync(
+                groomer.GroomerId,
+                resolvedPet.Value.Pet,
+                offerIds,
+                quote.Value.DurationSnapshot.ReservedMinutes,
+                cancellationToken);
+            if (durationResult.IsError)
             {
                 groomerViews.Add(new PublicPlannerGroomerView(
                     groomer.GroomerId,
                     groomer.DisplayName,
                     false,
                     quote.Value.DurationSnapshot.ReservedMinutes,
-                    [ex.Message],
+                    durationResult.Errors.Select(error => error.Description).ToArray(),
                     []));
+                continue;
             }
+
+            var duration = durationResult.Value;
+
+            var windows = await staffSchedulingService.GetAvailabilityWindowsAsync(
+                groomer.GroomerId,
+                command.LocalDate,
+                cancellationToken);
+
+            var slots = new List<PublicPlannerSlotView>();
+            foreach (var window in windows)
+            {
+                foreach (var slotStartAtUtc in GenerateSlotStarts(window, duration.EffectiveReservedMinutes, earliestStartAtUtc))
+                {
+                    var availabilityResult = await staffSchedulingService.CheckAvailabilityAsync(
+                        groomer.GroomerId,
+                        resolvedPet.Value.Pet,
+                        offerIds,
+                        slotStartAtUtc,
+                        quote.Value.DurationSnapshot.ReservedMinutes,
+                        null,
+                        cancellationToken);
+                    if (availabilityResult.IsError)
+                    {
+                        continue;
+                    }
+
+                    var availability = availabilityResult.Value;
+                    if (availability.IsAvailable)
+                    {
+                        slots.Add(new PublicPlannerSlotView(
+                            slotStartAtUtc,
+                            availability.EndAtUtc,
+                            [groomer.GroomerId]));
+                    }
+                }
+            }
+
+            groomerViews.Add(new PublicPlannerGroomerView(
+                groomer.GroomerId,
+                groomer.DisplayName,
+                true,
+                duration.EffectiveReservedMinutes,
+                slots.Count > 0 ? duration.Reasons : duration.Reasons.Concat(["No exact slots available on the selected date."]).ToArray(),
+                slots));
         }
 
         var anySuitableSlots = groomerViews
@@ -246,19 +235,16 @@ public sealed class PublicBookingQueries(
             return Error.Validation("Booking.OfferRequired", "At least one offer must be selected.");
         }
 
-        CatalogQuoteResolution resolution;
-        try
+        var resolutionResult = await catalogQuoteResolver.ResolveAsync(
+            pet,
+            items.Select(x => new QuotePreviewCatalogItem(x.OfferId, x.ItemType)).ToArray(),
+            cancellationToken);
+        if (resolutionResult.IsError)
         {
-            resolution = await catalogQuoteResolver.ResolveAsync(
-                pet,
-                items.Select(x => new QuotePreviewCatalogItem(x.OfferId, x.ItemType)).ToArray(),
-                cancellationToken);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Error.Validation("Booking.QuotePreviewFailed", ex.Message);
+            return resolutionResult.Errors;
         }
 
+        var resolution = resolutionResult.Value;
         return new QuotePreviewView(
             new PriceSnapshotView(
                 Guid.Empty,

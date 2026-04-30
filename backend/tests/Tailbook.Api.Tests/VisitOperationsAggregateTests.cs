@@ -201,7 +201,7 @@ public sealed class VisitOperationsAggregateTests
     [Fact]
     public async Task Visit_aggregate_round_trips_through_ef_core()
     {
-        new VisitOperationsModule().ConfigurePersistence();
+        TestModelConfiguration.Configure();
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase($"visit-aggregate-{Guid.NewGuid():N}")
             .Options;

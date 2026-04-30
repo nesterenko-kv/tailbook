@@ -2,6 +2,7 @@ using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.VisitOperations.Application;
 
 namespace Tailbook.Modules.VisitOperations.Api.Groomer.RecordPerformedProcedure;
@@ -18,26 +19,14 @@ public sealed class RecordOwnPerformedProcedureEndpoint(GroomerVisitQueries groo
 
     public override async Task HandleAsync(RecordOwnPerformedProcedureRequest req, CancellationToken ct)
     {
-        try
+        var result = await groomerVisitQueries.RecordPerformedProcedureAsync(req.UserId, req.VisitId, req.VisitExecutionItemId, req.ProcedureId, req.Note, ct);
+        if (result.IsError)
         {
-            var result = await groomerVisitQueries.RecordPerformedProcedureAsync(req.UserId, req.VisitId, req.VisitExecutionItemId, req.ProcedureId, req.Note, ct);
-            if (result is null)
-            {
-                await Send.NotFoundAsync(ct);
-                return;
-            }
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
 
-            await Send.OkAsync(result, ct);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            await Send.ForbiddenAsync(ct);
-        }
-        catch (InvalidOperationException ex)
-        {
-            AddError(ex.Message);
-            await Send.ErrorsAsync(cancellation: ct);
-        }
+        await Send.OkAsync(result.Value, ct);
     }
 }
 
