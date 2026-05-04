@@ -319,7 +319,7 @@ public sealed class BookingManagementUseCases(
             bookingRequest.PetId.Value,
             command.GroomerId,
             command.StartAtUtc,
-            requestItems.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray(),
+            requestItems.Select(x => new PreviewQuoteItemQuery(x.OfferId, x.ItemType)).ToArray(),
             actorUserId,
             cancellationToken);
         if (result.IsError)
@@ -347,7 +347,7 @@ public sealed class BookingManagementUseCases(
             command.PetId,
             command.GroomerId,
             command.StartAtUtc,
-            command.Items.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray(),
+            command.Items.Select(x => new PreviewQuoteItemQuery(x.OfferId, x.ItemType)).ToArray(),
             actorUserId,
             cancellationToken);
     }
@@ -357,7 +357,7 @@ public sealed class BookingManagementUseCases(
         Guid petId,
         Guid groomerId,
         DateTime startAtUtc,
-        IReadOnlyCollection<PreviewQuoteItemCommand> items,
+        IReadOnlyCollection<PreviewQuoteItemQuery> items,
         string? actorUserId,
         CancellationToken cancellationToken)
     {

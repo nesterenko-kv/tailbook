@@ -9,7 +9,7 @@ namespace Tailbook.Modules.Booking.Infrastructure.Services;
 public sealed class ClientPortalBookingUseCases(
     AppDbContext dbContext,
     BookingManagementUseCases bookingManagementUseCases,
-    BookingQuoteQueries bookingQuoteQueries,
+    BookingQuoteReadService bookingQuoteReadService,
     IPetSummaryReadService petSummaryReadService,
     IPetQuoteProfileService petQuoteProfileService,
     ICatalogQuoteResolver catalogQuoteResolver,
@@ -75,7 +75,7 @@ public sealed class ClientPortalBookingUseCases(
             .ToArray();
     }
 
-    public async Task<ErrorOr<QuotePreviewView>> PreviewMyQuoteAsync(ClientPortalActor actor, PreviewQuoteCommand command,
+    public async Task<ErrorOr<QuotePreviewView>> PreviewMyQuoteAsync(ClientPortalActor actor, PreviewQuoteQuery command,
         CancellationToken cancellationToken)
     {
         var pet = await petQuoteProfileService.GetPetAsync(command.PetId, cancellationToken);
@@ -84,7 +84,7 @@ public sealed class ClientPortalBookingUseCases(
             return Error.NotFound("Booking.PetNotFound", "Pet does not exist.");
         }
 
-        return await bookingQuoteQueries.PreviewQuoteAsync(command, actor.UserId.ToString("D"), cancellationToken);
+        return await bookingQuoteReadService.PreviewQuoteAsync(command, actor.UserId.ToString("D"), cancellationToken);
     }
 
     public async Task<IReadOnlyCollection<ClientAppointmentSummaryView>> ListMyAppointmentsAsync(Guid clientId,

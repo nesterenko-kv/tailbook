@@ -42,7 +42,7 @@ Each `Tailbook.Modules.*` project remains intact and uses the same internal shap
 
 Module `GlobalUsings.cs` files intentionally avoid Infrastructure namespaces. `<ModuleName>Module.cs` files import Infrastructure explicitly to wire implementations to Application interfaces and BuildingBlocks abstractions.
 
-Mutating endpoint flows use FastEndpoints command records under module `Application/.../Commands` and Infrastructure command handlers. Read endpoints depend on read-service interfaces such as `I*ReadService`; remaining `*Queries` services are read-only helpers/projections.
+Mutating endpoint flows use FastEndpoints command records under module `Application/.../Commands` and Infrastructure command handlers. Read endpoints depend on read-service interfaces such as `I*ReadService`; read input shapes use query naming where appropriate.
 
 ## Operations
 - `ops/runbooks/local-production.md`

@@ -28,8 +28,8 @@ public sealed class PreviewMyQuoteEndpoint(
 
         var result = await bookingReadService.PreviewMyQuoteAsync(
             actor,
-            new PreviewQuoteCommand(req.PetId, null,
-                req.Items.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray()),
+            new PreviewQuoteQuery(req.PetId, null,
+                req.Items.Select(x => new PreviewQuoteItemQuery(x.OfferId, x.ItemType)).ToArray()),
             ct);
 
         if (result.IsError)

@@ -1,7 +1,5 @@
 namespace Tailbook.Modules.Catalog.Application.Catalog.Models;
 
-public sealed record CreatePriceRuleCommand(Guid RuleSetId, Guid OfferId, int Priority, decimal FixedAmount, string Currency, RuleConditionInput Condition);
-public sealed record CreateDurationRuleCommand(Guid RuleSetId, Guid OfferId, int Priority, int BaseMinutes, int BufferBeforeMinutes, int BufferAfterMinutes, RuleConditionInput Condition);
 public sealed record RuleConditionInput(Guid? AnimalTypeId, Guid? BreedId, Guid? BreedGroupId, Guid? CoatTypeId, Guid? SizeCategoryId);
 
 public sealed record RuleConditionView(Guid? AnimalTypeId, Guid? BreedId, Guid? BreedGroupId, Guid? CoatTypeId, Guid? SizeCategoryId);

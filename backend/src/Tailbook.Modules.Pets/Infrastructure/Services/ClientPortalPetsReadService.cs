@@ -3,7 +3,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
 namespace Tailbook.Modules.Pets.Infrastructure.Services;
 
-public sealed class ClientPortalPetsQueries(AppDbContext dbContext) : IClientPortalPetsQueries
+public sealed class ClientPortalPetsReadService(AppDbContext dbContext) : IClientPortalPetsReadService
 {
     public async Task<IReadOnlyCollection<ClientPetSummaryView>> ListMyPetsAsync(Guid clientId, CancellationToken cancellationToken)
     {

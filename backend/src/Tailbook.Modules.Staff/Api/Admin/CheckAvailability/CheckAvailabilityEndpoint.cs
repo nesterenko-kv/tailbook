@@ -18,7 +18,7 @@ public sealed class CheckAvailabilityEndpoint(IStaffReadService staffReadService
     public override async Task HandleAsync(CheckAvailabilityRequest req, CancellationToken ct)
     {
         var result = await staffReadService.CheckAvailabilityAsync(
-            new CheckGroomerAvailabilityCommand(req.GroomerId, req.PetId, req.StartAtUtc, req.ReservedMinutes, req.OfferIds),
+            new CheckGroomerAvailabilityQuery(req.GroomerId, req.PetId, req.StartAtUtc, req.ReservedMinutes, req.OfferIds),
             ct);
 
         if (result.IsError)

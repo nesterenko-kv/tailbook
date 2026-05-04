@@ -20,10 +20,10 @@ public sealed class ReportingAccuracyTests : IClassFixture<CustomWebApplicationF
     {
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var queries = scope.ServiceProvider.GetRequiredService<ReportingQueries>();
+        var reportingReadService = scope.ServiceProvider.GetRequiredService<ReportingReadService>();
         var scenario = await SeedReportingScenarioAsync(dbContext, skippedComponentCount: 1);
 
-        var items = await queries.GetEstimateAccuracyAsync(null, null, CancellationToken.None);
+        var items = await reportingReadService.GetEstimateAccuracyAsync(null, null, CancellationToken.None);
 
         var item = Assert.Single(items, x => x.VisitId == scenario.VisitId);
         Assert.Equal(1500m, item.EstimatedAmount);
@@ -39,10 +39,10 @@ public sealed class ReportingAccuracyTests : IClassFixture<CustomWebApplicationF
     {
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var queries = scope.ServiceProvider.GetRequiredService<ReportingQueries>();
+        var reportingReadService = scope.ServiceProvider.GetRequiredService<ReportingReadService>();
         var scenario = await SeedReportingScenarioAsync(dbContext, skippedComponentCount: 2);
 
-        var items = await queries.GetPackagePerformanceAsync(null, null, CancellationToken.None);
+        var items = await reportingReadService.GetPackagePerformanceAsync(null, null, CancellationToken.None);
 
         var item = Assert.Single(items, x => x.OfferId == scenario.OfferId);
         Assert.Equal(1, item.BookedCount);

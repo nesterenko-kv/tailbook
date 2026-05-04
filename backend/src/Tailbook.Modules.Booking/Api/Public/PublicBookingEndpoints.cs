@@ -12,7 +12,7 @@ namespace Tailbook.Modules.Booking.Api.Public;
 
 public sealed class ListPublicBookableOffersEndpoint(
     IClientPortalActorService actorService,
-    PublicBookingQueries queries)
+    PublicBookingReadService queries)
     : Endpoint<PublicBookableOffersRequest, IReadOnlyCollection<ClientBookableOfferResponse>>
 {
     public override void Configure()
@@ -47,7 +47,7 @@ public sealed class ListPublicBookableOffersEndpoint(
 
 public sealed class PreviewPublicQuoteEndpoint(
     IClientPortalActorService actorService,
-    PublicBookingQueries queries)
+    PublicBookingReadService queries)
     : Endpoint<PublicPreviewQuoteRequest, PublicQuotePreviewResponse>
 {
     public override void Configure()
@@ -62,9 +62,9 @@ public sealed class PreviewPublicQuoteEndpoint(
         var actor = await ResolveActorAsync(req.UserId, actorService, ct);
         var result = await queries.PreviewQuoteAsync(
             actor,
-            new PublicPreviewQuoteCommand(
+            new PublicPreviewQuoteQuery(
                 MapPet(req.Pet),
-                req.Items.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray()),
+                req.Items.Select(x => new PreviewQuoteItemQuery(x.OfferId, x.ItemType)).ToArray()),
             ct);
 
         if (result.IsError)
@@ -79,7 +79,7 @@ public sealed class PreviewPublicQuoteEndpoint(
 
 public sealed class BuildPublicBookingPlannerEndpoint(
     IClientPortalActorService actorService,
-    PublicBookingQueries queries)
+    PublicBookingReadService queries)
     : Endpoint<PublicBookingPlannerRequest, PublicBookingPlannerResponse>
 {
     public override void Configure()
@@ -101,10 +101,10 @@ public sealed class BuildPublicBookingPlannerEndpoint(
         var actor = await ResolveActorAsync(req.UserId, actorService, ct);
         var result = await queries.BuildPlannerAsync(
             actor,
-            new PublicBookingPlannerCommand(
+            new PublicBookingPlannerQuery(
                 MapPet(req.Pet),
                 localDate,
-                req.Items.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray()),
+                req.Items.Select(x => new PreviewQuoteItemQuery(x.OfferId, x.ItemType)).ToArray()),
             ct);
 
         if (result.IsError)
@@ -132,7 +132,7 @@ public sealed class BuildPublicBookingPlannerEndpoint(
 
 public sealed class CreatePublicBookingRequestEndpoint(
     IClientPortalActorService actorService,
-    PublicBookingQueries publicBookingQueries)
+    PublicBookingReadService publicBookingReadService)
     : Endpoint<CreatePublicBookingRequestRequest, BookingRequestDetailView>
 {
     public override void Configure()
@@ -152,7 +152,7 @@ public sealed class CreatePublicBookingRequestEndpoint(
             return;
         }
 
-        var resolvedPet = await publicBookingQueries.ResolvePetAsync(actor, MapPet(req.Pet), ct);
+        var resolvedPet = await publicBookingReadService.ResolvePetAsync(actor, MapPet(req.Pet), ct);
         if (resolvedPet.IsError)
         {
             await Send.ResultAsync(resolvedPet.Errors.ToHttpResult());
@@ -406,7 +406,7 @@ public sealed class PublicRequesterPayloadValidator : AbstractValidator<PublicRe
 
 internal static class PublicBookingEndpointMapper
 {
-    public static PublicPetSelectionCommand MapPet(PublicPetPayload payload)
+    public static PublicPetSelectionQuery MapPet(PublicPetPayload payload)
         => new(
             payload.PetId,
             payload.AnimalTypeId,

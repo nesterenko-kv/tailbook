@@ -2,8 +2,6 @@ using Tailbook.BuildingBlocks.Abstractions;
 
 namespace Tailbook.Modules.Pets.Application.Pets.Models;
 
-public sealed record RegisterPetCommand(Guid? ClientId, string Name, string AnimalTypeCode, Guid BreedId, string? CoatTypeCode, string? SizeCategoryCode, DateOnly? BirthDate, decimal? WeightKg, string? Notes);
-public sealed record UpdatePetCommand(string Name, string AnimalTypeCode, Guid BreedId, string? CoatTypeCode, string? SizeCategoryCode, DateOnly? BirthDate, decimal? WeightKg, string? Notes);
 public sealed record PetCatalogView(IReadOnlyCollection<AnimalTypeView> AnimalTypes, IReadOnlyCollection<BreedGroupView> BreedGroups, IReadOnlyCollection<BreedView> Breeds, IReadOnlyCollection<CoatTypeView> CoatTypes, IReadOnlyCollection<SizeCategoryView> SizeCategories);
 public sealed record AnimalTypeView(Guid Id, string Code, string Name);
 public sealed record BreedGroupView(Guid Id, Guid AnimalTypeId, string Code, string Name);

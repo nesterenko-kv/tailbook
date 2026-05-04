@@ -6,7 +6,7 @@ using Tailbook.Modules.Audit.Application.Common.Pagination;
 
 namespace Tailbook.Modules.Audit.Infrastructure.Persistence.ReadModels;
 
-public sealed class AuditEntryReadService(AppDbContext dbContext) : IAuditEntryQueries
+public sealed class AuditEntryReadService(AppDbContext dbContext) : IAuditEntryReadService
 {
     public async Task<PagedResult<AuditEntryReadModel>> ListAsync(ListAuditEntriesQuery request, CancellationToken cancellationToken)
     {

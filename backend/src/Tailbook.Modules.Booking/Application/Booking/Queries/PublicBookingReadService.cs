@@ -3,7 +3,7 @@ using Tailbook.BuildingBlocks.Abstractions;
 
 namespace Tailbook.Modules.Booking.Application.Booking.Queries;
 
-public sealed class PublicBookingQueries(
+public sealed class PublicBookingReadService(
     IPetQuoteProfileService petQuoteProfileService,
     ICatalogOfferReadService catalogOfferReadService,
     ICatalogQuoteResolver catalogQuoteResolver,
@@ -15,7 +15,7 @@ public sealed class PublicBookingQueries(
 
     public async Task<ErrorOr<PublicPetResolutionView>> ResolvePetAsync(
         ClientPortalActor? actor,
-        PublicPetSelectionCommand command,
+        PublicPetSelectionQuery command,
         CancellationToken cancellationToken)
     {
         if (command.PetId.HasValue)
@@ -61,7 +61,7 @@ public sealed class PublicBookingQueries(
 
     public async Task<ErrorOr<IReadOnlyCollection<ClientBookableOfferView>>> ListBookableOffersAsync(
         ClientPortalActor? actor,
-        PublicPetSelectionCommand pet,
+        PublicPetSelectionQuery pet,
         CancellationToken cancellationToken)
     {
         var resolvedPet = await ResolvePetAsync(actor, pet, cancellationToken);
@@ -111,7 +111,7 @@ public sealed class PublicBookingQueries(
 
     public async Task<ErrorOr<QuotePreviewView>> PreviewQuoteAsync(
         ClientPortalActor? actor,
-        PublicPreviewQuoteCommand command,
+        PublicPreviewQuoteQuery command,
         CancellationToken cancellationToken)
     {
         var resolvedPet = await ResolvePetAsync(actor, command.Pet, cancellationToken);
@@ -125,7 +125,7 @@ public sealed class PublicBookingQueries(
 
     public async Task<ErrorOr<PublicBookingPlannerView>> BuildPlannerAsync(
         ClientPortalActor? actor,
-        PublicBookingPlannerCommand command,
+        PublicBookingPlannerQuery command,
         CancellationToken cancellationToken)
     {
         var resolvedPet = await ResolvePetAsync(actor, command.Pet, cancellationToken);
@@ -227,7 +227,7 @@ public sealed class PublicBookingQueries(
 
     private async Task<ErrorOr<QuotePreviewView>> CreateQuotePreviewAsync(
         PetQuoteProfile pet,
-        IReadOnlyCollection<PreviewQuoteItemCommand> items,
+        IReadOnlyCollection<PreviewQuoteItemQuery> items,
         CancellationToken cancellationToken)
     {
         if (items.Count == 0)
@@ -296,7 +296,7 @@ public sealed class PublicBookingQueries(
     }
 }
 
-public sealed record PublicPetSelectionCommand(
+public sealed record PublicPetSelectionQuery(
     Guid? PetId,
     Guid? AnimalTypeId,
     Guid? BreedId,
@@ -310,14 +310,14 @@ public sealed record PublicPetResolutionView(
     PetQuoteProfile Pet,
     bool UsesSavedPet);
 
-public sealed record PublicPreviewQuoteCommand(
-    PublicPetSelectionCommand Pet,
-    IReadOnlyCollection<PreviewQuoteItemCommand> Items);
+public sealed record PublicPreviewQuoteQuery(
+    PublicPetSelectionQuery Pet,
+    IReadOnlyCollection<PreviewQuoteItemQuery> Items);
 
-public sealed record PublicBookingPlannerCommand(
-    PublicPetSelectionCommand Pet,
+public sealed record PublicBookingPlannerQuery(
+    PublicPetSelectionQuery Pet,
     DateOnly LocalDate,
-    IReadOnlyCollection<PreviewQuoteItemCommand> Items);
+    IReadOnlyCollection<PreviewQuoteItemQuery> Items);
 
 public sealed record PublicBookingPlannerView(
     QuotePreviewView Quote,

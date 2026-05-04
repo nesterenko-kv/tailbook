@@ -1034,3 +1034,33 @@ Risks:
 - Frontend checks were not rerun because routes, request contracts, and response shapes were intentionally preserved.
 Next:
 - Review the command/read-service split diff before commit.
+
+## 2026-05-04 — Read-service naming and command placement cleanup
+Status: PASS
+Date: 2026-05-04
+Goal:
+- Continue the command/query cleanup by removing stale `*Queries` service names and keeping command records in Application command folders.
+Modules touched:
+- Audit, Booking, Catalog, Customer, Identity, Pets, Reporting, Staff.
+Structure changes:
+- Renamed remaining read-only `*Queries` services/interfaces to `*ReadService`.
+- Renamed stale `*QueriesModels.cs` files to neutral `*Models.cs` names.
+- Moved command input records out of Models/Infrastructure and into `Application/.../Commands`.
+- Renamed Booking quote/public read input records from `*Command` to `*Query`.
+- Renamed Staff availability input from `CheckGroomerAvailabilityCommand` to `CheckGroomerAvailabilityQuery`.
+Tests:
+- Added an architecture guard that command records must live under Application `Commands`.
+Commands run:
+- `dotnet build backend\Tailbook.slnx --no-restore`
+- `dotnet test backend\tests\Tailbook.Architecture.Tests\Tailbook.Architecture.Tests.csproj --no-build`
+- `dotnet test backend\Tailbook.slnx --no-build`
+- `git diff --check`
+Results:
+- Backend build passed with 0 warnings and 0 errors.
+- Architecture tests passed: 92 tests.
+- Full backend tests passed: Architecture 92 tests, API 124 tests.
+- `git diff --check` passed with repository line-ending warnings only.
+Risks:
+- This was structural/naming cleanup only; endpoint route and response behavior was not intentionally changed.
+Next:
+- Review the large move/rename diff before commit.

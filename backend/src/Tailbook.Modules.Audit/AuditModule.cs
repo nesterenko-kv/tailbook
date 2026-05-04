@@ -22,8 +22,8 @@ public sealed class AuditModule : IModuleDefinition
 
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<IAccessAuditEntryQueries, AccessAuditEntryReadService>();
-        services.AddScoped<IAuditEntryQueries, AuditEntryReadService>();
+        services.AddScoped<IAccessAuditEntryReadService, AccessAuditEntryReadService>();
+        services.AddScoped<IAuditEntryReadService, AuditEntryReadService>();
         services.AddScoped<IAccessAuditService, AccessAuditService>();
         services.AddScoped<IAuditTrailService, AuditTrailService>();
         return services;

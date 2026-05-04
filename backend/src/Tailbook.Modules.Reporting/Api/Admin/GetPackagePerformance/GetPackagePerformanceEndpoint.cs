@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Reporting.Api.Admin.GetPackagePerformance;
 
-public sealed class GetPackagePerformanceEndpoint(IReportingQueries reportingQueries)
+public sealed class GetPackagePerformanceEndpoint(IReportingReadService reportingReadService)
     : Endpoint<GetPackagePerformanceRequest, GetPackagePerformanceResponse>
 {
     public override void Configure()
@@ -15,7 +15,7 @@ public sealed class GetPackagePerformanceEndpoint(IReportingQueries reportingQue
 
     public override async Task HandleAsync(GetPackagePerformanceRequest req, CancellationToken ct)
     {
-        var items = await reportingQueries.GetPackagePerformanceAsync(req.FromUtc, req.ToUtc, ct);
+        var items = await reportingReadService.GetPackagePerformanceAsync(req.FromUtc, req.ToUtc, ct);
         await Send.OkAsync(new GetPackagePerformanceResponse { Items = items }, ct);
     }
 }

@@ -11,7 +11,7 @@ public sealed class BookingSnapshotComposer(
     ICatalogQuoteResolver catalogQuoteResolver,
     IStaffSchedulingService staffSchedulingService) : IBookingSnapshotComposer
 {
-    public async Task<ErrorOr<QuotePreviewView>> CreatePreviewAsync(PreviewQuoteCommand command, string? actorUserId, CancellationToken cancellationToken)
+    public async Task<ErrorOr<QuotePreviewView>> CreatePreviewAsync(PreviewQuoteQuery command, string? actorUserId, CancellationToken cancellationToken)
     {
         var pet = await petQuoteProfileService.GetPetAsync(command.PetId, cancellationToken);
         if (pet is null)
@@ -104,7 +104,7 @@ public sealed class BookingSnapshotComposer(
         Guid petId,
         Guid groomerId,
         DateTime startAtUtc,
-        IReadOnlyCollection<PreviewQuoteItemCommand> items,
+        IReadOnlyCollection<PreviewQuoteItemQuery> items,
         string? actorUserId,
         CancellationToken cancellationToken)
     {

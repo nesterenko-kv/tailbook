@@ -22,7 +22,7 @@ public sealed class PetsModule : IModuleDefinition
     {
         services.AddScoped<PetsUseCases>();
         services.AddScoped<IPetsReadService>(sp => sp.GetRequiredService<PetsUseCases>());
-        services.AddScoped<IClientPortalPetsQueries, ClientPortalPetsQueries>();
+        services.AddScoped<IClientPortalPetsReadService, ClientPortalPetsReadService>();
         services.AddScoped<IPetReferenceValidationService, PetReferenceServices>();
         services.AddScoped<IPetReadModelService, PetReferenceServices>();
         services.AddScoped<IPetSummaryReadService, PetReferenceServices>();

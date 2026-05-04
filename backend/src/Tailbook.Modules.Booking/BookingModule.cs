@@ -21,12 +21,12 @@ public sealed class BookingModule : IModuleDefinition
     {
         services.AddScoped<BookingSnapshotComposer>();
         services.AddScoped<IBookingSnapshotComposer>(sp => sp.GetRequiredService<BookingSnapshotComposer>());
-        services.AddScoped<BookingQuoteQueries>();
+        services.AddScoped<BookingQuoteReadService>();
         services.AddScoped<BookingManagementUseCases>();
         services.AddScoped<IBookingManagementReadService>(sp => sp.GetRequiredService<BookingManagementUseCases>());
         services.AddScoped<ClientPortalBookingUseCases>();
         services.AddScoped<IClientPortalBookingReadService>(sp => sp.GetRequiredService<ClientPortalBookingUseCases>());
-        services.AddScoped<PublicBookingQueries>();
+        services.AddScoped<PublicBookingReadService>();
         services.AddScoped<GroomerBookingReadService>();
         services.AddScoped<IGroomerBookingReadService>(sp => sp.GetRequiredService<GroomerBookingReadService>());
         services.AddScoped<IAppointmentOverlapReadService, BookingOverlapReadService>();

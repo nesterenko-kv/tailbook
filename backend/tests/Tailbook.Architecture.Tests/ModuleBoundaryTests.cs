@@ -206,6 +206,37 @@ public sealed class ModuleBoundaryTests
     [InlineData("Tailbook.Modules.Notifications")]
     [InlineData("Tailbook.Modules.Audit")]
     [InlineData("Tailbook.Modules.Reporting")]
+    public void Command_records_should_live_under_application_commands(string assemblyName)
+    {
+        var modulePath = GetModuleSourcePath(assemblyName);
+        var violations = Directory.EnumerateFiles(modulePath, "*.cs", SearchOption.AllDirectories)
+            .Where(path => !IsGeneratedPath(path))
+            .Where(path => !IsCommandsPath(path))
+            .SelectMany(path =>
+            {
+                var lines = File.ReadAllLines(path);
+                return lines
+                    .Select((line, index) => new { Line = line.Trim(), LineNumber = index + 1 })
+                    .Where(x => x.Line.StartsWith("public sealed record ", StringComparison.Ordinal) &&
+                                x.Line.Contains("Command", StringComparison.Ordinal))
+                    .Select(x => $"{Path.GetRelativePath(SourceRoot, path)}:{x.LineNumber} declares a command record outside Application/Commands");
+            })
+            .ToArray();
+
+        Assert.Empty(violations);
+    }
+
+    [Theory]
+    [InlineData("Tailbook.Modules.Identity")]
+    [InlineData("Tailbook.Modules.Customer")]
+    [InlineData("Tailbook.Modules.Pets")]
+    [InlineData("Tailbook.Modules.Catalog")]
+    [InlineData("Tailbook.Modules.Booking")]
+    [InlineData("Tailbook.Modules.VisitOperations")]
+    [InlineData("Tailbook.Modules.Staff")]
+    [InlineData("Tailbook.Modules.Notifications")]
+    [InlineData("Tailbook.Modules.Audit")]
+    [InlineData("Tailbook.Modules.Reporting")]
     public void Api_layer_should_not_reference_module_infrastructure_or_persistence(string assemblyName)
     {
         var modulePath = GetModuleSourcePath(assemblyName);

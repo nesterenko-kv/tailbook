@@ -19,8 +19,8 @@ public sealed class ReportingModule : IModuleDefinition
 
     public IServiceCollection Register(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<ReportingQueries>();
-        services.AddScoped<IReportingQueries>(sp => sp.GetRequiredService<ReportingQueries>());
+        services.AddScoped<ReportingReadService>();
+        services.AddScoped<IReportingReadService>(sp => sp.GetRequiredService<ReportingReadService>());
         return services;
     }
 

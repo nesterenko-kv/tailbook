@@ -5,7 +5,7 @@ using Tailbook.Modules.Audit.Application.AccessAuditEntries.Queries;
 namespace Tailbook.Modules.Audit.Api.Admin.ListAccessAuditEntries;
 
 public sealed class ListAccessAuditEntriesEndpoint(
-    IAccessAuditEntryQueries accessAuditEntryQueries
+    IAccessAuditEntryReadService accessAuditEntryReadService
 ) : Endpoint<ListAccessAuditEntriesRequest, ListAccessAuditEntriesResponse>
 {
     public override void Configure()
@@ -17,7 +17,7 @@ public sealed class ListAccessAuditEntriesEndpoint(
 
     public override async Task HandleAsync(ListAccessAuditEntriesRequest req, CancellationToken ct)
     {
-        var result = await accessAuditEntryQueries.ListAsync(new ListAccessAuditEntriesQuery(req.ResourceType, req.ResourceId, req.Page, req.PageSize), ct);
+        var result = await accessAuditEntryReadService.ListAsync(new ListAccessAuditEntriesQuery(req.ResourceType, req.ResourceId, req.Page, req.PageSize), ct);
         await Send.OkAsync(result.ToResponse(), ct);
     }
 }

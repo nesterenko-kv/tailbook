@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Booking.Api.Admin.PreviewQuote;
 
-public sealed class PreviewQuoteEndpoint(BookingQuoteQueries bookingQuoteQueries)
+public sealed class PreviewQuoteEndpoint(BookingQuoteReadService bookingQuoteReadService)
     : Endpoint<PreviewQuoteRequest, PreviewQuoteResponse>
 {
     public override void Configure()
@@ -18,8 +18,8 @@ public sealed class PreviewQuoteEndpoint(BookingQuoteQueries bookingQuoteQueries
 
     public override async Task HandleAsync(PreviewQuoteRequest req, CancellationToken ct)
     {
-        var result = await bookingQuoteQueries.PreviewQuoteAsync(
-            new PreviewQuoteCommand(req.PetId, req.GroomerId, req.Items.Select(x => new PreviewQuoteItemCommand(x.OfferId, x.ItemType)).ToArray()),
+        var result = await bookingQuoteReadService.PreviewQuoteAsync(
+            new PreviewQuoteQuery(req.PetId, req.GroomerId, req.Items.Select(x => new PreviewQuoteItemQuery(x.OfferId, x.ItemType)).ToArray()),
             req.ActorUserId?.ToString("D"),
             ct);
 

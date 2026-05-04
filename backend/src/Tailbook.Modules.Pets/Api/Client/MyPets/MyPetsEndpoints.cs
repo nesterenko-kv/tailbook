@@ -6,7 +6,7 @@ using Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 namespace Tailbook.Modules.Pets.Api.Client.MyPets;
 
-public sealed class ListMyPetsEndpoint(IClientPortalActorService actorService, IClientPortalPetsQueries queries)
+public sealed class ListMyPetsEndpoint(IClientPortalActorService actorService, IClientPortalPetsReadService petsReadService)
     : Endpoint<ListMyPetsRequest, IReadOnlyCollection<ClientPetSummaryView>>
 {
     public override void Configure()
@@ -25,12 +25,12 @@ public sealed class ListMyPetsEndpoint(IClientPortalActorService actorService, I
             return;
         }
 
-        var result = await queries.ListMyPetsAsync(actor.ClientId, ct);
+        var result = await petsReadService.ListMyPetsAsync(actor.ClientId, ct);
         await Send.OkAsync(result, cancellation: ct);
     }
 }
 
-public sealed class GetMyPetEndpoint(IClientPortalActorService actorService, IClientPortalPetsQueries queries)
+public sealed class GetMyPetEndpoint(IClientPortalActorService actorService, IClientPortalPetsReadService petsReadService)
     : Endpoint<GetMyPetRequest, ClientPetDetailView>
 {
     public override void Configure()
@@ -49,7 +49,7 @@ public sealed class GetMyPetEndpoint(IClientPortalActorService actorService, ICl
             return;
         }
 
-        var result = await queries.GetMyPetAsync(actor.ClientId, req.PetId, ct);
+        var result = await petsReadService.GetMyPetAsync(actor.ClientId, req.PetId, ct);
         if (result is null)
         {
             await Send.NotFoundAsync(ct);

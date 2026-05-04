@@ -1,4 +1,5 @@
 global using Tailbook.Modules.Audit.Domain.Entities;
+global using Tailbook.Modules.Booking.Application.Booking.Commands;
 global using Tailbook.Modules.Booking.Application.Booking.Models;
 global using Tailbook.Modules.Booking.Application.Common.Validation;
 global using Tailbook.Modules.Booking.Domain.Aggregates;

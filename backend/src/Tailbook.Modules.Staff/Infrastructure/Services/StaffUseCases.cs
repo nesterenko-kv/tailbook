@@ -304,14 +304,14 @@ public sealed class StaffUseCases(
             windows);
     }
 
-    public async Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(CheckGroomerAvailabilityCommand command, CancellationToken cancellationToken)
+    public async Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(CheckGroomerAvailabilityQuery query, CancellationToken cancellationToken)
     {
         return await staffSchedulingService.CheckAvailabilityAsync(
-            command.GroomerId,
-            command.PetId,
-            command.OfferIds,
-            command.StartAtUtc,
-            command.ReservedMinutes,
+            query.GroomerId,
+            query.PetId,
+            query.OfferIds,
+            query.StartAtUtc,
+            query.ReservedMinutes,
             null,
             cancellationToken);
     }

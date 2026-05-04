@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Reporting.Api.Admin.GetEstimateAccuracy;
 
-public sealed class GetEstimateAccuracyEndpoint(IReportingQueries reportingQueries)
+public sealed class GetEstimateAccuracyEndpoint(IReportingReadService reportingReadService)
     : Endpoint<GetEstimateAccuracyRequest, GetEstimateAccuracyResponse>
 {
     public override void Configure()
@@ -15,7 +15,7 @@ public sealed class GetEstimateAccuracyEndpoint(IReportingQueries reportingQueri
 
     public override async Task HandleAsync(GetEstimateAccuracyRequest req, CancellationToken ct)
     {
-        var items = await reportingQueries.GetEstimateAccuracyAsync(req.FromUtc, req.ToUtc, ct);
+        var items = await reportingReadService.GetEstimateAccuracyAsync(req.FromUtc, req.ToUtc, ct);
         await Send.OkAsync(new GetEstimateAccuracyResponse { Items = items }, ct);
     }
 }

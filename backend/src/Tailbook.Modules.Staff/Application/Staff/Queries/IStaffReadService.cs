@@ -8,5 +8,5 @@ public interface IStaffReadService
     Task<IReadOnlyCollection<GroomerListItemView>> ListGroomersAsync(CancellationToken cancellationToken);
     Task<GroomerDetailView?> GetGroomerAsync(Guid groomerId, CancellationToken cancellationToken);
     Task<ErrorOr<GroomerScheduleView>> GetScheduleAsync(Guid groomerId, DateTimeOffset fromUtc, DateTimeOffset toUtc, CancellationToken cancellationToken);
-    Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(CheckGroomerAvailabilityCommand command, CancellationToken cancellationToken);
+    Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(CheckGroomerAvailabilityQuery query, CancellationToken cancellationToken);
 }

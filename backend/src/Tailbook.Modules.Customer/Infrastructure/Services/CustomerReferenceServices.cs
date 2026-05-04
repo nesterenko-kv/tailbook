@@ -6,7 +6,7 @@ using Tailbook.Modules.Customer.Contracts;
 
 namespace Tailbook.Modules.Customer.Infrastructure.Services;
 
-public sealed class CustomerReferenceServices(AppDbContext dbContext)
+public sealed partial class CustomerReferenceServices(AppDbContext dbContext)
     : IClientReferenceValidationService,
       IContactReferenceValidationService,
       IPetContactReadModelService,
@@ -123,7 +123,7 @@ public sealed class CustomerReferenceServices(AppDbContext dbContext)
         var trimmed = value.Trim();
         return methodType switch
         {
-            ContactMethodTypes.Phone => Regex.Replace(trimmed, "[^0-9+]", string.Empty),
+            ContactMethodTypes.Phone => DigitsRegex().Replace(trimmed, string.Empty),
             ContactMethodTypes.Instagram => trimmed.TrimStart('@').ToLowerInvariant(),
             ContactMethodTypes.Email => trimmed.ToLowerInvariant(),
             _ => trimmed
@@ -144,4 +144,7 @@ public sealed class CustomerReferenceServices(AppDbContext dbContext)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
+
+    [GeneratedRegex("[^0-9+]")]
+    private static partial Regex DigitsRegex();
 }

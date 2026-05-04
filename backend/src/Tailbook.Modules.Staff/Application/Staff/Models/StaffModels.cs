@@ -7,5 +7,3 @@ public sealed record WorkingScheduleView(Guid Id, Guid GroomerId, int Weekday, s
 public sealed record TimeBlockView(Guid Id, Guid GroomerId, DateTime StartAtUtc, DateTime EndAtUtc, string ReasonCode, string? Notes, DateTime CreatedAtUtc);
 public sealed record AvailabilityWindowView(DateTimeOffset StartAtUtc, DateTimeOffset EndAtUtc);
 public sealed record GroomerScheduleView(Guid GroomerId, string GroomerDisplayName, DateTimeOffset FromUtc, DateTimeOffset ToUtc, IReadOnlyCollection<WorkingScheduleView> WorkingSchedules, IReadOnlyCollection<TimeBlockView> TimeBlocks, IReadOnlyCollection<AvailabilityWindowView> AvailabilityWindows);
-public sealed record AddGroomerCapabilityCommand(Guid GroomerId, Guid? AnimalTypeId, Guid? BreedId, Guid? BreedGroupId, Guid? CoatTypeId, Guid? SizeCategoryId, Guid? OfferId, string CapabilityMode, int ReservedDurationModifierMinutes, string? Notes);
-public sealed record CheckGroomerAvailabilityCommand(Guid GroomerId, Guid PetId, DateTime StartAtUtc, int ReservedMinutes, IReadOnlyCollection<Guid> OfferIds);
