@@ -239,6 +239,10 @@ if (!string.IsNullOrWhiteSpace(redisConnectionString))
 {
     builder.Services.AddHealthChecks().AddCheck<RedisHealthCheck>("redis", HealthStatus.Unhealthy, ["cache"]);
 }
+
+builder.Services.AddOptions<RateLimitOptions>()
+    .Bind(builder.Configuration.GetSection(RateLimitOptions.SectionName))
+    .ValidateOnStart();
 builder.Services.Configure<HealthCheckPublisherOptions>(options =>
 {
     options.Delay = TimeSpan.FromSeconds(15);
@@ -337,6 +341,10 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<UnhandledExceptionMiddleware>();
 app.UseMiddleware<IdempotencyMiddleware>();
 app.UseCors("AppCors");
+if (!string.IsNullOrWhiteSpace(redisConnectionString))
+{
+    app.UseMiddleware<DistributedRateLimitMiddleware>();
+}
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseFastEndpoints(c =>
