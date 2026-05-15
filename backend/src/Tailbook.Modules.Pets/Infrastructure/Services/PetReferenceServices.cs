@@ -1,12 +1,15 @@
+using System.Text.Json;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.BuildingBlocks.Infrastructure;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.BuildingBlocks.Infrastructure.Search;
 
 namespace Tailbook.Modules.Pets.Infrastructure.Services;
 
-public sealed class PetReferenceServices(AppDbContext dbContext)
+public sealed class PetReferenceServices(AppDbContext dbContext, IDistributedCache cache)
     : IPetReferenceValidationService,
       IPetReadModelService,
       IPetSummaryReadService,
@@ -137,8 +140,21 @@ public sealed class PetReferenceServices(AppDbContext dbContext)
             notes);
     }
 
+    private static readonly JsonSerializerOptions CacheJsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly DistributedCacheEntryOptions PetProfileCacheOptions = new()
+    {
+        AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+    };
+
     public async Task<PetQuoteProfile?> GetPetAsync(Guid petId, CancellationToken cancellationToken)
     {
+        var cacheKey = CacheKeys.PetProfile(petId);
+        var cached = await cache.GetStringAsync(cacheKey, cancellationToken);
+        if (cached is not null)
+        {
+            return JsonSerializer.Deserialize<PetQuoteProfile>(cached, CacheJsonOptions);
+        }
+
         var pet = await dbContext.Set<Pet>()
             .AsNoTracking()
             .Where(x => x.Id == petId)
@@ -164,7 +180,7 @@ public sealed class PetReferenceServices(AppDbContext dbContext)
 
         var taxonomy = taxonomyResult.Value;
 
-        return new PetQuoteProfile(
+        var profile = new PetQuoteProfile(
             pet.Pet.Id,
             pet.Pet.ClientId,
             taxonomy.AnimalType.Id,
@@ -182,6 +198,10 @@ public sealed class PetReferenceServices(AppDbContext dbContext)
             taxonomy.SizeCategory?.Id,
             taxonomy.SizeCategory?.Code,
             taxonomy.SizeCategory?.Name);
+
+        await cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(profile, CacheJsonOptions), PetProfileCacheOptions, cancellationToken);
+
+        return profile;
     }
 
     public async Task<ErrorOr<PetQuoteProfile>> CreateAdHocAsync(PetQuoteProfileInput input, CancellationToken cancellationToken)

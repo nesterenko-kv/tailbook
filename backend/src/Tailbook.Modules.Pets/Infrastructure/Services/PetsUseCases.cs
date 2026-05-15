@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.BuildingBlocks.Infrastructure;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.BuildingBlocks.Infrastructure.Search;
 
@@ -320,6 +321,9 @@ public sealed class PetsUseCases(
         pet.UpdatedAt = timeProvider.GetUtcNow();
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        await distributedCache.RemoveAsync(CacheKeys.PetProfile(pet.Id), cancellationToken);
+
         return (await LoadPetProjectionAsync(pet.Id, cancellationToken))!;
     }
 

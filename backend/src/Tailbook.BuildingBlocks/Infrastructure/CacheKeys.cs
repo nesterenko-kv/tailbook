@@ -20,4 +20,6 @@ public static class CacheKeys
     public static string GroomerProfile(Guid groomerId) => $"staff:groomer:{groomerId}:profile";
 
     public static string GroomerSchedules(Guid groomerId) => $"staff:groomer:{groomerId}:schedules";
+
+    public static string PetProfile(Guid petId) => $"pets:profile:{petId:D}";
 }
