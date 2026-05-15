@@ -1,0 +1,3 @@
+﻿namespace Tailbook.Modules.VisitOperations.Application.VisitOperations.Models;
+
+public sealed record VisitExecutionItemView(Guid Id, Guid AppointmentItemId, string ItemType, Guid OfferId, Guid OfferVersionId, string OfferCode, string OfferDisplayName, int Quantity, decimal PriceAmount, int ServiceMinutes, int ReservedMinutes, IReadOnlyCollection<VisitExpectedComponentView> ExpectedComponents, IReadOnlyCollection<VisitPerformedProcedureView> PerformedProcedures, IReadOnlyCollection<VisitSkippedComponentView> SkippedComponents);

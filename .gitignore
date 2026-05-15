@@ -9,6 +9,7 @@ node_modules/
 .pnpm-store/
 .turbo/
 .next/
+apps/*/tsconfig.tsbuildinfo
 out/
 dist/
 coverage/
@@ -34,3 +35,8 @@ backend/src/Tailbook.Api.Host/appsettings.Local.json
 # Logs
 *.log
 logs/
+
+*.user
+
+# BenchmarkDotNet artifacts
+BenchmarkDotNet.Artifacts/

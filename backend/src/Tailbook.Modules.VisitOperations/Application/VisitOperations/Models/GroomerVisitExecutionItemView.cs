@@ -1,0 +1,3 @@
+﻿namespace Tailbook.Modules.VisitOperations.Application.VisitOperations.Models;
+
+public sealed record GroomerVisitExecutionItemView(Guid Id, Guid AppointmentItemId, string ItemType, Guid OfferId, Guid OfferVersionId, string OfferCode, string OfferDisplayName, int Quantity, int ServiceMinutes, int ReservedMinutes, IReadOnlyCollection<GroomerVisitExpectedComponentView> ExpectedComponents, IReadOnlyCollection<GroomerVisitPerformedProcedureView> PerformedProcedures, IReadOnlyCollection<GroomerVisitSkippedComponentView> SkippedComponents);

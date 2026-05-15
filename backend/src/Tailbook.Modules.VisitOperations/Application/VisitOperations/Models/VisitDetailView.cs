@@ -1,0 +1,3 @@
+namespace Tailbook.Modules.VisitOperations.Application.VisitOperations.Models;
+
+public sealed record VisitDetailView(Guid Id, Guid AppointmentId, Guid? BookingRequestId, VisitPetView Pet, Guid GroomerId, string Status, DateTimeOffset CheckedInAt, DateTimeOffset? StartedAt, DateTimeOffset? CompletedAt, DateTimeOffset? ClosedAt, int ServiceMinutes, int ReservedMinutes, decimal AppointmentTotalAmount, decimal AdjustmentTotalAmount, decimal FinalTotalAmount, IReadOnlyCollection<VisitExecutionItemView> Items, IReadOnlyCollection<VisitPriceAdjustmentView> Adjustments, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt);

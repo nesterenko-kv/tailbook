@@ -1,0 +1,89 @@
+using FastEndpoints;
+using FluentValidation;
+using Microsoft.AspNetCore.Http;
+using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.BuildingBlocks.Abstractions.Security;
+using Tailbook.BuildingBlocks.Infrastructure.Auth;
+using Tailbook.BuildingBlocks.Infrastructure.Http;
+
+namespace Tailbook.Modules.Customer.Api.Client.GetMyContactPreferences;
+
+public sealed class GetMyContactPreferencesEndpoint(IClientPortalActorService actorService, IClientPortalCustomerReadService customerReadService)
+    : Endpoint<GetMyContactPreferencesRequest, ClientContactPreferencesView>
+{
+    public override void Configure()
+    {
+        Get("/api/client/me/contact-preferences");
+        Description(x => x.WithTags("Client Portal CRM"));
+        PermissionsAll(PermissionCodes.ClientContactPreferencesRead);
+    }
+
+    public override async Task HandleAsync(GetMyContactPreferencesRequest req, CancellationToken ct)
+    {
+        var actorResult = await actorService.GetActorAsync(req.UserId, ct);
+        if (actorResult.IsError)
+        {
+            await Send.NotFoundAsync(ct);
+            return;
+        }
+
+        var actor = actorResult.Value;
+        var result = await customerReadService.GetContactPreferencesAsync(actor.ContactPersonId, ct);
+        if (result is null)
+        {
+            await Send.NotFoundAsync(ct);
+            return;
+        }
+
+        await Send.OkAsync(result, cancellation: ct);
+    }
+}
+
+public sealed class UpdateMyContactPreferencesEndpoint(IClientPortalActorService actorService)
+    : Endpoint<UpdateMyContactPreferencesRequest, ClientContactPreferencesView>
+{
+    public override void Configure()
+    {
+        Patch("/api/client/me/contact-preferences");
+        Description(x => x.WithTags("Client Portal CRM"));
+        PermissionsAll(PermissionCodes.ClientContactPreferencesWrite);
+    }
+
+    public override async Task HandleAsync(UpdateMyContactPreferencesRequest req, CancellationToken ct)
+    {
+        var actorResult = await actorService.GetActorAsync(req.UserId, ct);
+        if (actorResult.IsError)
+        {
+            await Send.NotFoundAsync(ct);
+            return;
+        }
+
+        var actor = actorResult.Value;
+        var result = await new UpdateClientContactPreferencesUseCaseCommand(
+            actor.ContactPersonId,
+            req.Methods.Select(x => new UpdateClientContactMethodInput(x.MethodType, x.Value, x.IsPreferred, x.Notes)).ToArray())
+            .ExecuteAsync(ct);
+
+        if (result.IsError)
+        {
+            await Send.ResultAsync(result.Errors.ToHttpResult());
+            return;
+        }
+
+        await Send.OkAsync(result.Value, cancellation: ct);
+    }
+}
+
+public sealed class UpdateMyContactPreferencesRequestValidator : Validator<UpdateMyContactPreferencesRequest>
+{
+    public UpdateMyContactPreferencesRequestValidator()
+    {
+        RuleFor(x => x.Methods).NotEmpty();
+        RuleForEach(x => x.Methods).ChildRules(method =>
+        {
+            method.RuleFor(x => x.MethodType).NotEmpty().MaximumLength(32);
+            method.RuleFor(x => x.Value).NotEmpty().MaximumLength(256);
+            method.RuleFor(x => x.Notes).MaximumLength(500);
+        });
+    }
+}

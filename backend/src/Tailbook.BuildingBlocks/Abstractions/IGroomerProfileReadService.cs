@@ -1,0 +1,16 @@
+using ErrorOr;
+
+namespace Tailbook.BuildingBlocks.Abstractions;
+
+public interface IGroomerProfileReadService
+{
+    Task<ErrorOr<GroomerProfileReadModel>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken);
+    Task<GroomerProfileReadModel?> GetByGroomerIdAsync(Guid groomerId, CancellationToken cancellationToken);
+    Task<IReadOnlyCollection<GroomerProfileReadModel>> ListActiveAsync(CancellationToken cancellationToken);
+}
+
+public sealed record GroomerProfileReadModel(
+    Guid GroomerId,
+    Guid? UserId,
+    string DisplayName,
+    bool Active);

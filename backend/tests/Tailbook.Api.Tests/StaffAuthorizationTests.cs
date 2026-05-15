@@ -1,0 +1,21 @@
+using System.Net;
+using Xunit;
+
+namespace Tailbook.Api.Tests;
+
+public sealed class StaffAuthorizationTests(CustomWebApplicationFactory factory)
+    : IClassFixture<CustomWebApplicationFactory>
+{
+    [Fact]
+    public async Task Groomer_cannot_access_admin_staff_endpoints()
+    {
+        await factory.SeedUserAsync("groomer-staff@test.local", "Groomer Staff", "Groomer123!", "groomer");
+        var token = await factory.LoginAsAsync("groomer-staff@test.local", "Groomer123!");
+
+        using var client = factory.CreateClient();
+        CustomWebApplicationFactory.SetBearer(client, token);
+
+        var response = await client.GetAsync("/api/admin/groomers");
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+}

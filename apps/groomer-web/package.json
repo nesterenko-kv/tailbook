@@ -1,0 +1,34 @@
+{
+    "name": "groomer-web",
+    "private": true,
+    "scripts": {
+        "dev": "next dev --port 3003",
+        "build": "next build",
+        "start": "next start --port 3003",
+        "lint": "eslint .",
+        "typecheck": "next typegen && tsc --noEmit",
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "@tailbook/frontend-api": "workspace:*",
+        "@tanstack/react-query": "^5.100.9",
+        "next": "16.2.4",
+        "react": "19.2.5",
+        "react-dom": "19.2.5",
+        "zod": "^4.4.3"
+    },
+    "devDependencies": {
+        "@tailbook/typescript-config": "workspace:*",
+        "@tailwindcss/postcss": "^4.2.4",
+        "@types/node": "^25.6.0",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "eslint": "^9.0.0",
+        "eslint-config-next": "16.2.4",
+        "jsdom": "^29.1.1",
+        "postcss": "^8.5.14",
+        "tailwindcss": "^4.2.4",
+        "typescript": "^6.0.3",
+        "vitest": "^3.1.3"
+    }
+}

@@ -1,0 +1,199 @@
+services:
+  caddy:
+    build:
+      context: .
+      dockerfile: ops/caddy/Dockerfile.caddy
+    container_name: tailbook-caddy-prod
+    restart: unless-stopped
+    ports:
+      - "${CADDY_HTTP_PORT:-80}:80"
+      - "${CADDY_HTTPS_PORT:-443}:443"
+    environment:
+      TLS_DOMAIN: ${TLS_DOMAIN:-tailbook.test}
+      TLS_MODE: ${TLS_MODE:-internal}
+      CADDY_EMAIL: ${CADDY_EMAIL:-admin@${TLS_DOMAIN:-tailbook.test}}
+    volumes:
+      - caddy-data:/data
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: tailbook-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tailbook}
+      POSTGRES_USER: ${POSTGRES_USER:-tailbook}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tailbook-change-me}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-prod-data:/var/lib/postgresql/data
+      - ./ops/backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tailbook} -d ${POSTGRES_DB:-tailbook}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: tailbook-redis-prod
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-tailbook-change-me}"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-tailbook-change-me}
+    volumes:
+      - redis-prod-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$${REDIS_PASSWORD}\" redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/src/Tailbook.Api.Host/Dockerfile
+    container_name: tailbook-api-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Main: Host=postgres;Port=5432;Database=${POSTGRES_DB:-tailbook};Username=${POSTGRES_USER:-tailbook};Password=${POSTGRES_PASSWORD:-tailbook-change-me};Include Error Detail=false
+      ConnectionStrings__Redis: redis:6379,password=${REDIS_PASSWORD:-tailbook-change-me},abortConnect=false,connectTimeout=5000,syncTimeout=5000
+      Jwt__Issuer: ${Jwt__Issuer:-tailbook.local}
+      Jwt__Audience: ${Jwt__Audience:-tailbook.apps}
+      Jwt__SigningKey: ${Jwt__SigningKey:-change-this-in-production-and-make-it-long-random-secret}
+      SensitivePayloadProtection__Key: ${SensitivePayloadProtection__Key:-change-this-in-production-and-make-it-long-random-sensitive-payload-secret}
+      SensitivePayloadProtection__PreviousKey: ${SensitivePayloadProtection__PreviousKey:-}
+      BootstrapAdmin__Email: ${BOOTSTRAP_ADMIN_EMAIL:-admin@tailbook.local}
+      BootstrapAdmin__Password: ${BOOTSTRAP_ADMIN_PASSWORD:-ChangeMeNow123!}
+      BootstrapAdmin__DisplayName: ${BOOTSTRAP_ADMIN_DISPLAY_NAME:-Bootstrap Administrator}
+      PasswordReset__ResetUrlBase: ${PASSWORD_RESET_URL_BASE:-https://${TLS_DOMAIN:-tailbook.test}/reset-password}
+      AppCors__AllowedOrigins__0: ${ADMIN_APP_ORIGIN:-https://admin.${TLS_DOMAIN:-tailbook.test}}
+      AppCors__AllowedOrigins__1: ${CLIENT_APP_ORIGIN:-https://client.${TLS_DOMAIN:-tailbook.test}}
+      AppCors__AllowedOrigins__2: ${GROOMER_APP_ORIGIN:-https://groomer.${TLS_DOMAIN:-tailbook.test}}
+      BrowserSessions__TokenTransport: ${BROWSER_SESSIONS_TOKEN_TRANSPORT:-RefreshCookie}
+      BrowserSessions__AllowLegacyBodyTokens: ${BROWSER_SESSIONS_ALLOW_LEGACY_BODY_TOKENS:-false}
+      BrowserSessions__CookieSecure: ${BROWSER_SESSIONS_COOKIE_SECURE:-true}
+      AppCors__AllowCredentials: ${APP_CORS_ALLOW_CREDENTIALS:-true}
+      HttpTransport__EnforceHttpsRedirection: "true"
+      HttpTransport__UseHsts: "true"
+      AllowedHosts: ${API_ALLOWED_HOSTS:-localhost;127.0.0.1;api.${TLS_DOMAIN:-tailbook.test}}
+      Notifications__EnableBackgroundProcessing: "true"
+      Notifications__Provider: ${NOTIFICATIONS_PROVIDER:-LocalFile}
+      Notifications__BackgroundPollIntervalSeconds: ${NOTIFICATIONS_POLL_INTERVAL_SECONDS:-15}
+      Notifications__MaxDeliveryAttempts: ${NOTIFICATIONS_MAX_DELIVERY_ATTEMPTS:-5}
+      Notifications__RetryBaseDelaySeconds: ${NOTIFICATIONS_RETRY_BASE_DELAY_SECONDS:-60}
+      Notifications__RetryMaxDelaySeconds: ${NOTIFICATIONS_RETRY_MAX_DELAY_SECONDS:-3600}
+      Notifications__LocalFilePath: ${NOTIFICATIONS_LOCAL_FILE_PATH:-/app/data/notifications/notifications.log}
+      Notifications__SmtpHost: ${NOTIFICATIONS_SMTP_HOST:-}
+      Notifications__SmtpPort: ${NOTIFICATIONS_SMTP_PORT:-587}
+      Notifications__SmtpEnableSsl: ${NOTIFICATIONS_SMTP_ENABLE_SSL:-true}
+      Notifications__SmtpFromEmail: ${NOTIFICATIONS_SMTP_FROM_EMAIL:-no-reply@tailbook.local}
+      Notifications__SmtpFromName: ${NOTIFICATIONS_SMTP_FROM_NAME:-Tailbook}
+      Notifications__SmtpUsername: ${NOTIFICATIONS_SMTP_USERNAME:-}
+      Notifications__SmtpPassword: ${NOTIFICATIONS_SMTP_PASSWORD:-}
+      Notifications__SmtpTimeoutSeconds: ${NOTIFICATIONS_SMTP_TIMEOUT_SECONDS:-30}
+      StaffScheduling__TimeZoneId: ${SALON_TIMEZONE_ID:-Europe/Kyiv}
+      Telemetry__OtlpEndpoint: ${TELEMETRY_OTLP_ENDPOINT:-http://otel-collector:4317}
+      Telemetry__ExportLogs: ${TELEMETRY_EXPORT_LOGS:-true}
+    expose:
+      - "8080"
+    volumes:
+      - api-data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health/live >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  admin-web:
+    build:
+      context: .
+      dockerfile: apps/admin-web/Dockerfile
+    container_name: tailbook-admin-web-prod
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-https://api.${TLS_DOMAIN:-tailbook.test}}
+      INTERNAL_API_BASE_URL: http://api:8080
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  client-web:
+    build:
+      context: .
+      dockerfile: apps/client-web/Dockerfile
+    container_name: tailbook-client-web-prod
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-https://api.${TLS_DOMAIN:-tailbook.test}}
+      INTERNAL_API_BASE_URL: http://api:8080
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  groomer-web:
+    build:
+      context: .
+      dockerfile: apps/groomer-web/Dockerfile
+    container_name: tailbook-groomer-web-prod
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-https://api.${TLS_DOMAIN:-tailbook.test}}
+      INTERNAL_API_BASE_URL: http://api:8080
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.123.0
+    container_name: tailbook-otel-collector-prod
+    restart: unless-stopped
+    command: ["--config=/etc/otel-collector-config.yml"]
+    volumes:
+      - ./ops/otel/otel-collector-config.production.yml:/etc/otel-collector-config.yml:ro
+    expose:
+      - "4317"
+    environment:
+      OTEL_COLLECTOR_EXPORTER_ENDPOINT: ${OTEL_COLLECTOR_EXPORTER_ENDPOINT:-}
+
+volumes:
+  postgres-prod-data:
+  redis-prod-data:
+  api-data:
+  caddy-data:

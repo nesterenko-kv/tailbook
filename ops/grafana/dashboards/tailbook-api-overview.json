@@ -1,0 +1,64 @@
+{
+  "title": "Tailbook API Overview",
+  "uid": "tailbook-api-overview",
+  "tags": ["tailbook"],
+  "timezone": "browser",
+  "panels": [
+    {
+      "title": "Request Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum by (http_route, http_response_status_code) (rate(tailbook_api_http_server_requests_total[1m]))",
+          "legendFormat": "{{http_response_status_code}} - {{http_route}}"
+        }
+      ]
+    },
+    {
+      "title": "Latency (p50, p95, p99)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(tailbook_api_http_server_duration_milliseconds_bucket[1m])) by (le))", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.95, sum(rate(tailbook_api_http_server_duration_milliseconds_bucket[1m])) by (le))", "legendFormat": "p95" },
+        { "expr": "histogram_quantile(0.99, sum(rate(tailbook_api_http_server_duration_milliseconds_bucket[1m])) by (le))", "legendFormat": "p99" }
+      ]
+    },
+    {
+      "title": "Health Check Status",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+      "targets": [
+        { "expr": "sum(tailbook_health_reports_total{tailbook_health_status=\"Unhealthy\"})", "legendFormat": "Unhealthy" },
+        { "expr": "sum(tailbook_health_reports_total)", "legendFormat": "Total" }
+      ]
+    },
+    {
+      "title": "Unhandled Exceptions",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "sum(rate(tailbook_api_unhandled_exceptions_total[5m]))", "legendFormat": "Unhandled" }
+      ]
+    },
+    {
+      "title": "Database Pool",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
+      "targets": [
+        { "expr": "sum(npgsql_connection_pool_active)", "legendFormat": "Active" },
+        { "expr": "sum(npgsql_connection_pool_idle)", "legendFormat": "Idle" },
+        { "expr": "sum(npgsql_connection_pool_waiting)", "legendFormat": "Waiting" }
+      ]
+    },
+    {
+      "title": "Notification Outbox",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
+      "targets": [
+        { "expr": "sum(rate(tailbook_notifications_outbox_cycles_total[5m]))", "legendFormat": "Cycles" }
+      ]
+    }
+  ]
+}

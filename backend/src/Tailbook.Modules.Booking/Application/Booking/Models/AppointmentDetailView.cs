@@ -1,0 +1,3 @@
+namespace Tailbook.Modules.Booking.Application.Booking.Models;
+
+public sealed record AppointmentDetailView(Guid Id, Guid? BookingRequestId, AppointmentPetView Pet, Guid GroomerId, DateTimeOffset StartAt, DateTimeOffset EndAt, string Status, int VersionNo, IReadOnlyCollection<AppointmentItemView> Items, decimal TotalAmount, int ServiceMinutes, int ReservedMinutes, string? CancellationReasonCode, string? CancellationNotes, DateTimeOffset? CancelledAt, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt);

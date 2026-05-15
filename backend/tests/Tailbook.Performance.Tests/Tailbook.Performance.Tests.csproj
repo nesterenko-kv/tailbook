@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Tailbook.Api.Host\Tailbook.Api.Host.csproj"/>
+    <ProjectReference Include="..\..\src\Tailbook.Modules.Booking\Tailbook.Modules.Booking.csproj"/>
+    <ProjectReference Include="..\..\src\Tailbook.Modules.Identity\Tailbook.Modules.Identity.csproj"/>
+    <ProjectReference Include="..\..\src\Tailbook.Modules.Identity.Api.Contracts\Tailbook.Modules.Identity.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Tailbook.Modules.Customer.Api.Contracts\Tailbook.Modules.Customer.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Tailbook.Modules.Pets.Api.Contracts\Tailbook.Modules.Pets.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Tailbook.Modules.Catalog.Api.Contracts\Tailbook.Modules.Catalog.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Tailbook.Modules.VisitOperations.Api.Contracts\Tailbook.Modules.VisitOperations.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Tailbook.Modules.Staff.Api.Contracts\Tailbook.Modules.Staff.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Tailbook.Modules.Reporting.Api.Contracts\Tailbook.Modules.Reporting.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Tailbook.Modules.Audit.Api.Contracts\Tailbook.Modules.Audit.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Tailbook.Modules.Notifications.Api.Contracts\Tailbook.Modules.Notifications.Api.Contracts.csproj"/>
+  </ItemGroup>
+</Project>

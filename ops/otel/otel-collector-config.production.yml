@@ -1,0 +1,22 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+exporters:
+  debug:
+    verbosity: detailed
+  otlp:
+    endpoint: ${env:OTEL_COLLECTOR_EXPORTER_ENDPOINT:-http://otel-collector:4317}
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [debug, otlp]
+    metrics:
+      receivers: [otlp]
+      exporters: [debug, otlp]

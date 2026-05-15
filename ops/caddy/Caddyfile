@@ -1,0 +1,31 @@
+{
+	email {$CADDY_EMAIL}
+}
+
+# API
+api.{$TLS_DOMAIN} {
+	tls {$TLS_MODE:internal}
+	reverse_proxy api:8080 {
+		header_up Host {host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-For {remote_host}
+	}
+}
+
+# Admin web
+admin.{$TLS_DOMAIN} {
+	tls {$TLS_MODE:internal}
+	reverse_proxy admin-web:3000
+}
+
+# Client web
+{$TLS_DOMAIN}, client.{$TLS_DOMAIN} {
+	tls {$TLS_MODE:internal}
+	reverse_proxy client-web:3000
+}
+
+# Groomer web
+groomer.{$TLS_DOMAIN} {
+	tls {$TLS_MODE:internal}
+	reverse_proxy groomer-web:3000
+}
