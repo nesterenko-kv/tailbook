@@ -1,78 +1,66 @@
+using System.Text.Json;
 using ErrorOr;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Options;
 using Tailbook.BuildingBlocks.Abstractions;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
 namespace Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 
 public sealed class IdempotencyStore(
-    AppDbContext dbContext,
-    TimeProvider timeProvider,
-    Microsoft.Extensions.Options.IOptions<IdempotencyRequestOptions> optionsAccessor) : IIdempotencyStore
+    IDistributedCache cache,
+    IOptions<IdempotencyRequestOptions> optionsAccessor) : IIdempotencyStore
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private readonly IdempotencyRequestOptions _options = optionsAccessor.Value;
 
     public async Task<ErrorOr<IdempotencyAcquireResult>> TryAcquireAsync(string idempotencyKey, CancellationToken cancellationToken)
     {
-        var existing = await dbContext.Set<IdempotentRequest>()
-            .Where(x => x.IdempotencyKey == idempotencyKey)
-            .Select(x => new { x.Status, x.ResponseStatusCode, x.ResponseBody })
-            .SingleOrDefaultAsync(cancellationToken);
+        var cacheKey = $"idempotency:{idempotencyKey}";
 
+        var existing = await cache.GetStringAsync(cacheKey, cancellationToken);
         if (existing is null)
         {
-            dbContext.Set<IdempotentRequest>().Add(new IdempotentRequest
+            await cache.SetStringAsync(cacheKey, IdempotentRequestStatuses.Processing, new DistributedCacheEntryOptions
             {
-                Id = Guid.NewGuid(),
-                IdempotencyKey = idempotencyKey,
-                Status = IdempotentRequestStatuses.Processing,
-                CreatedAt = timeProvider.GetUtcNow(),
-                ExpiresAt = timeProvider.GetUtcNow().Add(_options.EntryTtl)
-            });
+                AbsoluteExpirationRelativeToNow = _options.EntryTtl
+            }, cancellationToken);
 
-            await dbContext.SaveChangesAsync(cancellationToken);
             return new IdempotencyAcquireResult(IsNew: true, IsCompleted: false, null, null);
         }
 
-        if (existing.Status == IdempotentRequestStatuses.Completed)
+        if (existing == IdempotentRequestStatuses.Processing)
         {
-            return new IdempotencyAcquireResult(IsNew: false, IsCompleted: true, existing.ResponseStatusCode, existing.ResponseBody);
+            return new IdempotencyAcquireResult(IsNew: false, IsCompleted: false, null, null);
         }
 
-        return new IdempotencyAcquireResult(IsNew: false, IsCompleted: false, null, null);
+        var completed = JsonSerializer.Deserialize<CachedResponse>(existing, JsonOptions);
+        return new IdempotencyAcquireResult(IsNew: false, IsCompleted: true, completed?.StatusCode, completed?.ResponseBody);
     }
 
     public async Task CompleteAsync(string idempotencyKey, int statusCode, string? responseBody, CancellationToken cancellationToken)
     {
-        var record = await dbContext.Set<IdempotentRequest>()
-            .Where(x => x.IdempotencyKey == idempotencyKey)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (record is null)
+        var cacheKey = $"idempotency:{idempotencyKey}";
+        var cached = new CachedResponse
         {
-            return;
-        }
+            StatusCode = statusCode,
+            ResponseBody = responseBody
+        };
+        var serialized = JsonSerializer.Serialize(cached, JsonOptions);
 
-        record.Status = IdempotentRequestStatuses.Completed;
-        record.ResponseStatusCode = statusCode;
-        record.ResponseBody = responseBody;
-        record.CompletedAt = timeProvider.GetUtcNow();
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await cache.SetStringAsync(cacheKey, serialized, new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = _options.EntryTtl
+        }, cancellationToken);
     }
 
-    public async Task CleanupExpiredAsync(CancellationToken cancellationToken)
+    private sealed class CachedResponse
     {
-        var now = timeProvider.GetUtcNow();
-        var expired = await dbContext.Set<IdempotentRequest>()
-            .Where(x => x.ExpiresAt != null && x.ExpiresAt <= now)
-            .ToListAsync(cancellationToken);
-
-        if (expired.Count > 0)
-        {
-            dbContext.Set<IdempotentRequest>().RemoveRange(expired);
-            await dbContext.SaveChangesAsync(cancellationToken);
-        }
+        public int StatusCode { get; set; }
+        public string? ResponseBody { get; set; }
     }
 }
 

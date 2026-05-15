@@ -1,48 +1,55 @@
-using System.Collections.Concurrent;
+using System.Text.Json;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using Tailbook.Modules.Identity.Infrastructure.Options;
 
 namespace Tailbook.Modules.Identity.Infrastructure.Services;
 
-public sealed class LoginThrottlingService(IOptions<LoginThrottlingOptions> optionsAccessor, TimeProvider timeProvider) : ILoginThrottlingService
+public sealed class LoginThrottlingService(
+    IDistributedCache cache,
+    IOptions<LoginThrottlingOptions> optionsAccessor,
+    TimeProvider timeProvider) : ILoginThrottlingService
 {
-    private readonly ConcurrentDictionary<string, LoginAttemptState> _attempts = new(StringComparer.OrdinalIgnoreCase);
-
-    public LoginThrottleDecision CheckAllowed(string email)
+    private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        var key = NormalizeKey(email);
-        if (string.IsNullOrWhiteSpace(key))
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
+    public async Task<LoginThrottleDecision> CheckAllowedAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var key = GetCacheKey(email);
+        if (key is null)
         {
             return LoginThrottleDecision.Allowed;
         }
 
-        if (!_attempts.TryGetValue(key, out var state))
+        var data = await cache.GetStringAsync(key, cancellationToken);
+        if (data is null)
         {
             return LoginThrottleDecision.Allowed;
         }
 
+        var state = JsonSerializer.Deserialize<LoginAttemptState>(data, JsonOptions)!;
         var now = timeProvider.GetUtcNow();
-        lock (state)
+
+        if (state.LockoutUntil is null)
         {
-            if (state.LockoutUntil is null)
-            {
-                return LoginThrottleDecision.Allowed;
-            }
-
-            if (state.LockoutUntil > now)
-            {
-                return LoginThrottleDecision.Locked(state.LockoutUntil.Value - now);
-            }
-
-            _attempts.TryRemove(key, out _);
             return LoginThrottleDecision.Allowed;
         }
+
+        if (state.LockoutUntil > now)
+        {
+            return LoginThrottleDecision.Locked(state.LockoutUntil.Value - now);
+        }
+
+        await cache.RemoveAsync(key, cancellationToken);
+        return LoginThrottleDecision.Allowed;
     }
 
-    public void RecordFailure(string email)
+    public async Task RecordFailureAsync(string email, CancellationToken cancellationToken = default)
     {
-        var key = NormalizeKey(email);
-        if (string.IsNullOrWhiteSpace(key))
+        var key = GetCacheKey(email);
+        if (key is null)
         {
             return;
         }
@@ -51,10 +58,14 @@ public sealed class LoginThrottlingService(IOptions<LoginThrottlingOptions> opti
         var options = optionsAccessor.Value;
         var failureWindow = TimeSpan.FromMinutes(options.FailureWindowMinutes);
         var lockout = TimeSpan.FromMinutes(options.LockoutMinutes);
-        var state = _attempts.GetOrAdd(key, static (_, v) => new LoginAttemptState(v), now);
 
-        lock (state)
+        var data = await cache.GetStringAsync(key, cancellationToken);
+        LoginAttemptState state;
+
+        if (data is not null)
         {
+            state = JsonSerializer.Deserialize<LoginAttemptState>(data, JsonOptions)!;
+
             if (state.LockoutUntil is not null && state.LockoutUntil > now)
             {
                 return;
@@ -66,29 +77,43 @@ public sealed class LoginThrottlingService(IOptions<LoginThrottlingOptions> opti
                 state.FailedAttempts = 0;
                 state.LockoutUntil = null;
             }
-
-            state.FailedAttempts++;
-            if (state.FailedAttempts >= options.MaxFailedAttempts)
-            {
-                state.LockoutUntil = now.Add(lockout);
-            }
         }
-    }
-
-    public void RecordSuccess(string email)
-    {
-        var key = NormalizeKey(email);
-        if (!string.IsNullOrWhiteSpace(key))
+        else
         {
-            _attempts.TryRemove(key, out _);
+            state = new LoginAttemptState { FirstFailure = now };
+        }
+
+        state.FailedAttempts++;
+        if (state.FailedAttempts >= options.MaxFailedAttempts)
+        {
+            state.LockoutUntil = now.Add(lockout);
+        }
+
+        var serialized = JsonSerializer.Serialize(state, JsonOptions);
+        await cache.SetStringAsync(key, serialized, new DistributedCacheEntryOptions
+        {
+            SlidingExpiration = failureWindow + lockout
+        }, cancellationToken);
+    }
+
+    public async Task RecordSuccessAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var key = GetCacheKey(email);
+        if (key is not null)
+        {
+            await cache.RemoveAsync(key, cancellationToken);
         }
     }
 
-    private static string NormalizeKey(string email) => IdentityUseCases.NormalizeEmail(email);
-
-    private sealed class LoginAttemptState(DateTimeOffset firstFailure)
+    private static string? GetCacheKey(string email)
     {
-        public DateTimeOffset FirstFailure { get; set; } = firstFailure;
+        var normalized = IdentityUseCases.NormalizeEmail(email);
+        return string.IsNullOrWhiteSpace(normalized) ? null : $"throttle:{normalized}";
+    }
+
+    private sealed class LoginAttemptState
+    {
+        public DateTimeOffset FirstFailure { get; set; }
         public int FailedAttempts { get; set; }
         public DateTimeOffset? LockoutUntil { get; set; }
     }

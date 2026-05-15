@@ -21,7 +21,7 @@ public sealed class ClientLoginEndpoint(
 
     public override async Task HandleAsync(ClientLoginRequest req, CancellationToken ct)
     {
-        var throttleDecision = loginThrottling.CheckAllowed(req.Email);
+        var throttleDecision = await loginThrottling.CheckAllowedAsync(req.Email, ct);
         if (throttleDecision.IsLockedOut)
         {
             SetRetryAfterHeader(throttleDecision);
@@ -43,7 +43,7 @@ public sealed class ClientLoginEndpoint(
             cancellationToken: ct);
         if (result.IsError)
         {
-            loginThrottling.RecordFailure(req.Email);
+            await loginThrottling.RecordFailureAsync(req.Email, ct);
             await Send.ResultAsync(result.Errors.ToHttpResult());
             return;
         }
@@ -60,7 +60,7 @@ public sealed class ClientLoginEndpoint(
             return;
         }
 
-        loginThrottling.RecordSuccess(req.Email);
+        await loginThrottling.RecordSuccessAsync(req.Email, ct);
         await Send.OkAsync(new ClientLoginResponse
         {
             AccessToken = login.AccessToken,

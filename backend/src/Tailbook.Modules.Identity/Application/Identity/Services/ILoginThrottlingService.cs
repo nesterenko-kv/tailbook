@@ -2,7 +2,7 @@ namespace Tailbook.Modules.Identity.Application.Identity.Services;
 
 public interface ILoginThrottlingService
 {
-    LoginThrottleDecision CheckAllowed(string email);
-    void RecordFailure(string email);
-    void RecordSuccess(string email);
+    Task<LoginThrottleDecision> CheckAllowedAsync(string email, CancellationToken cancellationToken = default);
+    Task RecordFailureAsync(string email, CancellationToken cancellationToken = default);
+    Task RecordSuccessAsync(string email, CancellationToken cancellationToken = default);
 }

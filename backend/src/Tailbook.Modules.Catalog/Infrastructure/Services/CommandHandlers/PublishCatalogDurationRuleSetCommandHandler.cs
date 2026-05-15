@@ -1,12 +1,13 @@
 using ErrorOr;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Catalog.Infrastructure.Services;
 
 namespace Tailbook.Modules.Catalog.Infrastructure.Services.CommandHandlers;
 
-public sealed class PublishCatalogDurationRuleSetCommandHandler(AppDbContext dbContext, TimeProvider timeProvider)
+public sealed class PublishCatalogDurationRuleSetCommandHandler(AppDbContext dbContext, TimeProvider timeProvider, IDistributedCache cache)
     : ICommandHandler<PublishCatalogDurationRuleSetCommand, ErrorOr<DurationRuleSetView>>
 {
     public async Task<ErrorOr<DurationRuleSetView>> ExecuteAsync(PublishCatalogDurationRuleSetCommand command, CancellationToken cancellationToken)
@@ -33,6 +34,9 @@ public sealed class PublishCatalogDurationRuleSetCommandHandler(AppDbContext dbC
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        await cache.RemoveAsync("catalog:duration-rule-set:active", cancellationToken);
+
         return await MapRuleSetAsync(ruleSet, cancellationToken);
     }
 

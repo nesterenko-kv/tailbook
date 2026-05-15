@@ -234,6 +234,11 @@ else
 
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<AppDbContext>("postgresql");
+
+if (!string.IsNullOrWhiteSpace(redisConnectionString))
+{
+    builder.Services.AddHealthChecks().AddCheck<RedisHealthCheck>("redis", HealthStatus.Unhealthy, ["cache"]);
+}
 builder.Services.Configure<HealthCheckPublisherOptions>(options =>
 {
     options.Delay = TimeSpan.FromSeconds(15);

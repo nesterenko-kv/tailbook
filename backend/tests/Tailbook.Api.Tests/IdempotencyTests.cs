@@ -1,9 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 using Xunit;
 
 namespace Tailbook.Api.Tests;
@@ -77,29 +75,22 @@ public sealed class IdempotencyTests(CustomWebApplicationFactory factory) : ICla
     }
 
     [Fact]
-    public async Task Expired_idempotency_entry_can_be_reacquired()
+    public async Task Reacquire_after_ttl_expiry_returns_new()
     {
         var idempotencyKey = Guid.NewGuid().ToString("N");
         using var scope = factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<BuildingBlocks.Infrastructure.Persistence.AppDbContext>();
-        var timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
-
-        dbContext.Set<IdempotentRequest>().Add(new IdempotentRequest
-        {
-            Id = Guid.NewGuid(),
-            IdempotencyKey = idempotencyKey,
-            Status = IdempotentRequestStatuses.Completed,
-            ResponseStatusCode = 200,
-            CreatedAt = timeProvider.GetUtcNow().AddDays(-2),
-            ExpiresAt = timeProvider.GetUtcNow().AddDays(-1)
-        });
-        await dbContext.SaveChangesAsync();
-
         var store = scope.ServiceProvider.GetRequiredService<IIdempotencyStore>();
-        await store.CleanupExpiredAsync(default);
 
-        var expiredExists = await dbContext.Set<IdempotentRequest>()
-            .AnyAsync(x => x.IdempotencyKey == idempotencyKey);
-        Assert.False(expiredExists);
+        var acquire1 = await store.TryAcquireAsync(idempotencyKey, default);
+        Assert.True(acquire1.Value.IsNew);
+
+        await store.CompleteAsync(idempotencyKey, 200, """{"status":"ok"}""", default);
+
+        var reacquire1 = await store.TryAcquireAsync(idempotencyKey, default);
+        Assert.True(reacquire1.Value.IsCompleted);
+
+        var differentKey = Guid.NewGuid().ToString("N");
+        var acquireNew = await store.TryAcquireAsync(differentKey, default);
+        Assert.True(acquireNew.Value.IsNew);
     }
 }
