@@ -1,5 +1,7 @@
+using System.Text.Json;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
@@ -9,9 +11,15 @@ public sealed class StaffSchedulingService(
     AppDbContext dbContext,
     IPetQuoteProfileService petQuoteProfileService,
     SalonTimeZoneProvider salonTimeZoneProvider,
-    IAppointmentOverlapReadService appointmentOverlapReadService)
+    IAppointmentOverlapReadService appointmentOverlapReadService,
+    IDistributedCache cache)
     : IStaffSchedulingService
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     public async Task<ErrorOr<ReservedDurationResolution>> ResolveReservedDurationAsync(
         Guid groomerId,
         Guid petId,
@@ -35,20 +43,13 @@ public sealed class StaffSchedulingService(
         int baseReservedMinutes,
         CancellationToken cancellationToken)
     {
-        var groomer = await dbContext.Set<Groomer>()
-            .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.Id == groomerId && x.Active, cancellationToken);
-        if (groomer is null)
+        var groomerData = await LoadGroomerDataAsync(groomerId, cancellationToken);
+        if (groomerData is null)
         {
             return Error.NotFound("Staff.GroomerNotFound", "Selected groomer does not exist or is inactive.");
         }
 
-        var capabilities = await dbContext.Set<GroomerCapability>()
-            .AsNoTracking()
-            .Where(x => x.GroomerId == groomer.Id)
-            .ToListAsync(cancellationToken);
-
-        var denial = capabilities
+        var denial = groomerData.Capabilities
             .Where(x => IsMatch(x, pet, offerIds))
             .Where(x => string.Equals(x.CapabilityMode, CapabilityModeCodes.Deny, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(ComputeSpecificity)
@@ -65,7 +66,7 @@ public sealed class StaffSchedulingService(
 
         if (distinctOfferIds.Length == 0)
         {
-            var generalRule = capabilities
+            var generalRule = groomerData.Capabilities
                 .Where(x => x.OfferId is null)
                 .Where(x => string.Equals(x.CapabilityMode, CapabilityModeCodes.Allow, StringComparison.OrdinalIgnoreCase))
                 .Where(x => IsMatch(x, pet, []))
@@ -82,7 +83,7 @@ public sealed class StaffSchedulingService(
         {
             foreach (var offerId in distinctOfferIds)
             {
-                var matched = capabilities
+                var matched = groomerData.Capabilities
                     .Where(x => x.OfferId is null || x.OfferId == offerId)
                     .Where(x => string.Equals(x.CapabilityMode, CapabilityModeCodes.Allow, StringComparison.OrdinalIgnoreCase))
                     .Where(x => IsMatch(x, pet, [offerId]))
@@ -141,19 +142,14 @@ public sealed class StaffSchedulingService(
 
         var reasons = new List<string>(durationResolution.Reasons);
 
-        var groomer = await dbContext.Set<Groomer>()
-            .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.Id == groomerId && x.Active, cancellationToken);
-        if (groomer is null)
+        var groomerData = await LoadGroomerDataAsync(groomerId, cancellationToken);
+        if (groomerData is null)
         {
             reasons.Add("Selected groomer does not exist or is inactive.");
             return new GroomerAvailabilityCheckResult(false, endAt, durationResolution.EffectiveReservedMinutes, reasons);
         }
 
-        var schedule = await dbContext.Set<WorkingSchedule>()
-            .AsNoTracking()
-            .Where(x => x.GroomerId == groomerId)
-            .ToListAsync(cancellationToken);
+        var schedule = await LoadWorkingSchedulesAsync(groomerId, cancellationToken);
 
         if (!IsInsideWorkingSchedule(normalizedStartAt, endAt, schedule))
         {
@@ -161,12 +157,7 @@ public sealed class StaffSchedulingService(
             return new GroomerAvailabilityCheckResult(false, endAt, durationResolution.EffectiveReservedMinutes, reasons);
         }
 
-        var overlappingBlock = await dbContext.Set<TimeBlock>()
-            .AsNoTracking()
-            .Where(x => x.GroomerId == groomerId)
-            .Where(x => x.StartAt < endAt && x.EndAt > normalizedStartAt)
-            .OrderBy(x => x.StartAt)
-            .FirstOrDefaultAsync(cancellationToken);
+        var overlappingBlock = await LoadOverlappingTimeBlockAsync(groomerId, normalizedStartAt, endAt, cancellationToken);
 
         if (overlappingBlock is not null)
         {
@@ -190,10 +181,8 @@ public sealed class StaffSchedulingService(
         DateOnly localDate,
         CancellationToken cancellationToken)
     {
-        var groomerExists = await dbContext.Set<Groomer>()
-            .AsNoTracking()
-            .AnyAsync(x => x.Id == groomerId && x.Active, cancellationToken);
-        if (!groomerExists)
+        var groomerData = await LoadGroomerDataAsync(groomerId, cancellationToken);
+        if (groomerData is null)
         {
             return [];
         }
@@ -280,17 +269,14 @@ public sealed class StaffSchedulingService(
         var from = TimeZoneInfo.ConvertTimeToUtc(localStart, timeZone);
         var to = TimeZoneInfo.ConvertTimeToUtc(localEnd, timeZone);
 
-        var schedules = await dbContext.Set<WorkingSchedule>()
-            .AsNoTracking()
-            .Where(x => x.GroomerId == groomerId)
-            .OrderBy(x => x.Weekday)
-            .ToListAsync(cancellationToken);
+        var schedules = await LoadWorkingSchedulesAsync(groomerId, cancellationToken);
 
         var timeBlocks = await dbContext.Set<TimeBlock>()
             .AsNoTracking()
             .Where(x => x.GroomerId == groomerId)
             .Where(x => x.StartAt < to && x.EndAt > from)
             .OrderBy(x => x.StartAt)
+            .Select(x => new CachedTimeBlockData(x.Id, x.GroomerId, x.StartAt, x.EndAt, x.ReasonCode))
             .ToListAsync(cancellationToken);
 
         return BuildAvailabilityWindows(from, to, schedules, timeBlocks)
@@ -321,11 +307,95 @@ public sealed class StaffSchedulingService(
         return starts;
     }
 
+    // --- CACHE-AWARE DATA LOADERS ---
+
+    private async Task<CachedGroomerData?> LoadGroomerDataAsync(Guid groomerId, CancellationToken cancellationToken)
+    {
+        var cacheKey = $"staff:groomer:{groomerId}:profile";
+        var cached = await TryGetCachedAsync<CachedGroomerData>(cacheKey, cancellationToken);
+        if (cached is not null)
+        {
+            return cached;
+        }
+
+        var groomer = await dbContext.Set<Groomer>()
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Id == groomerId && x.Active, cancellationToken);
+        if (groomer is null)
+        {
+            return null;
+        }
+
+        var capabilities = await dbContext.Set<GroomerCapability>()
+            .AsNoTracking()
+            .Where(x => x.GroomerId == groomer.Id)
+            .Select(x => new CachedCapabilityData(
+                x.Id, x.GroomerId, x.AnimalTypeId, x.BreedId, x.BreedGroupId,
+                x.CoatTypeId, x.SizeCategoryId, x.OfferId, x.CapabilityMode,
+                x.ReservedDurationModifierMinutes, x.Notes))
+            .ToListAsync(cancellationToken);
+
+        var data = new CachedGroomerData(groomer.Id, capabilities);
+        await SetCachedAsync(cacheKey, data, cancellationToken);
+        return data;
+    }
+
+    private async Task<List<CachedWorkingScheduleData>> LoadWorkingSchedulesAsync(Guid groomerId, CancellationToken cancellationToken)
+    {
+        var cacheKey = $"staff:groomer:{groomerId}:schedules";
+        var cached = await TryGetCachedAsync<List<CachedWorkingScheduleData>>(cacheKey, cancellationToken);
+        if (cached is not null)
+        {
+            return cached;
+        }
+
+        var schedules = await dbContext.Set<WorkingSchedule>()
+            .AsNoTracking()
+            .Where(x => x.GroomerId == groomerId)
+            .OrderBy(x => x.Weekday)
+            .Select(x => new CachedWorkingScheduleData(
+                x.Id, x.GroomerId, x.Weekday, x.StartLocalTime, x.EndLocalTime))
+            .ToListAsync(cancellationToken);
+
+        await SetCachedAsync(cacheKey, schedules, cancellationToken);
+        return schedules;
+    }
+
+    // --- CACHE HELPERS ---
+
+    private async Task<T?> TryGetCachedAsync<T>(string key, CancellationToken cancellationToken) where T : class
+    {
+        var data = await cache.GetStringAsync(key, cancellationToken);
+        return data is null ? null : JsonSerializer.Deserialize<T>(data, JsonOptions);
+    }
+
+    private async Task SetCachedAsync<T>(string key, T value, CancellationToken cancellationToken)
+    {
+        var serialized = JsonSerializer.Serialize(value, JsonOptions);
+        await cache.SetStringAsync(key, serialized, new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+        }, cancellationToken);
+    }
+
+    private async Task<CachedTimeBlockData?> LoadOverlappingTimeBlockAsync(Guid groomerId, DateTimeOffset startAt, DateTimeOffset endAt, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<TimeBlock>()
+            .AsNoTracking()
+            .Where(x => x.GroomerId == groomerId)
+            .Where(x => x.StartAt < endAt && x.EndAt > startAt)
+            .OrderBy(x => x.StartAt)
+            .Select(x => new CachedTimeBlockData(x.Id, x.GroomerId, x.StartAt, x.EndAt, x.ReasonCode))
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    // --- EXISTING LOGIC (unchanged) ---
+
     private IReadOnlyCollection<AvailabilityWindowSegment> BuildAvailabilityWindows(
         DateTimeOffset from,
         DateTimeOffset to,
-        IReadOnlyCollection<WorkingSchedule> schedules,
-        IReadOnlyCollection<TimeBlock> timeBlocks)
+        IReadOnlyCollection<CachedWorkingScheduleData> schedules,
+        IReadOnlyCollection<CachedTimeBlockData> timeBlocks)
     {
         var timeZone = salonTimeZoneProvider.GetTimeZone();
         var windows = new List<AvailabilityWindowSegment>();
@@ -357,7 +427,7 @@ public sealed class StaffSchedulingService(
         return windows;
     }
 
-    private bool IsInsideWorkingSchedule(DateTimeOffset startAt, DateTimeOffset endAt, IReadOnlyCollection<WorkingSchedule> schedules)
+    private bool IsInsideWorkingSchedule(DateTimeOffset startAt, DateTimeOffset endAt, IReadOnlyCollection<CachedWorkingScheduleData> schedules)
     {
         var timeZone = salonTimeZoneProvider.GetTimeZone();
         var startLocal = TimeZoneInfo.ConvertTime(startAt, timeZone);
@@ -384,7 +454,7 @@ public sealed class StaffSchedulingService(
         List<AvailabilityWindowSegment> windows,
         DateTimeOffset windowStart,
         DateTimeOffset windowEnd,
-        IReadOnlyCollection<TimeBlock> timeBlocks)
+        IReadOnlyCollection<CachedTimeBlockData> timeBlocks)
     {
         var cursor = windowStart;
         var overlappingBlocks = timeBlocks
@@ -411,7 +481,7 @@ public sealed class StaffSchedulingService(
         }
     }
 
-    private static bool IsMatch(GroomerCapability capability, PetQuoteProfile pet, IReadOnlyCollection<Guid> offerIds)
+    private static bool IsMatch(CachedCapabilityData capability, PetQuoteProfile pet, IReadOnlyCollection<Guid> offerIds)
     {
         if (capability.OfferId is not null && !offerIds.Contains(capability.OfferId.Value))
         {
@@ -446,7 +516,7 @@ public sealed class StaffSchedulingService(
         return true;
     }
 
-    private static int ComputeSpecificity(GroomerCapability capability)
+    private static int ComputeSpecificity(CachedCapabilityData capability)
     {
         var score = 0;
         if (capability.BreedId is not null) score += 32;
@@ -458,7 +528,7 @@ public sealed class StaffSchedulingService(
         return score;
     }
 
-    private static string BuildCapabilityReason(GroomerCapability capability, PetQuoteProfile pet, bool allow)
+    private static string BuildCapabilityReason(CachedCapabilityData capability, PetQuoteProfile pet, bool allow)
     {
         var subject = capability.BreedId is not null
             ? pet.BreedName
@@ -471,7 +541,7 @@ public sealed class StaffSchedulingService(
             : $"Selected groomer cannot handle {subject} for the requested service composition.";
     }
 
-    private static string BuildModifierReason(GroomerCapability capability, PetQuoteProfile pet)
+    private static string BuildModifierReason(CachedCapabilityData capability, PetQuoteProfile pet)
     {
         var sign = capability.ReservedDurationModifierMinutes > 0 ? "+" : string.Empty;
         return $"Groomer capability modifier for {pet.BreedName}: {sign}{capability.ReservedDurationModifierMinutes} min.";
@@ -492,4 +562,19 @@ public sealed class StaffSchedulingService(
     }
 
     private sealed record AvailabilityWindowSegment(DateTimeOffset StartAt, DateTimeOffset EndAt);
+
+    // --- CACHE DTOs ---
+
+    internal sealed record CachedGroomerData(Guid Id, List<CachedCapabilityData> Capabilities);
+
+    internal sealed record CachedCapabilityData(
+        Guid Id, Guid GroomerId, Guid? AnimalTypeId, Guid? BreedId, Guid? BreedGroupId,
+        Guid? CoatTypeId, Guid? SizeCategoryId, Guid? OfferId, string CapabilityMode,
+        int ReservedDurationModifierMinutes, string? Notes);
+
+    internal sealed record CachedWorkingScheduleData(
+        Guid Id, Guid GroomerId, int Weekday, TimeSpan StartLocalTime, TimeSpan EndLocalTime);
+
+    internal sealed record CachedTimeBlockData(
+        Guid Id, Guid GroomerId, DateTimeOffset StartAt, DateTimeOffset EndAt, string? ReasonCode);
 }
