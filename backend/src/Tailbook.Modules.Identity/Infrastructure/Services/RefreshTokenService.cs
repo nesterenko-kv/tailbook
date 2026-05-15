@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
+using Tailbook.BuildingBlocks.Infrastructure;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Identity.Infrastructure.Options;
 
@@ -44,7 +45,7 @@ public sealed class RefreshTokenService(
 
         var tokenHash = Hash(rawToken);
 
-        var blacklisted = await cache.GetStringAsync($"refresh:blacklist:{tokenHash}", cancellationToken);
+        var blacklisted = await cache.GetStringAsync(CacheKeys.RefreshTokenBlacklist(tokenHash), cancellationToken);
         if (blacklisted is not null)
         {
             return null;
@@ -80,7 +81,7 @@ public sealed class RefreshTokenService(
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        await cache.SetStringAsync($"refresh:blacklist:{existingToken.TokenHash}", "revoked", new DistributedCacheEntryOptions
+        await cache.SetStringAsync(CacheKeys.RefreshTokenBlacklist(existingToken.TokenHash), "revoked", new DistributedCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(options.ExpirationDays)
         }, cancellationToken);
@@ -102,7 +103,7 @@ public sealed class RefreshTokenService(
         var remaining = token.ExpiresAt - timeProvider.GetUtcNow();
         if (remaining > TimeSpan.Zero)
         {
-            await cache.SetStringAsync($"refresh:blacklist:{token.TokenHash}", "revoked", new DistributedCacheEntryOptions
+            await cache.SetStringAsync(CacheKeys.RefreshTokenBlacklist(token.TokenHash), "revoked", new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = remaining
             }, cancellationToken);

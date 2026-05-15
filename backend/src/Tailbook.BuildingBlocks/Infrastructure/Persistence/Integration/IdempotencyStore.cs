@@ -3,6 +3,7 @@ using ErrorOr;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.BuildingBlocks.Infrastructure;
 
 namespace Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 
@@ -19,7 +20,7 @@ public sealed class IdempotencyStore(
 
     public async Task<ErrorOr<IdempotencyAcquireResult>> TryAcquireAsync(string idempotencyKey, CancellationToken cancellationToken)
     {
-        var cacheKey = $"idempotency:{idempotencyKey}";
+        var cacheKey = CacheKeys.Idempotency(idempotencyKey);
 
         var existing = await cache.GetStringAsync(cacheKey, cancellationToken);
         if (existing is null)
@@ -43,7 +44,7 @@ public sealed class IdempotencyStore(
 
     public async Task CompleteAsync(string idempotencyKey, int statusCode, string? responseBody, CancellationToken cancellationToken)
     {
-        var cacheKey = $"idempotency:{idempotencyKey}";
+        var cacheKey = CacheKeys.Idempotency(idempotencyKey);
         var cached = new CachedResponse
         {
             StatusCode = statusCode,

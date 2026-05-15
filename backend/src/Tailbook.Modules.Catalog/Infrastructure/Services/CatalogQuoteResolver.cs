@@ -3,6 +3,7 @@ using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.BuildingBlocks.Infrastructure;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
 namespace Tailbook.Modules.Catalog.Infrastructure.Services;
@@ -193,15 +194,15 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext, TimeProvider ti
 
     private async Task<(CachedPriceRuleSetData? PriceRuleSet, CachedDurationRuleSetData? DurationRuleSet)> LoadRuleSetsAsync(DateTimeOffset utcNow, CancellationToken cancellationToken)
     {
-        var priceRuleSet = await TryGetCachedAsync<CachedPriceRuleSetData>("catalog:price-rule-set:active", cancellationToken);
-        var durationRuleSet = await TryGetCachedAsync<CachedDurationRuleSetData>("catalog:duration-rule-set:active", cancellationToken);
+        var priceRuleSet = await TryGetCachedAsync<CachedPriceRuleSetData>(CacheKeys.PriceRuleSetActive(), cancellationToken);
+        var durationRuleSet = await TryGetCachedAsync<CachedDurationRuleSetData>(CacheKeys.DurationRuleSetActive(), cancellationToken);
 
         if (priceRuleSet is null || !priceRuleSet.IsValid(utcNow))
         {
             priceRuleSet = await LoadPriceRuleSetAsync(utcNow, cancellationToken);
             if (priceRuleSet is not null)
             {
-                await SetCachedAsync("catalog:price-rule-set:active", priceRuleSet, cancellationToken);
+                await SetCachedAsync(CacheKeys.PriceRuleSetActive(), priceRuleSet, cancellationToken);
             }
         }
 
@@ -210,7 +211,7 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext, TimeProvider ti
             durationRuleSet = await LoadDurationRuleSetAsync(utcNow, cancellationToken);
             if (durationRuleSet is not null)
             {
-                await SetCachedAsync("catalog:duration-rule-set:active", durationRuleSet, cancellationToken);
+                await SetCachedAsync(CacheKeys.DurationRuleSetActive(), durationRuleSet, cancellationToken);
             }
         }
 

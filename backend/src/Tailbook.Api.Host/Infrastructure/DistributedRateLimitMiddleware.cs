@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
+using Tailbook.BuildingBlocks.Infrastructure;
 
 namespace Tailbook.Api.Host.Infrastructure;
 
@@ -30,7 +31,7 @@ public sealed class DistributedRateLimitMiddleware(RequestDelegate next, IOption
 
         var clientIp = GetClientIp(context);
         var windowStart = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / rule.WindowSeconds * rule.WindowSeconds;
-        var cacheKey = $"ratelimit:{clientIp}:{method}:{path}:{windowStart}";
+        var cacheKey = CacheKeys.RateLimit(clientIp, method, path, windowStart);
 
         var countStr = await cache.GetStringAsync(cacheKey, context.RequestAborted);
         var count = countStr is not null ? int.Parse(countStr, CultureInfo.InvariantCulture) : 0;

@@ -2,6 +2,7 @@ using ErrorOr;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
+using Tailbook.BuildingBlocks.Infrastructure;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Catalog.Infrastructure.Services;
 
@@ -35,7 +36,7 @@ public sealed class PublishCatalogPriceRuleSetCommandHandler(AppDbContext dbCont
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        await cache.RemoveAsync("catalog:price-rule-set:active", cancellationToken);
+        await cache.RemoveAsync(CacheKeys.PriceRuleSetActive(), cancellationToken);
 
         return await MapRuleSetAsync(ruleSet, cancellationToken);
     }

@@ -3,6 +3,7 @@ using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.BuildingBlocks.Infrastructure;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
 namespace Tailbook.Modules.Staff.Infrastructure.Services;
@@ -311,7 +312,7 @@ public sealed class StaffSchedulingService(
 
     private async Task<CachedGroomerData?> LoadGroomerDataAsync(Guid groomerId, CancellationToken cancellationToken)
     {
-        var cacheKey = $"staff:groomer:{groomerId}:profile";
+        var cacheKey = CacheKeys.GroomerProfile(groomerId);
         var cached = await TryGetCachedAsync<CachedGroomerData>(cacheKey, cancellationToken);
         if (cached is not null)
         {
@@ -342,7 +343,7 @@ public sealed class StaffSchedulingService(
 
     private async Task<List<CachedWorkingScheduleData>> LoadWorkingSchedulesAsync(Guid groomerId, CancellationToken cancellationToken)
     {
-        var cacheKey = $"staff:groomer:{groomerId}:schedules";
+        var cacheKey = CacheKeys.GroomerSchedules(groomerId);
         var cached = await TryGetCachedAsync<List<CachedWorkingScheduleData>>(cacheKey, cancellationToken);
         if (cached is not null)
         {

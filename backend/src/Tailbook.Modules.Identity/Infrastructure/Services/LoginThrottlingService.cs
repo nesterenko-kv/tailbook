@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
+using Tailbook.BuildingBlocks.Infrastructure;
 using Tailbook.Modules.Identity.Infrastructure.Options;
 
 namespace Tailbook.Modules.Identity.Infrastructure.Services;
@@ -108,7 +109,7 @@ public sealed class LoginThrottlingService(
     private static string? GetCacheKey(string email)
     {
         var normalized = IdentityUseCases.NormalizeEmail(email);
-        return string.IsNullOrWhiteSpace(normalized) ? null : $"throttle:{normalized}";
+        return string.IsNullOrWhiteSpace(normalized) ? null : CacheKeys.Throttle(normalized);
     }
 
     private sealed class LoginAttemptState

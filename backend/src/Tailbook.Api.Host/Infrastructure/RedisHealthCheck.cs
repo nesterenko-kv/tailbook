@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Tailbook.BuildingBlocks.Infrastructure;
 
 namespace Tailbook.Api.Host.Infrastructure;
 
@@ -9,7 +10,7 @@ public sealed class RedisHealthCheck(IDistributedCache cache) : IHealthCheck
     {
         try
         {
-            var key = $"health:{Guid.NewGuid():N}";
+            var key = CacheKeys.HealthCheck(Guid.NewGuid());
             await cache.SetStringAsync(key, "ok", new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10)
