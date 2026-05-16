@@ -87,6 +87,12 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 options.ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning));
             });
 
+            services.AddDbContextFactory<AppDbContext>(options =>
+            {
+                options.UseInMemoryDatabase(_databaseName, _databaseRoot);
+                options.ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+            });
+
             services.PostConfigure<JwtOptions>(options =>
             {
                 options.Issuer = TestJwtIssuer;
