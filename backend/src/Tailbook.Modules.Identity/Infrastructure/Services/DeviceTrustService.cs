@@ -36,7 +36,7 @@ public sealed class DeviceTrustService(
         return rawToken;
     }
 
-    public async Task<bool> IsDeviceTrustedAsync(string deviceToken, string surface, CancellationToken cancellationToken)
+    public async ValueTask<bool> IsDeviceTrustedAsync(string deviceToken, string surface, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(deviceToken))
         {

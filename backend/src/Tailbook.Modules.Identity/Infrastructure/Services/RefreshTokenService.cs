@@ -36,7 +36,7 @@ public sealed class RefreshTokenService(
         return new IssuedRefreshToken(rawToken, entity.ExpiresAt);
     }
 
-    public async Task<IdentityRefreshToken?> FindUsableAsync(string rawToken, CancellationToken cancellationToken)
+    public async ValueTask<IdentityRefreshToken?> FindUsableAsync(string rawToken, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(rawToken))
         {

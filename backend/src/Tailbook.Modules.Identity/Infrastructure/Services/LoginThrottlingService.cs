@@ -16,7 +16,7 @@ public sealed class LoginThrottlingService(
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public async Task<LoginThrottleDecision> CheckAllowedAsync(string email, CancellationToken cancellationToken = default)
+    public async ValueTask<LoginThrottleDecision> CheckAllowedAsync(string email, CancellationToken cancellationToken = default)
     {
         var key = GetCacheKey(email);
         if (key is null)
@@ -47,7 +47,7 @@ public sealed class LoginThrottlingService(
         return LoginThrottleDecision.Allowed;
     }
 
-    public async Task RecordFailureAsync(string email, CancellationToken cancellationToken = default)
+    public async ValueTask RecordFailureAsync(string email, CancellationToken cancellationToken = default)
     {
         var key = GetCacheKey(email);
         if (key is null)
@@ -97,7 +97,7 @@ public sealed class LoginThrottlingService(
         }, cancellationToken);
     }
 
-    public async Task RecordSuccessAsync(string email, CancellationToken cancellationToken = default)
+    public async ValueTask RecordSuccessAsync(string email, CancellationToken cancellationToken = default)
     {
         var key = GetCacheKey(email);
         if (key is not null)

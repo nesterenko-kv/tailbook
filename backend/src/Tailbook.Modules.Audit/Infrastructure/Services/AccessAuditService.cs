@@ -5,7 +5,7 @@ namespace Tailbook.Modules.Audit.Infrastructure.Services;
 
 internal sealed class AccessAuditService(IAuditWriteQueue queue, TimeProvider timeProvider) : IAccessAuditService
 {
-    public Task RecordAsync(string resourceType, string resourceId, string actionCode, Guid? actorUserId, CancellationToken cancellationToken)
+    public ValueTask RecordAsync(string resourceType, string resourceId, string actionCode, Guid? actorUserId, CancellationToken cancellationToken)
     {
         var item = new AccessAuditWriteItem(
             Guid.NewGuid(),
@@ -15,6 +15,6 @@ internal sealed class AccessAuditService(IAuditWriteQueue queue, TimeProvider ti
             actionCode,
             timeProvider.GetUtcNow());
 
-        return queue.EnqueueAsync(item, cancellationToken).AsTask();
+        return queue.EnqueueAsync(item, cancellationToken);
     }
 }

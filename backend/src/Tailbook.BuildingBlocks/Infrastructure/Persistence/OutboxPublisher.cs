@@ -10,7 +10,7 @@ public sealed class OutboxPublisher(AppDbContext dbContext, TimeProvider timePro
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    public Task PublishAsync(string moduleCode, string eventType, object payload, CancellationToken cancellationToken)
+    public ValueTask PublishAsync(string moduleCode, string eventType, object payload, CancellationToken cancellationToken)
     {
         var payloadJson = JsonSerializer.Serialize(payload, JsonOptions);
         var messageId = Guid.NewGuid();
@@ -28,6 +28,6 @@ public sealed class OutboxPublisher(AppDbContext dbContext, TimeProvider timePro
         });
         OutboxTelemetry.RecordMessageStaged(moduleCode, eventType, payloadSizeBytes);
 
-        return Task.CompletedTask;
+        return default;
     }
 }

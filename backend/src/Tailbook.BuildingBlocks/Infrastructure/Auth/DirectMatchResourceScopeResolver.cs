@@ -9,9 +9,9 @@ public sealed class DirectMatchResourceScopeResolver : IResourceScopeResolver
         return string.Equals(resourceType, scopeType, StringComparison.OrdinalIgnoreCase);
     }
 
-    public Task<bool> IsResourceInScopeAsync(string resourceType, string resourceId, string scopeType, string scopeId, CancellationToken cancellationToken)
+    public ValueTask<bool> IsResourceInScopeAsync(string resourceType, string resourceId, string scopeType, string scopeId, CancellationToken cancellationToken)
     {
         var result = string.Equals(resourceId, scopeId, StringComparison.OrdinalIgnoreCase);
-        return Task.FromResult(result);
+        return ValueTask.FromResult(result);
     }
 }

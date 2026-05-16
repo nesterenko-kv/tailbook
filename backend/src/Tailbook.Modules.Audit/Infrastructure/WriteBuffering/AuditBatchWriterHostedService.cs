@@ -64,7 +64,7 @@ internal sealed class AuditBatchWriterHostedService(
         }
     }
 
-    private async Task<bool> WaitForNextItemAsync(List<AuditWriteItem> batch, CancellationToken cancellationToken)
+    private async ValueTask<bool> WaitForNextItemAsync(List<AuditWriteItem> batch, CancellationToken cancellationToken)
     {
         while (await queue.Reader.WaitToReadAsync(cancellationToken))
         {
@@ -139,7 +139,7 @@ internal sealed class AuditBatchWriterHostedService(
         }
     }
 
-    private async Task PersistBatchWithRetryAsync(List<AuditWriteItem> batch, CancellationToken cancellationToken)
+    private async ValueTask PersistBatchWithRetryAsync(List<AuditWriteItem> batch, CancellationToken cancellationToken)
     {
         if (batch.Count == 0)
         {
