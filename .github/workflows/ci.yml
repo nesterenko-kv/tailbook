@@ -62,6 +62,14 @@ jobs:
       - name: Run tests
         run: dotnet test backend/tests/${{ matrix.project }}/${{ matrix.project }}.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory backend/tests/${{ matrix.project }}/TestResults
 
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: backend/tests/${{ matrix.project }}/TestResults
+          flags: backend
+          fail_ci_if_error: false
+
       - uses: actions/upload-artifact@v6
         with:
           name: coverage-${{ matrix.project }}
@@ -78,13 +86,6 @@ jobs:
         with:
           pattern: coverage-*
           merge-multiple: true
-
-      - uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          directory: .
-          flags: backend
-          fail_ci_if_error: false
 
       - uses: danielpalme/ReportGenerator-GitHub-Action@5.4.4
         with:
