@@ -79,10 +79,10 @@ internal sealed class AuditBatchWriterHostedService(
         return false;
     }
 
-    private async Task FillBatchUntilFlushAsync(List<AuditWriteItem> batch, CancellationToken cancellationToken)
+    private async ValueTask FillBatchUntilFlushAsync(List<AuditWriteItem> batch, CancellationToken cancellationToken)
     {
         using var flushCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        var flushDelay = Task.Delay(_flushInterval, timeProvider, flushCts.Token);
+        flushCts.CancelAfter(_flushInterval);
 
         while (batch.Count < _batchSize)
         {
@@ -97,20 +97,18 @@ internal sealed class AuditBatchWriterHostedService(
                 break;
             }
 
-            var waitToRead = queue.Reader.WaitToReadAsync(flushCts.Token).AsTask();
-            var completed = await Task.WhenAny(waitToRead, flushDelay);
-            if (completed == flushDelay)
+            try
             {
-                break;
+                if (!await queue.Reader.WaitToReadAsync(flushCts.Token))
+                {
+                    break;
+                }
             }
-
-            if (!await waitToRead)
+            catch (OperationCanceledException) when (flushCts.IsCancellationRequested)
             {
                 break;
             }
         }
-
-        await flushCts.CancelAsync();
     }
 
     private async Task DrainQueueAsync(List<AuditWriteItem> batch, CancellationToken cancellationToken)
