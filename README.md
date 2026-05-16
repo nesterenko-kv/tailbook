@@ -38,6 +38,21 @@ pnpm dev:groomer
 dotnet test backend/Tailbook.slnx
 ```
 
+### Testing with code coverage
+
+Backend (outputs coverage to `TestResults`):
+```bash
+dotnet test backend/Tailbook.slnx --collect:"XPlat Code Coverage"
+```
+
+Frontend (outputs coverage to `apps/*/coverage/`):
+```bash
+pnpm test -- --coverage
+```
+
+CI uploads coverage reports as downloadable artifacts on each run.
+```
+
 ## Production-like local stack
 
 ```bash
