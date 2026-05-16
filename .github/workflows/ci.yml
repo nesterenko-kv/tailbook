@@ -1,5 +1,8 @@
 name: CI
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     branches: [main]
@@ -18,7 +21,7 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Build.props', '**/*.slnx') }}
@@ -49,7 +52,6 @@ jobs:
           - Tailbook.Modules.Staff.Tests
           - Tailbook.Modules.Audit.Tests
           - Tailbook.Modules.VisitOperations.Tests
-          - Tailbook.Tests.Infrastructure
     steps:
       - uses: actions/checkout@v6
 
