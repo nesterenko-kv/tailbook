@@ -1,6 +1,7 @@
 # Tailbook
 
 ![CI](https://github.com/nesterenko-kv/tailbook/actions/workflows/ci.yml/badge.svg)
+[![codecov](https://codecov.io/gh/nesterenko-kv/tailbook/branch/main/graph/badge.svg)](https://codecov.io/gh/nesterenko-kv/tailbook)
 ![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)
 ![Node](https://img.shields.io/badge/Node-22-5FA04E?logo=node.js)
 

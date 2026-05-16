@@ -24,6 +24,13 @@ jobs:
       - name: Run tests with coverage
         run: dotnet test backend/Tailbook.slnx --no-build --configuration Release --collect:"XPlat Code Coverage"
 
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          directory: backend/tests
+          flags: backend
+          fail_ci_if_error: false
+
       - name: Generate coverage report
         uses: danielpalme/ReportGenerator-GitHub-Action@5.4.4
         with:
@@ -62,8 +69,14 @@ jobs:
 
       - run: pnpm test -- --coverage
 
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: apps/admin-web/coverage/lcov.info,apps/client-web/coverage/lcov.info,apps/groomer-web/coverage/lcov.info,packages/frontend-api/coverage/lcov.info
+          flags: frontend
+          fail_ci_if_error: false
+
       - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v6
         with:
           name: frontend-coverage-reports
           path: apps/*/coverage/
