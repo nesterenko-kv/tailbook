@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  backend:
-    name: Backend (.NET)
+  backend-prepare:
+    name: Build (.NET)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -29,28 +29,81 @@ jobs:
 
       - run: dotnet build backend/Tailbook.slnx --no-restore --configuration Release
 
-      - name: Run tests with coverage
-        run: dotnet test backend/Tailbook.slnx --no-build --configuration Release --collect:"XPlat Code Coverage"
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+      - uses: actions/upload-artifact@v6
         with:
-          directory: backend/tests
+          name: backend-build
+          path: backend/tests/*/bin/Release/net10.0/**
+          compression-level: 6
+
+  backend-test:
+    name: ${{ matrix.project }}
+    needs: backend-prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - Tailbook.Api.Tests
+          - Tailbook.Architecture.Tests
+          - Tailbook.Modules.Booking.Tests
+          - Tailbook.Modules.Catalog.Tests
+          - Tailbook.Modules.Customer.Tests
+          - Tailbook.Modules.Identity.Tests
+          - Tailbook.Modules.Notifications.Tests
+          - Tailbook.Modules.Pets.Tests
+          - Tailbook.Modules.Reporting.Tests
+          - Tailbook.Modules.Staff.Tests
+          - Tailbook.Modules.Audit.Tests
+          - Tailbook.Modules.VisitOperations.Tests
+          - Tailbook.Tests.Infrastructure
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/download-artifact@v6
+        with:
+          name: backend-build
+          path: .
+
+      - name: Run tests
+        run: dotnet test backend/tests/${{ matrix.project }}/${{ matrix.project }}.csproj --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory backend/tests/${{ matrix.project }}/TestResults
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: coverage-${{ matrix.project }}
+          path: backend/tests/${{ matrix.project }}/TestResults
+          if-no-files-found: warn
+
+  backend-coverage:
+    name: Coverage
+    if: always()
+    needs: [backend-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v6
+        with:
+          pattern: coverage-*
+          merge-multiple: true
+
+      - uses: codecov/codecov-action@v5
+        with:
+          directory: .
           flags: backend
           fail_ci_if_error: false
 
-      - name: Generate coverage report
-        uses: danielpalme/ReportGenerator-GitHub-Action@5.4.4
+      - uses: danielpalme/ReportGenerator-GitHub-Action@5.4.4
         with:
-          reports: backend/tests/**/TestResults/**/coverage.cobertura.xml
+          reports: '**/coverage.cobertura.xml'
           targetdir: coverage-report
           reporttypes: Html;MarkdownSummaryGithub
 
       - name: Add coverage to job summary
         run: cat coverage-report/*SummaryGithub.md >> $GITHUB_STEP_SUMMARY
 
-      - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v6
         with:
           name: backend-coverage-report
           path: coverage-report
