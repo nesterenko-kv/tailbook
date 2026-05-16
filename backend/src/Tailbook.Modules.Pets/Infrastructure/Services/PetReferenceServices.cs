@@ -48,16 +48,49 @@ public sealed class PetReferenceServices(AppDbContext dbContext, IDistributedCac
 
     public async Task<PetSummaryReadModel?> GetPetSummaryAsync(Guid petId, CancellationToken cancellationToken)
     {
-        return await QueryPetSummaries()
-            .SingleOrDefaultAsync(x => x.Id == petId, cancellationToken);
+        var query =
+            from pet in dbContext.Set<Pet>().AsNoTracking()
+            where pet.Id == petId
+            join animalType in dbContext.Set<AnimalType>().AsNoTracking()
+                on pet.AnimalTypeId equals animalType.Id
+            join breed in dbContext.Set<Breed>().AsNoTracking()
+                on pet.BreedId equals breed.Id
+            from coatType in dbContext.Set<CoatType>().AsNoTracking()
+                .Where(c => c.Id == pet.CoatTypeId).DefaultIfEmpty()
+            from sizeCategory in dbContext.Set<SizeCategory>().AsNoTracking()
+                .Where(s => s.Id == pet.SizeCategoryId).DefaultIfEmpty()
+            select new PetSummaryReadModel(
+                pet.Id, pet.Name, pet.ClientId,
+                animalType.Code, animalType.Name,
+                breed.Name,
+                coatType == null ? null : coatType.Code,
+                sizeCategory == null ? null : sizeCategory.Code);
+
+        return await query.SingleOrDefaultAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyCollection<PetSummaryReadModel>> ListPetSummariesByClientAsync(Guid clientId, CancellationToken cancellationToken)
     {
-        return await QueryPetSummaries()
-            .Where(x => x.ClientId == clientId)
-            .OrderBy(x => x.Name)
-            .ToArrayAsync(cancellationToken);
+        var query =
+            from pet in dbContext.Set<Pet>().AsNoTracking()
+            where pet.ClientId == clientId
+            join animalType in dbContext.Set<AnimalType>().AsNoTracking()
+                on pet.AnimalTypeId equals animalType.Id
+            join breed in dbContext.Set<Breed>().AsNoTracking()
+                on pet.BreedId equals breed.Id
+            from coatType in dbContext.Set<CoatType>().AsNoTracking()
+                .Where(c => c.Id == pet.CoatTypeId).DefaultIfEmpty()
+            from sizeCategory in dbContext.Set<SizeCategory>().AsNoTracking()
+                .Where(s => s.Id == pet.SizeCategoryId).DefaultIfEmpty()
+            orderby pet.Name
+            select new PetSummaryReadModel(
+                pet.Id, pet.Name, pet.ClientId,
+                animalType.Code, animalType.Name,
+                breed.Name,
+                coatType == null ? null : coatType.Code,
+                sizeCategory == null ? null : sizeCategory.Code);
+
+        return await query.ToArrayAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyCollection<Guid>> SearchPetIdsAsync(string? search, int maxResults, CancellationToken cancellationToken)

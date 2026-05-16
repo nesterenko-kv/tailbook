@@ -42,8 +42,14 @@ public sealed class ReportingReadService(AppDbContext dbContext) : IReportingRea
             ORDER BY v."ClosedAt" DESC
             """;
 
-        var fromParameter = new NpgsqlParameter("from", from.HasValue ? from.Value : DBNull.Value);
-        var toParameter = new NpgsqlParameter("to", to.HasValue ? to.Value : DBNull.Value);
+        var fromParameter = new NpgsqlParameter("from", NpgsqlTypes.NpgsqlDbType.TimestampTz)
+        {
+            Value = from.HasValue ? from.Value : DBNull.Value
+        };
+        var toParameter = new NpgsqlParameter("to", NpgsqlTypes.NpgsqlDbType.TimestampTz)
+        {
+            Value = to.HasValue ? to.Value : DBNull.Value
+        };
 
         return await dbContext.Database.SqlQueryRaw<EstimateAccuracyReportItemView>(sql, fromParameter, toParameter).ToListAsync(cancellationToken);
     }
@@ -122,8 +128,14 @@ public sealed class ReportingReadService(AppDbContext dbContext) : IReportingRea
             ORDER BY COUNT(*) DESC, ia."OfferCodeSnapshot"
             """;
 
-        var fromParameter = new NpgsqlParameter("from", from.HasValue ? from.Value : DBNull.Value);
-        var toParameter = new NpgsqlParameter("to", to.HasValue ? to.Value : DBNull.Value);
+        var fromParameter = new NpgsqlParameter("from", NpgsqlTypes.NpgsqlDbType.TimestampTz)
+        {
+            Value = from.HasValue ? from.Value : DBNull.Value
+        };
+        var toParameter = new NpgsqlParameter("to", NpgsqlTypes.NpgsqlDbType.TimestampTz)
+        {
+            Value = to.HasValue ? to.Value : DBNull.Value
+        };
 
         return await dbContext.Database.SqlQueryRaw<PackagePerformanceReportItemView>(sql, fromParameter, toParameter).ToListAsync(cancellationToken);
     }

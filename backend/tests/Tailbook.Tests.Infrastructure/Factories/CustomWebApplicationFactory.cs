@@ -81,12 +81,6 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 services.Remove(descriptor);
             }
 
-            services.AddDbContext<AppDbContext>(options =>
-            {
-                options.UseInMemoryDatabase(_databaseName, _databaseRoot);
-                options.ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning));
-            });
-
             services.AddDbContextFactory<AppDbContext>(options =>
             {
                 options.UseInMemoryDatabase(_databaseName, _databaseRoot);
@@ -135,7 +129,8 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public async Task<Guid> SeedUserAsync(string email, string displayName, string password, params string[] roleCodes)
     {
         using var scope = Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>();
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
         var passwordHasher = scope.ServiceProvider.GetRequiredService<PasswordHasher>();
 
         var user = new IdentityUser

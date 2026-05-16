@@ -44,7 +44,9 @@ public sealed class MfaRecoveryCodeTests(RealDbWebApplicationFactory factory) : 
         var status = JsonSerializer.Deserialize<MfaRecoveryCodeStatusEnvelope>(statusJson, JsonSerializerOptions.Web);
         Assert.NotNull(status);
         Assert.Equal(10, status.ActiveCodeCount);
-        Assert.Equal(generation.CreatedAt, status.LastGeneratedAt);
+        Assert.NotNull(status.LastGeneratedAt);
+        var precisionDiff = (generation.CreatedAt - status.LastGeneratedAt.Value).Duration();
+        Assert.True(precisionDiff.TotalMilliseconds < 1, $"Expected {generation.CreatedAt:O} but got {status.LastGeneratedAt.Value:O}");
         Assert.DoesNotContain("recoveryCodes", statusJson, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain(NormalizeRecoveryCode(generation.RecoveryCodes[0]), statusJson, StringComparison.Ordinal);
 

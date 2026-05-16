@@ -116,8 +116,10 @@ public sealed class MfaChallengeTests(RealDbWebApplicationFactory factory) : ICl
         Assert.Null(persisted.InvalidatedAt);
         Assert.Equal(0, persisted.FailedAttemptCount);
 
-        var outbox = await dbContext.Set<OutboxMessage>()
-            .SingleAsync(x => x.EventType.Contains("MfaEmailOtpChallengeCreated") && x.PayloadJson.Contains(challenge.Value.ChallengeId.ToString("D")));
+        var matchingOutbox = await dbContext.Set<OutboxMessage>()
+            .Where(x => x.EventType.Contains("MfaEmailOtpChallengeCreated"))
+            .ToListAsync();
+        var outbox = matchingOutbox.Single(x => x.PayloadJson.Contains(challenge.Value.ChallengeId.ToString("D")));
         Assert.DoesNotContain(challenge.Value.Code, outbox.PayloadJson, StringComparison.Ordinal);
         using var payload = JsonDocument.Parse(outbox.PayloadJson);
         var protectedCode = payload.RootElement.GetProperty("ProtectedCode").GetString();

@@ -155,10 +155,11 @@ public sealed class PasswordResetTests(RealDbWebApplicationFactory factory) : IC
         using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var sensitivePayloadProtector = scope.ServiceProvider.GetRequiredService<ISensitivePayloadProtector>();
-        var message = await dbContext.Set<OutboxMessage>()
-            .Where(x => x.EventType.Contains("PasswordResetRequested") && x.PayloadJson.Contains(email))
+        var messages = await dbContext.Set<OutboxMessage>()
+            .Where(x => x.EventType.Contains("PasswordResetRequested"))
             .OrderByDescending(x => x.OccurredAt)
-            .FirstAsync();
+            .ToListAsync();
+        var message = messages.First(x => x.PayloadJson.Contains(email));
 
         using var document = JsonDocument.Parse(message.PayloadJson);
         Assert.False(document.RootElement.TryGetProperty("ResetToken", out _));

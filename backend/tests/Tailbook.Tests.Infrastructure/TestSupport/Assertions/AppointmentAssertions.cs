@@ -9,7 +9,7 @@ public static class AppointmentAssertions
     {
         public void ShouldBeConvertedFrom(Guid bookingRequestId)
         {
-            Assert.Equal(bookingRequestId, appointment.Id);
+            Assert.Equal(bookingRequestId, appointment.BookingRequestId);
         }
 
         public void ShouldHaveStatus(string expectedStatus, int versionNo)

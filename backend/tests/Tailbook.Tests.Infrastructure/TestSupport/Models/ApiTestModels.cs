@@ -22,6 +22,9 @@ public sealed record AppointmentSummaryItem
     [JsonPropertyName("id")]
     public Guid Id { get; set; }
 
+    [JsonPropertyName("bookingRequestId")]
+    public Guid? BookingRequestId { get; set; }
+
     [JsonPropertyName("status")]
     public string Status { get; set; } = string.Empty;
 }
