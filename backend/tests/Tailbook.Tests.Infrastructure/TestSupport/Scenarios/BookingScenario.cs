@@ -1,151 +1,187 @@
-using System.Globalization;
 using System.Net.Http.Json;
-using Tailbook.Api.Tests.TestSupport.Auth;
 using Tailbook.Api.Tests.TestSupport.Http;
 using Tailbook.Api.Tests.TestSupport.Models;
-using Tailbook.Api.Tests;
-using Xunit;
 
 namespace Tailbook.Api.Tests.TestSupport.Scenarios;
 
 public sealed class BookingScenario
 {
-    private readonly HttpClient _admin;
-    private readonly RealDbWebApplicationFactory _factory;
-    private Guid _petId;
-    private Guid _offerId;
-    private Guid _groomerId;
+    private readonly HttpClient _client;
 
-    private BookingScenario(HttpClient admin, RealDbWebApplicationFactory factory)
+    public BookingScenario(HttpClient client, Guid clientId, Guid petId, Guid offerId, Guid groomerId, PetCatalogSelection catalog)
     {
-        _admin = admin;
-        _factory = factory;
+        _client = client;
+        ClientId = clientId;
+        PetId = petId;
+        OfferId = offerId;
+        GroomerId = groomerId;
+        Catalog = catalog;
     }
 
-    public static Builder For(HttpClient admin) => new(admin);
+    public Guid ClientId { get; }
+    public Guid PetId { get; }
+    public Guid OfferId { get; }
+    public Guid GroomerId { get; }
+    public PetCatalogSelection Catalog { get; }
 
-    public sealed class Builder(HttpClient admin)
-    {
-        private readonly HttpClient _admin = admin;
-        private readonly RealDbWebApplicationFactory _factory = null!;
-        private string _clientDisplayName = "Default Client";
-        private string _offerDisplayName = "Default Offer";
-        private string _groomerDisplayName = "Default Groomer";
-
-        public Builder WithSchedulablePet(string clientDisplayName)
-        {
-            _clientDisplayName = clientDisplayName;
-            return this;
-        }
-
-        public Builder WithSchedulableOffer(string? displayName = null)
-        {
-            if (displayName is not null)
-                _offerDisplayName = displayName;
-            return this;
-        }
-
-        public Builder WithAvailableGroomer(string groomerDisplayName)
-        {
-            _groomerDisplayName = groomerDisplayName;
-            return this;
-        }
-
-        public async Task<BookingScenario> CreateAsync()
-        {
-            var scenario = new BookingScenario(_admin, _factory);
-            scenario._petId = Guid.NewGuid();
-            scenario._offerId = Guid.NewGuid();
-            scenario._groomerId = Guid.NewGuid();
-            await Task.CompletedTask;
-            return scenario;
-        }
-    }
+    public static Builder For(HttpClient client)
+        => new(client);
 
     public async Task<AppointmentSummaryItem> CreateBookingRequestAsync(
-        DateTimeOffset preferredStartAt, DateTimeOffset preferredEndAt)
+        DateTimeOffset preferredStartAt, DateTimeOffset preferredEndAt, string label = "Afternoon")
     {
-        var response = await _admin.PostAsJsonAsync("/api/admin/booking-requests", new
+        var response = await _client.PostAsJsonAsync("/api/admin/booking-requests", new
         {
-            petId = _petId,
-            offerId = _offerId,
-            groomerId = _groomerId,
-            preferredStartAt,
-            preferredEndAt
+            clientId = ClientId,
+            petId = PetId,
+            channel = "Admin",
+            notes = "Customer prefers afternoon.",
+            preferredTimes = new[]
+            {
+                new { startAt = preferredStartAt, endAt = preferredEndAt, label }
+            },
+            items = new[]
+            {
+                new { offerId = OfferId, itemType = "Package" }
+            }
         });
         response.ShouldBeCreated();
         return await response.ReadRequiredJsonAsync<AppointmentSummaryItem>();
     }
 
-    public async Task<AppointmentSummaryItem> ConvertBookingRequestAsync(
-        Guid bookingRequestId, DateTimeOffset startAt)
+    public async Task<AppointmentSummaryItem> ConvertBookingRequestAsync(Guid bookingRequestId, DateTimeOffset startAt)
     {
-        var response = await _admin.PostAsJsonAsync($"/api/admin/booking-requests/{bookingRequestId}/convert", new
+        var response = await _client.PostAsJsonAsync($"/api/admin/booking-requests/{bookingRequestId:D}/convert", new
         {
+            bookingRequestId,
+            groomerId = GroomerId,
             startAt
         });
-        response.ShouldBeOk();
+        response.ShouldBeCreated();
         return await response.ReadRequiredJsonAsync<AppointmentSummaryItem>();
     }
 
     public async Task<PagedBookingRequestEnvelope> ListBookingRequestsAsync()
     {
-        var response = await _admin.GetAsync("/api/admin/booking-requests");
+        var response = await _client.GetAsync("/api/admin/booking-requests");
         response.ShouldBeOk();
         return await response.ReadRequiredJsonAsync<PagedBookingRequestEnvelope>();
     }
 
     public async Task<AppointmentSummaryItem> CreateAppointmentAsync(DateTimeOffset startAt)
     {
-        var response = await _admin.PostAsJsonAsync("/api/admin/appointments", new
+        var response = await _client.PostAsJsonAsync("/api/admin/appointments", new
         {
-            petId = _petId,
-            offerId = _offerId,
-            groomerId = _groomerId,
-            startAt
+            petId = PetId,
+            groomerId = GroomerId,
+            startAt,
+            items = new[] { new { offerId = OfferId, itemType = "Package" } }
         });
         response.ShouldBeCreated();
         return await response.ReadRequiredJsonAsync<AppointmentSummaryItem>();
     }
 
-    public async Task<AppointmentSummaryItem> RescheduleAppointmentAsync(
-        Guid appointmentId, DateTimeOffset startAt, int expectedVersionNo)
-    {
-        var response = await _admin.PutAsJsonAsync($"/api/admin/appointments/{appointmentId}/reschedule", new
+    public async Task<HttpResponseMessage> RescheduleAppointmentResponseAsync(Guid appointmentId, DateTimeOffset startAt, int expectedVersionNo)
+        => await _client.PostAsJsonAsync($"/api/admin/appointments/{appointmentId:D}/reschedule", new
         {
-            groomerId = _groomerId,
+            appointmentId,
+            groomerId = GroomerId,
             startAt,
             expectedVersionNo
         });
+
+    public async Task<AppointmentSummaryItem> RescheduleAppointmentAsync(Guid appointmentId, DateTimeOffset startAt, int expectedVersionNo)
+    {
+        var response = await RescheduleAppointmentResponseAsync(appointmentId, startAt, expectedVersionNo);
         response.ShouldBeOk();
         return await response.ReadRequiredJsonAsync<AppointmentSummaryItem>();
     }
 
     public async Task<HttpResponseMessage> CancelAppointmentResponseAsync(
-        Guid appointmentId, int expectedVersionNo)
-    {
-        return await _admin.PostAsJsonAsync($"/api/admin/appointments/{appointmentId}/cancel", new
+        Guid appointmentId,
+        int expectedVersionNo,
+        string reasonCode = "CLIENT_REQUEST",
+        string? notes = null)
+        => await _client.PostAsJsonAsync($"/api/admin/appointments/{appointmentId:D}/cancel", new
         {
-            reasonCode = "CLIENT_REQUEST",
-            expectedVersionNo
+            appointmentId,
+            expectedVersionNo,
+            reasonCode,
+            notes
         });
-    }
 
     public async Task<AppointmentSummaryItem> CancelAppointmentAsync(
-        Guid appointmentId, int expectedVersionNo, string? notes = null)
+        Guid appointmentId,
+        int expectedVersionNo,
+        string reasonCode = "CLIENT_REQUEST",
+        string? notes = null)
     {
-        var response = await CancelAppointmentResponseAsync(appointmentId, expectedVersionNo);
+        var response = await CancelAppointmentResponseAsync(appointmentId, expectedVersionNo, reasonCode, notes);
         response.ShouldBeOk();
         return await response.ReadRequiredJsonAsync<AppointmentSummaryItem>();
     }
 
-    public async Task<GroomerAvailabilityResult> CheckGroomerAvailabilityAsync(
-        DateTimeOffset startAt, int reservedMinutes)
-    {
-        var url = $"/api/admin/groomers/{_groomerId}/availability?startAt={Uri.EscapeDataString(startAt.ToString("O", CultureInfo.InvariantCulture))}&reservedMinutes={reservedMinutes}";
-        var response = await _admin.GetAsync(url);
-        response.ShouldBeOk();
-        return await response.ReadRequiredJsonAsync<GroomerAvailabilityResult>();
-    }
+    public async Task<AvailabilityEnvelope> CheckGroomerAvailabilityAsync(DateTimeOffset startAt, int reservedMinutes)
+        => await StaffScenario.For(_client).CheckAvailabilityAsync(GroomerId, PetId, startAt, reservedMinutes, OfferId);
 }
 
+public sealed class Builder(HttpClient client)
+{
+    private string _clientDisplayName = "Booking Client";
+    private string? _petNotes;
+    private string _offerCodePrefix = "BOOK";
+    private string _offerDisplayName = "Booking Package";
+    private decimal _fixedAmount = 1500m;
+    private int _serviceMinutes = 90;
+    private IEnumerable<int> _groomerWeekdays = [1, 2, 3, 4, 5];
+    private string _groomerDisplayName = "Booking Groomer";
+
+    public Builder WithSchedulablePet(string clientDisplayName, string? petNotes = null)
+    {
+        _clientDisplayName = clientDisplayName;
+        _petNotes = petNotes;
+        return this;
+    }
+
+    public Builder WithSchedulableOffer(
+        string? codePrefix = null,
+        string? displayName = null,
+        decimal? fixedAmount = null,
+        int? serviceMinutes = null)
+    {
+        if (codePrefix is not null)
+            _offerCodePrefix = codePrefix;
+        if (displayName is not null)
+            _offerDisplayName = displayName;
+        if (fixedAmount.HasValue)
+            _fixedAmount = fixedAmount.Value;
+        if (serviceMinutes.HasValue)
+            _serviceMinutes = serviceMinutes.Value;
+        return this;
+    }
+
+    public Builder WithAvailableGroomer(
+        string? displayName = null,
+        IEnumerable<int>? weekdays = null)
+    {
+        if (displayName is not null)
+            _groomerDisplayName = displayName;
+        if (weekdays is not null)
+            _groomerWeekdays = weekdays;
+        return this;
+    }
+
+    public async Task<BookingScenario> CreateAsync()
+    {
+        var pet = await PetScenario.For(client).CreateSchedulablePetAsync(_clientDisplayName, _petNotes);
+        var offerId = await CatalogScenario.For(client).CreateSchedulableOfferAsync(
+            pet.Catalog.SamoyedBreedId,
+            _offerCodePrefix,
+            _offerDisplayName,
+            _fixedAmount,
+            _serviceMinutes);
+        var groomer = await StaffScenario.For(client).CreateSchedulableGroomerAsync(_groomerDisplayName, weekdays: _groomerWeekdays);
+
+        return new BookingScenario(client, pet.ClientId, pet.PetId, offerId, groomer.Id, pet.Catalog);
+    }
+}
