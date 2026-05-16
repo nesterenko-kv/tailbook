@@ -3,6 +3,17 @@
     <Project Path="tests/Tailbook.Api.Tests/Tailbook.Api.Tests.csproj"/>
     <Project Path="tests/Tailbook.Architecture.Tests/Tailbook.Architecture.Tests.csproj"/>
     <Project Path="tests/Tailbook.Performance.Tests/Tailbook.Performance.Tests.csproj"/>
+    <Project Path="tests/Tailbook.Tests.Infrastructure/Tailbook.Tests.Infrastructure.csproj"/>
+    <Project Path="tests/Tailbook.Modules.Identity.Tests/Tailbook.Modules.Identity.Tests.csproj"/>
+    <Project Path="tests/Tailbook.Modules.Audit.Tests/Tailbook.Modules.Audit.Tests.csproj"/>
+    <Project Path="tests/Tailbook.Modules.Booking.Tests/Tailbook.Modules.Booking.Tests.csproj"/>
+    <Project Path="tests/Tailbook.Modules.VisitOperations.Tests/Tailbook.Modules.VisitOperations.Tests.csproj"/>
+    <Project Path="tests/Tailbook.Modules.Catalog.Tests/Tailbook.Modules.Catalog.Tests.csproj"/>
+    <Project Path="tests/Tailbook.Modules.Notifications.Tests/Tailbook.Modules.Notifications.Tests.csproj"/>
+    <Project Path="tests/Tailbook.Modules.Customer.Tests/Tailbook.Modules.Customer.Tests.csproj"/>
+    <Project Path="tests/Tailbook.Modules.Pets.Tests/Tailbook.Modules.Pets.Tests.csproj"/>
+    <Project Path="tests/Tailbook.Modules.Staff.Tests/Tailbook.Modules.Staff.Tests.csproj"/>
+    <Project Path="tests/Tailbook.Modules.Reporting.Tests/Tailbook.Modules.Reporting.Tests.csproj"/>
   </Folder>
   <Project Path="src/Tailbook.Api.Host/Tailbook.Api.Host.csproj"/>
   <Project Path="src/Tailbook.BuildingBlocks/Tailbook.BuildingBlocks.csproj"/>

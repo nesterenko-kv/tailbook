@@ -16,6 +16,7 @@ public sealed class VisitOperationsModule : IModuleDefinition
         services.AddScoped<IVisitReadService, VisitReadService>();
         services.AddScoped<IGroomerVisitReadService, GroomerVisitReadService>();
         services.AddScoped<CheckInAppointmentUseCaseCommandHandler>();
+        services.AddScoped<CheckInOwnAppointmentUseCaseCommandHandler>();
         services.AddScoped<RecordPerformedProcedureUseCaseCommandHandler>();
         services.AddScoped<RecordSkippedComponentUseCaseCommandHandler>();
         return services;

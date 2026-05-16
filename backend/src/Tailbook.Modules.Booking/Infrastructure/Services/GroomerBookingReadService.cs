@@ -84,7 +84,7 @@ public sealed class GroomerBookingReadService(
                 appointment.StartAt,
                 appointment.EndAt,
                 appointment.Status,
-                appointmentItems.Sum(x => durationSnapshots[x.DurationSnapshotId].ReservedMinutes),
+                appointmentItems.Sum(x => durationSnapshots.GetValueOrDefault(x.DurationSnapshotId)?.ReservedMinutes ?? 0),
                 appointmentItems.Select(x => x.OfferDisplayNameSnapshot).Distinct(StringComparer.OrdinalIgnoreCase).ToArray()));
         }
 
@@ -135,8 +135,8 @@ public sealed class GroomerBookingReadService(
                 item.OfferCodeSnapshot,
                 item.OfferDisplayNameSnapshot,
                 item.Quantity,
-                durationSnapshots[item.DurationSnapshotId].ServiceMinutes,
-                durationSnapshots[item.DurationSnapshotId].ReservedMinutes,
+                durationSnapshots.GetValueOrDefault(item.DurationSnapshotId)?.ServiceMinutes ?? 0,
+                durationSnapshots.GetValueOrDefault(item.DurationSnapshotId)?.ReservedMinutes ?? 0,
                 expectedComponents.Select(x => x.ProcedureName).ToArray()));
         }
 

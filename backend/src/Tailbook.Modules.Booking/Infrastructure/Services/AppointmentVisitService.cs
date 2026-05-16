@@ -83,9 +83,9 @@ public sealed class AppointmentVisitService(AppDbContext dbContext, TimeProvider
                         item.Quantity,
                         item.PriceSnapshotId,
                         item.DurationSnapshotId,
-                        priceSnapshots[item.PriceSnapshotId].TotalAmount,
-                        durationSnapshots[item.DurationSnapshotId].ServiceMinutes,
-                        durationSnapshots[item.DurationSnapshotId].ReservedMinutes))
+                        priceSnapshots.GetValueOrDefault(item.PriceSnapshotId)?.TotalAmount ?? 0m,
+                        durationSnapshots.GetValueOrDefault(item.DurationSnapshotId)?.ServiceMinutes ?? 0,
+                        durationSnapshots.GetValueOrDefault(item.DurationSnapshotId)?.ReservedMinutes ?? 0))
                     .ToArray()));
     }
 

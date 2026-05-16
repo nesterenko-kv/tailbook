@@ -68,6 +68,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<AppDbContext>();
             services.RemoveAll<DbContextOptions<AppDbContext>>();
             services.RemoveAll<DbContextOptions>();
+            services.RemoveAll<IDbContextFactory<AppDbContext>>();
 
             var dbContextOptionsConfigurationDescriptors = services
                 .Where(x => x.ServiceType.IsGenericType

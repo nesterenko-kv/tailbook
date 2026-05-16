@@ -60,11 +60,11 @@ public sealed class RescheduleAppointmentUseCaseCommandHandler(
 
         var baseReservedMinutes = items.Sum(x =>
         {
-            var snapshot = durationSnapshots[x.DurationSnapshotId];
+            var snapshot = durationSnapshots.GetValueOrDefault(x.DurationSnapshotId);
             var modifierTotal = modifierLines
                 .Where(y => y.DurationSnapshotId == x.DurationSnapshotId)
                 .Sum(y => y.Minutes);
-            return snapshot.ReservedMinutes - modifierTotal;
+            return (snapshot?.ReservedMinutes ?? 0) - modifierTotal;
         });
 
         var availabilityResult = await staffSchedulingService.CheckAvailabilityAsync(
