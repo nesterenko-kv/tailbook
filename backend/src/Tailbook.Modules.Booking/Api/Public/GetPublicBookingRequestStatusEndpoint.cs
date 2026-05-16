@@ -1,6 +1,5 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.Modules.Booking.Application.Booking.Queries;
 
 namespace Tailbook.Modules.Booking.Api.Public;
 

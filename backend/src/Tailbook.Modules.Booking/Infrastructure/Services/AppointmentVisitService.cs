@@ -3,7 +3,6 @@ using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.Booking.Application.Common.Errors;
 
 namespace Tailbook.Modules.Booking.Infrastructure.Services;
 

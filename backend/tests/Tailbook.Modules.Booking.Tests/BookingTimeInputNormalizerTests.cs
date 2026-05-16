@@ -1,7 +1,6 @@
-using Tailbook.Modules.Booking.Application.Common.Validation;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Booking.Tests;
 
 public sealed class BookingTimeInputNormalizerTests
 {

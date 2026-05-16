@@ -1,4 +1,5 @@
 using System.Net;
+using Tailbook.Api.Tests.Factories;
 using Xunit;
 
 namespace Tailbook.Api.Tests;

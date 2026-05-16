@@ -3,7 +3,6 @@ using ErrorOr;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using Tailbook.BuildingBlocks.Abstractions;
-using Tailbook.BuildingBlocks.Infrastructure;
 
 namespace Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 

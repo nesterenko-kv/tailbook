@@ -1,10 +1,7 @@
-using Tailbook.Api.Tests.TestSupport.Assertions;
-using Tailbook.Api.Tests.TestSupport.Auth;
-using Tailbook.Api.Tests.TestSupport.Http;
-using Tailbook.Api.Tests.TestSupport.Scenarios;
+using Tailbook.Api.Tests.Factories;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.VisitOperations.Tests;
 
 public sealed class VisitOperationsFlowTests(RealDbWebApplicationFactory factory)
     : IClassFixture<RealDbWebApplicationFactory>

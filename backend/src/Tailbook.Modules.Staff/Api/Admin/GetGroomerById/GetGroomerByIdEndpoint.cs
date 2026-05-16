@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Http;
-using Tailbook.Modules.Staff.Api.Admin;
 using Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
 namespace Tailbook.Modules.Staff.Api.Admin.GetGroomerById;

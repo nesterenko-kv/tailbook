@@ -1,7 +1,7 @@
 using Tailbook.BuildingBlocks.Infrastructure.Imports;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Catalog.Tests;
 
 public sealed class ImportValidationTests
 {

@@ -2,10 +2,12 @@ using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Tailbook.Api.Tests;
+using Tailbook.Api.Tests.Factories;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Audit.Tests;
 
 public sealed class AccessAuditTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {

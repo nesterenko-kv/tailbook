@@ -1,6 +1,5 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.Modules.Notifications.Application.Notifications.Queries;
 
 namespace Tailbook.Modules.Notifications.Api.Admin.NotificationDashboard;
 

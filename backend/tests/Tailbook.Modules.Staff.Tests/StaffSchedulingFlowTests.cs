@@ -1,12 +1,10 @@
 using System.Net.Http.Json;
-using Tailbook.Api.Tests.TestSupport.Assertions;
-using Tailbook.Api.Tests.TestSupport.Auth;
-using Tailbook.Api.Tests.TestSupport.Http;
+using Tailbook.Api.Tests.Factories;
 using Tailbook.Api.Tests.TestSupport.Models;
 using Tailbook.Api.Tests.TestSupport.Scenarios;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Staff.Tests;
 
 public sealed class StaffSchedulingFlowTests(RealDbWebApplicationFactory factory)
     : IClassFixture<RealDbWebApplicationFactory>

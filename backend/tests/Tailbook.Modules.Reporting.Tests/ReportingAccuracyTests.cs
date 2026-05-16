@@ -1,8 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
+using Tailbook.Api.Tests.Factories;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Reporting.Tests;
 
 public sealed class ReportingAccuracyTests(CustomWebApplicationFactory factory)
     : IClassFixture<CustomWebApplicationFactory>

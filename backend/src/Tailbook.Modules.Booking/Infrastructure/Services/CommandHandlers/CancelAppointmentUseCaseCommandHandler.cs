@@ -4,7 +4,6 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.Booking.Infrastructure.Services;
 
 namespace Tailbook.Modules.Booking.Infrastructure.Services.CommandHandlers;
 

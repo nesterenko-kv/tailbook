@@ -1,8 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
+using Tailbook.Api.Tests;
+using Tailbook.Api.Tests.Factories;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Customer.Tests;
 
 public sealed class CustomerPetsFlowTests(RealDbWebApplicationFactory factory)
     : IClassFixture<RealDbWebApplicationFactory>

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Tailbook.BuildingBlocks.Infrastructure.Diagnostics;
 using Xunit;
 

@@ -1,7 +1,6 @@
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Http;
 
 namespace Tailbook.Modules.Identity.Api.Me.Mfa;

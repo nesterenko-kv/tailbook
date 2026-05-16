@@ -1,12 +1,13 @@
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
+using Tailbook.Api.Tests;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Catalog.Contracts;
 using Tailbook.Modules.Catalog.Domain.Aggregates;
 using Tailbook.Modules.Catalog.Domain.Entities;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Catalog.Tests;
 
 public sealed class CatalogAggregateTests
 {

@@ -1,7 +1,8 @@
 using System.Net;
+using Tailbook.Api.Tests.Factories;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Booking.Tests;
 
 public sealed class BookingAuthorizationTests(RealDbWebApplicationFactory factory)
     : IClassFixture<RealDbWebApplicationFactory>

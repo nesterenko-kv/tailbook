@@ -17,7 +17,7 @@ using Tailbook.Modules.Audit.Infrastructure.Telemetry;
 using Tailbook.Modules.Audit.Infrastructure.WriteBuffering;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Audit.Tests;
 
 public sealed class AuditWriteBufferingTests
 {

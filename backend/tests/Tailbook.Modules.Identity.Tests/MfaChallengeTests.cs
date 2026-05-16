@@ -4,6 +4,8 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Tailbook.Api.Tests;
+using Tailbook.Api.Tests.Factories;
 using Tailbook.BuildingBlocks.Abstractions.Security;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
@@ -11,7 +13,7 @@ using Tailbook.Modules.Identity.Application.Identity.Models;
 using Tailbook.Modules.Identity.Application.Identity.Services;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Identity.Tests;
 
 public sealed class MfaChallengeTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {

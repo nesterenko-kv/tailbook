@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 
 public sealed class IdempotentRequest

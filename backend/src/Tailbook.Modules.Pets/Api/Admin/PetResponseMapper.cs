@@ -1,5 +1,4 @@
 using Tailbook.BuildingBlocks.Abstractions;
-using Tailbook.Modules.Pets.Application.Pets.Models;
 using DetailBreedResponse = Tailbook.Modules.Pets.Api.Admin.GetPetDetail.BreedResponse;
 using DetailContactMethodResponse = Tailbook.Modules.Pets.Api.Admin.GetPetDetail.ContactMethodResponse;
 using DetailNamedCatalogItemResponse = Tailbook.Modules.Pets.Api.Admin.GetPetDetail.NamedCatalogItemResponse;

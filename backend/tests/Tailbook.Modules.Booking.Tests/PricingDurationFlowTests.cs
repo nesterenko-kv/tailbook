@@ -1,13 +1,10 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
-using Tailbook.Api.Tests.TestSupport.Auth;
-using Tailbook.Api.Tests.TestSupport.Http;
-using Tailbook.Api.Tests.TestSupport.Models;
-using Tailbook.Api.Tests.TestSupport.Scenarios;
+using Tailbook.Api.Tests.Factories;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Booking.Tests;
 
 public sealed class PricingDurationFlowTests(RealDbWebApplicationFactory factory)
     : IClassFixture<RealDbWebApplicationFactory>

@@ -3,17 +3,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Tailbook.Api.Tests;
 using Tailbook.BuildingBlocks.Abstractions.Security;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
-using Tailbook.Modules.Notifications;
 using Tailbook.Modules.Notifications.Application.Notifications.Models;
 using Tailbook.Modules.Notifications.Contracts;
 using Tailbook.Modules.Notifications.Infrastructure.Options;
 using Tailbook.Modules.Notifications.Infrastructure.Telemetry;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Notifications.Tests;
 
 public sealed class NotificationUseCasesTests
 {

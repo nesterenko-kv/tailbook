@@ -19,7 +19,7 @@ using Tailbook.Modules.Identity.Domain.Aggregates;
 using Tailbook.Modules.Identity.Domain.Entities;
 using Tailbook.Modules.Identity.Infrastructure.Services;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Api.Tests.Factories;
 
 public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {

@@ -1,4 +1,3 @@
-using Tailbook.Modules.Pets.Application.Pets.Models;
 using AdminAnimalTypeResponse = Tailbook.Modules.Pets.Api.Admin.GetPetCatalog.AnimalTypeResponse;
 using AdminBreedGroupResponse = Tailbook.Modules.Pets.Api.Admin.GetPetCatalog.BreedGroupResponse;
 using AdminBreedResponse = Tailbook.Modules.Pets.Api.Admin.GetPetCatalog.BreedResponse;

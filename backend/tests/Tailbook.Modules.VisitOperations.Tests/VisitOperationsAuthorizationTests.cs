@@ -2,11 +2,12 @@ using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Tailbook.Api.Tests.Factories;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Identity.Contracts;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.VisitOperations.Tests;
 
 public sealed class VisitOperationsAuthorizationTests(RealDbWebApplicationFactory factory)
     : IClassFixture<RealDbWebApplicationFactory>

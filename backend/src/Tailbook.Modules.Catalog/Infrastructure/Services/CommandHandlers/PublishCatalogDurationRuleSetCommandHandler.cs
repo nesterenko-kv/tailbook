@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Tailbook.BuildingBlocks.Infrastructure;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.Catalog.Infrastructure.Services;
 
 namespace Tailbook.Modules.Catalog.Infrastructure.Services.CommandHandlers;
 

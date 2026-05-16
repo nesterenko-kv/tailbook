@@ -1,7 +1,7 @@
 using Tailbook.BuildingBlocks.Infrastructure.Search;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Pets.Tests;
 
 public sealed class SearchTextTests
 {

@@ -1,6 +1,5 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Tailbook.Modules.Pets.Api;
 
 namespace Tailbook.Modules.Pets.Api.Public.GetPublicPetCatalog;
 

@@ -1,7 +1,6 @@
 using System.Net.Http.Json;
 using Tailbook.Api.Tests.TestSupport.Http;
 using Tailbook.Api.Tests.TestSupport.Models;
-using Xunit;
 
 namespace Tailbook.Api.Tests.TestSupport.Assertions;
 

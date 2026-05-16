@@ -1,10 +1,11 @@
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
+using Tailbook.Api.Tests;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Booking.Contracts;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Booking.Tests;
 
 public sealed class BookingAppointmentAggregateTests
 {

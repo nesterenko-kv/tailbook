@@ -1,12 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Tailbook.Api.Tests.TestSupport.Assertions;
-using Tailbook.Api.Tests.TestSupport.Auth;
-using Tailbook.Api.Tests.TestSupport.Http;
-using Tailbook.Api.Tests.TestSupport.Scenarios;
+using Tailbook.Api.Tests.Factories;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Notifications.Tests;
 
 public sealed class ReportingNotificationsAuditFoundationTests(RealDbWebApplicationFactory factory)
     : IClassFixture<RealDbWebApplicationFactory>

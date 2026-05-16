@@ -1,5 +1,6 @@
 using BenchmarkDotNet.Running;
-using Tailbook.Performance.Tests.Benchmarks;
+
+namespace Tailbook.Performance.Tests;
 
 public sealed class EntryPoint
 {

@@ -5,7 +5,6 @@ using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Identity.Api.Auth.BrowserSessions;
-using Tailbook.Modules.Identity.Application.Identity.Services;
 using Tailbook.Modules.Identity.Infrastructure.Options;
 using Tailbook.Modules.Identity.Infrastructure.Seeding;
 using Tailbook.Modules.Identity.Infrastructure.Services;

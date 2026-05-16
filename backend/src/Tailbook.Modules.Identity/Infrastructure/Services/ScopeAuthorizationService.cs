@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.Identity.Domain.Entities;
 
 namespace Tailbook.Modules.Identity.Infrastructure.Services;
 

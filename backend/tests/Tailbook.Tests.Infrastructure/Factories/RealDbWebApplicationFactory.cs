@@ -1,26 +1,22 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Testcontainers.PostgreSql;
-using Testcontainers.Redis;
-using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Identity.Contracts;
 using Tailbook.Modules.Identity.Domain.Aggregates;
 using Tailbook.Modules.Identity.Domain.Entities;
 using Tailbook.Modules.Identity.Infrastructure.Services;
+using Testcontainers.PostgreSql;
+using Testcontainers.Redis;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Api.Tests.Factories;
 
 public sealed class RealDbWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {

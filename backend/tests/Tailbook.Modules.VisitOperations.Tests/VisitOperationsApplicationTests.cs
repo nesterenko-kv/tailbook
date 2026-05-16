@@ -1,13 +1,14 @@
 using System.Text.Json;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
+using Tailbook.Api.Tests;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 using Tailbook.Modules.VisitOperations.Contracts;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.VisitOperations.Tests;
 
 public sealed class VisitOperationsApplicationTests
 {

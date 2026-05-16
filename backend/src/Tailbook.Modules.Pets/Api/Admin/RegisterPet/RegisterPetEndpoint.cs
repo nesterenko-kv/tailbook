@@ -1,7 +1,6 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Http;
-using Tailbook.Modules.Pets.Api.Admin;
 
 namespace Tailbook.Modules.Pets.Api.Admin.RegisterPet;
 

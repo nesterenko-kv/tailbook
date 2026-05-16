@@ -1,8 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
+using Tailbook.Api.Tests.Factories;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Catalog.Tests;
 
 public sealed class CatalogFlowTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {

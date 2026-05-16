@@ -2,15 +2,12 @@ using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Tailbook.Api.Tests.TestSupport.Assertions;
-using Tailbook.Api.Tests.TestSupport.Auth;
-using Tailbook.Api.Tests.TestSupport.Http;
-using Tailbook.Api.Tests.TestSupport.Scenarios;
+using Tailbook.Api.Tests.Factories;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Notifications.Tests;
 
 public sealed class ReportingNotificationsFlowTests(RealDbWebApplicationFactory factory)
     : IClassFixture<RealDbWebApplicationFactory>

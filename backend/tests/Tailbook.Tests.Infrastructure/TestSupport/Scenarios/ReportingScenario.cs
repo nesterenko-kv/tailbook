@@ -1,7 +1,3 @@
-using System.Net.Http.Json;
-using Tailbook.Api.Tests.TestSupport.Http;
-using Tailbook.Api.Tests.TestSupport.Models;
-
 namespace Tailbook.Api.Tests.TestSupport.Scenarios;
 
 public sealed class ReportingScenario

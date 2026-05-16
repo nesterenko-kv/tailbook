@@ -1,7 +1,6 @@
-using Tailbook.Modules.Identity.Infrastructure.Services;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Identity.Tests;
 
 public sealed class MfaRecoveryCodeHelpersTests
 {

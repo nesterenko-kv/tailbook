@@ -3,7 +3,6 @@ using System.Data.Common;
 using ErrorOr;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Identity.Infrastructure.Persistence;
 

@@ -1,4 +1,4 @@
-using Tailbook.Api.Tests;
+using Tailbook.Api.Tests.Factories;
 
 namespace Tailbook.Api.Tests.TestSupport.Auth;
 

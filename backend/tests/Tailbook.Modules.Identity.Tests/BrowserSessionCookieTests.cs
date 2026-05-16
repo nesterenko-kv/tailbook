@@ -2,10 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
-using Tailbook.Api.Tests.TestSupport.Http;
+using Tailbook.Api.Tests.Factories;
 using Xunit;
 
-namespace Tailbook.Api.Tests;
+namespace Tailbook.Modules.Identity.Tests;
 
 public sealed class BrowserSessionCookieTests(RealDbWebApplicationFactory factory)
     : IClassFixture<RealDbWebApplicationFactory>

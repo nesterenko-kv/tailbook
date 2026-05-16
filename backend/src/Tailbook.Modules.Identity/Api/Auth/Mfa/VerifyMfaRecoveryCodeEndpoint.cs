@@ -2,7 +2,6 @@ using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Tailbook.Modules.Identity.Api.Auth.BrowserSessions;
-using Tailbook.Modules.Identity.Application.Identity.Services;
 using Tailbook.BuildingBlocks.Infrastructure.Http;
 using Tailbook.Modules.Identity.Api.Auth.Login;
 
