@@ -90,6 +90,7 @@ jobs:
 
       - uses: codecov/codecov-action@v5
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           directory: .
           flags: backend
           fail_ci_if_error: false
@@ -133,6 +134,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: apps/admin-web/coverage/lcov.info,apps/client-web/coverage/lcov.info,apps/groomer-web/coverage/lcov.info,packages/frontend-api/coverage/lcov.info
           flags: frontend
           fail_ci_if_error: false
