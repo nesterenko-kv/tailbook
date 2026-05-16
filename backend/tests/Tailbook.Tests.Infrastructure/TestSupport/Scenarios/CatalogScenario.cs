@@ -178,7 +178,7 @@ public sealed class CatalogScenario(HttpClient client)
         return new VisitReadyOffer(offer.Id, procedures.First().Id, procedures.Last().Id);
     }
 
-    internal static string UniqueCode(string prefix)
+    public static string UniqueCode(string prefix)
     {
         var sanitized = prefix.Replace("_", string.Empty, StringComparison.OrdinalIgnoreCase);
         var shortPrefix = sanitized[..Math.Min(5, sanitized.Length)];

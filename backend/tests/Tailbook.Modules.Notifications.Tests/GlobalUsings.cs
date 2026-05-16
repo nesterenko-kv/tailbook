@@ -3,3 +3,7 @@ global using Tailbook.Api.Tests.TestSupport.Assertions;
 global using Tailbook.Api.Tests.TestSupport.Http;
 global using Tailbook.Api.Tests.TestSupport.Models;
 global using Tailbook.Api.Tests.TestSupport.Scenarios;
+global using Tailbook.Modules.Notifications.Domain.Aggregates;
+global using Tailbook.Modules.Notifications.Domain.Entities;
+global using Tailbook.Modules.Notifications.Application.Abstractions.Services;
+global using Tailbook.Modules.Notifications.Infrastructure.Services;
