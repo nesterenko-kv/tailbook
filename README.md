@@ -1,6 +1,8 @@
 # Tailbook
 
 ![CI](https://github.com/nesterenko-kv/tailbook/actions/workflows/ci.yml/badge.svg)
+![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)
+![Node](https://img.shields.io/badge/Node-22-5FA04E?logo=node.js)
 
 Tailbook is a modular monolith + monorepo grooming salon platform.
 
@@ -38,19 +40,19 @@ pnpm dev:groomer
 dotnet test backend/Tailbook.slnx
 ```
 
-### Testing with code coverage
+## Testing
 
-Backend (outputs coverage to `TestResults`):
+Run all backend and frontend tests with coverage:
+
 ```bash
+# .NET backend tests with code coverage
 dotnet test backend/Tailbook.slnx --collect:"XPlat Code Coverage"
-```
 
-Frontend (outputs coverage to `apps/*/coverage/`):
-```bash
+# pnpm frontend tests with coverage
 pnpm test -- --coverage
 ```
 
-CI uploads coverage reports as downloadable artifacts on each run.
+Coverage reports are generated as HTML artifacts in CI — downloadable from the **Summary** tab of each workflow run.
 ```
 
 ## Production-like local stack
