@@ -270,7 +270,7 @@ public sealed class MfaChallengeService(
         return new string(code.Where(char.IsLetterOrDigit).Select(char.ToUpperInvariant).ToArray());
     }
 
-    private Task RecordChallengeAuditAsync(
+    private ValueTask RecordChallengeAuditAsync(
         IdentityMfaChallenge challenge,
         string actionCode,
         string? reason,
@@ -298,7 +298,7 @@ public sealed class MfaChallengeService(
             cancellationToken);
     }
 
-    private Task RecordUnknownChallengeAuditAsync(
+    private ValueTask RecordUnknownChallengeAuditAsync(
         Guid challengeId,
         string actionCode,
         string reason,
@@ -315,7 +315,7 @@ public sealed class MfaChallengeService(
             cancellationToken);
     }
 
-    private Task RecordRecoveryCodeAuditAsync(
+    private ValueTask RecordRecoveryCodeAuditAsync(
         IdentityMfaRecoveryCode recoveryCode,
         string actionCode,
         string? reason,

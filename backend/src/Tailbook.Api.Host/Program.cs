@@ -18,6 +18,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using StackExchange.Redis;
 using Tailbook.Api.Host.Infrastructure;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Abstractions.Security;
@@ -39,14 +40,25 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
 
+var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
+
 builder.Services.AddSerilog((services, loggerConfiguration) => loggerConfiguration
     .ReadFrom.Configuration(builder.Configuration)
     .ReadFrom.Services(services)
     .Enrich.FromLogContext());
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddFastEndpoints(o => o.Assemblies = ModuleCatalog.ModuleAssemblies)
-    .AddJobQueues<JobRecord, JobProvider>();
+builder.Services.AddFastEndpoints(o => o.Assemblies = ModuleCatalog.ModuleAssemblies);
+if (!string.IsNullOrWhiteSpace(redisConnectionString))
+{
+    var multiplexer = ConnectionMultiplexer.Connect(redisConnectionString);
+    builder.Services.AddSingleton(multiplexer);
+    builder.Services.AddJobQueues<JobRecord, RedisJobProvider>();
+}
+else
+{
+    builder.Services.AddJobQueues<JobRecord, JobProvider>();
+}
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new UtcDateTimeOffsetJsonConverter());
@@ -218,7 +230,6 @@ builder.Services.AddDbContextFactory<AppDbContext>((serviceProvider, options) =>
     options.UseNpgsql(serviceProvider.GetRequiredService<NpgsqlDataSource>())
         .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
-var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
 if (string.IsNullOrWhiteSpace(redisConnectionString))
 {
     builder.Services.AddDistributedMemoryCache();

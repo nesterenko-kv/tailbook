@@ -33,7 +33,7 @@ public sealed class AesGcmSensitivePayloadProtector : ISensitivePayloadProtector
         using var aes = new AesGcm(_key, TagSizeBytes);
         aes.Encrypt(nonce, plaintextBytes, ciphertext, tag, associatedData);
 
-        return string.Join('.', Version, Base64UrlEncode(nonce), Base64UrlEncode(ciphertext), Base64UrlEncode(tag));
+        return string.Join('.', Version, Base64UrlEncoder.Encode(nonce), Base64UrlEncoder.Encode(ciphertext), Base64UrlEncoder.Encode(tag));
     }
 
     public string Unprotect(string purpose, string protectedPayload)
@@ -47,9 +47,9 @@ public sealed class AesGcmSensitivePayloadProtector : ISensitivePayloadProtector
             throw new FormatException("Unsupported protected payload format.");
         }
 
-        var nonce = Base64UrlDecode(parts[1]);
-        var ciphertext = Base64UrlDecode(parts[2]);
-        var tag = Base64UrlDecode(parts[3]);
+        var nonce = Base64UrlEncoder.Decode(parts[1]);
+        var ciphertext = Base64UrlEncoder.Decode(parts[2]);
+        var tag = Base64UrlEncoder.Decode(parts[3]);
         var associatedData = Encoding.UTF8.GetBytes(purpose);
 
         foreach (var candidateKey in GetCandidateKeys())
@@ -83,25 +83,4 @@ public sealed class AesGcmSensitivePayloadProtector : ISensitivePayloadProtector
         return SHA256.HashData(Encoding.UTF8.GetBytes(key));
     }
 
-    private static string Base64UrlEncode(byte[] bytes)
-    {
-        return Convert.ToBase64String(bytes)
-            .TrimEnd('=')
-            .Replace('+', '-')
-            .Replace('/', '_');
-    }
-
-    private static byte[] Base64UrlDecode(string value)
-    {
-        var padded = value.Replace('-', '+').Replace('_', '/');
-        padded += (padded.Length % 4) switch
-        {
-            0 => string.Empty,
-            2 => "==",
-            3 => "=",
-            _ => throw new FormatException("Invalid base64url payload.")
-        };
-
-        return Convert.FromBase64String(padded);
-    }
 }

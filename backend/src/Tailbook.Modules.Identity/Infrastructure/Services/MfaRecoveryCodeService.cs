@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
@@ -20,8 +18,6 @@ public sealed class MfaRecoveryCodeService(
     private const string ModuleCode = "identity";
     private const string RecoveryCodeBatchEntityType = "iam_mfa_recovery_code_batch";
     private const string MfaRecoveryEntityType = "iam_mfa_recovery";
-    private const string Alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
     public async Task<ErrorOr<MfaRecoveryCodeGenerationResult>> GenerateRecoveryCodesAsync(
         Guid userId,
         CancellationToken cancellationToken)
@@ -55,14 +51,14 @@ public sealed class MfaRecoveryCodeService(
         var rawCodes = GenerateUniqueCodes(options.CodeCount, options.CodeLength);
         foreach (var rawCode in rawCodes)
         {
-            var normalizedCode = NormalizeRecoveryCode(rawCode);
+            var normalizedCode = MfaRecoveryCodeHelpers.NormalizeRecoveryCode(rawCode);
             dbContext.Set<IdentityMfaRecoveryCode>().Add(new IdentityMfaRecoveryCode
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
                 BatchId = batchId,
                 CodeHash = passwordHasher.Hash(normalizedCode),
-                CodeSuffix = GetCodeSuffix(normalizedCode),
+                CodeSuffix = MfaRecoveryCodeHelpers.GetCodeSuffix(normalizedCode),
                 CreatedAt = utcNow
             });
         }
@@ -97,7 +93,7 @@ public sealed class MfaRecoveryCodeService(
         Guid? challengeId,
         CancellationToken cancellationToken)
     {
-        var normalizedCode = NormalizeRecoveryCode(code);
+        var normalizedCode = MfaRecoveryCodeHelpers.NormalizeRecoveryCode(code);
         if (string.IsNullOrWhiteSpace(normalizedCode))
         {
             return IdentityErrors.InvalidMfaRecoveryCode();
@@ -188,70 +184,19 @@ public sealed class MfaRecoveryCodeService(
         var normalizedCodes = new HashSet<string>(StringComparer.Ordinal);
         while (codes.Count < count)
         {
-            var normalizedCode = GenerateNormalizedCode(length);
+            var normalizedCode = MfaRecoveryCodeHelpers.GenerateNormalizedCode(length);
             if (!normalizedCodes.Add(normalizedCode))
             {
                 continue;
             }
 
-            codes.Add(FormatRecoveryCode(normalizedCode));
+            codes.Add(MfaRecoveryCodeHelpers.FormatRecoveryCode(normalizedCode));
         }
 
         return codes;
     }
 
-    private static string GenerateNormalizedCode(int length)
-    {
-        var builder = new StringBuilder(length);
-        for (var i = 0; i < length; i++)
-        {
-            builder.Append(Alphabet[RandomNumberGenerator.GetInt32(Alphabet.Length)]);
-        }
-
-        return builder.ToString();
-    }
-
-    private static string FormatRecoveryCode(string normalizedCode)
-    {
-        var builder = new StringBuilder(normalizedCode.Length + normalizedCode.Length / 4);
-        for (var i = 0; i < normalizedCode.Length; i++)
-        {
-            if (i > 0 && i % 4 == 0)
-            {
-                builder.Append('-');
-            }
-
-            builder.Append(normalizedCode[i]);
-        }
-
-        return builder.ToString();
-    }
-
-    private static string NormalizeRecoveryCode(string code)
-    {
-        if (string.IsNullOrWhiteSpace(code))
-        {
-            return string.Empty;
-        }
-
-        var builder = new StringBuilder(code.Length);
-        foreach (var character in code)
-        {
-            if (char.IsLetterOrDigit(character))
-            {
-                builder.Append(char.ToUpperInvariant(character));
-            }
-        }
-
-        return builder.ToString();
-    }
-
-    private static string GetCodeSuffix(string normalizedCode)
-    {
-        return normalizedCode.Length <= 4 ? normalizedCode : normalizedCode[^4..];
-    }
-
-    private Task RecordGenerationAuditAsync(
+    private ValueTask RecordGenerationAuditAsync(
         Guid userId,
         Guid batchId,
         int invalidatedCodeCount,
@@ -281,7 +226,7 @@ public sealed class MfaRecoveryCodeService(
             cancellationToken);
     }
 
-    private Task RecordResetAuditAsync(
+    private ValueTask RecordResetAuditAsync(
         Guid userId,
         Guid actorUserId,
         int disabledFactorCount,

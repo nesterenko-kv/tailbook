@@ -579,9 +579,9 @@ public sealed class BookingAppointmentApplicationTests
 
     private sealed class NoOpAuditTrailService : IAuditTrailService
     {
-        public Task RecordAsync(string moduleCode, string entityType, string entityId, string actionCode, Guid? actorUserId, string? beforeJson, string? afterJson, CancellationToken cancellationToken)
+        public ValueTask RecordAsync(string moduleCode, string entityType, string entityId, string actionCode, Guid? actorUserId, string? beforeJson, string? afterJson, CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            return default;
         }
     }
 }

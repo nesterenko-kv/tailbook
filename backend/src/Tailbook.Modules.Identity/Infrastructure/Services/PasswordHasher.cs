@@ -13,10 +13,13 @@ public sealed class PasswordHasher
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(password);
 
-        var salt = RandomNumberGenerator.GetBytes(SaltSize);
-        var key = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithmName.SHA256, KeySize);
+        Span<byte> salt = stackalloc byte[SaltSize];
+        RandomNumberGenerator.Fill(salt);
 
-        return $"{Prefix}{Iterations}${Convert.ToBase64String(salt)}${Convert.ToBase64String(key)}";
+        Span<byte> key = stackalloc byte[KeySize];
+        Rfc2898DeriveBytes.Pbkdf2(password, salt, key, Iterations, HashAlgorithmName.SHA256);
+
+        return FormatHash(salt, key);
     }
 
     public bool Verify(string password, string passwordHash)
@@ -33,43 +36,64 @@ public sealed class PasswordHasher
 
         var remaining = passwordHash.AsSpan(Prefix.Length);
 
-        var firstDollar = remaining.IndexOf('$');
-        if (firstDollar < 0 || firstDollar == 0)
+        if (!TryParseHashParts(remaining, out var iterations, out var saltBase64, out var expectedBase64))
         {
             return false;
         }
 
-        if (!int.TryParse(remaining[..firstDollar], out var iterations))
+        Span<byte> salt = stackalloc byte[SaltSize];
+        if (!Convert.TryFromBase64Chars(saltBase64, salt, out var saltWritten) || saltWritten != SaltSize)
+        {
+            return false;
+        }
+
+        Span<byte> expected = stackalloc byte[KeySize];
+        if (!Convert.TryFromBase64Chars(expectedBase64, expected, out var expectedWritten) || expectedWritten != KeySize)
+        {
+            return false;
+        }
+
+        Span<byte> actual = stackalloc byte[KeySize];
+        Rfc2898DeriveBytes.Pbkdf2(password, salt, actual, iterations, HashAlgorithmName.SHA256);
+
+        return CryptographicOperations.FixedTimeEquals(actual, expected);
+    }
+
+    private static string FormatHash(ReadOnlySpan<byte> salt, ReadOnlySpan<byte> key)
+    {
+        return $"{Prefix}{Iterations}${Convert.ToBase64String(salt)}${Convert.ToBase64String(key)}";
+    }
+
+    internal static bool TryParseHashParts(
+        ReadOnlySpan<char> remaining,
+        out int iterations,
+        out ReadOnlySpan<char> saltBase64,
+        out ReadOnlySpan<char> expectedBase64)
+    {
+        iterations = 0;
+        saltBase64 = default;
+        expectedBase64 = default;
+
+        var firstDollar = remaining.IndexOf('$');
+        if (firstDollar <= 0)
+        {
+            return false;
+        }
+
+        if (!int.TryParse(remaining[..firstDollar], out iterations))
         {
             return false;
         }
 
         remaining = remaining[(firstDollar + 1)..];
         var secondDollar = remaining.IndexOf('$');
-        if (secondDollar < 0 || secondDollar == 0)
+        if (secondDollar <= 0)
         {
             return false;
         }
 
-        var saltBase64 = remaining[..secondDollar];
-        var expectedBase64 = remaining[(secondDollar + 1)..];
-
-        Span<byte> salt = stackalloc byte[SaltSize];
-        Span<byte> expected = stackalloc byte[KeySize];
-        Span<byte> actual = stackalloc byte[KeySize];
-
-        if (!Convert.TryFromBase64Chars(saltBase64, salt, out var saltWritten) || saltWritten != SaltSize)
-        {
-            return false;
-        }
-
-        if (!Convert.TryFromBase64Chars(expectedBase64, expected, out var expectedWritten) || expectedWritten != KeySize)
-        {
-            return false;
-        }
-
-        Rfc2898DeriveBytes.Pbkdf2(password, salt, actual, iterations, HashAlgorithmName.SHA256);
-
-        return CryptographicOperations.FixedTimeEquals(actual, expected);
+        saltBase64 = remaining[..secondDollar];
+        expectedBase64 = remaining[(secondDollar + 1)..];
+        return true;
     }
 }

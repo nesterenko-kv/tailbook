@@ -39,8 +39,13 @@ public sealed class UtcDateTimeOffsetJsonConverter : JsonConverter<DateTimeOffse
 
     private static bool HasExplicitOffset(string value)
     {
-        var trimmed = value.Trim();
-        if (trimmed.EndsWith('Z') || trimmed.EndsWith('z'))
+        var trimmed = value.AsSpan().Trim();
+        if (trimmed.Length == 0)
+        {
+            return false;
+        }
+
+        if (trimmed[^1] is 'Z' or 'z')
         {
             return true;
         }
@@ -56,7 +61,9 @@ public sealed class UtcDateTimeOffsetJsonConverter : JsonConverter<DateTimeOffse
             separatorIndex = trimmed.IndexOf(' ');
         }
 
-        var signIndex = Math.Max(trimmed.LastIndexOf('+'), trimmed.LastIndexOf('-'));
+        var plusIndex = trimmed.LastIndexOf('+');
+        var minusIndex = trimmed.LastIndexOf('-');
+        var signIndex = plusIndex > minusIndex ? plusIndex : minusIndex;
         return separatorIndex >= 0 && signIndex > separatorIndex;
     }
 }
