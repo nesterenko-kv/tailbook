@@ -29,12 +29,6 @@ jobs:
 
       - run: dotnet build backend/Tailbook.slnx --no-restore --configuration Release
 
-      - uses: actions/upload-artifact@v6
-        with:
-          name: backend-build
-          path: backend/tests/*/bin/Release/net10.0/**
-          compression-level: 6
-
   backend-test:
     name: ${{ matrix.project }}
     needs: backend-prepare
@@ -63,13 +57,8 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - uses: actions/download-artifact@v6
-        with:
-          name: backend-build
-          path: .
-
       - name: Run tests
-        run: dotnet test backend/tests/${{ matrix.project }}/${{ matrix.project }}.csproj --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory backend/tests/${{ matrix.project }}/TestResults
+        run: dotnet test backend/tests/${{ matrix.project }}/${{ matrix.project }}.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory backend/tests/${{ matrix.project }}/TestResults
 
       - uses: actions/upload-artifact@v6
         with:
