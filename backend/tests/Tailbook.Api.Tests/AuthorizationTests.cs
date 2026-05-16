@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class AuthorizationTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class AuthorizationTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Groomer_cannot_access_admin_iam_users_endpoint()
@@ -12,7 +12,7 @@ public sealed class AuthorizationTests(CustomWebApplicationFactory factory) : IC
         var token = await factory.LoginAsAsync("groomer@test.local", "Groomer123!");
 
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var response = await client.GetAsync("/api/admin/iam/users");
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -24,7 +24,7 @@ public sealed class AuthorizationTests(CustomWebApplicationFactory factory) : IC
         var token = await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
 
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var response = await client.GetAsync("/api/admin/iam/users");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

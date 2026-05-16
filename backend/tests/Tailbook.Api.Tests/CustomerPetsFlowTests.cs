@@ -4,15 +4,15 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class CustomerPetsFlowTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class CustomerPetsFlowTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Admin_can_create_client_contact_pet_link_and_read_details()
     {
         var token = await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var createClientResponse = await client.PostAsJsonAsync("/api/admin/clients", new
         {
@@ -92,7 +92,7 @@ public sealed class CustomerPetsFlowTests(CustomWebApplicationFactory factory)
     {
         var token = await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var createClientResponse = await client.PostAsJsonAsync("/api/admin/clients", new { displayName = "Audit Client" });
         var createdClient = await createClientResponse.Content.ReadFromJsonAsync<CreateClientResponse>();

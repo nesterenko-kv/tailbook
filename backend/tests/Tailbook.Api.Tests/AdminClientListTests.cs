@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class AdminClientListTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class AdminClientListTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Admin_can_search_clients_by_display_name_contact_and_method()

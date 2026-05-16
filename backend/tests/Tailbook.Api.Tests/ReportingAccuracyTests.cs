@@ -4,8 +4,8 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class ReportingAccuracyTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class ReportingAccuracyTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Estimate_accuracy_reports_amount_and_duration_variance()

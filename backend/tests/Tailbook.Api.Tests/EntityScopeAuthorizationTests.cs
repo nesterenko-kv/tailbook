@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class EntityScopeAuthorizationTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class EntityScopeAuthorizationTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Client_detail_read_writes_access_audit_entry()
@@ -22,7 +22,7 @@ public sealed class EntityScopeAuthorizationTests(CustomWebApplicationFactory fa
         var token = await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
 
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var response = await client.GetAsync($"/api/admin/clients/{clientId:D}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -113,7 +113,7 @@ public sealed class EntityScopeAuthorizationTests(CustomWebApplicationFactory fa
         var loginResponse = await httpClient.PostAsJsonAsync("/api/identity/auth/login", new { email, password = "ScopedP@ss123" });
         loginResponse.EnsureSuccessStatusCode();
         var loginPayload = await loginResponse.Content.ReadFromJsonAsync<AccessTokenResponse>();
-        CustomWebApplicationFactory.SetBearer(httpClient, loginPayload!.AccessToken);
+        RealDbWebApplicationFactory.SetBearer(httpClient, loginPayload!.AccessToken);
 
         var deniedResponse = await httpClient.GetAsync($"/api/admin/clients/{otherClientId:D}");
         Assert.Equal(HttpStatusCode.Forbidden, deniedResponse.StatusCode);

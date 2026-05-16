@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class MfaFoundationTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class MfaFoundationTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Current_user_can_enable_list_and_disable_email_mfa_factor()
@@ -12,7 +12,7 @@ public sealed class MfaFoundationTests(CustomWebApplicationFactory factory) : IC
         var email = $"mfa-{Guid.NewGuid():N}@test.local";
         await factory.SeedUserAsync(email, "MFA User", "OldPass123!");
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, await factory.LoginAsAsync(email, "OldPass123!"));
+        RealDbWebApplicationFactory.SetBearer(client, await factory.LoginAsAsync(email, "OldPass123!"));
 
         var enableResponse = await client.PostAsync("/api/identity/me/mfa/email", content: null);
 
@@ -43,7 +43,7 @@ public sealed class MfaFoundationTests(CustomWebApplicationFactory factory) : IC
         var email = $"mfa-idempotent-{Guid.NewGuid():N}@test.local";
         await factory.SeedUserAsync(email, "MFA Idempotent User", "OldPass123!");
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, await factory.LoginAsAsync(email, "OldPass123!"));
+        RealDbWebApplicationFactory.SetBearer(client, await factory.LoginAsAsync(email, "OldPass123!"));
 
         var first = await client.PostAsync("/api/identity/me/mfa/email", content: null);
         var second = await client.PostAsync("/api/identity/me/mfa/email", content: null);

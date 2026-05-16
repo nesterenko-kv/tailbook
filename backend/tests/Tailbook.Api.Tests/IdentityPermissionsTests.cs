@@ -4,13 +4,13 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class IdentityPermissionsTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class IdentityPermissionsTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Mfa_recovery_permission_is_seeded_for_admin_role_only()
     {
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss"));
+        RealDbWebApplicationFactory.SetBearer(client, await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss"));
 
         var permissionsResponse = await client.GetAsync("/api/admin/iam/permissions");
         Assert.Equal(HttpStatusCode.OK, permissionsResponse.StatusCode);

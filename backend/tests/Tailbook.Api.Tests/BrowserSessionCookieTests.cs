@@ -7,8 +7,8 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class BrowserSessionCookieTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class BrowserSessionCookieTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     private const string SurfaceHeaderName = "X-Tailbook-Session-Surface";
     private const string CsrfHeaderName = "X-Tailbook-CSRF";

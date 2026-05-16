@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class OperationalDiagnosticsTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class OperationalDiagnosticsTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Readiness_health_check_returns_structured_status_without_authentication()

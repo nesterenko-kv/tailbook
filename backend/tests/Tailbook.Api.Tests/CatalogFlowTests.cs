@@ -4,14 +4,14 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class CatalogFlowTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class CatalogFlowTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Admin_can_create_package_offer_add_component_publish_and_read_offer_detail()
     {
         var token = await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var procedureResponse = await client.PostAsJsonAsync("/api/admin/catalog/procedures", new
         {
@@ -70,7 +70,7 @@ public sealed class CatalogFlowTests(CustomWebApplicationFactory factory) : ICla
     {
         var token = await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var procedureA = await CreateProcedureAsync(client, "EAR_CLEAN", "Ear Cleaning");
         var procedureB = await CreateProcedureAsync(client, "BRUSHING", "Brushing");
@@ -108,7 +108,7 @@ public sealed class CatalogFlowTests(CustomWebApplicationFactory factory) : ICla
         var token = await factory.LoginAsAsync("groomer-catalog@test.local", "Groomer123!");
 
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var response = await client.GetAsync("/api/admin/catalog/offers");
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -119,7 +119,7 @@ public sealed class CatalogFlowTests(CustomWebApplicationFactory factory) : ICla
     {
         var token = await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var procedure = await CreateProcedureAsync(client, "DEMATTING", "Dematting");
         var offer = await CreateOfferAsync(client, "DEMATTING_ONLY", "StandaloneService", "Dematting Only");

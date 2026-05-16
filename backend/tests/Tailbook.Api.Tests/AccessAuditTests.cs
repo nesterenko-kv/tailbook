@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class AccessAuditTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class AccessAuditTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Reading_sensitive_user_detail_writes_access_audit_entry()
@@ -16,7 +16,7 @@ public sealed class AccessAuditTests(CustomWebApplicationFactory factory) : ICla
         var token = await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
 
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var detailResponse = await client.GetAsync($"/api/admin/iam/users/{targetUserId:D}");
         Assert.Equal(HttpStatusCode.OK, detailResponse.StatusCode);
@@ -38,7 +38,7 @@ public sealed class AccessAuditTests(CustomWebApplicationFactory factory) : ICla
         var token = await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
 
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var response = await client.PostAsJsonAsync($"/api/admin/iam/users/{targetUserId:D}/roles", new
         {

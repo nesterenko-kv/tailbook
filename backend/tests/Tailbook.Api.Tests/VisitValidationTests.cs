@@ -7,8 +7,8 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class VisitValidationTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class VisitValidationTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Visit_cannot_be_completed_until_default_expected_components_are_accounted_for()

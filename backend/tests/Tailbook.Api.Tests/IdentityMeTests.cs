@@ -4,14 +4,14 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class IdentityMeTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class IdentityMeTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Identity_me_returns_display_name_email_roles_and_permissions_for_admin()
     {
         var token = await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var response = await client.GetAsync("/api/identity/me");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -31,7 +31,7 @@ public sealed class IdentityMeTests(CustomWebApplicationFactory factory) : IClas
         await factory.SeedUserAsync("groomer.me@test.local", "Me Groomer", "Groomer123!", "groomer");
         var token = await factory.LoginAsAsync("groomer.me@test.local", "Groomer123!");
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var response = await client.GetAsync("/api/identity/me");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

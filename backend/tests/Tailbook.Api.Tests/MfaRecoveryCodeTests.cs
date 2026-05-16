@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class MfaRecoveryCodeTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class MfaRecoveryCodeTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Current_user_can_generate_recovery_codes_and_view_safe_status()
@@ -18,7 +18,7 @@ public sealed class MfaRecoveryCodeTests(CustomWebApplicationFactory factory) : 
         var email = $"mfa-recovery-endpoint-{Guid.NewGuid():N}@test.local";
         var userId = await factory.SeedUserAsync(email, "MFA Recovery User", "OldPass123!");
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, await factory.LoginAsAsync(email, "OldPass123!"));
+        RealDbWebApplicationFactory.SetBearer(client, await factory.LoginAsAsync(email, "OldPass123!"));
 
         var enableResponse = await client.PostAsync("/api/identity/me/mfa/email", content: null);
         Assert.Equal(HttpStatusCode.OK, enableResponse.StatusCode);
@@ -174,7 +174,7 @@ public sealed class MfaRecoveryCodeTests(CustomWebApplicationFactory factory) : 
     {
         var fixture = await CreateRecoveryCodeLoginChallengeAsync($"mfa-recovery-admin-reset-{Guid.NewGuid():N}@test.local");
         using var adminClient = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(adminClient, await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss"));
+        RealDbWebApplicationFactory.SetBearer(adminClient, await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss"));
 
         var response = await adminClient.PostAsync($"/api/admin/iam/users/{fixture.UserId:D}/mfa/recovery/reset", content: null);
 
@@ -238,7 +238,7 @@ public sealed class MfaRecoveryCodeTests(CustomWebApplicationFactory factory) : 
         await factory.SeedUserAsync(operatorEmail, "MFA Recovery Manager", "Manager123!", "manager");
 
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, await factory.LoginAsAsync(operatorEmail, "Manager123!"));
+        RealDbWebApplicationFactory.SetBearer(client, await factory.LoginAsAsync(operatorEmail, "Manager123!"));
 
         var response = await client.PostAsync($"/api/admin/iam/users/{targetUserId:D}/mfa/recovery/reset", content: null);
 
@@ -256,7 +256,7 @@ public sealed class MfaRecoveryCodeTests(CustomWebApplicationFactory factory) : 
             .SingleAsync();
 
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss"));
+        RealDbWebApplicationFactory.SetBearer(client, await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss"));
 
         var response = await client.PostAsync($"/api/admin/iam/users/{adminUserId:D}/mfa/recovery/reset", content: null);
 
@@ -269,7 +269,7 @@ public sealed class MfaRecoveryCodeTests(CustomWebApplicationFactory factory) : 
         var email = $"mfa-recovery-no-factor-{Guid.NewGuid():N}@test.local";
         await factory.SeedUserAsync(email, "MFA Recovery User", "OldPass123!");
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, await factory.LoginAsAsync(email, "OldPass123!"));
+        RealDbWebApplicationFactory.SetBearer(client, await factory.LoginAsAsync(email, "OldPass123!"));
 
         var response = await client.PostAsync("/api/identity/me/mfa/recovery-codes", content: null);
 
@@ -415,7 +415,7 @@ public sealed class MfaRecoveryCodeTests(CustomWebApplicationFactory factory) : 
 
         using (var setupClient = factory.CreateClient())
         {
-            CustomWebApplicationFactory.SetBearer(setupClient, await factory.LoginAsAsync(email, "OldPass123!"));
+            RealDbWebApplicationFactory.SetBearer(setupClient, await factory.LoginAsAsync(email, "OldPass123!"));
 
             var enableResponse = await setupClient.PostAsync("/api/identity/me/mfa/email", content: null);
             Assert.Equal(HttpStatusCode.OK, enableResponse.StatusCode);

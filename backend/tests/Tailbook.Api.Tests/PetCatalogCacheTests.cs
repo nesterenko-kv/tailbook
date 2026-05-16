@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class PetCatalogCacheTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class PetCatalogCacheTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Pet_catalog_uses_distributed_cache_after_first_load()

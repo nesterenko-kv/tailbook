@@ -7,8 +7,8 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class GroomerPortalFlowTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class GroomerPortalFlowTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Assigned_groomer_gets_privacy_safe_appointment_detail_without_contact_data()

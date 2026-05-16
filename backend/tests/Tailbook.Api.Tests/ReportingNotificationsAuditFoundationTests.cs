@@ -8,8 +8,8 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class ReportingNotificationsAuditFoundationTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class ReportingNotificationsAuditFoundationTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Admin_can_query_estimate_accuracy_and_package_performance_reports()

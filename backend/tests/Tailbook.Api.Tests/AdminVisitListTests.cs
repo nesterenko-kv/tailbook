@@ -6,8 +6,8 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class AdminVisitListTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class AdminVisitListTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Admin_can_list_visits_with_pagination_and_filters()

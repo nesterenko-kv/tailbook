@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class IdempotencyTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class IdempotencyTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Idempotency_key_on_get_is_ignored()
@@ -15,7 +15,7 @@ public sealed class IdempotencyTests(CustomWebApplicationFactory factory) : ICla
         var token = await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
 
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var idempotencyKey = Guid.NewGuid().ToString("N");
 
@@ -33,7 +33,7 @@ public sealed class IdempotencyTests(CustomWebApplicationFactory factory) : ICla
         var token = await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
 
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var response = await client.GetAsync("/api/admin/iam/permissions");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

@@ -9,8 +9,8 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class PricingDurationFlowTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class PricingDurationFlowTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Admin_can_create_rule_sets_publish_and_preview_quote_with_persisted_snapshots()

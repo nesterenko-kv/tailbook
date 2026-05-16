@@ -7,8 +7,8 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class ClientPortalFlowTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class ClientPortalFlowTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Client_can_register_login_and_read_own_profile()
@@ -49,7 +49,7 @@ public sealed class ClientPortalFlowTests(CustomWebApplicationFactory factory)
         var refreshPayload = await refreshResponse.ReadRequiredJsonAsync<ClientLoginEnvelope>();
         Assert.NotEqual(loginPayload.RefreshToken, refreshPayload.RefreshToken);
 
-        CustomWebApplicationFactory.SetBearer(client, refreshPayload.AccessToken);
+        RealDbWebApplicationFactory.SetBearer(client, refreshPayload.AccessToken);
         var meResponse = await client.GetAsync("/api/client/me");
         meResponse.ShouldBeOk();
 
@@ -67,7 +67,7 @@ public sealed class ClientPortalFlowTests(CustomWebApplicationFactory factory)
             firstName: "Client",
             email: "client.one@test.local",
             instagram: "@client_one");
-        CustomWebApplicationFactory.SetBearer(firstClient, firstPayload.AccessToken);
+        RealDbWebApplicationFactory.SetBearer(firstClient, firstPayload.AccessToken);
 
         using var secondClient = factory.CreateAnonymousClient();
         var secondPayload = await RegisterPortalClientAsync(
@@ -75,7 +75,7 @@ public sealed class ClientPortalFlowTests(CustomWebApplicationFactory factory)
             displayName: "Client Two",
             firstName: "Second",
             email: "client.two@test.local");
-        CustomWebApplicationFactory.SetBearer(secondClient, secondPayload.AccessToken);
+        RealDbWebApplicationFactory.SetBearer(secondClient, secondPayload.AccessToken);
 
         var updateResponse = await firstClient.PatchAsJsonAsync("/api/client/me/contact-preferences", new
         {
@@ -111,7 +111,7 @@ public sealed class ClientPortalFlowTests(CustomWebApplicationFactory factory)
         var petId = await pets.RegisterPetAsync(portalPayload.User.ClientId!.Value, catalog);
         var offerId = await CatalogScenario.For(admin).CreateSchedulableOfferAsync(catalog.SamoyedBreedId);
 
-        CustomWebApplicationFactory.SetBearer(portalClient, portalPayload.AccessToken);
+        RealDbWebApplicationFactory.SetBearer(portalClient, portalPayload.AccessToken);
 
         var offersResponse = await portalClient.GetAsync($"/api/client/booking-offers?petId={petId:D}");
         offersResponse.ShouldBeOk();
@@ -191,7 +191,7 @@ public sealed class ClientPortalFlowTests(CustomWebApplicationFactory factory)
             offerId,
             ApiClientExtensions.UtcDateTime("2030-04-28T10:00:00Z"));
 
-        CustomWebApplicationFactory.SetBearer(firstPortalClient, firstPayload.AccessToken);
+        RealDbWebApplicationFactory.SetBearer(firstPortalClient, firstPayload.AccessToken);
         var firstResponse = await firstPortalClient.GetAsync("/api/client/appointments?from=2030-04-28T00%3A00%3A00Z");
         firstResponse.ShouldBeOk();
         var firstAppointments = await firstResponse.ReadRequiredJsonAsync<ClientAppointmentSummaryEnvelope[]>();
@@ -202,7 +202,7 @@ public sealed class ClientPortalFlowTests(CustomWebApplicationFactory factory)
         Assert.DoesNotContain(firstAppointments, x => x.Id == oldAppointment.Id);
         Assert.DoesNotContain(firstAppointments, x => x.Id == otherClientAppointment.Id);
 
-        CustomWebApplicationFactory.SetBearer(secondPortalClient, secondPayload.AccessToken);
+        RealDbWebApplicationFactory.SetBearer(secondPortalClient, secondPayload.AccessToken);
         var secondResponse = await secondPortalClient.GetAsync("/api/client/appointments?from=2030-04-28T00%3A00%3A00Z");
         secondResponse.ShouldBeOk();
         var secondAppointments = await secondResponse.ReadRequiredJsonAsync<ClientAppointmentSummaryEnvelope[]>();

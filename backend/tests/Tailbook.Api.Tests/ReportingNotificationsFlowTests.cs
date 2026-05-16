@@ -12,8 +12,8 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class ReportingNotificationsFlowTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class ReportingNotificationsFlowTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Closed_visit_is_visible_in_estimate_accuracy_and_package_performance_reports()
@@ -92,7 +92,7 @@ public sealed class ReportingNotificationsFlowTests(CustomWebApplicationFactory 
         });
         loginResponse.EnsureSuccessStatusCode();
         var login = await loginResponse.ReadRequiredJsonAsync<LoginEnvelope>();
-        CustomWebApplicationFactory.SetBearer(client, login.AccessToken);
+        RealDbWebApplicationFactory.SetBearer(client, login.AccessToken);
 
         var messageId = Guid.NewGuid();
         using (var scope = factory1.Services.CreateScope())

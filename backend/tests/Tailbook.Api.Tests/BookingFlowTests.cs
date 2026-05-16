@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class BookingFlowTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class BookingFlowTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Admin_can_create_booking_request_and_convert_it_to_appointment()

@@ -6,8 +6,8 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class VisitOperationsFlowTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class VisitOperationsFlowTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Admin_can_check_in_execute_adjust_complete_and_close_visit()

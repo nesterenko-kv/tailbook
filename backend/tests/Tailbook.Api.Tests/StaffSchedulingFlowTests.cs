@@ -8,8 +8,8 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class StaffSchedulingFlowTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class StaffSchedulingFlowTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Admin_can_create_groomer_configure_schedule_and_detect_blocked_availability()

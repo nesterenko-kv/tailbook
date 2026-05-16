@@ -3,8 +3,8 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class BookingAuthorizationTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class BookingAuthorizationTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Groomer_cannot_access_admin_booking_requests()
@@ -13,7 +13,7 @@ public sealed class BookingAuthorizationTests(CustomWebApplicationFactory factor
         var token = await factory.LoginAsAsync("groomer.booking@test.local", "Groomer123!");
 
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var response = await client.GetAsync("/api/admin/booking-requests");
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);

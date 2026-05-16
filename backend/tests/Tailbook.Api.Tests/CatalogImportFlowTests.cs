@@ -4,14 +4,14 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class CatalogImportFlowTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class CatalogImportFlowTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Admin_can_preview_catalog_offer_import_and_list_history()
     {
         var token = await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var response = await client.PostAsJsonAsync("/api/admin/catalog/imports/offers/preview", new
         {
@@ -39,7 +39,7 @@ public sealed class CatalogImportFlowTests(CustomWebApplicationFactory factory) 
     {
         var token = await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var createOfferResponse = await client.PostAsJsonAsync("/api/admin/catalog/offers", new
         {

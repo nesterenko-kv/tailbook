@@ -2,7 +2,7 @@ namespace Tailbook.Api.Tests.TestSupport.Auth;
 
 internal static class AuthenticatedClientFactory
 {
-    extension(CustomWebApplicationFactory factory)
+    extension(RealDbWebApplicationFactory factory)
     {
         internal HttpClient CreateAnonymousClient()
             => factory.CreateClient();
@@ -15,7 +15,7 @@ internal static class AuthenticatedClientFactory
         {
             var token = await factory.LoginAsAsync(email, password);
             var client = factory.CreateClient();
-            CustomWebApplicationFactory.SetBearer(client, token);
+            RealDbWebApplicationFactory.SetBearer(client, token);
             return client;
         }
 

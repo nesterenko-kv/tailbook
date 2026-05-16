@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class AdminPetListTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class AdminPetListTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Admin_can_list_pets_with_pagination_and_filters()

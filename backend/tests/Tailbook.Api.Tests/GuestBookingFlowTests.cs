@@ -7,8 +7,8 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class GuestBookingFlowTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class GuestBookingFlowTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Guest_can_preview_public_booking_and_submit_request_without_registration()

@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class PetValidationTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class PetValidationTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Register_pet_rejects_breed_that_does_not_belong_to_selected_animal_type()
@@ -196,7 +196,7 @@ public sealed class PetValidationTests(CustomWebApplicationFactory factory) : IC
     {
         var token = await factory.LoginAsAsync("admin@test.local", "MyV3ryC00lAdminP@ss");
         var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
         return client;
     }
 

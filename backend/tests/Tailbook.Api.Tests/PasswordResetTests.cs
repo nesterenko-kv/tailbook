@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class PasswordResetTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class PasswordResetTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Password_reset_changes_password_and_revokes_existing_refresh_tokens()

@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class MfaChallengeTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class MfaChallengeTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Identity_login_with_enabled_email_mfa_returns_challenge_without_tokens()

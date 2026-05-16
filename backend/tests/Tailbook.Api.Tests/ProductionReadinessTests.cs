@@ -3,8 +3,8 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class ProductionReadinessTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class ProductionReadinessTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Health_live_should_return_ok()

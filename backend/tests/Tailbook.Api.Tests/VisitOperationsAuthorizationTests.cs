@@ -8,8 +8,8 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class VisitOperationsAuthorizationTests(CustomWebApplicationFactory factory)
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class VisitOperationsAuthorizationTests(RealDbWebApplicationFactory factory)
+    : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Groomer_cannot_access_admin_visit_endpoints()
@@ -18,7 +18,7 @@ public sealed class VisitOperationsAuthorizationTests(CustomWebApplicationFactor
         var token = await factory.LoginAsAsync("visit-groomer@test.local", "Groomer123!");
 
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var response = await client.GetAsync($"/api/admin/visits/{Guid.NewGuid():D}");
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -33,7 +33,7 @@ public sealed class VisitOperationsAuthorizationTests(CustomWebApplicationFactor
         var token = await factory.LoginAsAsync(email, "Visit123!");
 
         using var client = factory.CreateClient();
-        CustomWebApplicationFactory.SetBearer(client, token);
+        RealDbWebApplicationFactory.SetBearer(client, token);
 
         var response = await client.PostAsJsonAsync($"/api/admin/visits/{Guid.NewGuid():D}/adjustments", new
         {

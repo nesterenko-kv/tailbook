@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Tailbook.Api.Tests;
 
-public sealed class LoginTests(CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
+public sealed class LoginTests(RealDbWebApplicationFactory factory) : IClassFixture<RealDbWebApplicationFactory>
 {
     [Fact]
     public async Task Bootstrap_admin_can_login_and_receive_token()
@@ -118,7 +118,7 @@ public sealed class LoginTests(CustomWebApplicationFactory factory) : IClassFixt
             password = "WrongPassword123!"
         };
 
-        for (var i = 0; i < CustomWebApplicationFactory.TestMaxFailedLoginAttempts; i++)
+        for (var i = 0; i < RealDbWebApplicationFactory.TestMaxFailedLoginAttempts; i++)
         {
             var failed = await client.PostAsJsonAsync("/api/identity/auth/login", request);
             Assert.Equal(HttpStatusCode.Unauthorized, failed.StatusCode);
@@ -140,7 +140,7 @@ public sealed class LoginTests(CustomWebApplicationFactory factory) : IClassFixt
             password = "WrongPassword123!"
         };
 
-        for (var i = 0; i < CustomWebApplicationFactory.TestMaxFailedLoginAttempts; i++)
+        for (var i = 0; i < RealDbWebApplicationFactory.TestMaxFailedLoginAttempts; i++)
         {
             var failed = await client.PostAsJsonAsync("/api/client/auth/login", request);
             Assert.Equal(HttpStatusCode.Unauthorized, failed.StatusCode);
