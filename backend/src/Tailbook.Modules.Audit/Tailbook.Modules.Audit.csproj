@@ -17,5 +17,9 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Tailbook.Api.Tests" />
+    <InternalsVisibleTo Include="Tailbook.Tests.Infrastructure" />
+    <InternalsVisibleTo Include="Tailbook.Modules.Identity.Tests" />
+    <InternalsVisibleTo Include="Tailbook.Modules.Notifications.Tests" />
+    <InternalsVisibleTo Include="Tailbook.Modules.Audit.Tests" />
   </ItemGroup>
 </Project>

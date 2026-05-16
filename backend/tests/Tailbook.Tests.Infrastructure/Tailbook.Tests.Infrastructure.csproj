@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
+    <RootNamespace>Tailbook.Api.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,9 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Tailbook.Tests.Infrastructure\Tailbook.Tests.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Tailbook.Api.Host\Tailbook.Api.Host.csproj" />
     <ProjectReference Include="..\..\src\Tailbook.Modules.Audit.Api.Contracts\Tailbook.Modules.Audit.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Tailbook.Modules.Audit\Tailbook.Modules.Audit.csproj" />
     <ProjectReference Include="..\..\src\Tailbook.Modules.Booking\Tailbook.Modules.Booking.csproj" />
     <ProjectReference Include="..\..\src\Tailbook.Modules.Booking.Api.Contracts\Tailbook.Modules.Booking.Api.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Tailbook.Modules.Catalog.Api.Contracts\Tailbook.Modules.Catalog.Api.Contracts.csproj" />
@@ -29,6 +29,7 @@
     <ProjectReference Include="..\..\src\Tailbook.Modules.Identity\Tailbook.Modules.Identity.csproj" />
     <ProjectReference Include="..\..\src\Tailbook.Modules.Identity.Api.Contracts\Tailbook.Modules.Identity.Api.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Tailbook.Modules.Notifications.Api.Contracts\Tailbook.Modules.Notifications.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Tailbook.Modules.Notifications\Tailbook.Modules.Notifications.csproj" />
     <ProjectReference Include="..\..\src\Tailbook.Modules.Pets.Api.Contracts\Tailbook.Modules.Pets.Api.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Tailbook.Modules.Reporting.Api.Contracts\Tailbook.Modules.Reporting.Api.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Tailbook.Modules.Staff.Api.Contracts\Tailbook.Modules.Staff.Api.Contracts.csproj" />

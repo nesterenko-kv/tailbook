@@ -1,5 +1,7 @@
 # Tailbook
 
+![CI](https://github.com/nesterenko-kv/tailbook/actions/workflows/ci.yml/badge.svg)
+
 Tailbook is a modular monolith + monorepo grooming salon platform.
 
 ## Repo shape
