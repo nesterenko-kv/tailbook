@@ -13,8 +13,8 @@
         "@tailbook/frontend-api": "workspace:*",
         "@tanstack/react-query": "^5.100.9",
         "next": "16.2.6",
-        "react": "19.2.5",
-        "react-dom": "19.2.5",
+        "react": "19.2.6",
+        "react-dom": "19.2.6",
         "zod": "^4.4.3"
     },
     "devDependencies": {

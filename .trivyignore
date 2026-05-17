@@ -1,0 +1,5 @@
+# Trivy ignore file
+# Add vulnerability IDs (CVE, GHSA) to ignore, one per line.
+# Check GitHub Security tab or download the SARIF artifact from CI to find the exact IDs.
+# Example:
+# CVE-2026-XXXXX   # <description> - fixed in upstream but bundled in next/vendored dep

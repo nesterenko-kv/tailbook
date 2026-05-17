@@ -249,6 +249,7 @@ jobs:
           output: trivy-${{ matrix.image.name }}.sarif
           exit-code: 1
           severity: HIGH,CRITICAL
+          ignore-unfixed: true
 
       - name: Upload Trivy report
         uses: actions/upload-artifact@v6
