@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:22-alpine AS build
 RUN apk upgrade --no-cache
 WORKDIR /app
 ENV PNPM_HOME="/pnpm"
@@ -9,7 +9,13 @@ COPY packages ./packages
 COPY apps ./apps
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter admin-web build
+
+FROM node:22-alpine
+RUN apk upgrade --no-cache
+WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
+COPY --from=build /app/apps/admin-web/.next/standalone ./
+COPY --from=build /app/apps/admin-web/.next/static ./apps/admin-web/.next/static
 EXPOSE 3000
-CMD ["sh", "-c", "pnpm --filter admin-web exec next start --port ${PORT:-3000}"]
+CMD ["node", "apps/admin-web/server.js"]
