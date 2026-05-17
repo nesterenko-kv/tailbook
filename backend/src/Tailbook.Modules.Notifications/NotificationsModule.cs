@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.BuildingBlocks.Infrastructure.Messaging;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Notifications.Infrastructure.BackgroundJobs;
 using Tailbook.Modules.Notifications.Infrastructure.Options;
@@ -45,6 +46,7 @@ public sealed class NotificationsModule : IModuleDefinition
             return serviceProvider.GetRequiredService<LocalFileNotificationSink>();
         });
         services.AddHostedService<OutboxProcessorBackgroundService>();
+        services.AddHostedService<NotificationEventConsumer>();
         services.AddScoped<IDataSeeder, NotificationTemplateSeeder>();
         return services;
     }

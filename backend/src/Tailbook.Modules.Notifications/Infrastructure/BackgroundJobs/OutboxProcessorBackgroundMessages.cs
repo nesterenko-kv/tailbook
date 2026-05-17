@@ -27,4 +27,10 @@ internal static partial class OutboxProcessorBackgroundMessages
         Level = LogLevel.Information,
         Message = "Background outbox processor handled {ProcessedCount} messages.")]
     public static partial void BackgroundOutboxProcessorHandled(this ILogger logger, int processedCount);
+
+    [LoggerMessage(
+        EventId = 9004,
+        Level = LogLevel.Error,
+        Message = "Failed to publish outbox message {MessageId} ({EventType}) to broker.")]
+    public static partial void OutboxPublishFailed(this ILogger logger, Guid messageId, string eventType, Exception exception);
 }

@@ -219,6 +219,158 @@ public sealed class NotificationUseCases(
         }
     }
 
+    public async Task<ProcessBrokerEventResult> ProcessBrokerEventAsync(
+        string eventType,
+        string payloadJson,
+        Guid messageId,
+        CancellationToken cancellationToken)
+    {
+        var stopwatch = ValueStopwatch.StartNew();
+        var utcNow = _timeProvider.GetUtcNow();
+        var result = new ProcessBrokerEventResult();
+
+        using var activity = NotificationTelemetry.StartOutboxProcessingActivity("broker");
+
+        try
+        {
+            var templates = await dbContext.Set<NotificationTemplate>()
+                .Where(x => x.IsActive)
+                .ToDictionaryAsync(x => x.Code, StringComparer.OrdinalIgnoreCase, cancellationToken);
+
+            var templateCode = ResolveTemplateCode(eventType);
+            if (templateCode is null || !templates.TryGetValue(templateCode, out var template))
+            {
+                NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeIgnored);
+                return result with { Outcome = "ignored" };
+            }
+
+            var message = new OutboxMessage
+            {
+                Id = messageId,
+                EventType = eventType,
+                PayloadJson = payloadJson
+            };
+
+            var job = await dbContext.Set<NotificationJob>()
+                .SingleOrDefaultAsync(x => x.SourceEventMessageId == messageId, cancellationToken);
+
+            if (job is null)
+            {
+                var body = RenderJobContent(template.BodyTemplate, payloadJson, templateCode);
+                var subject = RenderJobContent(template.SubjectTemplate, payloadJson, templateCode);
+                job = new NotificationJob
+                {
+                    Id = Guid.NewGuid(),
+                    SourceEventType = eventType,
+                    SourceEventMessageId = messageId,
+                    TemplateId = template.Id,
+                    Channel = template.Channel,
+                    Recipient = ResolveRecipient(payloadJson) ?? "front-desk",
+                    Subject = subject,
+                    Body = body,
+                    Status = NotificationStatusCodes.Pending,
+                    AttemptCount = 0,
+                    CreatedAt = utcNow
+                };
+
+                dbContext.Set<NotificationJob>().Add(job);
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+            else if (job.Status is NotificationStatusCodes.Sent
+                or NotificationStatusCodes.DeadLetter
+                or NotificationStatusCodes.Abandoned)
+            {
+                NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeAlreadyFinal);
+                return result with { Outcome = "already_final" };
+            }
+
+            if (job.NextAttemptAt is { } nextAttemptAt && nextAttemptAt > utcNow)
+            {
+                NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeSkippedRetry);
+                return result with { Outcome = "skipped_retry" };
+            }
+
+            var deliveryAttemptNo = await GetNextDeliveryAttemptNoAsync(job.Id, cancellationToken);
+
+            try
+            {
+                var envelope = CreateDispatchEnvelope(job, template, payloadJson, utcNow, templateCode);
+                await notificationSink.SendAsync(envelope, cancellationToken);
+
+                job.AttemptCount += 1;
+                job.Status = NotificationStatusCodes.Sent;
+                job.LastErrorMessage = null;
+                job.NextAttemptAt = null;
+                job.DeadLetteredAt = null;
+                job.SentAt = utcNow;
+
+                dbContext.Set<NotificationDeliveryAttempt>().Add(
+                    new NotificationDeliveryAttempt
+                    {
+                        Id = Guid.NewGuid(),
+                        NotificationJobId = job.Id,
+                        AttemptNo = deliveryAttemptNo,
+                        Status = NotificationStatusCodes.Sent,
+                        AttemptedAt = utcNow
+                    });
+
+                await dbContext.SaveChangesAsync(cancellationToken);
+
+                NotificationTelemetry.RecordDeliveryAttempt(NotificationStatusCodes.Sent, job.Channel);
+                NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeSent);
+
+                return result with { Outcome = "sent" };
+            }
+            catch (Exception ex)
+            {
+                job.AttemptCount += 1;
+                job.LastErrorMessage = TruncateError(ex.Message);
+
+                if (job.AttemptCount >= _options.MaxDeliveryAttempts)
+                {
+                    job.Status = NotificationStatusCodes.DeadLetter;
+                    job.NextAttemptAt = null;
+                    job.DeadLetteredAt = utcNow;
+                    await dbContext.SaveChangesAsync(cancellationToken);
+
+                    NotificationTelemetry.RecordDeliveryAttempt(NotificationStatusCodes.DeadLetter, job.Channel);
+                    NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeDeadLetter);
+
+                    return result with { Outcome = "dead_letter", ErrorMessage = ex.Message };
+                }
+
+                job.Status = NotificationStatusCodes.Failed;
+                job.NextAttemptAt = utcNow.Add(CalculateRetryDelay(job.AttemptCount));
+                job.DeadLetteredAt = null;
+
+                dbContext.Set<NotificationDeliveryAttempt>().Add(
+                    new NotificationDeliveryAttempt
+                    {
+                        Id = Guid.NewGuid(),
+                        NotificationJobId = job.Id,
+                        AttemptNo = deliveryAttemptNo,
+                        Status = NotificationStatusCodes.Failed,
+                        ErrorMessage = job.LastErrorMessage,
+                        AttemptedAt = utcNow
+                    });
+
+                await dbContext.SaveChangesAsync(cancellationToken);
+
+                NotificationTelemetry.RecordDeliveryAttempt(NotificationStatusCodes.Failed, job.Channel);
+                NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeFailed);
+
+                return result with { Outcome = "failed", ErrorMessage = ex.Message };
+            }
+        }
+        finally
+        {
+            var duration = stopwatch.GetElapsedTime();
+            NotificationTelemetry.SetOutboxProcessingCounts(activity, result.Outcome is not null ? 1 : 0, result.Outcome == "sent" ? 1 : 0, result.Outcome == "failed" ? 1 : 0, result.Outcome == "dead_letter" ? 1 : 0, result.Outcome == "ignored" ? 1 : 0, result.Outcome == "skipped_retry" ? 1 : 0);
+            NotificationTelemetry.SetOutboxProcessingResult(activity, result.Outcome ?? "error", duration);
+            NotificationTelemetry.RecordOutboxProcessingCycle("broker", 1, duration, result.Outcome ?? "error");
+        }
+    }
+
     public async Task<IReadOnlyCollection<NotificationJobListItemView>> ListJobsAsync(NotificationJobListQuery query, CancellationToken cancellationToken)
     {
         var jobs = dbContext.Set<NotificationJob>().AsNoTracking().AsQueryable();
@@ -703,4 +855,10 @@ public sealed class NotificationUseCases(
         ["ProtectedCode"] = RedactedValue,
         ["Code"] = RedactedValue
     };
+}
+
+public sealed record ProcessBrokerEventResult
+{
+    public string? Outcome { get; init; }
+    public string? ErrorMessage { get; init; }
 }

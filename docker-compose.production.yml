@@ -58,8 +58,27 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+  rabbitmq:
+    image: rabbitmq:4.1-management-alpine
+    container_name: tailbook-rabbitmq-prod
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    expose:
+      - "5672"
+    volumes:
+      - rabbitmq-prod-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics check_port_connectivity || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
       redis:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
       otel-collector:
         condition: service_started
     environment:
@@ -85,6 +104,12 @@ services:
       AppCors__AllowCredentials: ${APP_CORS_ALLOW_CREDENTIALS:-true}
       HttpTransport__EnforceHttpsRedirection: "true"
       HttpTransport__UseHsts: "true"
+      RabbitMq__Enabled: ${RABBITMQ_ENABLED:-true}
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Port: "5672"
+      RabbitMq__Username: ${RABBITMQ_USER:-guest}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD:-guest}
+      RabbitMq__Exchange: ${RABBITMQ_EXCHANGE:-tailbook.events}
       AllowedHosts: ${API_ALLOWED_HOSTS:-localhost;127.0.0.1;api.${TLS_DOMAIN:-tailbook.test}}
       Notifications__EnableBackgroundProcessing: "true"
       Notifications__Provider: ${NOTIFICATIONS_PROVIDER:-LocalFile}
@@ -195,5 +220,6 @@ services:
 volumes:
   postgres-prod-data:
   redis-prod-data:
+  rabbitmq-prod-data:
   api-data:
   caddy-data:

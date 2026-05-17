@@ -22,6 +22,7 @@ using Tailbook.Api.Host.Infrastructure;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Abstractions.Security;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
+using Tailbook.BuildingBlocks.Infrastructure.Messaging;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence.Jobs;
@@ -275,6 +276,7 @@ if (telemetryOptions.Enabled)
                     .AddMeter(OutboxTelemetry.MeterName)
                     .AddMeter("Npgsql")
                     .AddMeter(NotificationTelemetry.MeterName)
+                    .AddMeter(RabbitMqTelemetry.MeterName)
                     .AddPrometheusExporter();
                 if (telemetryOptions.HasExportableOtlpEndpoint)
                 {
@@ -301,7 +303,8 @@ if (telemetryOptions.Enabled)
                 .AddSource(AuditTelemetry.ActivitySourceName)
                 .AddSource(JobQueueTelemetry.ActivitySourceName)
                 .AddSource(OutboxTelemetry.ActivitySourceName)
-                .AddSource(NotificationTelemetry.ActivitySourceName);
+                .AddSource(NotificationTelemetry.ActivitySourceName)
+                .AddSource(RabbitMqTelemetry.ActivitySourceName);
             if (telemetryOptions.HasExportableOtlpEndpoint)
             {
                 tracing.AddOtlpExporter(exporter =>
@@ -320,6 +323,7 @@ builder.Services.AddScoped<IIdempotencyStore, IdempotencyStore>();
 builder.Services.AddOptions<IdempotencyRequestOptions>()
     .Bind(builder.Configuration.GetSection(IdempotencyRequestOptions.SectionName))
     .ValidateOnStart();
+builder.Services.AddRabbitMqMessageBroker(builder.Configuration);
 builder.Services.AddScoped<IOutboxPublisher, OutboxPublisher>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IDataSeeder, DevelopmentDemoSalonSeeder>();

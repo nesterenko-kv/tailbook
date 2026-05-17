@@ -34,6 +34,24 @@ services:
       timeout: 5s
       retries: 10
 
+  rabbitmq:
+    image: rabbitmq:4.1-management-alpine
+    container_name: tailbook-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MGMT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics check_port_connectivity || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   pgadmin:
     image: dpage/pgadmin4:9.3
     container_name: tailbook-pgadmin
@@ -99,6 +117,7 @@ services:
 volumes:
   postgres-data:
   redis-data:
+  rabbitmq-data:
   pgadmin-data:
   prometheus-data:
   grafana-data:
