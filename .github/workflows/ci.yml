@@ -186,7 +186,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: owasp-dependency-check-report
-          path: ${{ steps.depcheck.outputs.report }}
+          path: reports/
           if-no-files-found: warn
 
   security-sast:
