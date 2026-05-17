@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.Audit.Application.AccessAuditEntries.Queries;
 using Tailbook.Modules.Audit.Application.AuditEntries.Queries;
+using Tailbook.Modules.Audit.Infrastructure.BackgroundJobs;
 using Tailbook.Modules.Audit.Infrastructure.Persistence.ReadModels;
 using Tailbook.Modules.Audit.Infrastructure.Services;
 using Tailbook.Modules.Audit.Infrastructure.WriteBuffering;
@@ -33,6 +34,7 @@ public sealed class AuditModule : IModuleDefinition
         services.AddHostedService<AuditBatchWriterHostedService>();
         services.AddScoped<IAccessAuditService, AccessAuditService>();
         services.AddScoped<IAuditTrailService, AuditTrailService>();
+        services.AddHostedService<AuditEventConsumer>();
         return services;
     }
 

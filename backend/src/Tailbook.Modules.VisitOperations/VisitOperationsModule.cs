@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.Modules.VisitOperations.Infrastructure.BackgroundJobs;
 using Tailbook.Modules.VisitOperations.Infrastructure.Services;
 using Tailbook.Modules.VisitOperations.Infrastructure.Services.CommandHandlers;
 
@@ -19,6 +20,7 @@ public sealed class VisitOperationsModule : IModuleDefinition
         services.AddScoped<CheckInOwnAppointmentUseCaseCommandHandler>();
         services.AddScoped<RecordPerformedProcedureUseCaseCommandHandler>();
         services.AddScoped<RecordSkippedComponentUseCaseCommandHandler>();
+        services.AddHostedService<VisitCancellationConsumer>();
         return services;
     }
 

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
+using Tailbook.Modules.Pets.Infrastructure.BackgroundJobs;
 using Tailbook.Modules.Pets.Infrastructure.Seeding;
 using Tailbook.Modules.Pets.Infrastructure.Services;
 
@@ -25,6 +26,7 @@ public sealed class PetsModule : IModuleDefinition
         services.AddScoped<IPetTaxonomyValidationService, PetReferenceServices>();
         services.AddSingleton<IPetPhotoStorage, LocalFilesystemPetPhotoStorage>();
         services.AddScoped<IDataSeeder, PetsCatalogSeeder>();
+        services.AddHostedService<PetAppointmentConsumer>();
         return services;
     }
 
