@@ -2,6 +2,7 @@
   <Folder Name="/Tests/">
     <Project Path="tests/Tailbook.Api.Tests/Tailbook.Api.Tests.csproj"/>
     <Project Path="tests/Tailbook.Architecture.Tests/Tailbook.Architecture.Tests.csproj"/>
+    <Project Path="tests/Tailbook.BuildingBlocks.Tests/Tailbook.BuildingBlocks.Tests.csproj"/>
     <Project Path="tests/Tailbook.Performance.Tests/Tailbook.Performance.Tests.csproj"/>
     <Project Path="tests/Tailbook.Tests.Infrastructure/Tailbook.Tests.Infrastructure.csproj"/>
     <Project Path="tests/Tailbook.Modules.Identity.Tests/Tailbook.Modules.Identity.Tests.csproj"/>

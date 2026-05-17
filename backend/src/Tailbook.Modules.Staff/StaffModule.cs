@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.BuildingBlocks.Infrastructure.Messaging;
+using Tailbook.Modules.Staff.Infrastructure.BackgroundJobs;
 using Tailbook.Modules.Staff.Infrastructure.Options;
 using Tailbook.Modules.Staff.Infrastructure.Services;
 
@@ -22,6 +24,7 @@ public sealed class StaffModule : IModuleDefinition
         services.AddScoped<IStaffReadService, StaffUseCases>();
         services.AddScoped<IStaffSchedulingService, StaffSchedulingService>();
         services.AddScoped<IGroomerProfileReadService, GroomerProfileReadService>();
+        services.AddHostedService<StaffAppointmentConsumer>();
         return services;
     }
 
