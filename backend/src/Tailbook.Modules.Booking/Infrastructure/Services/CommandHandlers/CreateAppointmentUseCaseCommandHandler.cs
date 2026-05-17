@@ -11,7 +11,6 @@ public sealed class CreateAppointmentUseCaseCommandHandler(
     IBookingManagementReadService bookingReadService,
     IBookingSnapshotComposer bookingSnapshotComposer,
     IAuditTrailService auditTrailService,
-    IOutboxPublisher outboxPublisher,
     TimeProvider timeProvider)
     : ICommandHandler<CreateAppointmentUseCaseCommand, ErrorOr<AppointmentDetailView>>
 {
@@ -80,18 +79,6 @@ public sealed class CreateAppointmentUseCaseCommandHandler(
 
         var appointment = appointmentResult.Value;
         dbContext.Set<Appointment>().Add(appointment);
-
-        await outboxPublisher.PublishAsync("booking", "AppointmentCreated", new
-        {
-            appointmentId = appointment.Id,
-            bookingRequestId = appointment.BookingRequestId,
-            petId = appointment.PetId,
-            groomerId = appointment.GroomerId,
-            startAt = appointment.StartAt,
-            endAt = appointment.EndAt,
-            status = appointment.Status,
-            versionNo = appointment.VersionNo
-        }, cancellationToken);
 
         var saveResult = await ConcurrencySafeSaver.SaveAsync(dbContext, cancellationToken);
         if (saveResult.IsError)

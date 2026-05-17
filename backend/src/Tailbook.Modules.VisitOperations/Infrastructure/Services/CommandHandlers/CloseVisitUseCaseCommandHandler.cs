@@ -12,7 +12,6 @@ public sealed class CloseVisitUseCaseCommandHandler(
     IVisitReadService visitReadService,
     IAppointmentVisitService appointmentVisitService,
     IAuditTrailService auditTrailService,
-    IOutboxPublisher outboxPublisher,
     TimeProvider timeProvider)
     : ICommandHandler<CloseVisitUseCaseCommand, ErrorOr<VisitDetailView>>
 {
@@ -41,14 +40,6 @@ public sealed class CloseVisitUseCaseCommandHandler(
             return closeResult.Errors;
         }
 
-        await outboxPublisher.PublishAsync("visitops", "VisitClosed", new
-        {
-            visitId = visit.Value.Id,
-            appointmentId = visit.Value.AppointmentId,
-            status = visit.Value.Status,
-            finalTotalAmount = visit.Value.FinalTotalAmount,
-            closedAt = visit.Value.ClosedAt
-        }, ct);
         await dbContext.SaveChangesAsync(ct);
         await auditTrailService.RecordAsync(
             "visitops",

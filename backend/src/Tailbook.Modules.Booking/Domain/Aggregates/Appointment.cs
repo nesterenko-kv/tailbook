@@ -1,8 +1,10 @@
 using ErrorOr;
+using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.Modules.Booking.Domain.Events;
 
 namespace Tailbook.Modules.Booking.Domain.Aggregates;
 
-public sealed class Appointment
+public sealed class Appointment : AggregateRoot
 {
     private readonly List<AppointmentItem> _items = [];
 
@@ -10,7 +12,6 @@ public sealed class Appointment
     {
     }
 
-    public Guid Id { get; private set; }
     public Guid? BookingRequestId { get; private set; }
     public Guid PetId { get; private set; }
     public Guid GroomerId { get; private set; }
@@ -107,6 +108,18 @@ public sealed class Appointment
             return errors;
         }
 
+        appointment.RaiseDomainEvent(new AppointmentCreatedDomainEvent(
+            Guid.NewGuid(),
+            utcNow.ToUniversalTime(),
+            appointment.Id,
+            appointment.BookingRequestId,
+            appointment.PetId,
+            appointment.GroomerId,
+            appointment.StartAt,
+            appointment.EndAt,
+            appointment.Status,
+            appointment.VersionNo));
+
         return appointment;
     }
 
@@ -155,6 +168,15 @@ public sealed class Appointment
         EndAt = validatedPeriod.EndAt;
         Status = AppointmentStatusCodes.Rescheduled;
         Touch(actorUserId, now);
+        RaiseDomainEvent(new AppointmentRescheduledDomainEvent(
+            Guid.NewGuid(),
+            now.ToUniversalTime(),
+            Id,
+            GroomerId,
+            StartAt,
+            EndAt,
+            Status,
+            VersionNo));
         return Result.Success;
     }
 
@@ -179,6 +201,14 @@ public sealed class Appointment
         CancellationNotes = normalizedNotes;
         CancelledAt = now.ToUniversalTime();
         Touch(actorUserId, now);
+        RaiseDomainEvent(new AppointmentCancelledDomainEvent(
+            Guid.NewGuid(),
+            now.ToUniversalTime(),
+            Id,
+            Status,
+            CancellationReasonCode,
+            CancellationNotes,
+            VersionNo));
         return Result.Success;
     }
 

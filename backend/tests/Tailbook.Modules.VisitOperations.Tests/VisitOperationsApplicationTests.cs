@@ -137,6 +137,7 @@ public sealed class VisitOperationsApplicationTests
         {
             var options = new DbContextOptionsBuilder<AppDbContext>()
                 .UseInMemoryDatabase($"visit-application-{Guid.NewGuid():N}")
+                .AddInterceptors(new DomainEventToOutboxInterceptor())
                 .Options;
 
             var dbContext = TestModelConfiguration.CreateDbContext(options);
@@ -144,7 +145,6 @@ public sealed class VisitOperationsApplicationTests
             var timeProvider = TimeProvider.System;
             var visitCatalogReadService = new StubVisitCatalogReadService();
             var auditTrailService = new NoOpAuditTrailService();
-            var outboxPublisher = new OutboxPublisher(dbContext, timeProvider);
             var visitReadService = new VisitReadService(
                 dbContext,
                 appointmentVisitService,
@@ -155,7 +155,6 @@ public sealed class VisitOperationsApplicationTests
                 dbContext,
                 visitReadService,
                 auditTrailService,
-                outboxPublisher,
                 timeProvider);
             var completeVisitHandler = new CompleteVisitUseCaseCommandHandler(
                 dbContext,
@@ -163,14 +162,12 @@ public sealed class VisitOperationsApplicationTests
                 appointmentVisitService,
                 visitCatalogReadService,
                 auditTrailService,
-                outboxPublisher,
                 timeProvider);
             var closeVisitHandler = new CloseVisitUseCaseCommandHandler(
                 dbContext,
                 visitReadService,
                 appointmentVisitService,
                 auditTrailService,
-                outboxPublisher,
                 timeProvider);
 
             var visitResult = Visit.CheckIn(

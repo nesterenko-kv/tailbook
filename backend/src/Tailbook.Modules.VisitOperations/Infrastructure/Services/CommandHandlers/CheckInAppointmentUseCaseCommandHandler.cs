@@ -12,7 +12,6 @@ public sealed class CheckInAppointmentUseCaseCommandHandler(
     IVisitReadService visitReadService,
     IAppointmentVisitService appointmentVisitService,
     IAuditTrailService auditTrailService,
-    IOutboxPublisher outboxPublisher,
     TimeProvider timeProvider)
     : ICommandHandler<CheckInAppointmentUseCaseCommand, ErrorOr<VisitDetailView>>
 {
@@ -61,13 +60,6 @@ public sealed class CheckInAppointmentUseCaseCommandHandler(
         var visit = visitResult.Value;
         dbContext.Set<Visit>().Add(visit);
 
-        await outboxPublisher.PublishAsync("visitops", "VisitCheckedIn", new
-        {
-            visitId = visit.Id,
-            appointmentId = visit.AppointmentId,
-            status = visit.Status,
-            checkedInAt = visit.CheckedInAt
-        }, ct);
         await dbContext.SaveChangesAsync(ct);
         await auditTrailService.RecordAsync(
             "visitops",

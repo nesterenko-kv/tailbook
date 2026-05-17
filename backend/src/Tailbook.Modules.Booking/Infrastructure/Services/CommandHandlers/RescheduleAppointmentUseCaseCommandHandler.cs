@@ -12,7 +12,6 @@ public sealed class RescheduleAppointmentUseCaseCommandHandler(
     IBookingManagementReadService bookingReadService,
     IStaffSchedulingService staffSchedulingService,
     IAuditTrailService auditTrailService,
-    IOutboxPublisher outboxPublisher,
     TimeProvider timeProvider)
     : ICommandHandler<RescheduleAppointmentUseCaseCommand, ErrorOr<AppointmentDetailView>>
 {
@@ -101,14 +100,6 @@ public sealed class RescheduleAppointmentUseCaseCommandHandler(
             return rescheduleResult.Errors;
         }
 
-        await outboxPublisher.PublishAsync("booking", "AppointmentRescheduled", new
-        {
-            appointmentId = appointment.Id,
-            groomerId = appointment.GroomerId,
-            startAt = appointment.StartAt,
-            endAt = appointment.EndAt,
-            versionNo = appointment.VersionNo
-        }, ct);
         var saveResult = await ConcurrencySafeSaver.SaveAsync(dbContext, ct);
         if (saveResult.IsError)
         {

@@ -228,6 +228,7 @@ builder.WebHost.ConfigureKestrel(options =>
 
 builder.Services.AddDbContextFactory<AppDbContext>((serviceProvider, options) =>
     options.UseNpgsql(serviceProvider.GetRequiredService<NpgsqlDataSource>())
+        .AddInterceptors(serviceProvider.GetRequiredService<DomainEventToOutboxInterceptor>())
         .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
 if (string.IsNullOrWhiteSpace(redisConnectionString))
@@ -325,6 +326,7 @@ builder.Services.AddOptions<IdempotencyRequestOptions>()
     .ValidateOnStart();
 builder.Services.AddRabbitMqMessageBroker(builder.Configuration);
 builder.Services.AddScoped<IOutboxPublisher, OutboxPublisher>();
+builder.Services.AddSingleton<DomainEventToOutboxInterceptor>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IDataSeeder, DevelopmentDemoSalonSeeder>();
 

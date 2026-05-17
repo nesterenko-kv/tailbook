@@ -1,4 +1,9 @@
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Tailbook.Api.Tests.Factories;
+using Tailbook.BuildingBlocks.Infrastructure.Persistence;
+using Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 using Xunit;
 
 namespace Tailbook.Modules.VisitOperations.Tests;
@@ -92,5 +97,50 @@ public sealed class VisitOperationsFlowTests(RealDbWebApplicationFactory factory
 
         var secondResponse = await scenario.CheckInResponseAsync();
         secondResponse.ShouldBeConflict();
+    }
+
+    [Fact]
+    public async Task Close_visit_stages_visitops_event_in_outbox()
+    {
+        using var admin = await factory.CreateAdminClientAsync();
+
+        var scenario = await VisitScenario
+            .For(admin)
+            .WithSchedulablePet("Outbox Visit Client")
+            .WithVisitReadyOffer()
+            .WithAvailableGroomer("Outbox Visit Groomer")
+            .CreateAsync();
+
+        var visit = await scenario.CheckInAsync();
+        var executionItem = visit.Items.Single();
+        var expectedComponent = executionItem.ExpectedComponents.First();
+        visit = await scenario.AddPerformedProcedureAsync(
+            visit.Id,
+            executionItem.Id,
+            scenario.Offer.SecondProcedureId,
+            "Completed before close.");
+        visit = await scenario.SkipExpectedComponentAsync(
+            visit.Id,
+            executionItem.Id,
+            expectedComponent.Id,
+            "PET_STRESSED",
+            "Skipped before close.");
+        visit = await scenario.CompleteAsync(visit.Id);
+        visit = await scenario.CloseAsync(visit.Id);
+        Assert.Equal("Closed", visit.Status);
+
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var outboxMessage = await dbContext.Set<OutboxMessage>()
+            .OrderByDescending(x => x.OccurredAt)
+            .FirstAsync(x => x.ModuleCode == "visitops" && x.EventType == "VisitClosed");
+
+        using var payload = JsonDocument.Parse(outboxMessage.PayloadJson);
+        Assert.Equal("visitops", outboxMessage.ModuleCode);
+        Assert.Equal("VisitClosed", outboxMessage.EventType);
+        Assert.Equal(visit.Id, payload.RootElement.GetProperty("visitId").GetGuid());
+        Assert.Equal("Closed", payload.RootElement.GetProperty("status").GetString());
+        Assert.True(payload.RootElement.GetProperty("closedAt").GetDateTimeOffset() > default(DateTimeOffset));
     }
 }

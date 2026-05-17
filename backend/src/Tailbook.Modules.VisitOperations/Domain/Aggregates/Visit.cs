@@ -1,8 +1,10 @@
 using ErrorOr;
+using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.Modules.VisitOperations.Domain.Events;
 
 namespace Tailbook.Modules.VisitOperations.Domain.Aggregates;
 
-public sealed class Visit
+public sealed class Visit : AggregateRoot
 {
     private readonly List<VisitExecutionItem> _executionItems = [];
     private readonly List<VisitPriceAdjustment> _priceAdjustments = [];
@@ -11,7 +13,6 @@ public sealed class Visit
     {
     }
 
-    public Guid Id { get; private set; }
     public Guid AppointmentId { get; private set; }
     public string Status { get; private set; } = string.Empty;
     public DateTimeOffset CheckedInAt { get; private set; }
@@ -89,6 +90,14 @@ public sealed class Visit
         {
             return errors;
         }
+
+        visit.RaiseDomainEvent(new VisitCheckedInDomainEvent(
+            Guid.NewGuid(),
+            checkedInAt,
+            visit.Id,
+            visit.AppointmentId,
+            visit.Status,
+            visit.CheckedInAt));
 
         return visit;
     }
@@ -226,6 +235,14 @@ public sealed class Visit
 
         _priceAdjustments.Add(priceAdjustment.Value);
         Touch(actorUserId, utcNow);
+        RaiseDomainEvent(new FinalPriceAdjustedDomainEvent(
+            Guid.NewGuid(),
+            StampUtc(utcNow),
+            Id,
+            Status,
+            priceAdjustment.Value.Sign,
+            priceAdjustment.Value.Amount,
+            priceAdjustment.Value.ReasonCode));
         return priceAdjustment.Value;
     }
 
@@ -240,6 +257,13 @@ public sealed class Visit
         CompletedAt = StampUtc(now);
         Status = VisitStatusCodes.AwaitingFinalization;
         Touch(actorUserId, CompletedAt.Value);
+        RaiseDomainEvent(new VisitCompletedDomainEvent(
+            Guid.NewGuid(),
+            CompletedAt.Value,
+            Id,
+            AppointmentId,
+            Status,
+            CompletedAt.Value));
         return Result.Success;
     }
 
@@ -254,6 +278,14 @@ public sealed class Visit
         ClosedAt = StampUtc(now);
         Status = VisitStatusCodes.Closed;
         Touch(actorUserId, ClosedAt.Value);
+        RaiseDomainEvent(new VisitClosedDomainEvent(
+            Guid.NewGuid(),
+            ClosedAt.Value,
+            Id,
+            AppointmentId,
+            Status,
+            FinalTotalAmount,
+            ClosedAt.Value));
         return Result.Success;
     }
 

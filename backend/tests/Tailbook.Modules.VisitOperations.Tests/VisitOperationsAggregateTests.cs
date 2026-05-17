@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Tailbook.Api.Tests;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.VisitOperations.Contracts;
+using Tailbook.Modules.VisitOperations.Domain.Events;
 using Xunit;
 
 namespace Tailbook.Modules.VisitOperations.Tests;
@@ -31,6 +32,27 @@ public sealed class VisitOperationsAggregateTests
         Assert.Equal(visit.Id, item.VisitId);
         Assert.Equal("Package", item.ItemType);
         Assert.Equal(1500m, visit.AppointmentTotalAmount);
+    }
+
+    [Fact]
+    public void Check_in_raises_visit_checked_in_domain_event()
+    {
+        var visitId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var appointmentId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var checkedInAt = Utc("2026-04-24T07:00:00Z");
+
+        var visit = AssertSuccess(Visit.CheckIn(
+            visitId,
+            appointmentId,
+            [CreateExecutionItemDraft()],
+            null,
+            checkedInAt));
+
+        var domainEvent = Assert.IsType<VisitCheckedInDomainEvent>(Assert.Single(visit.GetDomainEvents()));
+        Assert.Equal(visitId, domainEvent.VisitId);
+        Assert.Equal(appointmentId, domainEvent.AppointmentId);
+        Assert.Equal(VisitStatusCodes.Open, domainEvent.Status);
+        Assert.Equal(checkedInAt, domainEvent.CheckedInAt);
     }
 
     [Fact]
@@ -261,6 +283,25 @@ public sealed class VisitOperationsAggregateTests
     }
 
     [Fact]
+    public void Apply_price_adjustment_raises_final_price_adjusted_domain_event()
+    {
+        var visit = CreateVisit();
+        visit.ClearDomainEvents();
+
+        AssertSuccess(visit.ApplyPriceAdjustment(
+            new VisitPriceAdjustmentDraft(-1, 150.235m, " calmer_than_expected ", "  Goodwill. "),
+            null,
+            Utc("2026-04-24T08:00:00Z")));
+
+        var domainEvent = Assert.IsType<FinalPriceAdjustedDomainEvent>(Assert.Single(visit.GetDomainEvents()));
+        Assert.Equal(visit.Id, domainEvent.VisitId);
+        Assert.Equal(VisitStatusCodes.Open, domainEvent.Status);
+        Assert.Equal(-1, domainEvent.Sign);
+        Assert.Equal(150.24m, domainEvent.Amount);
+        Assert.Equal("CALMER_THAN_EXPECTED", domainEvent.ReasonCode);
+    }
+
+    [Fact]
     public void Price_adjustment_returns_all_validation_errors()
     {
         var visit = CreateVisit();
@@ -288,6 +329,40 @@ public sealed class VisitOperationsAggregateTests
         AssertSuccess(visit.Close(null, Utc("2026-04-24T09:15:00Z")));
         Assert.Equal(VisitStatusCodes.Closed, visit.Status);
         Assert.Equal(Utc("2026-04-24T09:15:00Z"), visit.ClosedAt);
+    }
+
+    [Fact]
+    public void Complete_raises_visit_completed_domain_event()
+    {
+        var visit = CreateVisit();
+        visit.ClearDomainEvents();
+        var completedAt = Utc("2026-04-24T09:00:00Z");
+
+        AssertSuccess(visit.Complete(null, completedAt));
+
+        var domainEvent = Assert.IsType<VisitCompletedDomainEvent>(Assert.Single(visit.GetDomainEvents()));
+        Assert.Equal(visit.Id, domainEvent.VisitId);
+        Assert.Equal(visit.AppointmentId, domainEvent.AppointmentId);
+        Assert.Equal(VisitStatusCodes.AwaitingFinalization, domainEvent.Status);
+        Assert.Equal(completedAt, domainEvent.CompletedAt);
+    }
+
+    [Fact]
+    public void Close_raises_visit_closed_domain_event()
+    {
+        var visit = CreateVisit();
+        AssertSuccess(visit.Complete(null, Utc("2026-04-24T09:00:00Z")));
+        visit.ClearDomainEvents();
+        var closedAt = Utc("2026-04-24T09:15:00Z");
+
+        AssertSuccess(visit.Close(null, closedAt));
+
+        var domainEvent = Assert.IsType<VisitClosedDomainEvent>(Assert.Single(visit.GetDomainEvents()));
+        Assert.Equal(visit.Id, domainEvent.VisitId);
+        Assert.Equal(visit.AppointmentId, domainEvent.AppointmentId);
+        Assert.Equal(VisitStatusCodes.Closed, domainEvent.Status);
+        Assert.Equal(visit.FinalTotalAmount, domainEvent.FinalTotalAmount);
+        Assert.Equal(closedAt, domainEvent.ClosedAt);
     }
 
     [Fact]

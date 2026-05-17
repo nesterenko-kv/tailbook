@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Tailbook.Api.Tests;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Booking.Contracts;
+using Tailbook.Modules.Booking.Domain.Events;
 using Xunit;
 
 namespace Tailbook.Modules.Booking.Tests;
@@ -35,6 +36,37 @@ public sealed class BookingAppointmentAggregateTests
         Assert.Equal(appointment.Id, item.AppointmentId);
         Assert.Equal("Package", item.ItemType);
         Assert.Equal(1, item.Quantity);
+    }
+
+    [Fact]
+    public void Create_raises_appointment_created_domain_event()
+    {
+        var appointmentId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var bookingRequestId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+        var petId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
+        var groomerId = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd");
+        var createdAt = Utc("2026-04-21T12:00:00Z");
+        var period = CreatePeriod("2026-04-22T07:00:00Z", "2026-04-22T08:30:00Z");
+
+        var appointment = AssertSuccess(Appointment.Create(
+            appointmentId,
+            bookingRequestId,
+            petId,
+            groomerId,
+            period,
+            [CreateItemDraft()],
+            null,
+            createdAt));
+
+        var domainEvent = Assert.IsType<AppointmentCreatedDomainEvent>(Assert.Single(appointment.GetDomainEvents()));
+        Assert.Equal(appointmentId, domainEvent.AppointmentId);
+        Assert.Equal(bookingRequestId, domainEvent.BookingRequestId);
+        Assert.Equal(petId, domainEvent.PetId);
+        Assert.Equal(groomerId, domainEvent.GroomerId);
+        Assert.Equal(period.StartAt, domainEvent.StartAt);
+        Assert.Equal(period.EndAt, domainEvent.EndAt);
+        Assert.Equal(AppointmentStatusCodes.Confirmed, domainEvent.Status);
+        Assert.Equal(1, domainEvent.VersionNo);
     }
 
     [Fact]
@@ -205,6 +237,25 @@ public sealed class BookingAppointmentAggregateTests
     }
 
     [Fact]
+    public void Reschedule_raises_appointment_rescheduled_domain_event()
+    {
+        var appointment = CreateAppointment();
+        appointment.ClearDomainEvents();
+        var groomerId = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
+        var period = CreatePeriod("2026-04-22T09:00:00Z", "2026-04-22T10:30:00Z");
+
+        AssertSuccess(appointment.Reschedule(groomerId, period, null, Utc("2026-04-22T06:00:00Z")));
+
+        var domainEvent = Assert.IsType<AppointmentRescheduledDomainEvent>(Assert.Single(appointment.GetDomainEvents()));
+        Assert.Equal(appointment.Id, domainEvent.AppointmentId);
+        Assert.Equal(groomerId, domainEvent.GroomerId);
+        Assert.Equal(period.StartAt, domainEvent.StartAt);
+        Assert.Equal(period.EndAt, domainEvent.EndAt);
+        Assert.Equal(AppointmentStatusCodes.Rescheduled, domainEvent.Status);
+        Assert.Equal(2, domainEvent.VersionNo);
+    }
+
+    [Fact]
     public void Reschedule_rejects_missing_period_without_mutating_state()
     {
         var appointment = CreateAppointment();
@@ -265,6 +316,22 @@ public sealed class BookingAppointmentAggregateTests
         Assert.Equal("Customer changed plans.", appointment.CancellationNotes);
         Assert.Equal(2, appointment.VersionNo);
         AssertError(appointment.Cancel("CLIENT_REQUEST", null, null, Utc("2026-04-22T06:01:00Z")));
+    }
+
+    [Fact]
+    public void Cancel_raises_appointment_cancelled_domain_event()
+    {
+        var appointment = CreateAppointment();
+        appointment.ClearDomainEvents();
+
+        AssertSuccess(appointment.Cancel(" client_request ", "  Customer changed plans.  ", null, Utc("2026-04-22T06:00:00Z")));
+
+        var domainEvent = Assert.IsType<AppointmentCancelledDomainEvent>(Assert.Single(appointment.GetDomainEvents()));
+        Assert.Equal(appointment.Id, domainEvent.AppointmentId);
+        Assert.Equal(AppointmentStatusCodes.Cancelled, domainEvent.Status);
+        Assert.Equal("CLIENT_REQUEST", domainEvent.ReasonCode);
+        Assert.Equal("Customer changed plans.", domainEvent.Notes);
+        Assert.Equal(2, domainEvent.VersionNo);
     }
 
     [Fact]

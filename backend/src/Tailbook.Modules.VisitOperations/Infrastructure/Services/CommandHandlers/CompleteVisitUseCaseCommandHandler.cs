@@ -13,7 +13,6 @@ public sealed class CompleteVisitUseCaseCommandHandler(
     IAppointmentVisitService appointmentVisitService,
     IVisitCatalogReadService visitCatalogReadService,
     IAuditTrailService auditTrailService,
-    IOutboxPublisher outboxPublisher,
     TimeProvider timeProvider)
     : ICommandHandler<CompleteVisitUseCaseCommand, ErrorOr<VisitDetailView>>
 {
@@ -48,13 +47,6 @@ public sealed class CompleteVisitUseCaseCommandHandler(
             return completeResult.Errors;
         }
 
-        await outboxPublisher.PublishAsync("visitops", "VisitCompleted", new
-        {
-            visitId = visit.Value.Id,
-            appointmentId = visit.Value.AppointmentId,
-            status = visit.Value.Status,
-            completedAt = visit.Value.CompletedAt
-        }, ct);
         await dbContext.SaveChangesAsync(ct);
         await auditTrailService.RecordAsync(
             "visitops",

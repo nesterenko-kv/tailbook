@@ -11,7 +11,6 @@ public sealed class CancelAppointmentUseCaseCommandHandler(
     AppDbContext dbContext,
     IBookingManagementReadService bookingReadService,
     IAuditTrailService auditTrailService,
-    IOutboxPublisher outboxPublisher,
     TimeProvider timeProvider)
     : ICommandHandler<CancelAppointmentUseCaseCommand, ErrorOr<AppointmentDetailView>>
 {
@@ -45,13 +44,6 @@ public sealed class CancelAppointmentUseCaseCommandHandler(
             return cancelResult.Errors;
         }
 
-        await outboxPublisher.PublishAsync("booking", "AppointmentCancelled", new
-        {
-            appointmentId = appointment.Id,
-            status = appointment.Status,
-            reasonCode = appointment.CancellationReasonCode,
-            versionNo = appointment.VersionNo
-        }, ct);
         var saveResult = await ConcurrencySafeSaver.SaveAsync(dbContext, ct);
         if (saveResult.IsError)
         {

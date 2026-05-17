@@ -11,7 +11,6 @@ public sealed class ApplyVisitPriceAdjustmentUseCaseCommandHandler(
     AppDbContext dbContext,
     IVisitReadService visitReadService,
     IAuditTrailService auditTrailService,
-    IOutboxPublisher outboxPublisher,
     TimeProvider timeProvider)
     : ICommandHandler<ApplyVisitPriceAdjustmentUseCaseCommand, ErrorOr<VisitDetailView>>
 {
@@ -55,14 +54,6 @@ public sealed class ApplyVisitPriceAdjustmentUseCaseCommandHandler(
 
         dbContext.Set<VisitPriceAdjustment>().Add(adjustment.Value);
 
-        await outboxPublisher.PublishAsync("visitops", "FinalPriceAdjusted", new
-        {
-            visitId = visit.Value.Id,
-            status = visit.Value.Status,
-            sign = adjustment.Value.Sign,
-            amount = adjustment.Value.Amount,
-            reasonCode = adjustment.Value.ReasonCode
-        }, ct);
         await dbContext.SaveChangesAsync(ct);
         await auditTrailService.RecordAsync(
             "visitops",

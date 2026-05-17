@@ -1,4 +1,9 @@
 using System.Net.Http.Json;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Tailbook.BuildingBlocks.Infrastructure.Persistence;
+using Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 using Tailbook.Api.Tests.Factories;
 using Xunit;
 
@@ -112,5 +117,42 @@ public sealed class BookingFlowTests(RealDbWebApplicationFactory factory) : ICla
             reservedMinutes: 90);
 
         availability.ShouldBeUnavailableBecause("existing appointment");
+    }
+
+    [Fact]
+    public async Task Cancel_appointment_stages_booking_event_in_outbox()
+    {
+        using var admin = await factory.CreateAdminClientAsync();
+
+        var scenario = await BookingScenario
+            .For(admin)
+            .WithSchedulablePet("Outbox Booking Client")
+            .WithSchedulableOffer()
+            .WithAvailableGroomer("Outbox Booking Groomer")
+            .CreateAsync();
+
+        var appointment = await scenario.CreateAppointmentAsync(
+            startAt: ApiClientExtensions.UtcDateTime("2026-04-23T07:00:00Z"));
+
+        var cancelled = await scenario.CancelAppointmentAsync(
+            appointment.Id,
+            expectedVersionNo: 1,
+            notes: "No longer needed.");
+
+        cancelled.ShouldHaveStatus("Cancelled", versionNo: 2);
+
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var outboxMessage = await dbContext.Set<OutboxMessage>()
+            .OrderByDescending(x => x.OccurredAt)
+            .FirstAsync(x => x.ModuleCode == "booking" && x.EventType == "AppointmentCancelled");
+
+        using var payload = JsonDocument.Parse(outboxMessage.PayloadJson);
+        Assert.Equal("booking", outboxMessage.ModuleCode);
+        Assert.Equal("AppointmentCancelled", outboxMessage.EventType);
+        Assert.Equal(appointment.Id, payload.RootElement.GetProperty("appointmentId").GetGuid());
+        Assert.Equal("Cancelled", payload.RootElement.GetProperty("status").GetString());
+        Assert.Equal(2, payload.RootElement.GetProperty("versionNo").GetInt32());
     }
 }

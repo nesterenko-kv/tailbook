@@ -62,15 +62,7 @@ public sealed class AttachBookingRequestContextUseCaseCommandHandler(
             }
         }
 
-        bookingRequest.ClientId = data.ClientId ?? pet.ClientId;
-        bookingRequest.PetId = data.PetId;
-        bookingRequest.RequestedByContactId = data.RequestedByContactId;
-        bookingRequest.UpdatedAt = timeProvider.GetUtcNow();
-
-        if (bookingRequest.Status == BookingRequestStatusCodes.NeedsReview)
-        {
-            bookingRequest.Status = BookingRequestStatusCodes.Submitted;
-        }
+        bookingRequest.AttachContext(data.ClientId ?? pet.ClientId, data.PetId, data.RequestedByContactId, timeProvider.GetUtcNow());
 
         await dbContext.SaveChangesAsync(ct);
         await auditTrailService.RecordAsync(

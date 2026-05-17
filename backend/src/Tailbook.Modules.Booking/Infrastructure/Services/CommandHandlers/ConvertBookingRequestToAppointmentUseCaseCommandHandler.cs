@@ -11,7 +11,6 @@ public sealed class ConvertBookingRequestToAppointmentUseCaseCommandHandler(
     AppDbContext dbContext,
     CreateAppointmentUseCaseCommandHandler createAppointmentHandler,
     IAuditTrailService auditTrailService,
-    IOutboxPublisher outboxPublisher,
     TimeProvider timeProvider)
     : ICommandHandler<ConvertBookingRequestToAppointmentUseCaseCommand, ErrorOr<AppointmentDetailView>>
 {
@@ -56,14 +55,7 @@ public sealed class ConvertBookingRequestToAppointmentUseCaseCommandHandler(
             return result.Errors;
         }
 
-        bookingRequest.Status = BookingRequestStatusCodes.Converted;
-        bookingRequest.UpdatedAt = timeProvider.GetUtcNow();
-        bookingRequest.VersionNo += 1;
-        await outboxPublisher.PublishAsync("booking", "BookingRequestConverted", new
-        {
-            bookingRequestId = bookingRequest.Id,
-            appointmentId = result.Value.Id
-        }, ct);
+        bookingRequest.MarkConverted(result.Value.Id, timeProvider.GetUtcNow());
         var saveResult = await ConcurrencySafeSaver.SaveAsync(dbContext, ct);
         if (saveResult.IsError)
         {

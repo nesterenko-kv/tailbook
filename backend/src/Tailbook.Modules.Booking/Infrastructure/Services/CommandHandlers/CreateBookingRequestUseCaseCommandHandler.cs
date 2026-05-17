@@ -14,7 +14,6 @@ public sealed class CreateBookingRequestUseCaseCommandHandler(
     IContactReferenceValidationService contactReferenceValidationService,
     IOfferReferenceValidationService offerReferenceValidationService,
     IAuditTrailService auditTrailService,
-    IOutboxPublisher outboxPublisher,
     TimeProvider timeProvider)
     : ICommandHandler<CreateBookingRequestUseCaseCommand, ErrorOr<BookingRequestDetailView>>
 {
@@ -91,22 +90,19 @@ public sealed class CreateBookingRequestUseCaseCommandHandler(
         }
 
         var utcNow = timeProvider.GetUtcNow();
-        var entity = new BookingRequest
-        {
-            Id = Guid.NewGuid(),
-            ClientId = command.ClientId ?? pet?.ClientId,
-            PetId = command.PetId,
-            RequestedByContactId = command.RequestedByContactId,
-            PreferredGroomerId = command.PreferredGroomerId,
-            Channel = string.IsNullOrWhiteSpace(command.Channel) ? BookingChannelCodes.Admin : command.Channel.Trim(),
-            Status = status.Value,
-            SelectionMode = selectionMode,
-            GuestIntakeJson = SerializeGuestIntake(command.GuestIntake),
-            PreferredTimeJson = preferredTimeJson.Value,
-            Notes = NormalizeOptional(command.Notes),
-            CreatedAt = utcNow,
-            UpdatedAt = utcNow
-        };
+        var entity = BookingRequest.Create(
+            Guid.NewGuid(),
+            command.ClientId ?? pet?.ClientId,
+            command.PetId,
+            command.RequestedByContactId,
+            command.PreferredGroomerId,
+            string.IsNullOrWhiteSpace(command.Channel) ? BookingChannelCodes.Admin : command.Channel.Trim(),
+            status.Value,
+            selectionMode,
+            SerializeGuestIntake(command.GuestIntake),
+            preferredTimeJson.Value,
+            NormalizeOptional(command.Notes),
+            utcNow);
 
         dbContext.Set<BookingRequest>().Add(entity);
         dbContext.Set<BookingRequestItem>().AddRange(command.Items.Select(x => new BookingRequestItem
@@ -119,16 +115,6 @@ public sealed class CreateBookingRequestUseCaseCommandHandler(
             RequestedNotes = NormalizeOptional(x.RequestedNotes),
             CreatedAt = utcNow
         }));
-
-        await outboxPublisher.PublishAsync("booking", "BookingRequested", new
-        {
-            bookingRequestId = entity.Id,
-            petId = entity.PetId,
-            clientId = entity.ClientId,
-            channel = entity.Channel,
-            status = entity.Status,
-            selectionMode = entity.SelectionMode
-        }, ct);
 
         await dbContext.SaveChangesAsync(ct);
         await auditTrailService.RecordAsync(

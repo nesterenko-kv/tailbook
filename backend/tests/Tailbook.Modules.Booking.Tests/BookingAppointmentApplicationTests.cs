@@ -99,6 +99,7 @@ public sealed class BookingAppointmentApplicationTests
     public async Task Invalid_cancellation_does_not_mutate_appointment_or_publish_event()
     {
         await using var harness = await BookingApplicationHarness.CreateAsync();
+        var initialEventCount = await CountBookingAppointmentEventsAsync(harness.DbContext);
 
         var result = await harness.CancelAppointmentHandler.ExecuteAsync(
             new CancelAppointmentUseCaseCommand(harness.AppointmentId!.Value, 1, " ", null, Guid.Empty),
@@ -110,7 +111,7 @@ public sealed class BookingAppointmentApplicationTests
         var appointment = await harness.DbContext.Set<Appointment>().SingleAsync(x => x.Id == harness.AppointmentId);
         Assert.Equal(AppointmentStatusCodes.Confirmed, appointment.Status);
         Assert.Equal(1, appointment.VersionNo);
-        Assert.Equal(0, await CountBookingAppointmentEventsAsync(harness.DbContext));
+        Assert.Equal(initialEventCount, await CountBookingAppointmentEventsAsync(harness.DbContext));
     }
 
     [Fact]
@@ -118,6 +119,7 @@ public sealed class BookingAppointmentApplicationTests
     {
         await using var harness = await BookingApplicationHarness.CreateAsync();
         harness.StaffSchedulingService.IsAvailable = false;
+        var initialEventCount = await CountBookingAppointmentEventsAsync(harness.DbContext);
 
         var result = await harness.RescheduleAppointmentHandler.ExecuteAsync(
             new RescheduleAppointmentUseCaseCommand(harness.AppointmentId!.Value, harness.GroomerId, UtcWallClock("2026-04-22T09:00:00"), 1, Guid.Empty),
@@ -130,7 +132,7 @@ public sealed class BookingAppointmentApplicationTests
         Assert.Equal(AppointmentStatusCodes.Confirmed, appointment.Status);
         Assert.Equal(Utc("2026-04-22T07:00:00Z"), appointment.StartAt);
         Assert.Equal(1, appointment.VersionNo);
-        Assert.Equal(0, await CountBookingAppointmentEventsAsync(harness.DbContext));
+        Assert.Equal(initialEventCount, await CountBookingAppointmentEventsAsync(harness.DbContext));
     }
 
     [Fact]
@@ -243,6 +245,7 @@ public sealed class BookingAppointmentApplicationTests
         {
             var options = new DbContextOptionsBuilder<AppDbContext>()
                 .UseInMemoryDatabase($"booking-application-{Guid.NewGuid():N}")
+                .AddInterceptors(new DomainEventToOutboxInterceptor())
                 .Options;
 
             var dbContext = TestModelConfiguration.CreateDbContext(options);
@@ -259,7 +262,6 @@ public sealed class BookingAppointmentApplicationTests
                 petSummaryReadService,
                 groomerProfileReadService);
             var auditTrailService = new NoOpAuditTrailService();
-            var outboxPublisher = new OutboxPublisher(dbContext, timeProvider);
             var snapshotComposer = new BookingSnapshotComposer(
                 dbContext,
                 petQuoteProfileService,
@@ -271,20 +273,17 @@ public sealed class BookingAppointmentApplicationTests
                 bookingReadService,
                 snapshotComposer,
                 auditTrailService,
-                outboxPublisher,
                 timeProvider);
             var rescheduleAppointmentHandler = new RescheduleAppointmentUseCaseCommandHandler(
                 dbContext,
                 bookingReadService,
                 staffSchedulingService,
                 auditTrailService,
-                outboxPublisher,
                 timeProvider);
             var cancelAppointmentHandler = new CancelAppointmentUseCaseCommandHandler(
                 dbContext,
                 bookingReadService,
                 auditTrailService,
-                outboxPublisher,
                 timeProvider);
 
             Guid? appointmentId = null;
