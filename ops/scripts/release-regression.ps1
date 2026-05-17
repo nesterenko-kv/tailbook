@@ -96,6 +96,11 @@ Step "Docker: production compose config" {
     if ($LASTEXITCODE -ne 0) { throw "docker compose production config failed" }
 }
 
+Step "Docker: validate Caddyfile" {
+    $result = docker run --rm -v "${PWD}/ops/caddy/Caddyfile:/Caddyfile:ro" caddy:2-alpine caddy validate --config /Caddyfile --adapter caddyfile 2>&1
+    if ($LASTEXITCODE -ne 0) { throw "Caddyfile validation failed`n$result" }
+}
+
 # ── Security checks ────────────────────────────────────────────
 Step "Security: no staged .env files" {
     $staged = git diff --cached --name-only --diff-filter=A

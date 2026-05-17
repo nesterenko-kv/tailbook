@@ -137,3 +137,23 @@ jobs:
           name: frontend-coverage-reports
           path: apps/*/coverage/
           if-no-files-found: warn
+
+  infra-caddy:
+    name: Caddy (config validation)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate Caddyfile
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/ops/caddy/Caddyfile:/Caddyfile:ro \
+            caddy:2-alpine \
+            caddy validate --config /Caddyfile --adapter caddyfile
+
+      - name: Validate Dockerfile builds
+        run: |
+          docker build \
+            -f ops/caddy/Dockerfile.caddy \
+            -t tailbook-caddy-test \
+            .

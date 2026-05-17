@@ -11,9 +11,16 @@
         "dev:groomer": "pnpm --filter groomer-web dev",
         "lint": "turbo run lint",
         "test": "turbo run test",
+        "test:e2e": "playwright test",
+        "test:e2e:ui": "playwright test --ui",
+        "test:e2e:admin": "playwright test --project=admin-web",
+        "test:e2e:client": "playwright test --project=client-web",
+        "test:e2e:groomer": "playwright test --project=groomer-web",
+        "test:e2e:install": "playwright install --with-deps chromium",
         "typecheck": "turbo run typecheck"
     },
     "devDependencies": {
+        "@playwright/test": "^1.60.0",
         "turbo": "^2.9.9"
     }
 }
