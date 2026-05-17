@@ -153,11 +153,11 @@ export const reviews = [
 ];
 
 export const salonInfo = {
-  phone: "+380 12 345 67 89",
-  phoneHref: "tel:+380123456789",
-  instagram: "@tailbook.salon",
-  instagramHref: "https://instagram.com/tailbook.salon",
-  address: "вул. Героїв, 25, Київ"
+  phone: process.env.NEXT_PUBLIC_SALON_PHONE ?? "+380 67 614 16 70",
+  phoneHref: process.env.NEXT_PUBLIC_SALON_PHONE_HREF ?? "tel:+380676141670",
+  instagram: process.env.NEXT_PUBLIC_SALON_INSTAGRAM ?? "@doggy_groom",
+  instagramHref: process.env.NEXT_PUBLIC_SALON_INSTAGRAM_HREF ?? "https://instagram.com/doggy_groom",
+  address: process.env.NEXT_PUBLIC_SALON_ADDRESS ?? "бульвар Шевченка 10а, Запоріжжя"
 };
 
 export const faqItems = [
