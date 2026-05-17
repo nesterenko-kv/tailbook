@@ -21,7 +21,9 @@
         "typecheck": "turbo run typecheck"
     },
     "lint-staged": {
-        "apps/**/*.{ts,tsx,js,mjs}": "eslint --fix"
+        "apps/admin-web/**/*.{ts,tsx,js,mjs}": "eslint --config apps/admin-web/eslint.config.mjs --fix",
+        "apps/client-web/**/*.{ts,tsx,js,mjs}": "eslint --config apps/client-web/eslint.config.mjs --fix",
+        "apps/groomer-web/**/*.{ts,tsx,js,mjs}": "eslint --config apps/groomer-web/eslint.config.mjs --fix"
     },
     "devDependencies": {
         "@commitlint/cli": "^21.0.1",
