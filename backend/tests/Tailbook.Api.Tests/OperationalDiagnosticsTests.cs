@@ -9,7 +9,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Tailbook.Api.Host.Infrastructure;
 using Tailbook.Api.Tests.Factories;
+using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
+using Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence.Jobs;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence.Telemetry;
 using Xunit;
@@ -207,13 +209,14 @@ public sealed class OperationalDiagnosticsTests(RealDbWebApplicationFactory fact
     }
 
     [Fact]
-    public async Task Outbox_publisher_records_activity_tags_without_payload_values()
+    public async Task Domain_event_outbox_staging_records_activity_tags_without_payload_values()
     {
-        var options = new DbContextOptionsBuilder<AppDbContext>()
+        var interceptor = new DomainEventToOutboxInterceptor();
+        var options = new DbContextOptionsBuilder<OutboxTelemetryTestDbContext>()
             .UseInMemoryDatabase($"outbox-telemetry-{Guid.NewGuid():N}")
+            .AddInterceptors(interceptor)
             .Options;
-        await using var dbContext = TestModelConfiguration.CreateDbContext(options);
-        var publisher = new OutboxPublisher(dbContext, TimeProvider.System);
+        await using var dbContext = new OutboxTelemetryTestDbContext(options);
         Activity? stoppedActivity = null;
         using var listener = new ActivityListener();
         listener.ShouldListenTo = source => source.Name == OutboxTelemetry.ActivitySourceName;
@@ -221,11 +224,14 @@ public sealed class OperationalDiagnosticsTests(RealDbWebApplicationFactory fact
         listener.ActivityStopped = activity => stoppedActivity = activity;
         ActivitySource.AddActivityListener(listener);
 
-        await publisher.PublishAsync(
-            "booking",
-            "AppointmentCreated",
-            new { appointmentId = "apt_secret_123" },
-            CancellationToken.None);
+        var aggregate = new OutboxTelemetryTestAggregate();
+        aggregate.Raise(new OutboxTelemetryTestDomainEvent(
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow,
+            "apt_secret_123"));
+
+        dbContext.Aggregates.Add(aggregate);
+        await dbContext.SaveChangesAsync();
 
         Assert.NotNull(stoppedActivity);
         Assert.Equal(OutboxTelemetry.MessageStagedActivityName, stoppedActivity!.OperationName);
@@ -360,6 +366,40 @@ public sealed class OperationalDiagnosticsTests(RealDbWebApplicationFactory fact
     }
 
     private sealed record LogEntry(LogLevel Level, string Message, Exception? Exception);
+
+    private sealed record OutboxTelemetryTestDomainEvent(
+        Guid EventId,
+        DateTimeOffset OccurredAt,
+        string AppointmentId) : IDomainEvent
+    {
+        public string EventType => "AppointmentCreated";
+        public string ModuleCode => "booking";
+    }
+
+    private sealed class OutboxTelemetryTestAggregate : IHasDomainEvents
+    {
+        private readonly List<IDomainEvent> _events = [];
+
+        public Guid Id { get; set; } = Guid.NewGuid();
+
+        public IReadOnlyCollection<IDomainEvent> GetDomainEvents() => _events.AsReadOnly();
+
+        public void ClearDomainEvents() => _events.Clear();
+
+        public void Raise(IDomainEvent domainEvent) => _events.Add(domainEvent);
+    }
+
+    private sealed class OutboxTelemetryTestDbContext(DbContextOptions<OutboxTelemetryTestDbContext> options) : DbContext(options)
+    {
+        public DbSet<OutboxTelemetryTestAggregate> Aggregates => Set<OutboxTelemetryTestAggregate>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<OutboxTelemetryTestAggregate>().HasKey(x => x.Id);
+            modelBuilder.Entity<OutboxMessage>().HasKey(x => x.Id);
+            base.OnModelCreating(modelBuilder);
+        }
+    }
 
     private sealed class NullScope : IDisposable
     {

@@ -325,7 +325,6 @@ builder.Services.AddOptions<IdempotencyRequestOptions>()
     .Bind(builder.Configuration.GetSection(IdempotencyRequestOptions.SectionName))
     .ValidateOnStart();
 builder.Services.AddRabbitMqMessageBroker(builder.Configuration);
-builder.Services.AddScoped<IOutboxPublisher, OutboxPublisher>();
 builder.Services.AddSingleton<DomainEventToOutboxInterceptor>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IDataSeeder, DevelopmentDemoSalonSeeder>();

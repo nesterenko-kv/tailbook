@@ -157,7 +157,7 @@ public sealed class MfaRecoveryCodeService(
 
         foreach (var challenge in outstandingChallenges)
         {
-            challenge.InvalidatedAt = utcNow;
+            challenge.Invalidate(utcNow);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

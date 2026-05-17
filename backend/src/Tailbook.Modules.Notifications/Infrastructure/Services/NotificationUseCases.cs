@@ -244,13 +244,6 @@ public sealed class NotificationUseCases(
                 return result with { Outcome = "ignored" };
             }
 
-            var message = new OutboxMessage
-            {
-                Id = messageId,
-                EventType = eventType,
-                PayloadJson = payloadJson
-            };
-
             var job = await dbContext.Set<NotificationJob>()
                 .SingleOrDefaultAsync(x => x.SourceEventMessageId == messageId, cancellationToken);
 

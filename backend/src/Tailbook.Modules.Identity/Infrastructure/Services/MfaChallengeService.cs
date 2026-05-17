@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Abstractions.Security;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 using Tailbook.Modules.Identity.Infrastructure.Options;
 
 namespace Tailbook.Modules.Identity.Infrastructure.Services;
@@ -22,7 +21,6 @@ public sealed class MfaChallengeService(
     private const string ModuleCode = "identity";
     private const string MfaChallengeEntityType = "iam_mfa_challenge";
     private const string MfaRecoveryCodeEntityType = "iam_mfa_recovery_code";
-    private const string MfaEmailOtpChallengeCreatedEventType = "Tailbook.Modules.Identity.Integration.MfaEmailOtpChallengeCreated";
 
     public async Task<ErrorOr<MfaChallengeCreationResult>> CreateEmailOtpChallengeAsync(
         Guid userId,
@@ -60,37 +58,25 @@ public sealed class MfaChallengeService(
 
         foreach (var challenge in activeChallenges)
         {
-            challenge.InvalidatedAt = utcNow;
+            challenge.Invalidate(utcNow);
         }
 
         var code = GenerateNumericCode(options.CodeLength);
-        var entity = new IdentityMfaChallenge
-        {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            FactorId = factor.Id,
-            FactorType = MfaFactorTypes.EmailOtp,
-            CodeHash = passwordHasher.Hash(code),
-            ExpiresAt = utcNow.AddMinutes(options.ExpirationMinutes),
-            CreatedAt = utcNow,
-            RequestIpAddress = TrimToNull(requestIpAddress, 64),
-            UserAgent = TrimToNull(userAgent, 512)
-        };
+        var entity = IdentityMfaChallenge.CreateEmailOtp(
+            Guid.NewGuid(),
+            userId,
+            factor.Id,
+            MfaFactorTypes.EmailOtp,
+            passwordHasher.Hash(code),
+            utcNow.AddMinutes(options.ExpirationMinutes),
+            utcNow,
+            TrimToNull(requestIpAddress, 64),
+            TrimToNull(userAgent, 512),
+            user.Email,
+            user.DisplayName,
+            sensitivePayloadProtector.Protect(SensitivePayloadPurposes.MfaEmailOtpCode, code));
 
         dbContext.Set<IdentityMfaChallenge>().Add(entity);
-        dbContext.Set<OutboxMessage>().Add(new OutboxMessage
-        {
-            Id = Guid.NewGuid(),
-            ModuleCode = ModuleCode,
-            EventType = MfaEmailOtpChallengeCreatedEventType,
-            PayloadJson = JsonSerializer.Serialize(new MfaEmailOtpChallengeCreatedPayload(
-                user.Email,
-                user.DisplayName,
-                entity.Id,
-                sensitivePayloadProtector.Protect(SensitivePayloadPurposes.MfaEmailOtpCode, code),
-                entity.ExpiresAt)),
-            OccurredAt = utcNow
-        });
         await dbContext.SaveChangesAsync(cancellationToken);
         await RecordChallengeAuditAsync(entity, "MFA_CHALLENGE_CREATED", null, cancellationToken);
 
@@ -149,8 +135,7 @@ public sealed class MfaChallengeService(
 
         if (!passwordHasher.Verify(code, challenge.CodeHash))
         {
-            challenge.FailedAttemptCount += 1;
-            challenge.LastFailedAt = utcNow;
+            challenge.RecordFailedAttempt(utcNow);
             await dbContext.SaveChangesAsync(cancellationToken);
 
             if (challenge.FailedAttemptCount >= options.MaxFailedAttempts)
@@ -163,7 +148,7 @@ public sealed class MfaChallengeService(
             return IdentityErrors.InvalidMfaChallengeCode();
         }
 
-        challenge.ConsumedAt = utcNow;
+        challenge.MarkConsumed(utcNow);
         await dbContext.SaveChangesAsync(cancellationToken);
         await RecordChallengeAuditAsync(challenge, "MFA_CHALLENGE_VERIFIED", null, cancellationToken);
 
@@ -219,8 +204,7 @@ public sealed class MfaChallengeService(
 
         if (matchedRecoveryCode is null)
         {
-            challenge.FailedAttemptCount += 1;
-            challenge.LastFailedAt = utcNow;
+            challenge.RecordFailedAttempt(utcNow);
             await dbContext.SaveChangesAsync(cancellationToken);
 
             if (challenge.FailedAttemptCount >= options.MaxFailedAttempts)
@@ -233,7 +217,7 @@ public sealed class MfaChallengeService(
             return IdentityErrors.InvalidMfaRecoveryCode();
         }
 
-        challenge.ConsumedAt = utcNow;
+        challenge.MarkConsumed(utcNow);
         matchedRecoveryCode.ConsumedAt = utcNow;
         matchedRecoveryCode.ConsumedChallengeId = challenge.Id;
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -340,11 +324,4 @@ public sealed class MfaChallengeService(
             }),
             cancellationToken);
     }
-
-    private sealed record MfaEmailOtpChallengeCreatedPayload(
-        string Email,
-        string DisplayName,
-        Guid ChallengeId,
-        string ProtectedCode,
-        DateTimeOffset ExpiresAt);
 }

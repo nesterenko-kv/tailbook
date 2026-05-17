@@ -1,5 +1,3 @@
-using Tailbook.BuildingBlocks.Abstractions;
-
 namespace Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 
 public sealed class OutboxMessage
@@ -10,16 +8,4 @@ public sealed class OutboxMessage
     public string PayloadJson { get; set; } = string.Empty;
     public DateTimeOffset OccurredAt { get; set; }
     public DateTimeOffset? ProcessedAt { get; set; }
-
-    public static OutboxMessage From(string moduleCode, IIntegrationEvent integrationEvent, string payloadJson)
-    {
-        return new OutboxMessage
-        {
-            Id = integrationEvent.EventId,
-            ModuleCode = moduleCode,
-            EventType = integrationEvent.GetType().FullName ?? integrationEvent.GetType().Name,
-            PayloadJson = payloadJson,
-            OccurredAt = integrationEvent.OccurredAt
-        };
-    }
 }

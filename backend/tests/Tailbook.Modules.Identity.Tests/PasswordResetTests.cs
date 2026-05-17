@@ -93,7 +93,7 @@ public sealed class PasswordResetTests(RealDbWebApplicationFactory factory) : IC
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var tokenHash = RefreshTokenService.Hash(token);
             var stored = await dbContext.Set<IdentityPasswordResetToken>().SingleAsync(x => x.TokenHash == tokenHash);
-            stored.ExpiresAt = TimeProvider.System.GetUtcNow().AddMinutes(-1);
+            dbContext.Entry(stored).Property(x => x.ExpiresAt).CurrentValue = TimeProvider.System.GetUtcNow().AddMinutes(-1);
             await dbContext.SaveChangesAsync();
         }
 
@@ -166,7 +166,7 @@ public sealed class PasswordResetTests(RealDbWebApplicationFactory factory) : IC
         using var document = JsonDocument.Parse(message.PayloadJson);
         Assert.False(document.RootElement.TryGetProperty("ResetToken", out _));
         Assert.False(document.RootElement.TryGetProperty("ResetLink", out _));
-        var protectedResetLink = document.RootElement.GetProperty("ProtectedResetLink").GetString();
+        var protectedResetLink = document.RootElement.GetProperty("protectedResetLink").GetString();
         Assert.False(string.IsNullOrWhiteSpace(protectedResetLink));
 
         var resetLink = sensitivePayloadProtector.Unprotect(SensitivePayloadPurposes.PasswordResetLink, protectedResetLink!);
