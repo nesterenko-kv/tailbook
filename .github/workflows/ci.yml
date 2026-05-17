@@ -242,7 +242,7 @@ jobs:
         run: docker build --pull -t ${{ matrix.image.tag }} -f ${{ matrix.image.dockerfile }} .
 
       - name: Run Trivy on ${{ matrix.image.name }}
-        uses: aquasecurity/trivy-action@v0.35.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ matrix.image.tag }}
           format: sarif
