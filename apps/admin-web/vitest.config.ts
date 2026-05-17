@@ -3,8 +3,8 @@ import path from "path";
 
 export default defineConfig({
     test: {
-        include: ["lib/**/*.test.ts", "app/**/*.test.tsx"],
-        environment: "node",
+        include: ["lib/**/*.test.ts", "app/**/*.test.tsx", "components/**/*.test.tsx"],
+        environment: "jsdom",
         setupFiles: ["./lib/vitest-setup.ts"],
         coverage: {
             provider: "v8",
