@@ -1,4 +1,5 @@
 FROM node:22-alpine
+RUN apk upgrade --no-cache
 WORKDIR /app
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
