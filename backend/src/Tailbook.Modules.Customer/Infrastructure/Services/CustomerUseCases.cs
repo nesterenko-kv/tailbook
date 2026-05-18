@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
@@ -153,27 +152,16 @@ public sealed class CustomerUseCases(
 
     public async Task<ContactPersonView?> AddContactPersonAsync(Guid clientId, string firstName, string? lastName, string? notes, string? trustLevel, CancellationToken cancellationToken)
     {
-        var clientExists = await dbContext.Set<Client>().AnyAsync(x => x.Id == clientId, cancellationToken);
-        if (!clientExists)
+        var client = await dbContext.Set<Client>().SingleOrDefaultAsync(x => x.Id == clientId, cancellationToken);
+        if (client is null)
         {
             return null;
         }
 
         var utcNow = timeProvider.GetUtcNow();
-        var contact = new ContactPerson
-        {
-            Id = Guid.NewGuid(),
-            ClientId = clientId,
-            FirstName = firstName.Trim(),
-            LastName = NormalizeOptional(lastName),
-            Notes = NormalizeOptional(notes),
-            TrustLevel = string.IsNullOrWhiteSpace(trustLevel) ? ContactTrustLevels.Standard : trustLevel.Trim(),
-            IsActive = true,
-            CreatedAt = utcNow,
-            UpdatedAt = utcNow
-        };
+        var effectiveTrustLevel = string.IsNullOrWhiteSpace(trustLevel) ? ContactTrustLevels.Standard : trustLevel.Trim();
+        var contact = client.AddContactPerson(firstName, lastName, notes, effectiveTrustLevel, true, utcNow);
 
-        dbContext.Set<ContactPerson>().Add(contact);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return new ContactPersonView(contact.Id, contact.ClientId, contact.FirstName, contact.LastName, contact.Notes, contact.TrustLevel, []);
@@ -181,7 +169,9 @@ public sealed class CustomerUseCases(
 
     public async Task<ErrorOr<ContactMethodView>> AddContactMethodAsync(Guid contactId, string methodType, string value, string? displayValue, bool isPreferred, string? verificationStatus, string? notes, CancellationToken cancellationToken)
     {
-        var contact = await dbContext.Set<ContactPerson>().SingleOrDefaultAsync(x => x.Id == contactId && x.IsActive, cancellationToken);
+        var contact = await dbContext.Set<ContactPerson>()
+            .Include(x => x.Methods)
+            .SingleOrDefaultAsync(x => x.Id == contactId && x.IsActive, cancellationToken);
         if (contact is null)
         {
             return Error.NotFound("Customer.ContactNotFound", "Contact does not exist.");
@@ -193,13 +183,10 @@ public sealed class CustomerUseCases(
             return normalizedMethodType.Errors;
         }
 
-        var normalizedValue = NormalizeContactValue(normalizedMethodType.Value, value);
         var effectiveDisplayValue = string.IsNullOrWhiteSpace(displayValue) ? value.Trim() : displayValue.Trim();
         var effectiveVerificationStatus = string.IsNullOrWhiteSpace(verificationStatus) ? ContactVerificationStatuses.Unverified : verificationStatus.Trim();
 
-        var duplicate = await dbContext.Set<ContactMethod>()
-            .AnyAsync(x => x.ContactPersonId == contactId && x.MethodType == normalizedMethodType.Value && x.NormalizedValue == normalizedValue, cancellationToken);
-        if (duplicate)
+        if (contact.GetMethod(normalizedMethodType.Value, value) is not null)
         {
             return Error.Conflict("Customer.ContactMethodDuplicate", "A contact method with the same normalized value already exists for this contact.");
         }
@@ -208,33 +195,17 @@ public sealed class CustomerUseCases(
 
         if (isPreferred)
         {
-            var existingPreferred = await dbContext.Set<ContactMethod>()
-                .Where(x => x.ContactPersonId == contactId && x.IsPreferred)
-                .ToListAsync(cancellationToken);
-
-            foreach (var method in existingPreferred)
-            {
-                method.IsPreferred = false;
-                method.UpdatedAt = utcNow;
-            }
+            contact.ClearPreferredMethods(utcNow);
         }
 
-        var methodEntity = new ContactMethod
-        {
-            Id = Guid.NewGuid(),
-            ContactPersonId = contactId,
-            MethodType = normalizedMethodType.Value,
-            NormalizedValue = normalizedValue,
-            DisplayValue = effectiveDisplayValue,
-            IsPreferred = isPreferred,
-            VerificationStatus = effectiveVerificationStatus,
-            IsActive = true,
-            Notes = NormalizeOptional(notes),
-            CreatedAt = utcNow,
-            UpdatedAt = utcNow
-        };
+        var methodEntity = contact.AddContactMethod(
+            normalizedMethodType.Value,
+            value,
+            effectiveDisplayValue,
+            isPreferred,
+            effectiveVerificationStatus,
+            utcNow);
 
-        dbContext.Set<ContactMethod>().Add(methodEntity);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return new ContactMethodView(methodEntity.Id, methodEntity.MethodType, methodEntity.DisplayValue, methodEntity.IsPreferred, methodEntity.VerificationStatus, methodEntity.Notes);
@@ -357,18 +328,6 @@ public sealed class CustomerUseCases(
         };
     }
 
-    private static string NormalizeContactValue(string methodType, string value)
-    {
-        var trimmed = value.Trim();
-        return methodType switch
-        {
-            ContactMethodTypes.Phone => Regex.Replace(trimmed, "[^0-9+]", string.Empty),
-            ContactMethodTypes.Instagram => trimmed.TrimStart('@').ToLowerInvariant(),
-            ContactMethodTypes.Email => trimmed.ToLowerInvariant(),
-            _ => trimmed
-        };
-    }
-
     private static IReadOnlyCollection<string> NormalizeRoleCodes(IReadOnlyCollection<string> roleCodes)
     {
         var normalized = roleCodes
@@ -391,8 +350,4 @@ public sealed class CustomerUseCases(
         return string.Join(' ', new[] { firstName, lastName }.Where(x => !string.IsNullOrWhiteSpace(x)));
     }
 
-    private static string? NormalizeOptional(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    }
 }

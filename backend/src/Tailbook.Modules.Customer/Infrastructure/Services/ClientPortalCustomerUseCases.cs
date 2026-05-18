@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -30,6 +29,7 @@ public sealed class ClientPortalCustomerUseCases(AppDbContext dbContext, TimePro
     public async Task<ErrorOr<ClientContactPreferencesView>> UpdateContactPreferencesAsync(Guid contactPersonId, UpdateClientContactPreferencesInput command, CancellationToken cancellationToken)
     {
         var contact = await dbContext.Set<ContactPerson>()
+            .Include(x => x.Methods)
             .SingleOrDefaultAsync(x => x.Id == contactPersonId && x.IsActive, cancellationToken);
 
         if (contact is null)
@@ -37,12 +37,9 @@ public sealed class ClientPortalCustomerUseCases(AppDbContext dbContext, TimePro
             return Error.NotFound("Customer.ContactNotFound", "Contact does not exist.");
         }
 
-        var existingMethods = await dbContext.Set<ContactMethod>()
-            .Where(x => x.ContactPersonId == contactPersonId && x.IsActive)
-            .ToListAsync(cancellationToken);
         var utcNow = timeProvider.GetUtcNow();
 
-        var normalizedMethods = new List<NormalizedContactMethodInput>();
+        var normalizedMethods = new List<(string MethodType, string RawValue, string DisplayValue, bool IsPreferred, string? Notes)>();
         foreach (var method in command.Methods.Where(x => !string.IsNullOrWhiteSpace(x.Value)))
         {
             var normalizedMethodType = NormalizeMethodType(method.MethodType);
@@ -51,12 +48,12 @@ public sealed class ClientPortalCustomerUseCases(AppDbContext dbContext, TimePro
                 return normalizedMethodType.Errors;
             }
 
-            normalizedMethods.Add(new NormalizedContactMethodInput(
+            normalizedMethods.Add((
                 normalizedMethodType.Value,
+                method.Value,
                 method.Value.Trim(),
-                NormalizeContactValue(normalizedMethodType.Value, method.Value),
                 method.IsPreferred,
-                NormalizeOptional(method.Notes)));
+                method.Notes));
         }
 
         if (normalizedMethods.Count == 0)
@@ -65,47 +62,23 @@ public sealed class ClientPortalCustomerUseCases(AppDbContext dbContext, TimePro
         }
 
         var hasPreferred = normalizedMethods.Any(x => x.IsPreferred);
+
+        contact.ClearPreferredMethods(utcNow);
+
         for (var index = 0; index < normalizedMethods.Count; index++)
         {
-            var item = normalizedMethods[index];
-            var isPreferred = hasPreferred ? item.IsPreferred : index == 0;
-            var existing = existingMethods.SingleOrDefault(x => x.MethodType == item.MethodType && x.NormalizedValue == item.NormalizedValue);
+            var (methodType, rawValue, displayValue, isPreferred, notes) = normalizedMethods[index];
+            var effectiveIsPreferred = hasPreferred ? isPreferred : index == 0;
+
+            var existing = contact.GetMethod(methodType, rawValue);
             if (existing is null)
             {
-                existing = new ContactMethod
-                {
-                    Id = Guid.NewGuid(),
-                    ContactPersonId = contactPersonId,
-                    MethodType = item.MethodType,
-                    NormalizedValue = item.NormalizedValue,
-                    DisplayValue = item.DisplayValue,
-                    IsPreferred = isPreferred,
-                    VerificationStatus = ContactVerificationStatuses.Unverified,
-                    IsActive = true,
-                    Notes = item.Notes,
-                    CreatedAt = utcNow,
-                    UpdatedAt = utcNow
-                };
-
-                dbContext.Set<ContactMethod>().Add(existing);
-                existingMethods.Add(existing);
+                contact.AddContactMethod(methodType, rawValue, displayValue, effectiveIsPreferred, ContactVerificationStatuses.Unverified, utcNow);
             }
             else
             {
-                existing.DisplayValue = item.DisplayValue;
-                existing.IsPreferred = isPreferred;
-                existing.Notes = item.Notes;
-                existing.UpdatedAt = utcNow;
-            }
-        }
-
-        if (hasPreferred)
-        {
-            var preferredKeys = normalizedMethods.Where(x => x.IsPreferred).Select(x => (x.MethodType, x.NormalizedValue)).ToHashSet();
-            foreach (var method in existingMethods)
-            {
-                method.IsPreferred = preferredKeys.Contains((method.MethodType, method.NormalizedValue));
-                method.UpdatedAt = utcNow;
+                existing.UpdateDetails(displayValue, notes, utcNow);
+                existing.SetPreferred(effectiveIsPreferred, utcNow);
             }
         }
 
@@ -126,17 +99,4 @@ public sealed class ClientPortalCustomerUseCases(AppDbContext dbContext, TimePro
         };
     }
 
-    private static string NormalizeContactValue(string methodType, string value)
-    {
-        var trimmed = value.Trim();
-        return methodType switch
-        {
-            ContactMethodTypes.Phone => Regex.Replace(trimmed, "[^0-9+]", string.Empty),
-            ContactMethodTypes.Instagram => trimmed.TrimStart('@').ToLowerInvariant(),
-            ContactMethodTypes.Email => trimmed.ToLowerInvariant(),
-            _ => trimmed
-        };
-    }
-
-    private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

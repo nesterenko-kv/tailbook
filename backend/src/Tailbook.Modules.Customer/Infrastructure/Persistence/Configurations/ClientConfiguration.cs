@@ -16,5 +16,7 @@ public sealed class ClientConfiguration : IEntityTypeConfiguration<Client>
             builder.Property(x => x.UpdatedAt).IsRequired();
             builder.HasIndex(x => x.DisplayName);
             builder.HasIndex(x => x.Status);
+            builder.HasMany(x => x.Contacts).WithOne().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(x => x.Contacts).UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

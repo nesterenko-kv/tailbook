@@ -1,11 +1,10 @@
-using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
 namespace Tailbook.Modules.Customer.Infrastructure.Services;
 
-public sealed partial class CustomerReferenceServices(AppDbContext dbContext, TimeProvider timeProvider)
+public sealed class CustomerReferenceServices(AppDbContext dbContext, TimeProvider timeProvider)
     : IClientReferenceValidationService,
       IContactReferenceValidationService,
       IPetContactReadModelService,
@@ -55,70 +54,48 @@ public sealed partial class CustomerReferenceServices(AppDbContext dbContext, Ti
         var utcNow = timeProvider.GetUtcNow();
         var client = Client.Create(command.DisplayName, "Created from client portal registration.", utcNow);
 
-        var contact = new ContactPerson
-        {
-            Id = Guid.NewGuid(),
-            ClientId = client.Id,
-            FirstName = command.FirstName.Trim(),
-            LastName = NormalizeOptional(command.LastName),
-            Notes = "Primary client portal contact.",
-            TrustLevel = ContactTrustLevels.Standard,
-            IsActive = true,
-            CreatedAt = utcNow,
-            UpdatedAt = utcNow
-        };
+        var contact = client.AddContactPerson(
+            command.FirstName.Trim(),
+            command.LastName,
+            "Primary client portal contact.",
+            ContactTrustLevels.Standard,
+            true,
+            utcNow);
 
-        dbContext.Set<Client>().Add(client);
-        dbContext.Set<ContactPerson>().Add(contact);
-
-        var methods = new List<ContactMethod>
-        {
-            CreateMethod(contact.Id, ContactMethodTypes.Email, command.Email, command.Email.Trim(), true, utcNow)
-        };
+        contact.AddContactMethod(
+            ContactMethodTypes.Email,
+            command.Email,
+            command.Email.Trim(),
+            true,
+            ContactVerificationStatuses.Unverified,
+            utcNow);
 
         if (!string.IsNullOrWhiteSpace(command.Phone))
         {
-            methods.Add(CreateMethod(contact.Id, ContactMethodTypes.Phone, command.Phone!, command.Phone!.Trim(), false, utcNow));
+            contact.AddContactMethod(
+                ContactMethodTypes.Phone,
+                command.Phone!,
+                command.Phone!.Trim(),
+                false,
+                ContactVerificationStatuses.Unverified,
+                utcNow);
         }
 
         if (!string.IsNullOrWhiteSpace(command.Instagram))
         {
-            methods.Add(CreateMethod(contact.Id, ContactMethodTypes.Instagram, command.Instagram!, command.Instagram!.Trim(), false, utcNow));
+            contact.AddContactMethod(
+                ContactMethodTypes.Instagram,
+                command.Instagram!,
+                command.Instagram!.Trim(),
+                false,
+                ContactVerificationStatuses.Unverified,
+                utcNow);
         }
 
-        dbContext.Set<ContactMethod>().AddRange(methods);
+        dbContext.Set<Client>().Add(client);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return new ClientOnboardingResult(client.Id, contact.Id);
-    }
-
-    private static ContactMethod CreateMethod(Guid contactPersonId, string methodType, string rawValue, string displayValue, bool isPreferred, DateTimeOffset utcNow)
-    {
-        return new ContactMethod
-        {
-            Id = Guid.NewGuid(),
-            ContactPersonId = contactPersonId,
-            MethodType = methodType,
-            NormalizedValue = NormalizeValue(methodType, rawValue),
-            DisplayValue = displayValue,
-            IsPreferred = isPreferred,
-            VerificationStatus = ContactVerificationStatuses.Unverified,
-            IsActive = true,
-            CreatedAt = utcNow,
-            UpdatedAt = utcNow
-        };
-    }
-
-    private static string NormalizeValue(string methodType, string value)
-    {
-        var trimmed = value.Trim();
-        return methodType switch
-        {
-            ContactMethodTypes.Phone => DigitsRegex().Replace(trimmed, string.Empty),
-            ContactMethodTypes.Instagram => trimmed.TrimStart('@').ToLowerInvariant(),
-            ContactMethodTypes.Email => trimmed.ToLowerInvariant(),
-            _ => trimmed
-        };
     }
 
     private static string ComposeFullName(string firstName, string? lastName)
@@ -135,7 +112,4 @@ public sealed partial class CustomerReferenceServices(AppDbContext dbContext, Ti
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
-
-    [GeneratedRegex("[^0-9+]")]
-    private static partial Regex DigitsRegex();
 }

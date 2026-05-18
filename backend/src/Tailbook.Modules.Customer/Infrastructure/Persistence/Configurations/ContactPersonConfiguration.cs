@@ -17,6 +17,7 @@ public sealed class ContactPersonConfiguration : IEntityTypeConfiguration<Contac
             builder.Property(x => x.CreatedAt).IsRequired();
             builder.Property(x => x.UpdatedAt).IsRequired();
             builder.HasIndex(x => x.ClientId);
-            builder.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Cascade);
+            builder.HasMany(x => x.Methods).WithOne().HasForeignKey(x => x.ContactPersonId).OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(x => x.Methods).UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

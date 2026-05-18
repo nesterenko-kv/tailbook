@@ -18,6 +18,5 @@ public sealed class ContactMethodConfiguration : IEntityTypeConfiguration<Contac
             builder.Property(x => x.UpdatedAt).IsRequired();
             builder.HasIndex(x => x.ContactPersonId);
             builder.HasIndex(x => new { x.ContactPersonId, x.MethodType, x.NormalizedValue }).IsUnique();
-            builder.HasOne<ContactPerson>().WithMany().HasForeignKey(x => x.ContactPersonId).OnDelete(DeleteBehavior.Cascade);
     }
 }

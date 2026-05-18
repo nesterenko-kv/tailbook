@@ -1,10 +1,13 @@
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.Modules.Customer.Domain.Entities;
 using Tailbook.Modules.Customer.Domain.Events;
 
 namespace Tailbook.Modules.Customer.Domain.Aggregates;
 
 public sealed class Client : AggregateRoot
 {
+    private readonly List<ContactPerson> _contacts = [];
+
     private Client()
     {
     }
@@ -14,6 +17,7 @@ public sealed class Client : AggregateRoot
     public string? Notes { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
+    public IReadOnlyCollection<ContactPerson> Contacts => _contacts.AsReadOnly();
 
     public static Client Create(string displayName, string? notes, DateTimeOffset utcNow)
     {
@@ -36,5 +40,27 @@ public sealed class Client : AggregateRoot
             client.Notes));
 
         return client;
+    }
+
+    public ContactPerson AddContactPerson(
+        string firstName,
+        string? lastName,
+        string? notes,
+        string trustLevel,
+        bool isActive,
+        DateTimeOffset utcNow)
+    {
+        var contact = ContactPerson.Create(
+            Guid.NewGuid(),
+            Id,
+            firstName,
+            lastName,
+            notes,
+            trustLevel,
+            isActive,
+            utcNow);
+
+        _contacts.Add(contact);
+        return contact;
     }
 }
