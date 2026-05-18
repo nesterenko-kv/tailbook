@@ -133,15 +133,7 @@ public sealed class EntityScopeAuthorizationTests(RealDbWebApplicationFactory fa
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
 
-        var client = new Client
-        {
-            Id = Guid.NewGuid(),
-            DisplayName = displayName,
-            Status = "active",
-            Notes = null,
-            CreatedAt = timeProvider.GetUtcNow(),
-            UpdatedAt = timeProvider.GetUtcNow()
-        };
+        var client = Client.Create(displayName, null, timeProvider.GetUtcNow());
 
         dbContext.Set<Client>().Add(client);
         await dbContext.SaveChangesAsync();

@@ -94,15 +94,7 @@ public sealed class StaffUseCases(
         }
 
         var utcNow = timeProvider.GetUtcNow();
-        var entity = new Groomer
-        {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            DisplayName = normalizedDisplayName,
-            Active = true,
-            CreatedAt = utcNow,
-            UpdatedAt = utcNow
-        };
+        var entity = Groomer.Create(normalizedDisplayName, userId, utcNow);
 
         dbContext.Set<Groomer>().Add(entity);
         await dbContext.SaveChangesAsync(cancellationToken);

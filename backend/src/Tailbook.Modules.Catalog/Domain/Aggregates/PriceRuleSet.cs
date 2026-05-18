@@ -1,23 +1,28 @@
 using ErrorOr;
+using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.Modules.Catalog.Domain.Events;
 
 namespace Tailbook.Modules.Catalog.Domain.Aggregates;
 
-public sealed class PriceRuleSet
+public sealed class PriceRuleSet : AggregateRoot
 {
     private readonly List<PriceRule> _rules = [];
 
-    public Guid Id { get; set; }
-    public int VersionNo { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public DateTimeOffset ValidFrom { get; set; }
-    public DateTimeOffset? ValidTo { get; set; }
-    public DateTimeOffset CreatedAt { get; set; }
-    public DateTimeOffset? PublishedAt { get; set; }
+    private PriceRuleSet()
+    {
+    }
+
+    public int VersionNo { get; private set; }
+    public string Status { get; private set; } = string.Empty;
+    public DateTimeOffset ValidFrom { get; private set; }
+    public DateTimeOffset? ValidTo { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
+    public DateTimeOffset? PublishedAt { get; private set; }
     public IReadOnlyCollection<PriceRule> Rules => _rules.AsReadOnly();
 
     public static PriceRuleSet Create(Guid id, int versionNo, DateTimeOffset validFrom, DateTimeOffset? validTo, DateTimeOffset utcNow)
     {
-        return new PriceRuleSet
+        var ruleSet = new PriceRuleSet
         {
             Id = id,
             VersionNo = versionNo,
@@ -26,6 +31,17 @@ public sealed class PriceRuleSet
             ValidTo = validTo?.ToUniversalTime(),
             CreatedAt = utcNow.ToUniversalTime()
         };
+
+        ruleSet.RaiseDomainEvent(new PriceRuleSetCreatedDomainEvent(
+            Guid.NewGuid(),
+            utcNow.ToUniversalTime(),
+            ruleSet.Id,
+            ruleSet.VersionNo,
+            ruleSet.Status,
+            ruleSet.ValidFrom,
+            ruleSet.ValidTo));
+
+        return ruleSet;
     }
 
     public ErrorOr<PriceRule> AddRule(
@@ -69,6 +85,17 @@ public sealed class PriceRuleSet
         }
 
         _rules.Add(rule.Value);
+
+        RaiseDomainEvent(new PriceRuleAddedDomainEvent(
+            Guid.NewGuid(),
+            utcNow.ToUniversalTime(),
+            Id,
+            rule.Value.Id,
+            offerId,
+            priority,
+            fixedAmount,
+            currency));
+
         return rule.Value;
     }
 
@@ -96,11 +123,27 @@ public sealed class PriceRuleSet
 
         Status = RuleSetStatusCodes.Published;
         PublishedAt = utcNow.ToUniversalTime();
+
+        RaiseDomainEvent(new PriceRuleSetPublishedDomainEvent(
+            Guid.NewGuid(),
+            utcNow.ToUniversalTime(),
+            Id,
+            VersionNo,
+            Status,
+            PublishedAt.Value));
+
         return Result.Success;
     }
 
     public void Archive()
     {
         Status = RuleSetStatusCodes.Archived;
+
+        RaiseDomainEvent(new PriceRuleSetArchivedDomainEvent(
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow,
+            Id,
+            VersionNo,
+            Status));
     }
 }

@@ -53,15 +53,7 @@ public sealed partial class CustomerReferenceServices(AppDbContext dbContext, Ti
     public async Task<ClientOnboardingResult> CreateClientPortalProfileAsync(CreateClientPortalProfileInput command, CancellationToken cancellationToken)
     {
         var utcNow = timeProvider.GetUtcNow();
-        var client = new Client
-        {
-            Id = Guid.NewGuid(),
-            DisplayName = command.DisplayName.Trim(),
-            Status = ClientStatusCodes.Active,
-            Notes = "Created from client portal registration.",
-            CreatedAt = utcNow,
-            UpdatedAt = utcNow
-        };
+        var client = Client.Create(command.DisplayName, "Created from client portal registration.", utcNow);
 
         var contact = new ContactPerson
         {

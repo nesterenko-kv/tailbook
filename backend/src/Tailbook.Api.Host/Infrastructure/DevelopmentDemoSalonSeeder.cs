@@ -94,21 +94,9 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
             var groomer = groomers.SingleOrDefault(x => string.Equals(x.DisplayName, pair.Key, StringComparison.OrdinalIgnoreCase));
             if (groomer is null)
             {
-                groomer = new Groomer
-                {
-                    Id = Guid.NewGuid(),
-                    DisplayName = pair.Key,
-                    Active = true,
-                    CreatedAt = utcNow,
-                    UpdatedAt = utcNow
-                };
+                groomer = Groomer.Create(pair.Key, null, utcNow);
                 dbContext.Set<Groomer>().Add(groomer);
                 groomers.Add(groomer);
-            }
-            else
-            {
-                groomer.Active = true;
-                groomer.UpdatedAt = utcNow;
             }
 
             foreach (var scheduleSeed in pair.Value)
@@ -344,15 +332,7 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
         if (ruleSet is null)
         {
             var nextVersion = (await dbContext.Set<PriceRuleSet>().MaxAsync(x => (int?)x.VersionNo, cancellationToken) ?? 0) + 1;
-            ruleSet = new PriceRuleSet
-            {
-                Id = Guid.NewGuid(),
-                VersionNo = nextVersion,
-                Status = RuleSetStatusCodes.Published,
-                ValidFrom = utcNow,
-                CreatedAt = utcNow,
-                PublishedAt = utcNow
-            };
+            ruleSet = PriceRuleSet.Create(Guid.NewGuid(), nextVersion, utcNow, null, utcNow);
             dbContext.Set<PriceRuleSet>().Add(ruleSet);
             await dbContext.SaveChangesAsync(cancellationToken);
         }
@@ -408,6 +388,18 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
                 existingRule.Rule.FixedAmount = seed.Amount;
                 existingRule.Rule.Currency = Currency;
             }
+        }
+
+        if (ruleSet.Status == RuleSetStatusCodes.Draft)
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            ruleSet = await dbContext.Set<PriceRuleSet>()
+                .Include(x => x.Rules)
+                .ThenInclude(x => x.Condition)
+                .SingleOrDefaultAsync(x => x.Id == ruleSet.Id, cancellationToken);
+
+            ruleSet!.Publish(utcNow);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

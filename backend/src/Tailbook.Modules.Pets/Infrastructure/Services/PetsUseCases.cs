@@ -275,21 +275,17 @@ public sealed class PetsUseCases(
         }
 
         var utcNow = timeProvider.GetUtcNow();
-        var pet = new Pet
-        {
-            Id = Guid.NewGuid(),
-            ClientId = command.ClientId,
-            Name = command.Name.Trim(),
-            AnimalTypeId = taxonomy.Value.AnimalType.Id,
-            BreedId = taxonomy.Value.Breed.Id,
-            CoatTypeId = taxonomy.Value.CoatType?.Id,
-            SizeCategoryId = taxonomy.Value.SizeCategory?.Id,
-            BirthDate = command.BirthDate,
-            WeightKg = command.WeightKg,
-            Notes = NormalizeOptional(command.Notes),
-            CreatedAt = utcNow,
-            UpdatedAt = utcNow
-        };
+        var pet = Pet.Create(
+            command.ClientId,
+            command.Name,
+            taxonomy.Value.AnimalType.Id,
+            taxonomy.Value.Breed.Id,
+            taxonomy.Value.CoatType?.Id,
+            taxonomy.Value.SizeCategory?.Id,
+            command.BirthDate,
+            command.WeightKg,
+            command.Notes,
+            utcNow);
 
         dbContext.Set<Pet>().Add(pet);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -310,15 +306,16 @@ public sealed class PetsUseCases(
             return taxonomy.Errors;
         }
 
-        pet.Name = command.Name.Trim();
-        pet.AnimalTypeId = taxonomy.Value.AnimalType.Id;
-        pet.BreedId = taxonomy.Value.Breed.Id;
-        pet.CoatTypeId = taxonomy.Value.CoatType?.Id;
-        pet.SizeCategoryId = taxonomy.Value.SizeCategory?.Id;
-        pet.BirthDate = command.BirthDate;
-        pet.WeightKg = command.WeightKg;
-        pet.Notes = NormalizeOptional(command.Notes);
-        pet.UpdatedAt = timeProvider.GetUtcNow();
+        pet.Update(
+            command.Name,
+            taxonomy.Value.AnimalType.Id,
+            taxonomy.Value.Breed.Id,
+            taxonomy.Value.CoatType?.Id,
+            taxonomy.Value.SizeCategory?.Id,
+            command.BirthDate,
+            command.WeightKg,
+            command.Notes,
+            timeProvider.GetUtcNow());
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

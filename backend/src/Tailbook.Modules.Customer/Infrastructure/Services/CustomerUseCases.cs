@@ -143,15 +143,7 @@ public sealed class CustomerUseCases(
     public async Task<ClientDetailView> CreateClientAsync(string displayName, string? notes, CancellationToken cancellationToken)
     {
         var utcNow = timeProvider.GetUtcNow();
-        var client = new Client
-        {
-            Id = Guid.NewGuid(),
-            DisplayName = displayName.Trim(),
-            Status = ClientStatusCodes.Active,
-            Notes = NormalizeOptional(notes),
-            CreatedAt = utcNow,
-            UpdatedAt = utcNow
-        };
+        var client = Client.Create(displayName, notes, utcNow);
 
         dbContext.Set<Client>().Add(client);
         await dbContext.SaveChangesAsync(cancellationToken);
