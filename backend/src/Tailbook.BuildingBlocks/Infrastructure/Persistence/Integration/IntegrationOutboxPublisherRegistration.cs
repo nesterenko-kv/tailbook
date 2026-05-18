@@ -14,9 +14,16 @@ public static class IntegrationOutboxPublisherRegistration
             .Validate(
                 x => x.PollIntervalSeconds >= 5,
                 "IntegrationOutbox:PollIntervalSeconds must be at least 5 seconds.")
+            .Validate(
+                x => x.MaxRetryAttempts >= 1,
+                "IntegrationOutbox:MaxRetryAttempts must be at least 1.")
+            .Validate(
+                x => x.BackoffBaseDelaySeconds >= 1,
+                "IntegrationOutbox:BackoffBaseDelaySeconds must be at least 1 second.")
             .ValidateOnStart();
 
         services.AddHostedService<IntegrationOutboxPublisherBackgroundService>();
+        services.AddHostedService<PoisonOutboxMonitorBackgroundService>();
         return services;
     }
 }

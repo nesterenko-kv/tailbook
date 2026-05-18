@@ -115,6 +115,12 @@ Recommended dashboard panels for each meter, with triage notes:
 | Message staging rate | `tailbook.outbox.messages.staged` rate | Sharp increase | May indicate integration event storm; check for loops in event handlers |
 | Payload size | `tailbook.outbox.payload.size` histogram | P99 > 10KB | Large payloads may cause outbox storage issues; review event schema |
 | Publisher failures | `tailbook.outbox.publisher.failures` | Any non-zero | Integration outbox publisher is failing; check broker connectivity and publisher logs |
+| Publish rate | `tailbook.outbox.messages.published` rate | Drop vs staged rate | Publisher may be stalled; check broker connectivity |
+| Poisoned messages | `tailbook.outbox.messages.poisoned` | Any non-zero | Messages consistently failing delivery; check event schemas and consumer handlers |
+| Retry depth | `tailbook.outbox.messages.retry_depth` histogram | P99 > 10 retries | Persistent delivery failures; investigate last-mile broker or consumer issues |
+| Outbox lag | `tailbook.outbox.lag.seconds` gauge | > 300s warning, > 1800s critical | Outbox publisher behind; check for slow queries or broker throttling |
+| Oldest unprocessed age | `tailbook.outbox.oldest_unprocessed_age_seconds` gauge | > 300s warning, > 1800s critical | No progress on oldest message; may indicate poison message blocking |
+| Stage vs publish gap | staged − published delta | > 1000 | Publisher cannot clear messages; scale publisher or investigate bottlenecks |
 
 ### Configured alert definitions
 
@@ -175,6 +181,74 @@ groups:
           summary: "Unhandled API exceptions detected — check trace IDs in logs"
 ```
 
+### Outbox alert definitions
+
+```yaml
+# Prometheus-style alert rules — adapt to your alert manager
+groups:
+  - name: tailbook-outbox
+    interval: 15s
+    rules:
+      - alert: OutboxLagHigh
+        expr: tailbook_outbox_oldest_unprocessed_age_seconds > 300
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "Outbox oldest unprocessed message age exceeds 5 minutes"
+
+      - alert: OutboxLagCritical
+        expr: tailbook_outbox_oldest_unprocessed_age_seconds > 1800
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "Outbox oldest unprocessed message age exceeds 30 minutes"
+
+      - alert: OutboxPublishFailuresHigh
+        expr: rate(tailbook_outbox_publisher_failures_total[5m]) > 0.1
+        for: 1m
+        labels: { severity: warning }
+        annotations:
+          summary: "Outbox publish failure rate exceeds 0.1/s over 5m"
+
+      - alert: OutboxPoisonedMessages
+        expr: tailbook_outbox_messages_poisoned_total > 0
+        for: 1m
+        labels: { severity: warning }
+        annotations:
+          summary: "Outbox messages have been moved to poison/dead-letter state"
+
+      - alert: OutboxBacklogGrowing
+        expr: tailbook_outbox_messages_staged_total - tailbook_outbox_messages_published_total > 1000
+        for: 1m
+        labels: { severity: warning }
+        annotations:
+          summary: "Outbox backlog exceeds 1000 unprocessed messages"
+```
+
+| Alert | Condition | Severity | Action |
+|---|---|---|---|
+| OutboxLagHigh | `tailbook.outbox.oldest_unprocessed_age_seconds > 300` for 2m | Warning | Outbox publisher falling behind; check for slow database queries or broker throttling |
+| OutboxLagCritical | `tailbook.outbox.oldest_unprocessed_age_seconds > 1800` | Critical | Publisher stalled or poisoned message blocking; investigate outbox table and broker connectivity |
+| OutboxPublishFailuresHigh | rate of `tailbook.outbox.publisher.failures > 0.1/s` over 5m | Warning | Broker connectivity or serialization issues; check RabbitMQ health and publisher logs |
+| OutboxPoisonedMessages | `tailbook.outbox.messages.poisoned > 0` | Warning | Messages consistently failing; review event schemas and consumer handler exceptions |
+| OutboxBacklogGrowing | staged − published > 1000 | Warning | Publisher cannot keep up; scale publisher or investigate staging rate source |
+
+### Outbox dashboard
+
+The `Tailbook Outbox` dashboard (`tailbook-outbox`) is auto-provisioned in Grafana and includes the following panels:
+
+| Panel | Type | Description |
+|---|---|---|
+| Outbox Lag (Oldest Unprocessed Age) | Time series | `tailbook.outbox.lag.seconds` per module with warning (300s) and critical (1800s) thresholds |
+| Unprocessed Messages Over Time | Stat | Derived count from staged − published totals with backlog threshold |
+| Publish Rate | Time series | `tailbook.outbox.messages.published` rate per module |
+| Stage vs Publish Comparison | Time series | Combined view of staged vs published rates to detect processing gaps |
+| Poisoned Messages | Time series | `tailbook.outbox.messages.poisoned` rate per module |
+| Failed Publish Count | Time series | `tailbook.outbox.publisher.failures` rate per module |
+| Retry Depth Distribution | Heatmap | `tailbook.outbox.messages.retry_depth` bucket distribution |
+
+All panels use `$__rate_interval` for rate queries. Open the dashboard at **Dashboards > Tailbook Outbox** in Grafana.
+
 ## Useful signal reference
 
 ### API host signals
@@ -214,6 +288,11 @@ FastEndpoints job queue records are persisted in `public."Jobs"`. Repeated `Fast
 - counter: `tailbook.outbox.messages.staged`
 - histogram: `tailbook.outbox.payload.size`
 - counter: `tailbook.outbox.publisher.failures`
+- counter: `tailbook.outbox.messages.published`
+- counter: `tailbook.outbox.messages.poisoned`
+- histogram: `tailbook.outbox.messages.retry_depth`
+- observable gauge: `tailbook.outbox.lag.seconds`
+- observable gauge: `tailbook.outbox.oldest_unprocessed_age_seconds`
 
 ### Database signals (built-in Npgsql)
 - meter: `Npgsql`
@@ -269,7 +348,7 @@ Telemetry__OtlpEndpoint=http://localhost:4317
 | Prometheus | http://localhost:9090 | none |
 | OTel Collector | gRPC `localhost:4317` | none |
 
-The "Tailbook API Overview" dashboard is auto-provisioned in Grafana. After starting the API with OTLP export, open Grafana and navigate to **Dashboards > Tailbook API Overview** to see request rate, latency, health status, exceptions, database pool, and notification delivery metrics.
+The "Tailbook API Overview" and "Tailbook Outbox" dashboards are auto-provisioned in Grafana. After starting the API with OTLP export, open Grafana and navigate to **Dashboards > Tailbook API Overview** to see request rate, latency, health status, exceptions, database pool, and notification delivery metrics. Navigate to **Dashboards > Tailbook Outbox** to monitor outbox staging, publishing, lag, retries, and poison messages.
 
 ### Verify telemetry flow
 

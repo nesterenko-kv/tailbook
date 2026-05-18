@@ -92,6 +92,7 @@ services:
       - "--web.console.templates=/usr/share/prometheus/consoles"
     volumes:
       - ./ops/otel/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./ops/otel/prometheus-rules.yml:/etc/prometheus/prometheus-rules.yml:ro
       - prometheus-data:/prometheus
     ports:
       - "9090:9090"

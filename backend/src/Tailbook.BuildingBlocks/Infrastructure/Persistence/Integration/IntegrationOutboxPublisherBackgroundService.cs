@@ -60,9 +60,13 @@ public sealed class IntegrationOutboxPublisherBackgroundService(
         var broker = scope.ServiceProvider.GetRequiredService<IMessageBroker>();
         var timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
         var exchange = rabbitMqOptions.Value.Exchange;
+        var currentOptions = options.Value;
+        var utcNow = timeProvider.GetUtcNow();
 
         var messages = await dbContext.Set<OutboxMessage>()
             .Where(x => x.ProcessedAt == null)
+            .Where(x => !x.IsPoisoned)
+            .Where(x => x.NextRetryAt == null || x.NextRetryAt <= utcNow)
             .OrderBy(x => x.OccurredAt)
             .Take(100)
             .ToListAsync(cancellationToken);
@@ -71,8 +75,6 @@ public sealed class IntegrationOutboxPublisherBackgroundService(
         {
             return;
         }
-
-        var utcNow = timeProvider.GetUtcNow();
 
         foreach (var message in messages)
         {
@@ -88,10 +90,29 @@ public sealed class IntegrationOutboxPublisherBackgroundService(
                     cancellationToken);
 
                 message.ProcessedAt = utcNow;
+                logger.IntegrationOutboxMessagePublished(message.Id, message.EventType);
             }
             catch (Exception ex)
             {
-                logger.IntegrationOutboxMessagePublishFailed(message.Id, message.EventType, ex);
+                message.RetryCount++;
+                message.LastError = ex.Message;
+
+                if (message.RetryCount >= currentOptions.MaxRetryAttempts)
+                {
+                    message.IsPoisoned = true;
+                    message.PoisonedAt = utcNow;
+                    OutboxTelemetry.RecordMessagePoisoned(message.ModuleCode, message.EventType);
+                    logger.IntegrationOutboxMessagePoisoned(message.Id, message.EventType, message.RetryCount);
+                }
+                else
+                {
+                    var backoffSeconds = currentOptions.BackoffBaseDelaySeconds * Math.Pow(2, message.RetryCount);
+                    message.NextRetryAt = message.OccurredAt.AddSeconds(backoffSeconds);
+                    OutboxTelemetry.RecordRetryDepth(message.ModuleCode, message.RetryCount);
+                    logger.IntegrationOutboxMessageRetrying(
+                        message.Id, message.EventType, message.RetryCount,
+                        currentOptions.MaxRetryAttempts, message.NextRetryAt, message.LastError);
+                }
             }
         }
 

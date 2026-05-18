@@ -1,0 +1,184 @@
+{
+  "title": "Tailbook Outbox",
+  "uid": "tailbook-outbox",
+  "tags": ["tailbook"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "title": "Outbox Lag (Oldest Unprocessed Age)",
+      "description": "Time between OccurredAt and now for the oldest unprocessed message per module. Spikes indicate the outbox publisher is falling behind.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "tailbook_outbox_lag_seconds",
+          "legendFormat": "{{tailbook_outbox_module}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 300 },
+              { "color": "red", "value": 1800 }
+            ]
+          },
+          "min": 0
+        }
+      }
+    },
+    {
+      "title": "Unprocessed Messages Over Time",
+      "description": "Approximate count of unprocessed outbox messages inferred from staged minus published totals.",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "tailbook_outbox_messages_staged_total - tailbook_outbox_messages_published_total",
+          "legendFormat": "Unprocessed"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 500 },
+              { "color": "red", "value": 1000 }
+            ]
+          },
+          "min": 0
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "title": "Publish Rate",
+      "description": "Rate of outbox messages successfully published per module.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum by (tailbook_outbox_module) (rate(tailbook_outbox_messages_published_total[$__rate_interval]))",
+          "legendFormat": "{{tailbook_outbox_module}}"
+        }
+      ]
+    },
+    {
+      "title": "Stage vs Publish Comparison",
+      "description": "Combined view comparing staged and published message rates to detect processing backlogs.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(tailbook_outbox_messages_staged_total[$__rate_interval]))",
+          "legendFormat": "Staged"
+        },
+        {
+          "expr": "sum(rate(tailbook_outbox_messages_published_total[$__rate_interval]))",
+          "legendFormat": "Published"
+        }
+      ]
+    },
+    {
+      "title": "Poisoned Messages",
+      "description": "Outbox messages moved to dead-letter/poison state per module. Any non-zero count requires investigation.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum by (tailbook_outbox_module) (rate(tailbook_outbox_messages_poisoned_total[$__rate_interval]))",
+          "legendFormat": "{{tailbook_outbox_module}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.001 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Failed Publish Count",
+      "description": "Rate of outbox publish failures per module. Indicates broker connectivity or serialization issues.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "expr": "sum by (tailbook_outbox_module) (rate(tailbook_outbox_publisher_failures_total[$__rate_interval]))",
+          "legendFormat": "{{tailbook_outbox_module}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Retry Depth Distribution",
+      "description": "Distribution of retry counts for outbox messages. High retry depths indicate persistent delivery failures.",
+      "type": "heatmap",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "targets": [
+        {
+          "expr": "sum(rate(tailbook_outbox_messages_retry_depth_bucket[$__rate_interval])) by (le)",
+          "format": "heatmap",
+          "legendFormat": "le={{le}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "scaleDistribution": { "type": "linear" }
+          },
+          "unit": "short"
+        }
+      },
+      "options": {
+        "calculate": false,
+        "cellGap": 1,
+        "color": {
+          "exponent": 0.5,
+          "fill": "YlOrRd",
+          "mode": "opacity",
+          "reverse": false,
+          "scale": "exponential",
+          "scheme": "Oranges",
+          "steps": 64
+        },
+        "filterValues": { "le": 1e-9 },
+        "legend": { "show": true },
+        "rowsFrame": { "layout": "le" },
+        "tooltip": { "show": true, "showHistogram": false }
+      }
+    }
+  ]
+}

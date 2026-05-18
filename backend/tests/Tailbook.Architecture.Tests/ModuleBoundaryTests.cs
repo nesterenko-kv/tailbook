@@ -35,6 +35,24 @@ public sealed class ModuleBoundaryTests
 
     private static readonly string SourceRoot = FindSourceRoot();
 
+    private static readonly string[] AllowedPublishAsyncFiles =
+    [
+        "IntegrationOutboxPublisherBackgroundService.cs",
+        "RabbitMqMessageBroker.cs",
+        "NoOpMessageBroker.cs",
+        "MessagingRegistration.cs",
+        "IMessageBroker.cs"
+    ];
+
+    private static readonly string[] BrokerKeywords =
+    [
+        "IMessageBroker",
+        ".PublishAsync(",
+        "_messageBroker",
+        "_eventBus",
+        "_publisher"
+    ];
+
     [Theory]
     [InlineData("Tailbook.Modules.Identity")]
     [InlineData("Tailbook.Modules.Customer")]
@@ -409,9 +427,271 @@ public sealed class ModuleBoundaryTests
         Assert.Empty(forbiddenReferences);
     }
 
+    [Theory]
+    [InlineData("Tailbook.Modules.Identity")]
+    [InlineData("Tailbook.Modules.Customer")]
+    [InlineData("Tailbook.Modules.Pets")]
+    [InlineData("Tailbook.Modules.Catalog")]
+    [InlineData("Tailbook.Modules.Booking")]
+    [InlineData("Tailbook.Modules.VisitOperations")]
+    [InlineData("Tailbook.Modules.Staff")]
+    [InlineData("Tailbook.Modules.Notifications")]
+    [InlineData("Tailbook.Modules.Audit")]
+    [InlineData("Tailbook.Modules.Reporting")]
+    public void CommandHandlers_should_not_publish_events_directly(string assemblyName)
+    {
+        var assembly = Assembly.Load(assemblyName);
+        var handlerTypes = GetLoadableTypes(assembly)
+            .Where(t => !t.IsAbstract && !t.IsInterface)
+            .Where(t => t.GetInterfaces().Any(i =>
+                i.IsGenericType && i.GetGenericTypeDefinition().Name == "ICommandHandler`2"))
+            .ToArray();
+
+        if (handlerTypes.Length == 0)
+        {
+            return;
+        }
+
+        var modulePath = GetModuleSourcePath(assemblyName);
+        var violations = new List<string>();
+
+        foreach (var handler in handlerTypes)
+        {
+            var filePath = GetHandlerSourceFilePath(modulePath, handler, assemblyName);
+            if (filePath is null || !File.Exists(filePath))
+            {
+                violations.Add($"{handler.FullName}: source file not found at expected path");
+                continue;
+            }
+
+            var text = File.ReadAllText(filePath);
+            foreach (var keyword in BrokerKeywords)
+            {
+                if (text.Contains(keyword, StringComparison.Ordinal))
+                {
+                    violations.Add($"{Path.GetRelativePath(SourceRoot, filePath)} contains {keyword}");
+                }
+            }
+        }
+
+        if (violations.Count > 0)
+        {
+            Assert.Fail(string.Join("\n", violations.Distinct().OrderBy(x => x)));
+        }
+    }
+
+    [Theory]
+    [InlineData("Tailbook.Modules.Identity")]
+    [InlineData("Tailbook.Modules.Customer")]
+    [InlineData("Tailbook.Modules.Pets")]
+    [InlineData("Tailbook.Modules.Catalog")]
+    [InlineData("Tailbook.Modules.Booking")]
+    [InlineData("Tailbook.Modules.VisitOperations")]
+    [InlineData("Tailbook.Modules.Staff")]
+    [InlineData("Tailbook.Modules.Notifications")]
+    [InlineData("Tailbook.Modules.Audit")]
+    [InlineData("Tailbook.Modules.Reporting")]
+    public void Application_services_should_not_reference_message_broker(string assemblyName)
+    {
+        var modulePath = GetModuleSourcePath(assemblyName);
+        var applicationPath = Path.Combine(modulePath, "Application");
+
+        AssertNoSourceReferences(applicationPath, "IMessageBroker", ".PublishAsync(");
+
+        var assembly = Assembly.Load(assemblyName);
+        var typeViolations = GetLoadableTypes(assembly)
+            .Where(type => type.Namespace?.Contains(".Application", StringComparison.Ordinal) == true)
+            .SelectMany(type => GetReferencedTypes(type)
+                .Where(reference => IsForbidden(reference, ["Tailbook.BuildingBlocks.Abstractions.IMessageBroker"]))
+                .Select(reference => $"{type.FullName} references {reference.FullName}"))
+            .Distinct()
+            .OrderBy(x => x)
+            .ToArray();
+
+        Assert.Empty(typeViolations);
+    }
+
+    [Theory]
+    [InlineData("Tailbook.Modules.Identity")]
+    [InlineData("Tailbook.Modules.Customer")]
+    [InlineData("Tailbook.Modules.Pets")]
+    [InlineData("Tailbook.Modules.Catalog")]
+    [InlineData("Tailbook.Modules.Booking")]
+    [InlineData("Tailbook.Modules.VisitOperations")]
+    [InlineData("Tailbook.Modules.Staff")]
+    [InlineData("Tailbook.Modules.Notifications")]
+    [InlineData("Tailbook.Modules.Audit")]
+    [InlineData("Tailbook.Modules.Reporting")]
+    public void Domain_events_should_only_be_raised_from_aggregates(string assemblyName)
+    {
+        var modulePath = GetModuleSourcePath(assemblyName);
+        var domainPath = Path.Combine(modulePath, "Domain");
+
+        var violations = Directory.EnumerateFiles(modulePath, "*.cs", SearchOption.AllDirectories)
+            .Where(path => !IsGeneratedPath(path))
+            .Where(path => File.ReadAllText(path).Contains("RaiseDomainEvent(", StringComparison.Ordinal))
+            .Where(path => !path.StartsWith(domainPath, StringComparison.Ordinal))
+            .Select(path => $"{Path.GetRelativePath(SourceRoot, path)} calls RaiseDomainEvent outside Domain/")
+            .ToArray();
+
+        Assert.Empty(violations);
+    }
+
+    [Fact]
+    public void Only_outbox_interceptor_should_call_ToIntegrationEvent()
+    {
+        var allowedFiles = new HashSet<string>
+        {
+            "OutboxPayloadProjector.cs",
+            "IDomainEvent.cs"
+        };
+
+        var violations = Directory.EnumerateFiles(SourceRoot, "*.cs", SearchOption.AllDirectories)
+            .Where(path => !IsGeneratedPath(path))
+            .Where(path =>
+            {
+                var text = File.ReadAllText(path);
+                return text.Contains(".ToIntegrationEvent(", StringComparison.Ordinal);
+            })
+            .Where(path =>
+            {
+                var fileName = Path.GetFileName(path);
+                return !allowedFiles.Contains(fileName, StringComparer.Ordinal);
+            })
+            .Select(path => $"{Path.GetRelativePath(SourceRoot, path)} calls .ToIntegrationEvent()")
+            .ToArray();
+
+        Assert.Empty(violations);
+    }
+
+    [Theory]
+    [InlineData("Tailbook.Modules.Identity")]
+    [InlineData("Tailbook.Modules.Customer")]
+    [InlineData("Tailbook.Modules.Pets")]
+    [InlineData("Tailbook.Modules.Catalog")]
+    [InlineData("Tailbook.Modules.Booking")]
+    [InlineData("Tailbook.Modules.VisitOperations")]
+    [InlineData("Tailbook.Modules.Staff")]
+    [InlineData("Tailbook.Modules.Notifications")]
+    [InlineData("Tailbook.Modules.Audit")]
+    [InlineData("Tailbook.Modules.Reporting")]
+    public void Integration_events_should_only_be_published_via_outbox(string assemblyName)
+    {
+        var modulePath = GetModuleSourcePath(assemblyName);
+        if (!Directory.Exists(modulePath))
+        {
+            return;
+        }
+
+        var violations = Directory.EnumerateFiles(modulePath, "*.cs", SearchOption.AllDirectories)
+            .Where(path => !IsGeneratedPath(path))
+            .Where(path =>
+            {
+                var text = File.ReadAllText(path);
+                return text.Contains("IMessageBroker", StringComparison.Ordinal) ||
+                       text.Contains("IOutboxPublisher", StringComparison.Ordinal);
+            })
+            .Where(path =>
+            {
+                var fileName = Path.GetFileName(path);
+                return fileName != "IMessageBroker.cs";
+            })
+            .Select(path => $"{Path.GetRelativePath(SourceRoot, path)} references IMessageBroker or IOutboxPublisher")
+            .ToArray();
+
+        Assert.Empty(violations);
+    }
+
+    [Fact]
+    public void Integration_events_should_only_be_published_via_outbox_building_blocks()
+    {
+        var bbPath = Path.Combine(SourceRoot, "Tailbook.BuildingBlocks");
+
+        var violations = Directory.EnumerateFiles(bbPath, "*.cs", SearchOption.AllDirectories)
+            .Where(path => !IsGeneratedPath(path))
+            .Where(path =>
+            {
+                var text = File.ReadAllText(path);
+                return text.Contains(".PublishAsync(", StringComparison.Ordinal);
+            })
+            .Where(path =>
+            {
+                var fileName = Path.GetFileName(path);
+                return !AllowedPublishAsyncFiles.Contains(fileName, StringComparer.Ordinal);
+            })
+            .Select(path => $"{Path.GetRelativePath(SourceRoot, path)} calls .PublishAsync()")
+            .ToArray();
+
+        Assert.Empty(violations);
+    }
+
+    [Theory]
+    [InlineData("Tailbook.Modules.Identity")]
+    [InlineData("Tailbook.Modules.Customer")]
+    [InlineData("Tailbook.Modules.Pets")]
+    [InlineData("Tailbook.Modules.Catalog")]
+    [InlineData("Tailbook.Modules.Booking")]
+    [InlineData("Tailbook.Modules.VisitOperations")]
+    [InlineData("Tailbook.Modules.Staff")]
+    [InlineData("Tailbook.Modules.Notifications")]
+    [InlineData("Tailbook.Modules.Audit")]
+    [InlineData("Tailbook.Modules.Reporting")]
+    public void Domain_layer_should_not_reference_integration_event_dtos(string assemblyName)
+    {
+        var modulePath = GetModuleSourcePath(assemblyName);
+        var domainPath = Path.Combine(modulePath, "Domain");
+
+        if (!Directory.Exists(domainPath))
+        {
+            return;
+        }
+
+        var otherModuleContractsNamespaces = ModuleAssemblyNames
+            .Where(name => name != assemblyName)
+            .Select(name => $"{name}.Contracts.IntegrationEvents")
+            .ToArray();
+
+        if (otherModuleContractsNamespaces.Length == 0)
+        {
+            return;
+        }
+
+        var violations = Directory.EnumerateFiles(domainPath, "*.cs", SearchOption.AllDirectories)
+            .Where(path => !IsGeneratedPath(path))
+            .SelectMany(path =>
+            {
+                var text = File.ReadAllText(path);
+                return otherModuleContractsNamespaces
+                    .Where(ns => text.Contains(ns, StringComparison.Ordinal))
+                    .Select(ns => $"{Path.GetRelativePath(SourceRoot, path)} references {ns}");
+            })
+            .ToArray();
+
+        Assert.Empty(violations);
+    }
+
     private static string GetModuleSourcePath(string assemblyName)
     {
         return Path.Combine(SourceRoot, assemblyName);
+    }
+
+    private static string? GetHandlerSourceFilePath(string modulePath, Type handlerType, string assemblyName)
+    {
+        var ns = handlerType.Namespace ?? "";
+        var relativeNs = ns.StartsWith(assemblyName + ".", StringComparison.Ordinal)
+            ? ns[(assemblyName.Length + 1)..]
+            : ns;
+        var relativePath = relativeNs.Replace('.', Path.DirectorySeparatorChar);
+
+        var filePath = Path.Combine(modulePath, relativePath, $"{handlerType.Name}.cs");
+        if (File.Exists(filePath))
+        {
+            return filePath;
+        }
+
+        var searchPattern = $"{handlerType.Name}.cs";
+        return Directory.EnumerateFiles(modulePath, searchPattern, SearchOption.AllDirectories)
+            .FirstOrDefault(f => !IsGeneratedPath(f));
     }
 
     private static void AssertNoSourceReferences(string layerPath, params string[] forbiddenPatterns)

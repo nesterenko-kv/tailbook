@@ -7,10 +7,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Messaging;
+using Tailbook.BuildingBlocks.Infrastructure.Persistence.Telemetry;
 using Tailbook.Modules.Notifications.Infrastructure.Options;
-using Tailbook.Modules.Notifications.Infrastructure.Services;
-using Tailbook.Modules.Notifications.Infrastructure.Telemetry;
 
 namespace Tailbook.Modules.Notifications.Infrastructure.BackgroundJobs;
 
@@ -76,7 +76,7 @@ public sealed class NotificationIntegrationEventConsumer : BackgroundService
 
             try
             {
-                await ProcessIntegrationMessageAsync(args.Body, args.RoutingKey, args.BasicProperties, stoppingToken);
+                await ReceiveIntoInboxAsync(args.Body, args.RoutingKey, args.BasicProperties, stoppingToken);
 
                 await channel.BasicAckAsync(
                     deliveryTag: args.DeliveryTag,
@@ -87,10 +87,7 @@ public sealed class NotificationIntegrationEventConsumer : BackgroundService
             }
             catch (Exception ex)
             {
-                NotificationTelemetry.RecordBackgroundProcessingFailure();
-                _logger.LogError(ex,
-                    "Failed to process integration event for notifications from routing key {RoutingKey}.",
-                    args.RoutingKey);
+                _logger.LogError(ex, "Failed to receive integration event for notifications from routing key {RoutingKey}.", args.RoutingKey);
 
                 RabbitMqTelemetry.RecordConsume(exchange, args.RoutingKey, success: false);
                 activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
@@ -109,7 +106,7 @@ public sealed class NotificationIntegrationEventConsumer : BackgroundService
             consumer: consumer,
             cancellationToken: stoppingToken);
 
-        _logger.NotificationConsumerStarted(queue, exchange);
+        _logger.LogInformation("Notification integration event consumer started on queue {Queue}, exchange {Exchange}.", queue, exchange);
 
         try
         {
@@ -117,11 +114,11 @@ public sealed class NotificationIntegrationEventConsumer : BackgroundService
         }
         catch (OperationCanceledException)
         {
-            _logger.NotificationConsumerStopped();
+            _logger.LogInformation("Notification integration event consumer stopped.");
         }
     }
 
-    private async Task ProcessIntegrationMessageAsync(
+    private async Task ReceiveIntoInboxAsync(
         ReadOnlyMemory<byte> body,
         string routingKey,
         IReadOnlyBasicProperties? properties,
@@ -147,36 +144,25 @@ public sealed class NotificationIntegrationEventConsumer : BackgroundService
 
         if (string.IsNullOrWhiteSpace(eventType) || string.IsNullOrWhiteSpace(innerPayload))
         {
-            _logger.LogWarning(
-                "Received malformed integration event for notifications from routing key {RoutingKey}. Skipping.",
-                routingKey);
+            _logger.LogWarning("Received malformed integration event from routing key {RoutingKey}. Skipping.", routingKey);
             return;
         }
 
         using var scope = _scopeFactory.CreateScope();
-        var useCases = scope.ServiceProvider.GetRequiredService<NotificationUseCases>();
+        var inboxStore = scope.ServiceProvider.GetRequiredService<IInboxStore>();
+        var messageIdStr = messageId.ToString("D");
+        const string consumerName = "notifications";
 
-        var result = await useCases.ProcessBrokerNotificationAsync(
-            eventType,
-            innerPayload,
-            messageId,
-            cancellationToken);
+        var received = await inboxStore.TryReceiveAsync(messageIdStr, consumerName, eventType, innerPayload, cancellationToken);
 
-        if (result.Outcome == "sent")
+        if (received)
         {
-            _logger.NotificationDispatchedFromIntegrationEvent(messageId, eventType);
+            InboxTelemetry.RecordReceived(consumerName);
+            _logger.LogDebug("Integration event {MessageId} ({EventType}) received into inbox for consumer {Consumer}.", messageId, eventType, consumerName);
         }
-        else if (result.Outcome == "dead_letter")
+        else
         {
-            _logger.LogWarning(
-                "Notification from integration event {MessageId} ({EventType}) dead-lettered: {Error}",
-                messageId, eventType, result.ErrorMessage);
-        }
-        else if (result.Outcome == "ignored")
-        {
-            _logger.LogDebug(
-                "Integration event {MessageId} ({EventType}) ignored for notifications (no matching template).",
-                messageId, eventType);
+            _logger.LogDebug("Integration event {MessageId} ({EventType}) already in inbox for consumer {Consumer}, skipping.", messageId, eventType, consumerName);
         }
     }
 }

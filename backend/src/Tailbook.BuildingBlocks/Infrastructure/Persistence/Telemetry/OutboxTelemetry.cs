@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
@@ -11,6 +12,7 @@ public static class OutboxTelemetry
 
     private static readonly ActivitySource ActivitySource = new(ActivitySourceName);
     private static readonly Meter Meter = new(MeterName);
+
     private static readonly Counter<long> MessagesStaged = Meter.CreateCounter<long>(
         "tailbook.outbox.messages.staged",
         description: "Outbox messages staged on the current unit of work.");
@@ -21,6 +23,30 @@ public static class OutboxTelemetry
     private static readonly Counter<long> PublisherFailures = Meter.CreateCounter<long>(
         "tailbook.outbox.publisher.failures",
         description: "Unhandled integration outbox publisher failures.");
+
+    private static readonly Counter<long> MessagesPublished = Meter.CreateCounter<long>(
+        "tailbook.outbox.messages.published",
+        description: "Outbox messages successfully published to the message broker.");
+    private static readonly Counter<long> MessagesPoisoned = Meter.CreateCounter<long>(
+        "tailbook.outbox.messages.poisoned",
+        description: "Outbox messages moved to dead-letter/poison state.");
+    private static readonly Histogram<long> RetryDepth = Meter.CreateHistogram<long>(
+        "tailbook.outbox.messages.retry_depth",
+        description: "Distribution of retry counts for outbox messages.");
+
+    private static readonly ConcurrentDictionary<string, double> s_moduleLagSeconds = new();
+    private static readonly ObservableGauge<double> LagSeconds = Meter.CreateObservableGauge(
+        "tailbook.outbox.lag.seconds",
+        () => s_moduleLagSeconds.Select(kvp => new Measurement<double>(
+            kvp.Value,
+            new TagList { { "tailbook.outbox.module", Normalize(kvp.Key) } })),
+        description: "Time between OccurredAt and now for oldest unprocessed message per module.");
+
+    private static double s_oldestUnprocessedAgeSeconds;
+    private static readonly ObservableGauge<double> OldestUnprocessedAgeSeconds = Meter.CreateObservableGauge(
+        "tailbook.outbox.oldest_unprocessed_age_seconds",
+        () => s_oldestUnprocessedAgeSeconds,
+        description: "Age of the oldest unprocessed (non-poisoned) message in seconds.");
 
     public static Activity? StartMessageStagedActivity(
         string moduleCode,
@@ -53,6 +79,53 @@ public static class OutboxTelemetry
     public static void RecordPublisherFailure()
     {
         PublisherFailures.Add(1);
+    }
+
+    public static void RecordMessagePublished(string moduleCode, string eventType)
+    {
+        var tags = new TagList
+        {
+            { "tailbook.outbox.module", Normalize(moduleCode) },
+            { "tailbook.outbox.event_type", Normalize(eventType) }
+        };
+
+        MessagesPublished.Add(1, tags);
+    }
+
+    public static void RecordMessagePoisoned(string moduleCode, string eventType)
+    {
+        var tags = new TagList
+        {
+            { "tailbook.outbox.module", Normalize(moduleCode) },
+            { "tailbook.outbox.event_type", Normalize(eventType) }
+        };
+
+        MessagesPoisoned.Add(1, tags);
+    }
+
+    public static void RecordRetryDepth(string moduleCode, int retryCount)
+    {
+        var tags = new TagList
+        {
+            { "tailbook.outbox.module", Normalize(moduleCode) }
+        };
+
+        RetryDepth.Record(retryCount, tags);
+    }
+
+    public static void RecordModuleLag(string moduleCode, double lagSeconds)
+    {
+        s_moduleLagSeconds[Normalize(moduleCode)] = lagSeconds;
+    }
+
+    public static void ClearModuleLag(string moduleCode)
+    {
+        s_moduleLagSeconds.TryRemove(Normalize(moduleCode), out _);
+    }
+
+    public static void RecordOldestUnprocessedAge(double ageSeconds)
+    {
+        s_oldestUnprocessedAgeSeconds = ageSeconds;
     }
 
     private static string Normalize(string value)

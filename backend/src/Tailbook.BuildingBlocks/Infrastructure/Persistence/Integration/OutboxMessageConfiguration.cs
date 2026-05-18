@@ -16,8 +16,14 @@ public sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outbox
         builder.Property(x => x.PayloadJson).HasColumnType("jsonb").IsRequired();
         builder.Property(x => x.OccurredAt).IsRequired();
         builder.Property(x => x.ProcessedAt);
+        builder.Property(x => x.RetryCount).HasDefaultValue(0);
+        builder.Property(x => x.LastError).HasMaxLength(2048);
+        builder.Property(x => x.NextRetryAt);
+        builder.Property(x => x.IsPoisoned).HasDefaultValue(false);
+        builder.Property(x => x.PoisonedAt);
 
         builder.HasIndex(x => x.ProcessedAt);
         builder.HasIndex(x => new { x.ModuleCode, x.OccurredAt });
+        builder.HasIndex(x => new { x.ProcessedAt, x.IsPoisoned, x.NextRetryAt });
     }
 }

@@ -45,6 +45,7 @@ public sealed class NotificationsModule : IModuleDefinition
             return serviceProvider.GetRequiredService<LocalFileNotificationSink>();
         });
         services.AddHostedService<NotificationIntegrationEventConsumer>();
+        services.AddScoped<IInboxMessageHandler, NotificationInboxHandler>();
         services.AddScoped<IDataSeeder, NotificationTemplateSeeder>();
         return services;
     }

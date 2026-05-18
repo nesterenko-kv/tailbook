@@ -275,6 +275,7 @@ if (telemetryOptions.Enabled)
                     .AddMeter(AuditTelemetry.MeterName)
                     .AddMeter(JobQueueTelemetry.MeterName)
                     .AddMeter(OutboxTelemetry.MeterName)
+                    .AddMeter(InboxTelemetry.MeterName)
                     .AddMeter("Npgsql")
                     .AddMeter(NotificationTelemetry.MeterName)
                     .AddMeter(RabbitMqTelemetry.MeterName)
@@ -324,6 +325,14 @@ builder.Services.AddScoped<IIdempotencyStore, IdempotencyStore>();
 builder.Services.AddOptions<IdempotencyRequestOptions>()
     .Bind(builder.Configuration.GetSection(IdempotencyRequestOptions.SectionName))
     .ValidateOnStart();
+builder.Services.AddScoped<IInboxStore, InboxStore>();
+builder.Services.AddOptions<InboxOptions>()
+    .Bind(builder.Configuration.GetSection(InboxOptions.SectionName))
+    .Validate(x => x.PollIntervalSeconds >= 5, "Inbox:PollIntervalSeconds must be at least 5 seconds.")
+    .Validate(x => x.MaxRetryAttempts >= 1, "Inbox:MaxRetryAttempts must be at least 1.")
+    .Validate(x => x.BackoffBaseDelaySeconds >= 1, "Inbox:BackoffBaseDelaySeconds must be at least 1 second.")
+    .ValidateOnStart();
+builder.Services.AddHostedService<InboxProcessorBackgroundService>();
 builder.Services.AddRabbitMqMessageBroker(builder.Configuration);
 builder.Services.AddIntegrationOutboxPublisher(builder.Configuration);
 builder.Services.AddSingleton<DomainEventToOutboxInterceptor>();

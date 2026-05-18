@@ -22,4 +22,6 @@ public static class CacheKeys
     public static string GroomerSchedules(Guid groomerId) => $"staff:groomer:{groomerId}:schedules";
 
     public static string PetProfile(Guid petId) => $"pets:profile:{petId:D}";
+
+    public static string InboxMessage(string messageId, string consumerName) => $"inbox:{consumerName}:{messageId}";
 }

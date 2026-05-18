@@ -1,0 +1,48 @@
+groups:
+  - name: tailbook-outbox
+    interval: 15s
+    rules:
+      - alert: OutboxLagHigh
+        expr: tailbook_outbox_oldest_unprocessed_age_seconds > 300
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Outbox oldest unprocessed message age exceeds 5 minutes"
+          description: "The oldest unprocessed outbox message is {{ $value | humanizeDuration }} old. The outbox publisher may be falling behind."
+
+      - alert: OutboxLagCritical
+        expr: tailbook_outbox_oldest_unprocessed_age_seconds > 1800
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Outbox oldest unprocessed message age exceeds 30 minutes"
+          description: "The oldest unprocessed outbox message is {{ $value | humanizeDuration }} old. Immediate investigation required."
+
+      - alert: OutboxPublishFailuresHigh
+        expr: rate(tailbook_outbox_publisher_failures_total[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Outbox publish failure rate exceeds 0.1/s over 5m"
+          description: "Outbox publish failures are occurring at {{ $value | humanizePercentage }} per second. Check broker connectivity and publisher logs."
+
+      - alert: OutboxPoisonedMessages
+        expr: tailbook_outbox_messages_poisoned_total > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Outbox messages have been moved to poison/dead-letter state"
+          description: "Outbox messages have been poisoned. Investigate the event types and payloads causing failures."
+
+      - alert: OutboxBacklogGrowing
+        expr: tailbook_outbox_messages_staged_total - tailbook_outbox_messages_published_total > 1000
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Outbox backlog exceeds 1000 unprocessed messages"
+          description: "The difference between staged and published messages is {{ $value }}. The outbox publisher cannot keep up with the staging rate."
