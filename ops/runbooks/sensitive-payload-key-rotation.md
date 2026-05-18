@@ -1,7 +1,7 @@
 # Sensitive Payload Protection Key Rotation
 
 ## Overview
-This runbook covers rotating the `SensitivePayloadProtection:Key` used to protect password-reset links and MFA OTP codes in outbox payloads.
+This runbook covers rotating the `SensitivePayloadProtection:Key` used to protect password-reset links and MFA OTP codes in integration outbox payloads.
 
 ## How it works
 
@@ -18,7 +18,7 @@ The protector tries keys in order:
 - Key rotation does not require downtime or service restart if environment variables are updated via rolling update.
 
 ### Step 1: Verify current state
-1. Check that no critical pending outbox messages exist (or document that they will need the previous key):
+1. Check that no critical pending integration outbox messages exist (or document that they will need the previous key):
    ```bash
    curl https://api.tailbook.test/api/admin/notifications/dashboard
    ```
@@ -42,9 +42,9 @@ The protector tries keys in order:
      -H "Content-Type: application/json" \
      -d '{"email":"test@example.com"}'
    ```
-2. Process the outbox:
+2. Process notifications:
    ```bash
-   curl -X POST https://api.tailbook.test/api/admin/notifications/outbox/process
+   curl -X POST https://api.tailbook.test/api/admin/notifications/process
    ```
 3. Verify the notification job shows a successful delivery (or pending for SMTP):
    ```bash
@@ -52,7 +52,7 @@ The protector tries keys in order:
    ```
 
 ### Step 4: Monitor old-key message delivery
-1. Check that pending outbox messages from before the rotation are still being processed:
+1. Check that pending integration outbox messages from before the rotation are still being processed:
    - Old protected payloads will use `PreviousKey` for unprotection.
 2. Monitor the dashboard for dead-letter counts:
    ```bash
@@ -60,7 +60,7 @@ The protector tries keys in order:
    ```
 
 ### Step 5: Remove PreviousKey after transition
-1. Wait for all outbox messages created before the rotation to be processed (delivered, abandoned, or expired).
+1. Wait for all integration outbox messages created before the rotation to be processed (delivered, abandoned, or expired).
 2. Remove `SensitivePayloadProtection__PreviousKey` from the configuration.
 3. Restart the API:
    ```bash

@@ -17,7 +17,4 @@ public sealed class NotificationJob
     public DateTimeOffset? SentAt { get; set; }
     public DateTimeOffset? NextAttemptAt { get; set; }
     public DateTimeOffset? DeadLetteredAt { get; set; }
-    public string EventType { get; set; } = string.Empty;
-    public DateTimeOffset? ProcessedAt { get; set; }
-    public Guid? SourceOutboxMessageId { get; set; }
 }

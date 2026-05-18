@@ -111,9 +111,10 @@ services:
       RabbitMq__Password: ${RABBITMQ_PASSWORD:-guest}
       RabbitMq__Exchange: ${RABBITMQ_EXCHANGE:-tailbook.events}
       AllowedHosts: ${API_ALLOWED_HOSTS:-localhost;127.0.0.1;api.${TLS_DOMAIN:-tailbook.test}}
+      IntegrationOutbox__EnableBackgroundPublishing: "true"
+      IntegrationOutbox__PollIntervalSeconds: ${INTEGRATION_OUTBOX_POLL_INTERVAL_SECONDS:-15}
       Notifications__EnableBackgroundProcessing: "true"
       Notifications__Provider: ${NOTIFICATIONS_PROVIDER:-LocalFile}
-      Notifications__BackgroundPollIntervalSeconds: ${NOTIFICATIONS_POLL_INTERVAL_SECONDS:-15}
       Notifications__MaxDeliveryAttempts: ${NOTIFICATIONS_MAX_DELIVERY_ATTEMPTS:-5}
       Notifications__RetryBaseDelaySeconds: ${NOTIFICATIONS_RETRY_BASE_DELAY_SECONDS:-60}
       Notifications__RetryMaxDelaySeconds: ${NOTIFICATIONS_RETRY_MAX_DELAY_SECONDS:-3600}

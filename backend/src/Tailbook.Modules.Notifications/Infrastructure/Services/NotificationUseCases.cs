@@ -7,9 +7,9 @@ using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Abstractions.Security;
 using Tailbook.BuildingBlocks.Infrastructure.Diagnostics;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 using Tailbook.Modules.Notifications.Infrastructure.Options;
 using Tailbook.Modules.Notifications.Infrastructure.Telemetry;
+using IntegrationEventMessage = Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration.OutboxMessage;
 
 namespace Tailbook.Modules.Notifications.Infrastructure.Services;
 
@@ -30,15 +30,15 @@ public sealed class NotificationUseCases(
     {
     }
 
-    public Task<int> ProcessOutboxAsync(CancellationToken cancellationToken)
+    public Task<int> ProcessPendingNotificationsAsync(CancellationToken cancellationToken)
     {
-        return ProcessOutboxAsync(NotificationTelemetry.TriggerManual, cancellationToken);
+        return ProcessPendingNotificationsAsync(NotificationTelemetry.TriggerManual, cancellationToken);
     }
 
-    public async Task<int> ProcessOutboxAsync(string trigger, CancellationToken cancellationToken)
+    public async Task<int> ProcessPendingNotificationsAsync(string trigger, CancellationToken cancellationToken)
     {
         var stopwatch = ValueStopwatch.StartNew();
-        using var activity = NotificationTelemetry.StartOutboxProcessingActivity(trigger);
+        using var activity = NotificationTelemetry.StartNotificationProcessingActivity(trigger);
         var processed = 0;
         var sentCount = 0;
         var failedCount = 0;
@@ -49,12 +49,12 @@ public sealed class NotificationUseCases(
 
         try
         {
-            var messages = await dbContext.Set<OutboxMessage>()
+            var messages = await dbContext.Set<IntegrationEventMessage>()
                 .Where(x => x.ProcessedAt == null)
                 .OrderBy(x => x.OccurredAt)
                 .Take(100)
                 .ToListAsync(cancellationToken);
-            NotificationTelemetry.SetOutboxAvailableCount(activity, messages.Count);
+            NotificationTelemetry.SetPendingNotificationCount(activity, messages.Count);
 
             if (messages.Count == 0)
             {
@@ -74,7 +74,7 @@ public sealed class NotificationUseCases(
                     message.ProcessedAt = utcNow;
                     processed++;
                     ignoredCount++;
-                    NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeIgnored);
+                    NotificationTelemetry.RecordNotificationOutcome(NotificationTelemetry.OutcomeIgnored);
                     await dbContext.SaveChangesAsync(cancellationToken);
                     continue;
                 }
@@ -108,7 +108,7 @@ public sealed class NotificationUseCases(
                 {
                     message.ProcessedAt = utcNow;
                     processed++;
-                    NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeAlreadyFinal);
+                    NotificationTelemetry.RecordNotificationOutcome(NotificationTelemetry.OutcomeAlreadyFinal);
                     await dbContext.SaveChangesAsync(cancellationToken);
                     continue;
                 }
@@ -116,7 +116,7 @@ public sealed class NotificationUseCases(
                 {
                     message.ProcessedAt ??= utcNow;
                     processed++;
-                    NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeAlreadyFinal);
+                    NotificationTelemetry.RecordNotificationOutcome(NotificationTelemetry.OutcomeAlreadyFinal);
                     await dbContext.SaveChangesAsync(cancellationToken);
                     continue;
                 }
@@ -124,7 +124,7 @@ public sealed class NotificationUseCases(
                 {
                     message.ProcessedAt ??= utcNow;
                     processed++;
-                    NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeAlreadyFinal);
+                    NotificationTelemetry.RecordNotificationOutcome(NotificationTelemetry.OutcomeAlreadyFinal);
                     await dbContext.SaveChangesAsync(cancellationToken);
                     continue;
                 }
@@ -133,7 +133,7 @@ public sealed class NotificationUseCases(
                     MarkDeadLetter(job, message, job.LastErrorMessage ?? "Notification delivery attempts exhausted before retry.", utcNow);
                     processed++;
                     deadLetterCount++;
-                    NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeDeadLetter);
+                    NotificationTelemetry.RecordNotificationOutcome(NotificationTelemetry.OutcomeDeadLetter);
                     await dbContext.SaveChangesAsync(cancellationToken);
                     continue;
                 }
@@ -141,7 +141,7 @@ public sealed class NotificationUseCases(
                 if (job.NextAttemptAt is { } nextAttemptAt && nextAttemptAt > utcNow)
                 {
                     skippedRetryCount++;
-                    NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeSkippedRetry);
+                    NotificationTelemetry.RecordNotificationOutcome(NotificationTelemetry.OutcomeSkippedRetry);
                     continue;
                 }
 
@@ -160,7 +160,7 @@ public sealed class NotificationUseCases(
                     message.ProcessedAt = utcNow;
                     sentCount++;
                     NotificationTelemetry.RecordDeliveryAttempt(NotificationStatusCodes.Sent, job.Channel);
-                    NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeSent);
+                    NotificationTelemetry.RecordNotificationOutcome(NotificationTelemetry.OutcomeSent);
                 }
                 catch (Exception ex)
                 {
@@ -183,7 +183,7 @@ public sealed class NotificationUseCases(
 
                     dbContext.Set<NotificationDeliveryAttempt>().Add(new NotificationDeliveryAttempt { Id = Guid.NewGuid(), NotificationJobId = job.Id, AttemptNo = deliveryAttemptNo, Status = attemptStatus, ErrorMessage = job.LastErrorMessage, AttemptedAt = utcNow });
                     NotificationTelemetry.RecordDeliveryAttempt(attemptStatus, job.Channel);
-                    NotificationTelemetry.RecordOutboxMessageOutcome(attemptStatus == NotificationStatusCodes.DeadLetter
+                    NotificationTelemetry.RecordNotificationOutcome(attemptStatus == NotificationStatusCodes.DeadLetter
                         ? NotificationTelemetry.OutcomeDeadLetter
                         : NotificationTelemetry.OutcomeFailed);
                 }
@@ -213,13 +213,13 @@ public sealed class NotificationUseCases(
         finally
         {
             var duration = stopwatch.GetElapsedTime();
-            NotificationTelemetry.SetOutboxProcessingCounts(activity, processed, sentCount, failedCount, deadLetterCount, ignoredCount, skippedRetryCount);
-            NotificationTelemetry.SetOutboxProcessingResult(activity, cycleResult, duration);
-            NotificationTelemetry.RecordOutboxProcessingCycle(trigger, processed, duration, cycleResult);
+            NotificationTelemetry.SetNotificationProcessingCounts(activity, processed, sentCount, failedCount, deadLetterCount, ignoredCount, skippedRetryCount);
+            NotificationTelemetry.SetNotificationProcessingResult(activity, cycleResult, duration);
+            NotificationTelemetry.RecordNotificationProcessingCycle(trigger, processed, duration, cycleResult);
         }
     }
 
-    public async Task<ProcessBrokerEventResult> ProcessBrokerEventAsync(
+    public async Task<ProcessBrokerNotificationResult> ProcessBrokerNotificationAsync(
         string eventType,
         string payloadJson,
         Guid messageId,
@@ -227,9 +227,9 @@ public sealed class NotificationUseCases(
     {
         var stopwatch = ValueStopwatch.StartNew();
         var utcNow = _timeProvider.GetUtcNow();
-        var result = new ProcessBrokerEventResult();
+        var result = new ProcessBrokerNotificationResult();
 
-        using var activity = NotificationTelemetry.StartOutboxProcessingActivity("broker");
+        using var activity = NotificationTelemetry.StartNotificationProcessingActivity("broker");
 
         try
         {
@@ -240,7 +240,7 @@ public sealed class NotificationUseCases(
             var templateCode = ResolveTemplateCode(eventType);
             if (templateCode is null || !templates.TryGetValue(templateCode, out var template))
             {
-                NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeIgnored);
+                NotificationTelemetry.RecordNotificationOutcome(NotificationTelemetry.OutcomeIgnored);
                 return result with { Outcome = "ignored" };
             }
 
@@ -273,13 +273,13 @@ public sealed class NotificationUseCases(
                 or NotificationStatusCodes.DeadLetter
                 or NotificationStatusCodes.Abandoned)
             {
-                NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeAlreadyFinal);
+                NotificationTelemetry.RecordNotificationOutcome(NotificationTelemetry.OutcomeAlreadyFinal);
                 return result with { Outcome = "already_final" };
             }
 
             if (job.NextAttemptAt is { } nextAttemptAt && nextAttemptAt > utcNow)
             {
-                NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeSkippedRetry);
+                NotificationTelemetry.RecordNotificationOutcome(NotificationTelemetry.OutcomeSkippedRetry);
                 return result with { Outcome = "skipped_retry" };
             }
 
@@ -310,7 +310,7 @@ public sealed class NotificationUseCases(
                 await dbContext.SaveChangesAsync(cancellationToken);
 
                 NotificationTelemetry.RecordDeliveryAttempt(NotificationStatusCodes.Sent, job.Channel);
-                NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeSent);
+                NotificationTelemetry.RecordNotificationOutcome(NotificationTelemetry.OutcomeSent);
 
                 return result with { Outcome = "sent" };
             }
@@ -327,7 +327,7 @@ public sealed class NotificationUseCases(
                     await dbContext.SaveChangesAsync(cancellationToken);
 
                     NotificationTelemetry.RecordDeliveryAttempt(NotificationStatusCodes.DeadLetter, job.Channel);
-                    NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeDeadLetter);
+                    NotificationTelemetry.RecordNotificationOutcome(NotificationTelemetry.OutcomeDeadLetter);
 
                     return result with { Outcome = "dead_letter", ErrorMessage = ex.Message };
                 }
@@ -350,7 +350,7 @@ public sealed class NotificationUseCases(
                 await dbContext.SaveChangesAsync(cancellationToken);
 
                 NotificationTelemetry.RecordDeliveryAttempt(NotificationStatusCodes.Failed, job.Channel);
-                NotificationTelemetry.RecordOutboxMessageOutcome(NotificationTelemetry.OutcomeFailed);
+                NotificationTelemetry.RecordNotificationOutcome(NotificationTelemetry.OutcomeFailed);
 
                 return result with { Outcome = "failed", ErrorMessage = ex.Message };
             }
@@ -358,9 +358,9 @@ public sealed class NotificationUseCases(
         finally
         {
             var duration = stopwatch.GetElapsedTime();
-            NotificationTelemetry.SetOutboxProcessingCounts(activity, result.Outcome is not null ? 1 : 0, result.Outcome == "sent" ? 1 : 0, result.Outcome == "failed" ? 1 : 0, result.Outcome == "dead_letter" ? 1 : 0, result.Outcome == "ignored" ? 1 : 0, result.Outcome == "skipped_retry" ? 1 : 0);
-            NotificationTelemetry.SetOutboxProcessingResult(activity, result.Outcome ?? "error", duration);
-            NotificationTelemetry.RecordOutboxProcessingCycle("broker", 1, duration, result.Outcome ?? "error");
+            NotificationTelemetry.SetNotificationProcessingCounts(activity, result.Outcome is not null ? 1 : 0, result.Outcome == "sent" ? 1 : 0, result.Outcome == "failed" ? 1 : 0, result.Outcome == "dead_letter" ? 1 : 0, result.Outcome == "ignored" ? 1 : 0, result.Outcome == "skipped_retry" ? 1 : 0);
+            NotificationTelemetry.SetNotificationProcessingResult(activity, result.Outcome ?? "error", duration);
+            NotificationTelemetry.RecordNotificationProcessingCycle("broker", 1, duration, result.Outcome ?? "error");
         }
     }
 
@@ -506,10 +506,10 @@ public sealed class NotificationUseCases(
             return Error.Conflict("Notifications.JobNotStopped", "Only dead-lettered or abandoned notification jobs can be requeued.");
         }
 
-        var message = await GetSourceOutboxMessageAsync(job, cancellationToken);
+        var message = await GetSourceEventMessageAsync(job, cancellationToken);
         if (message is null)
         {
-            return Error.Conflict("Notifications.SourceOutboxMissing", "Notification job cannot be requeued because its source outbox message is missing.");
+            return Error.Conflict("Notifications.SourceEventMissing", "Notification job cannot be requeued because its source event message is missing.");
         }
 
         var before = ToAuditSnapshot(job);
@@ -543,7 +543,7 @@ public sealed class NotificationUseCases(
         job.Status = NotificationStatusCodes.Abandoned;
         job.NextAttemptAt = null;
 
-        if (await GetSourceOutboxMessageAsync(job, cancellationToken) is { } message)
+        if (await GetSourceEventMessageAsync(job, cancellationToken) is { } message)
         {
             message.ProcessedAt ??= _timeProvider.GetUtcNow();
         }
@@ -554,7 +554,7 @@ public sealed class NotificationUseCases(
         return ToListItem(job);
     }
 
-    private void MarkDeadLetter(NotificationJob job, OutboxMessage message, string errorMessage, DateTimeOffset utcNow)
+    private void MarkDeadLetter(NotificationJob job, IntegrationEventMessage message, string errorMessage, DateTimeOffset utcNow)
     {
         job.Status = NotificationStatusCodes.DeadLetter;
         job.LastErrorMessage = TruncateError(errorMessage);
@@ -563,14 +563,14 @@ public sealed class NotificationUseCases(
         message.ProcessedAt = utcNow;
     }
 
-    private async Task<OutboxMessage?> GetSourceOutboxMessageAsync(NotificationJob job, CancellationToken cancellationToken)
+    private async Task<IntegrationEventMessage?> GetSourceEventMessageAsync(NotificationJob job, CancellationToken cancellationToken)
     {
         if (job.SourceEventMessageId is null)
         {
             return null;
         }
 
-        return await dbContext.Set<OutboxMessage>()
+        return await dbContext.Set<IntegrationEventMessage>()
             .SingleOrDefaultAsync(x => x.Id == job.SourceEventMessageId, cancellationToken);
     }
 
@@ -850,7 +850,7 @@ public sealed class NotificationUseCases(
     };
 }
 
-public sealed record ProcessBrokerEventResult
+public sealed record ProcessBrokerNotificationResult
 {
     public string? Outcome { get; init; }
     public string? ErrorMessage { get; init; }

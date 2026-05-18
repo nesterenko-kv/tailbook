@@ -21,7 +21,6 @@ public sealed class NotificationsModule : IModuleDefinition
         services.AddOptions<NotificationsOptions>()
             .Bind(configuration.GetSection(NotificationsOptions.SectionName))
             .Validate(x => NotificationsOptions.IsSupportedProvider(x.Provider), "Notifications:Provider must be LocalFile or Smtp.")
-            .Validate(x => x.BackgroundPollIntervalSeconds >= 5, "Notifications:BackgroundPollIntervalSeconds must be at least 5 seconds.")
             .Validate(x => x.MaxDeliveryAttempts >= 1, "Notifications:MaxDeliveryAttempts must be at least 1.")
             .Validate(x => x.RetryBaseDelaySeconds >= 1, "Notifications:RetryBaseDelaySeconds must be at least 1 second.")
             .Validate(x => x.RetryMaxDelaySeconds >= x.RetryBaseDelaySeconds, "Notifications:RetryMaxDelaySeconds must be greater than or equal to RetryBaseDelaySeconds.")
@@ -45,8 +44,7 @@ public sealed class NotificationsModule : IModuleDefinition
 
             return serviceProvider.GetRequiredService<LocalFileNotificationSink>();
         });
-        services.AddHostedService<OutboxProcessorBackgroundService>();
-        services.AddHostedService<NotificationEventConsumer>();
+        services.AddHostedService<NotificationIntegrationEventConsumer>();
         services.AddScoped<IDataSeeder, NotificationTemplateSeeder>();
         return services;
     }

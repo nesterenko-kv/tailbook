@@ -13,7 +13,7 @@ public static class SystemRoleCatalog
         new(PermissionCodes.AuditTrailRead, "Read audit trail entries"),
         new(PermissionCodes.ReportsRead, "Read reporting endpoints"),
         new(PermissionCodes.NotificationsRead, "Read notification jobs"),
-        new(PermissionCodes.NotificationsWrite, "Process notification outbox and manage notifications"),
+        new(PermissionCodes.NotificationsWrite, "Process and manage notifications"),
         new(PermissionCodes.CrmClientsRead, "Read CRM clients"),
         new(PermissionCodes.CrmClientsWrite, "Create and edit CRM clients"),
         new(PermissionCodes.CrmContactsRead, "Read CRM contact data"),

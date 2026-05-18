@@ -22,7 +22,8 @@ public static class StartupDiagnosticsLogger
         var httpsRedirectionEnabled = transportOptions.EnforceHttpsRedirection;
         var hstsEnabled = transportOptions.UseHsts;
         var notificationsBackgroundEnabled = configuration.GetValue<bool>("Notifications:EnableBackgroundProcessing");
-        var notificationsPollSeconds = configuration.GetValue<int?>("Notifications:BackgroundPollIntervalSeconds") ?? 0;
+        var integrationOutboxPublishingEnabled = configuration.GetValue<bool>("IntegrationOutbox:EnableBackgroundPublishing");
+        var integrationOutboxPollSeconds = configuration.GetValue<int?>("IntegrationOutbox:PollIntervalSeconds") ?? 0;
         var staffTimeZoneId = configuration["StaffScheduling:TimeZoneId"] ?? "<unconfigured>";
         var telemetryEnabled = telemetryOptions.Enabled;
         var otlpExportConfigured = telemetryOptions.HasOtlpEndpoint;
@@ -37,7 +38,8 @@ public static class StartupDiagnosticsLogger
             httpsRedirectionEnabled,
             hstsEnabled,
             notificationsBackgroundEnabled,
-            notificationsPollSeconds,
+            integrationOutboxPublishingEnabled,
+            integrationOutboxPollSeconds,
             staffTimeZoneId,
             telemetryEnabled,
             otlpExportConfigured,
@@ -80,7 +82,7 @@ internal static partial class StartupDiagnosticsMessages
     [LoggerMessage(
         EventId = 1001,
         Level = LogLevel.Information,
-        Message = "Startup diagnostics: environment {EnvironmentName}, database host {DatabaseHost}, database name {DatabaseName}, CORS origin count {CorsOriginCount}, HTTPS redirection {HttpsRedirectionEnabled}, HSTS {HstsEnabled}, notifications background {NotificationsBackgroundEnabled}, notifications poll {NotificationsPollSeconds}s, staff time zone {StaffTimeZoneId}, telemetry enabled {TelemetryEnabled}, OTLP export configured {OtlpExportConfigured}, OTLP log export configured {OtlpLogExportConfigured}, database pool {DatabasePoolName}")]
+        Message = "Startup diagnostics: environment {EnvironmentName}, database host {DatabaseHost}, database name {DatabaseName}, CORS origin count {CorsOriginCount}, HTTPS redirection {HttpsRedirectionEnabled}, HSTS {HstsEnabled}, notifications background {NotificationsBackgroundEnabled}, integration outbox publishing {IntegrationOutboxPublishingEnabled}, integration outbox poll {IntegrationOutboxPollSeconds}s, staff time zone {StaffTimeZoneId}, telemetry enabled {TelemetryEnabled}, OTLP export configured {OtlpExportConfigured}, OTLP log export configured {OtlpLogExportConfigured}, database pool {DatabasePoolName}")]
     public static partial void StartupDiagnostics(
         this ILogger logger,
         string environmentName,
@@ -90,7 +92,8 @@ internal static partial class StartupDiagnosticsMessages
         bool httpsRedirectionEnabled,
         bool hstsEnabled,
         bool notificationsBackgroundEnabled,
-        int notificationsPollSeconds,
+        bool integrationOutboxPublishingEnabled,
+        int integrationOutboxPollSeconds,
         string staffTimeZoneId,
         bool telemetryEnabled,
         bool otlpExportConfigured,

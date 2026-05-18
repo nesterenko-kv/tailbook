@@ -14,20 +14,20 @@ using Tailbook.Modules.Notifications.Infrastructure.Telemetry;
 
 namespace Tailbook.Modules.Notifications.Infrastructure.BackgroundJobs;
 
-public sealed class NotificationEventConsumer : BackgroundService
+public sealed class NotificationIntegrationEventConsumer : BackgroundService
 {
     private readonly RabbitMqConnectionFactory _connectionFactory;
     private readonly RabbitMqOptions _rabbitMqOptions;
     private readonly NotificationsOptions _notificationsOptions;
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<NotificationEventConsumer> _logger;
+    private readonly ILogger<NotificationIntegrationEventConsumer> _logger;
 
-    public NotificationEventConsumer(
+    public NotificationIntegrationEventConsumer(
         RabbitMqConnectionFactory connectionFactory,
         IOptions<RabbitMqOptions> rabbitMqOptions,
         IOptions<NotificationsOptions> notificationsOptions,
         IServiceScopeFactory scopeFactory,
-        ILogger<NotificationEventConsumer> logger)
+        ILogger<NotificationIntegrationEventConsumer> logger)
     {
         _connectionFactory = connectionFactory;
         _rabbitMqOptions = rabbitMqOptions.Value;
@@ -76,7 +76,7 @@ public sealed class NotificationEventConsumer : BackgroundService
 
             try
             {
-                await ProcessEventAsync(args.Body, args.RoutingKey, args.BasicProperties, stoppingToken);
+                await ProcessIntegrationMessageAsync(args.Body, args.RoutingKey, args.BasicProperties, stoppingToken);
 
                 await channel.BasicAckAsync(
                     deliveryTag: args.DeliveryTag,
@@ -87,8 +87,9 @@ public sealed class NotificationEventConsumer : BackgroundService
             }
             catch (Exception ex)
             {
+                NotificationTelemetry.RecordBackgroundProcessingFailure();
                 _logger.LogError(ex,
-                    "Failed to process notification event from routing key {RoutingKey}.",
+                    "Failed to process integration event for notifications from routing key {RoutingKey}.",
                     args.RoutingKey);
 
                 RabbitMqTelemetry.RecordConsume(exchange, args.RoutingKey, success: false);
@@ -120,7 +121,7 @@ public sealed class NotificationEventConsumer : BackgroundService
         }
     }
 
-    private async Task ProcessEventAsync(
+    private async Task ProcessIntegrationMessageAsync(
         ReadOnlyMemory<byte> body,
         string routingKey,
         IReadOnlyBasicProperties? properties,
@@ -147,7 +148,7 @@ public sealed class NotificationEventConsumer : BackgroundService
         if (string.IsNullOrWhiteSpace(eventType) || string.IsNullOrWhiteSpace(innerPayload))
         {
             _logger.LogWarning(
-                "Received malformed notification event from routing key {RoutingKey}. Skipping.",
+                "Received malformed integration event for notifications from routing key {RoutingKey}. Skipping.",
                 routingKey);
             return;
         }
@@ -155,7 +156,7 @@ public sealed class NotificationEventConsumer : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var useCases = scope.ServiceProvider.GetRequiredService<NotificationUseCases>();
 
-        var result = await useCases.ProcessBrokerEventAsync(
+        var result = await useCases.ProcessBrokerNotificationAsync(
             eventType,
             innerPayload,
             messageId,
@@ -163,18 +164,18 @@ public sealed class NotificationEventConsumer : BackgroundService
 
         if (result.Outcome == "sent")
         {
-            _logger.NotificationEventSent(messageId, eventType);
+            _logger.NotificationDispatchedFromIntegrationEvent(messageId, eventType);
         }
         else if (result.Outcome == "dead_letter")
         {
             _logger.LogWarning(
-                "Notification event {MessageId} ({EventType}) dead-lettered: {Error}",
+                "Notification from integration event {MessageId} ({EventType}) dead-lettered: {Error}",
                 messageId, eventType, result.ErrorMessage);
         }
         else if (result.Outcome == "ignored")
         {
             _logger.LogDebug(
-                "Notification event {MessageId} ({EventType}) ignored (no matching template).",
+                "Integration event {MessageId} ({EventType}) ignored for notifications (no matching template).",
                 messageId, eventType);
         }
     }

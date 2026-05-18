@@ -48,7 +48,7 @@ public sealed class ReportingNotificationsFlowTests(RealDbWebApplicationFactory 
             Assert.True(unprocessed > 0);
         }
 
-        var processResponse = await admin.PostAsJsonAsync("/api/admin/notifications/outbox/process", new { });
+        var processResponse = await admin.PostAsJsonAsync("/api/admin/notifications/process", new { });
         processResponse.ShouldBeOk();
 
         var jobsResponse = await admin.GetAsync("/api/admin/notifications/jobs");
@@ -106,7 +106,7 @@ public sealed class ReportingNotificationsFlowTests(RealDbWebApplicationFactory 
             await dbContext.SaveChangesAsync();
         }
 
-        var firstProcess = await client.PostAsJsonAsync("/api/admin/notifications/outbox/process", new { });
+        var firstProcess = await client.PostAsJsonAsync("/api/admin/notifications/process", new { });
         firstProcess.ShouldBeOk();
 
         using (var failedScope = factory1.Services.CreateScope())
@@ -147,7 +147,7 @@ public sealed class ReportingNotificationsFlowTests(RealDbWebApplicationFactory 
         Assert.Equal("Failed", attempt.Status);
         Assert.Contains("transient test notification failure", attempt.ErrorMessage, StringComparison.Ordinal);
 
-        var secondProcess = await client.PostAsJsonAsync("/api/admin/notifications/outbox/process", new { });
+        var secondProcess = await client.PostAsJsonAsync("/api/admin/notifications/process", new { });
         secondProcess.ShouldBeOk();
 
         using var sentScope = factory1.Services.CreateScope();

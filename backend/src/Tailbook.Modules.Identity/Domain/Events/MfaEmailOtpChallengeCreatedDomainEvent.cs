@@ -1,4 +1,5 @@
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.Modules.Identity.Contracts.IntegrationEvents;
 
 namespace Tailbook.Modules.Identity.Domain.Events;
 
@@ -13,4 +14,9 @@ public sealed record MfaEmailOtpChallengeCreatedDomainEvent(
 {
     public string EventType => "Tailbook.Modules.Identity.Integration.MfaEmailOtpChallengeCreated";
     public string ModuleCode => "identity";
+
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new MfaEmailOtpChallengeCreatedIntegrationEvent(Email, DisplayName, ChallengeId, ProtectedCode, ExpiresAt);
+    }
 }

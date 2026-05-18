@@ -1,4 +1,5 @@
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.Modules.VisitOperations.Contracts.IntegrationEvents;
 
 namespace Tailbook.Modules.VisitOperations.Domain.Events;
 
@@ -12,4 +13,9 @@ public sealed record VisitCheckedInDomainEvent(
 {
     public string EventType => "VisitCheckedIn";
     public string ModuleCode => "visitops";
+
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new VisitCheckedInIntegrationEvent(VisitId, AppointmentId, Status, CheckedInAt);
+    }
 }

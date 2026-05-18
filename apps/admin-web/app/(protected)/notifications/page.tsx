@@ -12,7 +12,7 @@ type NotificationJobsEnvelope = {
   items: NotificationJobListItem[];
 };
 
-type ProcessOutboxResponse = {
+type ProcessNotificationsResponse = {
   processedCount: number;
 };
 
@@ -91,20 +91,20 @@ export default function NotificationsPage() {
     void loadJobs({ status, eventType, createdFrom, createdTo });
   }, [status, eventType, createdFrom, createdTo]);
 
-  async function processOutbox() {
+  async function processNotifications() {
     setError(null);
     setSuccess(null);
     setIsProcessing(true);
 
     try {
-      const response = await apiRequest<ProcessOutboxResponse>("/api/admin/notifications/outbox/process", {
+      const response = await apiRequest<ProcessNotificationsResponse>("/api/admin/notifications/process", {
         method: "POST",
         body: JSON.stringify({})
       });
-      setSuccess(`Processed ${response.processedCount} outbox message${response.processedCount === 1 ? "" : "s"}.`);
+      setSuccess(`Processed ${response.processedCount} notification${response.processedCount === 1 ? "" : "s"}.`);
       await loadJobs();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Failed to process notification outbox.");
+      setError(err instanceof ApiError ? err.message : "Failed to process notifications.");
     } finally {
       setIsProcessing(false);
     }
@@ -161,8 +161,8 @@ export default function NotificationsPage() {
       <PageHeader
         eyebrow="Notifications"
         title="Notification jobs"
-        description="Monitor delivery state, run the outbox processor and manage permanently failed notifications."
-        action={<PrimaryButton type="button" onClick={processOutbox} disabled={isProcessing}>{isProcessing ? "Processing..." : "Process outbox"}</PrimaryButton>}
+        description="Monitor delivery state, process pending notifications and manage permanently failed notifications."
+        action={<PrimaryButton type="button" onClick={processNotifications} disabled={isProcessing}>{isProcessing ? "Processing..." : "Process notifications"}</PrimaryButton>}
       />
 
       {dashboard ? (
@@ -242,7 +242,7 @@ export default function NotificationsPage() {
 
       <Card title="Jobs">
         {isLoading ? <LoadingState label="Loading notification jobs..." /> : null}
-        {!isLoading && jobs.length === 0 ? <EmptyState title="No notification jobs found" description="Process the outbox or adjust the filters." /> : null}
+        {!isLoading && jobs.length === 0 ? <EmptyState title="No notification jobs found" description="Process pending notifications or adjust the filters." /> : null}
         {!isLoading && jobs.length > 0 ? (
           <div className="grid gap-3">
             {jobs.map((job) => {

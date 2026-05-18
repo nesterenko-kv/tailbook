@@ -7,7 +7,7 @@ public static class NotificationTelemetry
 {
     public const string ActivitySourceName = "Tailbook.Notifications";
     public const string MeterName = "Tailbook.Notifications";
-    public const string OutboxProcessActivityName = "notifications.outbox.process";
+    public const string NotificationProcessingActivityName = "notifications.process";
     public const string TriggerManual = "manual";
     public const string TriggerBackground = "background";
     public const string ResultProcessed = "processed";
@@ -24,39 +24,39 @@ public static class NotificationTelemetry
 
     private static readonly ActivitySource ActivitySource = new(ActivitySourceName);
     private static readonly Meter Meter = new(MeterName);
-    private static readonly Counter<long> OutboxProcessingCycles = Meter.CreateCounter<long>(
-        "tailbook.notifications.outbox.cycles",
-        description: "Notification outbox processing cycles.");
-    private static readonly Counter<long> OutboxMessagesProcessed = Meter.CreateCounter<long>(
-        "tailbook.notifications.outbox.processed",
-        description: "Notification outbox messages processed by cycle result.");
-    private static readonly Counter<long> OutboxMessageOutcomes = Meter.CreateCounter<long>(
-        "tailbook.notifications.outbox.messages",
-        description: "Notification outbox messages handled by outcome.");
+    private static readonly Counter<long> NotificationProcessingCycles = Meter.CreateCounter<long>(
+        "tailbook.notifications.processing.cycles",
+        description: "Notification processing cycles.");
+    private static readonly Counter<long> NotificationsProcessed = Meter.CreateCounter<long>(
+        "tailbook.notifications.processed",
+        description: "Notifications processed by cycle result.");
+    private static readonly Counter<long> NotificationOutcomes = Meter.CreateCounter<long>(
+        "tailbook.notifications.outcomes",
+        description: "Notifications handled by outcome.");
     private static readonly Counter<long> DeliveryAttempts = Meter.CreateCounter<long>(
         "tailbook.notifications.delivery.attempts",
         description: "Notification delivery attempts by status and channel.");
     private static readonly Counter<long> BackgroundProcessingFailures = Meter.CreateCounter<long>(
         "tailbook.notifications.background.failures",
         description: "Unhandled notification background processor failures.");
-    private static readonly Histogram<double> OutboxProcessingDuration = Meter.CreateHistogram<double>(
-        "tailbook.notifications.outbox.duration",
+    private static readonly Histogram<double> NotificationProcessingDuration = Meter.CreateHistogram<double>(
+        "tailbook.notifications.processing.duration",
         "ms",
-        "Notification outbox processing cycle duration.");
+        "Notification processing cycle duration.");
 
-    public static Activity? StartOutboxProcessingActivity(string trigger)
+    public static Activity? StartNotificationProcessingActivity(string trigger)
     {
-        var activity = ActivitySource.StartActivity(OutboxProcessActivityName);
+        var activity = ActivitySource.StartActivity(NotificationProcessingActivityName);
         activity?.SetTag("tailbook.notifications.trigger", Normalize(trigger));
         return activity;
     }
 
-    public static void SetOutboxAvailableCount(Activity? activity, int availableCount)
+    public static void SetPendingNotificationCount(Activity? activity, int pendingCount)
     {
-        activity?.SetTag("tailbook.notifications.available_count", availableCount);
+        activity?.SetTag("tailbook.notifications.pending_notification_count", pendingCount);
     }
 
-    public static void SetOutboxProcessingCounts(
+    public static void SetNotificationProcessingCounts(
         Activity? activity,
         int processedCount,
         int sentCount,
@@ -73,13 +73,13 @@ public static class NotificationTelemetry
         activity?.SetTag("tailbook.notifications.skipped_retry_count", skippedRetryCount);
     }
 
-    public static void SetOutboxProcessingResult(Activity? activity, string result, TimeSpan duration)
+    public static void SetNotificationProcessingResult(Activity? activity, string result, TimeSpan duration)
     {
         activity?.SetTag("tailbook.notifications.result", Normalize(result));
         activity?.SetTag("tailbook.notifications.duration_ms", duration.TotalMilliseconds);
     }
 
-    public static void RecordOutboxProcessingCycle(string trigger, int processedCount, TimeSpan duration, string result)
+    public static void RecordNotificationProcessingCycle(string trigger, int processedCount, TimeSpan duration, string result)
     {
         var tags = new TagList
         {
@@ -87,23 +87,23 @@ public static class NotificationTelemetry
             { "tailbook.notifications.result", Normalize(result) }
         };
 
-        OutboxProcessingCycles.Add(1, tags);
-        OutboxProcessingDuration.Record(duration.TotalMilliseconds, tags);
+        NotificationProcessingCycles.Add(1, tags);
+        NotificationProcessingDuration.Record(duration.TotalMilliseconds, tags);
 
         if (processedCount > 0)
         {
-            OutboxMessagesProcessed.Add(processedCount, tags);
+            NotificationsProcessed.Add(processedCount, tags);
         }
     }
 
-    public static void RecordOutboxMessageOutcome(string outcome)
+    public static void RecordNotificationOutcome(string outcome)
     {
         var tags = new TagList
         {
             { "tailbook.notifications.outcome", Normalize(outcome) }
         };
 
-        OutboxMessageOutcomes.Add(1, tags);
+        NotificationOutcomes.Add(1, tags);
     }
 
     public static void RecordDeliveryAttempt(string status, string channel)

@@ -57,6 +57,7 @@ public sealed class VisitOperationsApplicationTests
 
         var message = await SingleVisitEventAsync(harness.DbContext, "FinalPriceAdjusted");
         using var payload = JsonDocument.Parse(message.PayloadJson);
+        Assert.Equal(1, payload.RootElement.GetProperty("eventVersion").GetInt32());
         Assert.Equal(VisitStatusCodes.Open, payload.RootElement.GetProperty("status").GetString());
         Assert.Equal(-1, payload.RootElement.GetProperty("sign").GetInt32());
         Assert.Equal(150.24m, payload.RootElement.GetProperty("amount").GetDecimal());
@@ -91,6 +92,7 @@ public sealed class VisitOperationsApplicationTests
 
         var message = await SingleVisitEventAsync(harness.DbContext, "VisitClosed");
         using var payload = JsonDocument.Parse(message.PayloadJson);
+        Assert.Equal(1, payload.RootElement.GetProperty("eventVersion").GetInt32());
         Assert.Equal(VisitStatusCodes.Closed, payload.RootElement.GetProperty("status").GetString());
         Assert.Equal(1500m, payload.RootElement.GetProperty("finalTotalAmount").GetDecimal());
         Assert.True(payload.RootElement.GetProperty("closedAt").GetDateTimeOffset() > default(DateTimeOffset));

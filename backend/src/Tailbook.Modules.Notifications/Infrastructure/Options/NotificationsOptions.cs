@@ -8,7 +8,6 @@ public sealed class NotificationsOptions
 
     public bool EnableBackgroundProcessing { get; set; }
     public string Provider { get; set; } = LocalFileProvider;
-    public int BackgroundPollIntervalSeconds { get; set; } = 15;
     public int MaxDeliveryAttempts { get; set; } = 5;
     public int RetryBaseDelaySeconds { get; set; } = 60;
     public int RetryMaxDelaySeconds { get; set; } = 3600;

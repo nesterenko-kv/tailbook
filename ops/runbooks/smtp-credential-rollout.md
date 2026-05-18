@@ -62,9 +62,9 @@ This runbook covers configuring and verifying SMTP notification delivery for pro
      -d '{"email":"test-recipient@example.com"}'
    ```
 
-3. Process the outbox:
+3. Process notifications:
    ```bash
-   curl -X POST https://api.tailbook.test/api/admin/notifications/outbox/process
+   curl -X POST https://api.tailbook.test/api/admin/notifications/process
    ```
 
 4. Check the notification job status:

@@ -18,6 +18,9 @@ public static class OutboxTelemetry
         "tailbook.outbox.payload.size",
         "By",
         "Serialized outbox payload size.");
+    private static readonly Counter<long> PublisherFailures = Meter.CreateCounter<long>(
+        "tailbook.outbox.publisher.failures",
+        description: "Unhandled integration outbox publisher failures.");
 
     public static Activity? StartMessageStagedActivity(
         string moduleCode,
@@ -45,6 +48,11 @@ public static class OutboxTelemetry
 
         MessagesStaged.Add(1, tags);
         PayloadSize.Record(payloadSizeBytes, tags);
+    }
+
+    public static void RecordPublisherFailure()
+    {
+        PublisherFailures.Add(1);
     }
 
     private static string Normalize(string value)

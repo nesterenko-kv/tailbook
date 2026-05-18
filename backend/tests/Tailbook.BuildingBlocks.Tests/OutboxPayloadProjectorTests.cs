@@ -10,7 +10,7 @@ namespace Tailbook.BuildingBlocks.Tests;
 public sealed class OutboxPayloadProjectorTests
 {
     [Fact]
-    public async Task Interceptor_stages_business_payload_without_domain_event_metadata()
+    public async Task Interceptor_stages_explicit_contract_payload_with_event_version()
     {
         var interceptor = new DomainEventToOutboxInterceptor();
         var options = new DbContextOptionsBuilder<TestDbContext>()
@@ -44,9 +44,28 @@ public sealed class OutboxPayloadProjectorTests
         Assert.False(document.RootElement.TryGetProperty("eventType", out _));
         Assert.False(document.RootElement.TryGetProperty("moduleCode", out _));
 
+        Assert.Equal(1, document.RootElement.GetProperty("eventVersion").GetInt32());
         Assert.Equal(domainEvent.AppointmentId, document.RootElement.GetProperty("appointmentId").GetGuid());
         Assert.Equal(domainEvent.Status, document.RootElement.GetProperty("status").GetString());
         Assert.Equal(domainEvent.VersionNo, document.RootElement.GetProperty("versionNo").GetInt32());
+    }
+
+    [Fact]
+    public async Task Interceptor_rejects_integration_contract_without_valid_event_version()
+    {
+        var interceptor = new DomainEventToOutboxInterceptor();
+        var options = new DbContextOptionsBuilder<TestDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
+            .AddInterceptors(interceptor)
+            .Options;
+
+        await using var dbContext = new TestDbContext(options);
+        var aggregate = new TestAggregate();
+        aggregate.Raise(new InvalidVersionDomainEvent(Guid.NewGuid(), DateTimeOffset.UtcNow));
+
+        dbContext.Aggregates.Add(aggregate);
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => dbContext.SaveChangesAsync());
+        Assert.Contains("eventVersion", exception.Message, StringComparison.Ordinal);
     }
 
     private sealed record SampleDomainEvent(
@@ -58,6 +77,37 @@ public sealed class OutboxPayloadProjectorTests
     {
         public string EventType => "SampleCreated";
         public string ModuleCode => "sample";
+
+        public IIntegrationEventDto ToIntegrationEvent()
+        {
+            return new SampleIntegrationEvent(AppointmentId, Status, VersionNo);
+        }
+    }
+
+    private sealed record SampleIntegrationEvent(
+        Guid AppointmentId,
+        string Status,
+        int VersionNo) : IIntegrationEventDto
+    {
+        public int EventVersion => IntegrationEventVersionPolicy.InitialVersion;
+    }
+
+    private sealed record InvalidVersionDomainEvent(
+        Guid EventId,
+        DateTimeOffset OccurredAt) : IDomainEvent
+    {
+        public string EventType => "InvalidVersion";
+        public string ModuleCode => "sample";
+
+        public IIntegrationEventDto ToIntegrationEvent()
+        {
+            return new InvalidVersionIntegrationEvent();
+        }
+    }
+
+    private sealed record InvalidVersionIntegrationEvent : IIntegrationEventDto
+    {
+        public int EventVersion => 0;
     }
 
     private sealed class TestAggregate : IHasDomainEvents

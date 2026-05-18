@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Tailbook.Modules.Notifications.Infrastructure.BackgroundJobs;
 
-internal static partial class NotificationEventConsumerLog
+internal static partial class NotificationIntegrationEventConsumerLog
 {
     [LoggerMessage(
         EventId = 9100,
@@ -19,6 +19,6 @@ internal static partial class NotificationEventConsumerLog
     [LoggerMessage(
         EventId = 9102,
         Level = LogLevel.Debug,
-        Message = "Notification event {MessageId} ({EventType}) sent successfully.")]
-    public static partial void NotificationEventSent(this ILogger logger, Guid messageId, string eventType);
+        Message = "Notification from integration event {MessageId} ({EventType}) sent successfully.")]
+    public static partial void NotificationDispatchedFromIntegrationEvent(this ILogger logger, Guid messageId, string eventType);
 }

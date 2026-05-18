@@ -1,4 +1,5 @@
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.Modules.Booking.Contracts.IntegrationEvents;
 
 namespace Tailbook.Modules.Booking.Domain.Events;
 
@@ -14,4 +15,9 @@ public sealed record BookingRequestedDomainEvent(
 {
     public string EventType => "BookingRequested";
     public string ModuleCode => "booking";
+
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new BookingRequestedIntegrationEvent(BookingRequestId, PetId, ClientId, Channel, Status, SelectionMode);
+    }
 }

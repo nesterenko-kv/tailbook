@@ -374,6 +374,16 @@ public sealed class OperationalDiagnosticsTests(RealDbWebApplicationFactory fact
     {
         public string EventType => "AppointmentCreated";
         public string ModuleCode => "booking";
+
+        public IIntegrationEventDto ToIntegrationEvent()
+        {
+            return new OutboxTelemetryTestIntegrationEvent(AppointmentId);
+        }
+    }
+
+    private sealed record OutboxTelemetryTestIntegrationEvent(string AppointmentId) : IIntegrationEventDto
+    {
+        public int EventVersion => IntegrationEventVersionPolicy.InitialVersion;
     }
 
     private sealed class OutboxTelemetryTestAggregate : IHasDomainEvents

@@ -1,7 +1,7 @@
 # Local production-like runbook
 
 ## Purpose
-Run Tailbook locally in a production-like topology with containerized API, web apps, PostgreSQL, Redis, a Caddy reverse proxy with TLS, persisted data, health checks, and background outbox processing.
+Run Tailbook locally in a production-like topology with containerized API, web apps, PostgreSQL, Redis, a Caddy reverse proxy with TLS, persisted data, health checks, and background integration outbox processing.
 
 ## Prerequisites
 - Docker Compose
@@ -76,7 +76,7 @@ Use `NOTIFICATIONS_PROVIDER=LocalFile` only for local development. Local notific
 - `HttpTransport:EnforceHttpsRedirection` and `HttpTransport:UseHsts` are enabled when behind Caddy. Caddy handles external TLS; the API trusts `X-Forwarded-Proto` from Caddy.
 - Browser-facing app origin values must match `AppCors:AllowedOrigins` on the API and the Caddy routes.
 - Replace every `change-me` and bootstrap value in `.env` before exposing the stack to a network.
-- Rotate `SensitivePayloadProtection__Key` only after pending password-reset notification outbox messages are processed or intentionally abandoned; pending protected reset links require the key that created them.
+- Rotate `SensitivePayloadProtection__Key` only after pending password-reset notifications are processed or intentionally abandoned; pending protected reset links require the key that created them.
 - `API_ALLOWED_HOSTS` must include the public API host (auto-configured from `TLS_DOMAIN`).
 - The `caddy` service stores certificate data in the `caddy-data` Docker volume.
 - For local testing with `-k`/`--insecure` curl flags, the self-signed cert warning is expected.

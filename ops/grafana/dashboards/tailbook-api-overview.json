@@ -53,11 +53,11 @@
       ]
     },
     {
-      "title": "Notification Outbox",
+      "title": "Notifications",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
       "targets": [
-        { "expr": "sum(rate(tailbook_notifications_outbox_cycles_total[5m]))", "legendFormat": "Cycles" }
+        { "expr": "sum(rate(tailbook_notifications_processing_cycles_total[5m]))", "legendFormat": "Cycles" }
       ]
     }
   ]

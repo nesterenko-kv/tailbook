@@ -4,32 +4,33 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.BuildingBlocks.Infrastructure.Messaging;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
-using Tailbook.Modules.Notifications.Infrastructure.Options;
-using Tailbook.Modules.Notifications.Infrastructure.Telemetry;
+using Tailbook.BuildingBlocks.Infrastructure.Persistence.Telemetry;
 
-namespace Tailbook.Modules.Notifications.Infrastructure.BackgroundJobs;
+namespace Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 
-public sealed class OutboxProcessorBackgroundService(
+public sealed class IntegrationOutboxPublisherBackgroundService(
     IServiceScopeFactory scopeFactory,
-    IOptions<NotificationsOptions> options,
-    ILogger<OutboxProcessorBackgroundService> logger) : BackgroundService
+    IOptions<IntegrationOutboxPublisherOptions> options,
+    IOptions<RabbitMqOptions> rabbitMqOptions,
+    ILogger<IntegrationOutboxPublisherBackgroundService> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var currentOptions = options.Value;
-        if (!currentOptions.EnableBackgroundProcessing)
+        var currentRabbitMqOptions = rabbitMqOptions.Value;
+        if (!currentRabbitMqOptions.Enabled || !currentOptions.EnableBackgroundPublishing)
         {
-            logger.NotificationsBackgroundProcessingDisabled();
+            logger.IntegrationOutboxPublishingDisabled();
             return;
         }
 
-        var interval = TimeSpan.FromSeconds(Math.Max(5, currentOptions.BackgroundPollIntervalSeconds));
+        var interval = TimeSpan.FromSeconds(Math.Max(5, currentOptions.PollIntervalSeconds));
         if (logger.IsEnabled(LogLevel.Information))
         {
             var intervalSeconds = interval.TotalSeconds;
-            logger.NotificationsBackgroundProcessingStarted(intervalSeconds);
+            logger.IntegrationOutboxPublishingStarted(intervalSeconds);
         }
 
         using var timer = new PeriodicTimer(interval);
@@ -46,8 +47,8 @@ public sealed class OutboxProcessorBackgroundService(
             }
             catch (Exception ex)
             {
-                NotificationTelemetry.RecordBackgroundProcessingFailure();
-                logger.OutboxProcessingFailed(ex);
+                OutboxTelemetry.RecordPublisherFailure();
+                logger.IntegrationOutboxPublishingFailed(ex);
             }
         }
     }
@@ -58,7 +59,7 @@ public sealed class OutboxProcessorBackgroundService(
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var broker = scope.ServiceProvider.GetRequiredService<IMessageBroker>();
         var timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
-        var exchange = "tailbook.events";
+        var exchange = rabbitMqOptions.Value.Exchange;
 
         var messages = await dbContext.Set<OutboxMessage>()
             .Where(x => x.ProcessedAt == null)
@@ -90,12 +91,12 @@ public sealed class OutboxProcessorBackgroundService(
             }
             catch (Exception ex)
             {
-                logger.OutboxPublishFailed(message.Id, message.EventType, ex);
+                logger.IntegrationOutboxMessagePublishFailed(message.Id, message.EventType, ex);
             }
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        logger.BackgroundOutboxProcessorHandled(messages.Count);
+        logger.IntegrationOutboxPublisherHandled(messages.Count);
     }
 
     private static string ToRoutingKey(string moduleCode, string eventType)

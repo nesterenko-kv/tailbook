@@ -43,7 +43,7 @@ public sealed class DomainEventToOutboxInterceptor : SaveChangesInterceptor
             foreach (var domainEvent in entry.Entity.GetDomainEvents())
             {
                 var payload = OutboxPayloadProjector.Project(domainEvent);
-                var payloadJson = JsonSerializer.Serialize(payload, JsonOptions);
+                var payloadJson = JsonSerializer.Serialize(payload, payload.GetType(), JsonOptions);
                 var payloadSizeBytes = System.Text.Encoding.UTF8.GetByteCount(payloadJson);
 
                 using var activity = OutboxTelemetry.StartMessageStagedActivity(

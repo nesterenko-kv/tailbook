@@ -148,6 +148,7 @@ public sealed class BookingAppointmentApplicationTests
         var message = await SingleBookingAppointmentEventAsync(harness.DbContext, "AppointmentRescheduled");
         using var payload = JsonDocument.Parse(message.PayloadJson);
         var expectedStartAt = startAt.ToUniversalTime();
+        Assert.Equal(1, payload.RootElement.GetProperty("eventVersion").GetInt32());
         Assert.Equal(expectedStartAt, payload.RootElement.GetProperty("startAt").GetDateTimeOffset());
         Assert.Equal(expectedStartAt.AddMinutes(90), payload.RootElement.GetProperty("endAt").GetDateTimeOffset());
         Assert.Equal(2, payload.RootElement.GetProperty("versionNo").GetInt32());
@@ -164,6 +165,7 @@ public sealed class BookingAppointmentApplicationTests
 
         var message = await SingleBookingAppointmentEventAsync(harness.DbContext, "AppointmentCancelled");
         using var payload = JsonDocument.Parse(message.PayloadJson);
+        Assert.Equal(1, payload.RootElement.GetProperty("eventVersion").GetInt32());
         Assert.Equal(AppointmentStatusCodes.Cancelled, payload.RootElement.GetProperty("status").GetString());
         Assert.Equal("CLIENT_REQUEST", payload.RootElement.GetProperty("reasonCode").GetString());
         Assert.Equal(2, payload.RootElement.GetProperty("versionNo").GetInt32());

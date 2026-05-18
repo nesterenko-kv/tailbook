@@ -124,6 +124,7 @@ public sealed class MfaChallengeTests(RealDbWebApplicationFactory factory) : ICl
         var outbox = matchingOutbox.Single(x => x.PayloadJson.Contains(challenge.Value.ChallengeId.ToString("D")));
         Assert.DoesNotContain(challenge.Value.Code, outbox.PayloadJson, StringComparison.Ordinal);
         using var payload = JsonDocument.Parse(outbox.PayloadJson);
+        Assert.Equal(1, payload.RootElement.GetProperty("eventVersion").GetInt32());
         var protectedCode = payload.RootElement.GetProperty("protectedCode").GetString();
         Assert.False(string.IsNullOrWhiteSpace(protectedCode));
         Assert.Equal(challenge.Value.Code, sensitivePayloadProtector.Unprotect(SensitivePayloadPurposes.MfaEmailOtpCode, protectedCode!));

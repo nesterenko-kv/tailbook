@@ -36,7 +36,7 @@ public sealed class ReportingNotificationsAuditFoundationTests(RealDbWebApplicat
             offerId,
             ApiClientExtensions.UtcDateTime("2026-04-26T08:00:00Z"));
 
-        var processResponse = await client.PostAsync("/api/admin/notifications/outbox/process", null);
+        var processResponse = await client.PostAsync("/api/admin/notifications/process", null);
         processResponse.ShouldBeOk();
 
         var jobsResponse = await client.GetAsync("/api/admin/notifications/jobs");

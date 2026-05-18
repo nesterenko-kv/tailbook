@@ -6,4 +6,5 @@ public interface IDomainEvent
     DateTimeOffset OccurredAt { get; }
     string EventType { get; }
     string ModuleCode { get; }
+    IIntegrationEventDto ToIntegrationEvent();
 }

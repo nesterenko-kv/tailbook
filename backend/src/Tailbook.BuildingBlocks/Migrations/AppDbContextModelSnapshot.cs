@@ -1703,18 +1703,11 @@ namespace Tailbook.BuildingBlocks.Migrations
                     b.Property<DateTimeOffset?>("DeadLetteredAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("EventType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("LastErrorMessage")
                         .HasMaxLength(1024)
                         .HasColumnType("character varying(1024)");
 
                     b.Property<DateTimeOffset?>("NextAttemptAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("ProcessedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Recipient")
@@ -1732,9 +1725,6 @@ namespace Tailbook.BuildingBlocks.Migrations
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
-
-                    b.Property<Guid?>("SourceOutboxMessageId")
-                        .HasColumnType("uuid");
 
                     b.Property<string>("Status")
                         .IsRequired()

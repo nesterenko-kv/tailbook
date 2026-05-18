@@ -46,7 +46,7 @@ The API host emits the `Tailbook.Api` meter for host-level diagnostics such as s
 The API host emits `Tailbook.Jobs` traces and metrics for FastEndpoints job queue storage operations.
 The shared outbox publisher emits `Tailbook.Outbox` traces and metrics when modules stage integration events.
 PostgreSQL tracing and Npgsql pool metrics are also enabled so request traces can show database calls and dashboards can track pool usage.
-The notifications module emits `Tailbook.Notifications` traces and metrics for outbox processing cycles, message outcomes, delivery attempts, and background processor failures.
+The notifications module emits `Tailbook.Notifications` traces and metrics for notification processing cycles, notification outcomes, delivery attempts, and background processor failures.
 The audit module emits `Tailbook.Audit` traces and metrics for batch write buffering of access-audit entries.
 When an OTLP endpoint is configured, structured `ILogger` records can also be exported as OpenTelemetry logs.
 
@@ -98,8 +98,8 @@ Recommended dashboard panels for each meter, with triage notes:
 #### Notifications (`Tailbook.Notifications`)
 | Panel | Metric | Threshold | Triage |
 |---|---|---|---|
-| Outbox cycle duration | `tailbook.notifications.outbox.duration` histogram | P95 > 30s | Outbox processing bottleneck; check database and provider health |
-| Delivery failures | `tailbook.delivery.attempts` × `status=failed` | Rate &gt; 0 sustained 5+ min | Notification provider (SMTP, SMS) may be down; check provider health endpoint. See [notification provider outage runbook](../notification-provider-outage.md) for SMTP outage, high dead-letter, and LocalFile procedures. |
+| Notification processing duration | `tailbook.notifications.processing.duration` histogram | P95 > 30s | Notification processing bottleneck; check database and provider health |
+| Delivery failures | `tailbook.notifications.delivery.attempts` × `status=failed` | Rate &gt; 0 sustained 5+ min | Notification provider (SMTP, SMS) may be down; check provider health endpoint. See [notification provider outage runbook](../notification-provider-outage.md) for SMTP outage, high dead-letter, and LocalFile procedures. |
 | Background failures | `tailbook.notifications.background.failures` | Any non-zero | Unhandled exception in notification processor; search logs for `Tailbook.Notifications` activity source |
 
 #### Audit (`Tailbook.Audit`)
@@ -114,6 +114,7 @@ Recommended dashboard panels for each meter, with triage notes:
 |---|---|---|---|
 | Message staging rate | `tailbook.outbox.messages.staged` rate | Sharp increase | May indicate integration event storm; check for loops in event handlers |
 | Payload size | `tailbook.outbox.payload.size` histogram | P99 > 10KB | Large payloads may cause outbox storage issues; review event schema |
+| Publisher failures | `tailbook.outbox.publisher.failures` | Any non-zero | Integration outbox publisher is failing; check broker connectivity and publisher logs |
 
 ### Configured alert definitions
 
@@ -196,9 +197,9 @@ FastEndpoints job queue records are persisted in `public."Jobs"`. Repeated `Fast
 ### Notification signals
 - activity source: `Tailbook.Notifications`
 - meter: `Tailbook.Notifications`
-- span: `notifications.outbox.process`
-- counters: `tailbook.notifications.outbox.cycles`, `tailbook.notifications.outbox.processed`, `tailbook.notifications.outbox.messages`, `tailbook.notifications.delivery.attempts`, `tailbook.notifications.background.failures`
-- histogram: `tailbook.notifications.outbox.duration`
+- span: `notifications.process`
+- counters: `tailbook.notifications.processing.cycles`, `tailbook.notifications.processed`, `tailbook.notifications.outcomes`, `tailbook.notifications.delivery.attempts`, `tailbook.notifications.background.failures`
+- histogram: `tailbook.notifications.processing.duration`
 
 ### Audit signals
 - activity source: `Tailbook.Audit`
@@ -212,6 +213,7 @@ FastEndpoints job queue records are persisted in `public."Jobs"`. Repeated `Fast
 - span: `outbox.message.stage`
 - counter: `tailbook.outbox.messages.staged`
 - histogram: `tailbook.outbox.payload.size`
+- counter: `tailbook.outbox.publisher.failures`
 
 ### Database signals (built-in Npgsql)
 - meter: `Npgsql`

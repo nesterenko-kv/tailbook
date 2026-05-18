@@ -84,7 +84,7 @@ public sealed class NotificationUseCasesTests
     }
 
     [Fact]
-    public async Task ProcessOutboxAsync_marks_unhandled_event_processed_without_creating_job()
+    public async Task ProcessPendingNotificationsAsync_marks_unhandled_event_processed_without_creating_job()
     {
         await using var dbContext = CreateDbContext();
         var message = AddOutboxMessage(dbContext, "CustomerCreated", """{"email":"client@test.local"}""");
@@ -92,7 +92,7 @@ public sealed class NotificationUseCasesTests
         var sink = new CapturingNotificationSink();
         var queries = new NotificationUseCases(dbContext, sink);
 
-        var processed = await queries.ProcessOutboxAsync(CancellationToken.None);
+        var processed = await queries.ProcessPendingNotificationsAsync(CancellationToken.None);
 
         Assert.Equal(1, processed);
         Assert.NotNull(message.ProcessedAt);
@@ -101,7 +101,7 @@ public sealed class NotificationUseCasesTests
     }
 
     [Fact]
-    public async Task ProcessOutboxAsync_redacts_password_reset_job_body_and_dispatches_reset_link()
+    public async Task ProcessPendingNotificationsAsync_redacts_password_reset_job_body_and_dispatches_reset_link()
     {
         await using var dbContext = CreateDbContext();
         var sensitivePayloadProtector = new TestSensitivePayloadProtector();
@@ -126,7 +126,7 @@ public sealed class NotificationUseCasesTests
             TimeProvider.System,
             sensitivePayloadProtector: sensitivePayloadProtector);
 
-        var processed = await queries.ProcessOutboxAsync(CancellationToken.None);
+        var processed = await queries.ProcessPendingNotificationsAsync(CancellationToken.None);
 
         Assert.Equal(1, processed);
         Assert.NotNull(message.ProcessedAt);
@@ -149,7 +149,7 @@ public sealed class NotificationUseCasesTests
     }
 
     [Fact]
-    public async Task ProcessOutboxAsync_redacts_mfa_code_job_body_and_dispatches_code()
+    public async Task ProcessPendingNotificationsAsync_redacts_mfa_code_job_body_and_dispatches_code()
     {
         await using var dbContext = CreateDbContext();
         var sensitivePayloadProtector = new TestSensitivePayloadProtector();
@@ -173,7 +173,7 @@ public sealed class NotificationUseCasesTests
             TimeProvider.System,
             sensitivePayloadProtector: sensitivePayloadProtector);
 
-        var processed = await queries.ProcessOutboxAsync(CancellationToken.None);
+        var processed = await queries.ProcessPendingNotificationsAsync(CancellationToken.None);
 
         Assert.Equal(1, processed);
         Assert.NotNull(message.ProcessedAt);
@@ -190,7 +190,7 @@ public sealed class NotificationUseCasesTests
     }
 
     [Fact]
-    public async Task ProcessOutboxAsync_records_activity_tags_for_processed_messages()
+    public async Task ProcessPendingNotificationsAsync_records_activity_tags_for_processed_messages()
     {
         await using var dbContext = CreateDbContext();
         AddTemplate(dbContext, "APPOINTMENT_CREATED", "Appointment created", "Appointment {{appointmentId}} created.");
@@ -205,13 +205,13 @@ public sealed class NotificationUseCasesTests
         listener.ActivityStopped = activity => stoppedActivity = activity;
         ActivitySource.AddActivityListener(listener);
 
-        var processed = await queries.ProcessOutboxAsync(NotificationTelemetry.TriggerManual, CancellationToken.None);
+        var processed = await queries.ProcessPendingNotificationsAsync(NotificationTelemetry.TriggerManual, CancellationToken.None);
 
         Assert.Equal(1, processed);
         Assert.NotNull(stoppedActivity);
-        Assert.Equal(NotificationTelemetry.OutboxProcessActivityName, stoppedActivity!.OperationName);
+        Assert.Equal(NotificationTelemetry.NotificationProcessingActivityName, stoppedActivity!.OperationName);
         Assert.Equal(NotificationTelemetry.TriggerManual, stoppedActivity.GetTagItem("tailbook.notifications.trigger"));
-        Assert.Equal("1", stoppedActivity.GetTagItem("tailbook.notifications.available_count")?.ToString());
+        Assert.Equal("1", stoppedActivity.GetTagItem("tailbook.notifications.pending_notification_count")?.ToString());
         Assert.Equal("1", stoppedActivity.GetTagItem("tailbook.notifications.processed_count")?.ToString());
         Assert.Equal("1", stoppedActivity.GetTagItem("tailbook.notifications.sent_count")?.ToString());
         Assert.Equal("0", stoppedActivity.GetTagItem("tailbook.notifications.failed_count")?.ToString());
@@ -220,7 +220,7 @@ public sealed class NotificationUseCasesTests
     }
 
     [Fact]
-    public async Task ProcessOutboxAsync_marks_sent_job_processed_without_resending()
+    public async Task ProcessPendingNotificationsAsync_marks_sent_job_processed_without_resending()
     {
         await using var dbContext = CreateDbContext();
         AddTemplate(dbContext, "APPOINTMENT_CREATED", "Appointment created", "Appointment {{appointmentId}} created.");
@@ -243,7 +243,7 @@ public sealed class NotificationUseCasesTests
         var sink = new CapturingNotificationSink();
         var queries = new NotificationUseCases(dbContext, sink);
 
-        var processed = await queries.ProcessOutboxAsync(CancellationToken.None);
+        var processed = await queries.ProcessPendingNotificationsAsync(CancellationToken.None);
 
         Assert.Equal(1, processed);
         Assert.NotNull(message.ProcessedAt);
@@ -254,7 +254,7 @@ public sealed class NotificationUseCasesTests
     }
 
     [Fact]
-    public async Task ProcessOutboxAsync_truncates_failure_and_leaves_message_unprocessed_for_retry()
+    public async Task ProcessPendingNotificationsAsync_truncates_failure_and_leaves_message_unprocessed_for_retry()
     {
         await using var dbContext = CreateDbContext();
         AddTemplate(dbContext, "VISIT_CLOSED", "Visit closed", "Visit {{visitId}} closed.");
@@ -263,7 +263,7 @@ public sealed class NotificationUseCasesTests
         var sink = new CapturingNotificationSink(new string('x', 1100));
         var queries = new NotificationUseCases(dbContext, sink);
 
-        var processed = await queries.ProcessOutboxAsync(CancellationToken.None);
+        var processed = await queries.ProcessPendingNotificationsAsync(CancellationToken.None);
 
         Assert.Equal(1, processed);
         Assert.Null(message.ProcessedAt);
@@ -278,7 +278,7 @@ public sealed class NotificationUseCasesTests
     }
 
     [Fact]
-    public async Task ProcessOutboxAsync_schedules_failed_job_and_skips_until_retry_is_due()
+    public async Task ProcessPendingNotificationsAsync_schedules_failed_job_and_skips_until_retry_is_due()
     {
         await using var dbContext = CreateDbContext();
         AddTemplate(dbContext, "VISIT_CLOSED", "Visit closed", "Visit {{visitId}} closed.");
@@ -287,7 +287,7 @@ public sealed class NotificationUseCasesTests
         var sink = new CapturingNotificationSink("transient delivery failure");
         var queries = new NotificationUseCases(dbContext, sink);
 
-        var processed = await queries.ProcessOutboxAsync(CancellationToken.None);
+        var processed = await queries.ProcessPendingNotificationsAsync(CancellationToken.None);
 
         Assert.Equal(1, processed);
         Assert.Null(message.ProcessedAt);
@@ -297,7 +297,7 @@ public sealed class NotificationUseCasesTests
         Assert.NotNull(job.NextAttemptAt);
         Assert.True(job.NextAttemptAt > TimeProvider.System.GetUtcNow());
 
-        var skipped = await queries.ProcessOutboxAsync(CancellationToken.None);
+        var skipped = await queries.ProcessPendingNotificationsAsync(CancellationToken.None);
 
         Assert.Equal(0, skipped);
         Assert.Equal(1, job.AttemptCount);
@@ -306,7 +306,7 @@ public sealed class NotificationUseCasesTests
     }
 
     [Fact]
-    public async Task ProcessOutboxAsync_dead_letters_after_max_attempts()
+    public async Task ProcessPendingNotificationsAsync_dead_letters_after_max_attempts()
     {
         await using var dbContext = CreateDbContext();
         AddTemplate(dbContext, "VISIT_CLOSED", "Visit closed", "Visit {{visitId}} closed.");
@@ -323,14 +323,14 @@ public sealed class NotificationUseCasesTests
                 RetryMaxDelaySeconds = 60
             }));
 
-        var firstProcessed = await queries.ProcessOutboxAsync(CancellationToken.None);
+        var firstProcessed = await queries.ProcessPendingNotificationsAsync(CancellationToken.None);
         Assert.Equal(1, firstProcessed);
 
         var failedJob = await dbContext.Set<NotificationJob>().SingleAsync();
         failedJob.NextAttemptAt = TimeProvider.System.GetUtcNow().AddSeconds(-1);
         await dbContext.SaveChangesAsync();
 
-        var secondProcessed = await queries.ProcessOutboxAsync(CancellationToken.None);
+        var secondProcessed = await queries.ProcessPendingNotificationsAsync(CancellationToken.None);
 
         Assert.Equal(1, secondProcessed);
         Assert.Equal(NotificationStatusCodes.DeadLetter, failedJob.Status);
@@ -399,7 +399,7 @@ public sealed class NotificationUseCasesTests
         Assert.Null(job.SentAt);
         Assert.Null(message.ProcessedAt);
 
-        var processed = await queries.ProcessOutboxAsync(CancellationToken.None);
+        var processed = await queries.ProcessPendingNotificationsAsync(CancellationToken.None);
 
         Assert.Equal(1, processed);
         Assert.Equal(NotificationStatusCodes.Sent, job.Status);

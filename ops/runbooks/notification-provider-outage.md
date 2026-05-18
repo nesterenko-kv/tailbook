@@ -36,19 +36,19 @@ View notification operational status at:
 3. **Common causes**:
    - Invalid recipient email address → abandon the job, notify operator to fix contact data.
    - Template rendering error → check notification templates in seed data.
-   - Protected payload key rotated → ensure `SensitivePayloadProtection:Key` has not changed since the outbox message was created.
+   - Protected payload key rotated → ensure `SensitivePayloadProtection:Key` has not changed since the integration outbox message was created.
 4. **Resolve**: Fix the root cause, then requeue affected jobs through the admin UI.
 
 ### LocalFile provider issues
 
 1. **Check disk space**: Verify the volume mounted at the `LocalFilePath` location has available space.
 2. **Check file permissions**: Ensure the API container user can write to the file path.
-3. **Rotate file**: Stop the API, move/archive the notification file, restart the API. Unprocessed outbox messages will be re-dispatched.
+3. **Rotate file**: Stop the API, move/archive the notification file, restart the API. Unprocessed integration outbox messages will be re-dispatched.
 
 ## Recovery verification
 
 After resolving an outage:
-1. Call `POST /api/admin/notifications/outbox/process` to trigger immediate outbox processing.
+1. Call `POST /api/admin/notifications/process` to trigger immediate notification processing.
 2. Check `GET /api/admin/notifications/dashboard` for declining dead-letter counts.
 3. Check `GET /api/admin/notifications/provider/health` for successful deliveries.
 4. For SMTP, verify a test notification is delivered to the intended recipient.
@@ -57,5 +57,5 @@ After resolving an outage:
 
 - Monitor provider health endpoint proactively with external uptime checks.
 - Set up alerts on dead-letter count thresholds through the OpenTelemetry metrics pipeline.
-- Rotate `SensitivePayloadProtection:Key` only after all pending password-reset outbox messages are delivered or abandoned.
+- Rotate `SensitivePayloadProtection:Key` only after all pending password-reset integration outbox messages are delivered or abandoned.
 - Keep SMTP credentials and host configuration in environment variables, not in code.

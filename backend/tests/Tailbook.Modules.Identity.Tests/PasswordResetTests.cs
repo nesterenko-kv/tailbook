@@ -166,6 +166,7 @@ public sealed class PasswordResetTests(RealDbWebApplicationFactory factory) : IC
         using var document = JsonDocument.Parse(message.PayloadJson);
         Assert.False(document.RootElement.TryGetProperty("ResetToken", out _));
         Assert.False(document.RootElement.TryGetProperty("ResetLink", out _));
+        Assert.Equal(1, document.RootElement.GetProperty("eventVersion").GetInt32());
         var protectedResetLink = document.RootElement.GetProperty("protectedResetLink").GetString();
         Assert.False(string.IsNullOrWhiteSpace(protectedResetLink));
 
