@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.Catalog.Contracts;
+using Tailbook.Modules.Catalog.Domain;
 using Tailbook.Modules.Catalog.Domain.Aggregates;
 using Tailbook.Modules.Catalog.Domain.Entities;
 using Tailbook.Modules.Pets.Domain.Entities;

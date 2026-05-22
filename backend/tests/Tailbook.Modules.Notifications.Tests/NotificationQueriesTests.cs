@@ -8,7 +8,7 @@ using Tailbook.BuildingBlocks.Abstractions.Security;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 using Tailbook.Modules.Notifications.Application.Notifications.Models;
-using Tailbook.Modules.Notifications.Contracts;
+using Tailbook.Modules.Notifications.Domain;
 using Tailbook.Modules.Notifications.Infrastructure.Options;
 using Tailbook.Modules.Notifications.Infrastructure.Telemetry;
 using Xunit;

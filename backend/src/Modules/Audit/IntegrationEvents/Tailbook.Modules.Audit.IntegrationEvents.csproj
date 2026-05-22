@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Audit.IntegrationEvents</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Audit.IntegrationEvents</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Tailbook.SharedKernel\Tailbook.SharedKernel.csproj" />
+  </ItemGroup>
+</Project>

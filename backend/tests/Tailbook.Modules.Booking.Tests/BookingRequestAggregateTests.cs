@@ -1,4 +1,4 @@
-using Tailbook.Modules.Booking.Contracts;
+using Tailbook.Modules.Booking.Domain;
 using Tailbook.Modules.Booking.Domain.Events;
 using Xunit;
 

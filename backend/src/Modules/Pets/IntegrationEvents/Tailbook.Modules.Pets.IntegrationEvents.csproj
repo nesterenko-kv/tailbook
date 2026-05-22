@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Pets.IntegrationEvents</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Pets.IntegrationEvents</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.SharedKernel\Tailbook.SharedKernel.csproj" />
+  </ItemGroup>
+</Project>

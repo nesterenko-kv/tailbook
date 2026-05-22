@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Identity.Infrastructure</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Identity.Infrastructure</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Application\Tailbook.Modules.Identity.Application.csproj" />
+    <ProjectReference Include="..\Domain\Tailbook.Modules.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.SharedKernel\Tailbook.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\Customer\Api.Contracts\Tailbook.Modules.Customer.Api.Contracts.csproj" />
+    <ProjectReference Include="..\Api.Contracts\Tailbook.Modules.Identity.Api.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tailbook.Modules.Identity.Api" />
+    <InternalsVisibleTo Include="Tailbook.Modules.Identity.Tests" />
+  </ItemGroup>
+</Project>
+

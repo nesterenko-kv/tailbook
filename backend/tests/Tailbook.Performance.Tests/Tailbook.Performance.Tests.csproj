@@ -12,16 +12,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Tailbook.Api.Host\Tailbook.Api.Host.csproj"/>
-    <ProjectReference Include="..\..\src\Tailbook.Modules.Booking\Tailbook.Modules.Booking.csproj"/>
-    <ProjectReference Include="..\..\src\Tailbook.Modules.Identity\Tailbook.Modules.Identity.csproj"/>
-    <ProjectReference Include="..\..\src\Tailbook.Modules.Identity.Api.Contracts\Tailbook.Modules.Identity.Api.Contracts.csproj"/>
-    <ProjectReference Include="..\..\src\Tailbook.Modules.Customer.Api.Contracts\Tailbook.Modules.Customer.Api.Contracts.csproj"/>
-    <ProjectReference Include="..\..\src\Tailbook.Modules.Pets.Api.Contracts\Tailbook.Modules.Pets.Api.Contracts.csproj"/>
-    <ProjectReference Include="..\..\src\Tailbook.Modules.Catalog.Api.Contracts\Tailbook.Modules.Catalog.Api.Contracts.csproj"/>
-    <ProjectReference Include="..\..\src\Tailbook.Modules.VisitOperations.Api.Contracts\Tailbook.Modules.VisitOperations.Api.Contracts.csproj"/>
-    <ProjectReference Include="..\..\src\Tailbook.Modules.Staff.Api.Contracts\Tailbook.Modules.Staff.Api.Contracts.csproj"/>
-    <ProjectReference Include="..\..\src\Tailbook.Modules.Reporting.Api.Contracts\Tailbook.Modules.Reporting.Api.Contracts.csproj"/>
-    <ProjectReference Include="..\..\src\Tailbook.Modules.Audit.Api.Contracts\Tailbook.Modules.Audit.Api.Contracts.csproj"/>
-    <ProjectReference Include="..\..\src\Tailbook.Modules.Notifications.Api.Contracts\Tailbook.Modules.Notifications.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Modules\Booking\Api\Tailbook.Modules.Booking.Api.csproj"/>
+    <ProjectReference Include="..\..\src\Modules\Identity\Api\Tailbook.Modules.Identity.Api.csproj"/>
+    <ProjectReference Include="..\..\src\Modules\Identity\Api.Contracts\Tailbook.Modules.Identity.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Modules\Customer\Api.Contracts\Tailbook.Modules.Customer.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Modules\Pets\Api.Contracts\Tailbook.Modules.Pets.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Modules\Catalog\Api.Contracts\Tailbook.Modules.Catalog.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Modules\VisitOperations\Api.Contracts\Tailbook.Modules.VisitOperations.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Modules\Staff\Api.Contracts\Tailbook.Modules.Staff.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Modules\Reporting\Api.Contracts\Tailbook.Modules.Reporting.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Modules\Audit\Api.Contracts\Tailbook.Modules.Audit.Api.Contracts.csproj"/>
+    <ProjectReference Include="..\..\src\Modules\Notifications\Api.Contracts\Tailbook.Modules.Notifications.Api.Contracts.csproj"/>
   </ItemGroup>
 </Project>

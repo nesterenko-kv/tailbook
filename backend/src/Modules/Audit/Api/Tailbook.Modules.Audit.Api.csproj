@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Audit.Api</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Audit.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Api.Contracts\Tailbook.Modules.Audit.Api.Contracts.csproj" />
+    <ProjectReference Include="..\Application\Tailbook.Modules.Audit.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\Tailbook.Modules.Audit.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FastEndpoints" Version="8.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tailbook.Modules.Audit.Tests" />
+    <InternalsVisibleTo Include="Tailbook.Api.Tests" />
+    <InternalsVisibleTo Include="Tailbook.Tests.Infrastructure" />
+    <InternalsVisibleTo Include="Tailbook.Modules.Identity.Tests" />
+    <InternalsVisibleTo Include="Tailbook.Modules.Notifications.Tests" />
+  </ItemGroup>
+</Project>

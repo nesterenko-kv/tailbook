@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.Identity.Contracts;
+using Tailbook.Modules.Identity.Domain;
 using Tailbook.Modules.Identity.Domain.Aggregates;
 using Tailbook.Modules.Identity.Domain.Entities;
 using Tailbook.Modules.Identity.Infrastructure.Services;

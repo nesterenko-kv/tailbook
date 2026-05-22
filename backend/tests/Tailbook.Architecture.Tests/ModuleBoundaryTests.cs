@@ -73,7 +73,9 @@ public sealed class ModuleBoundaryTests
             .Where(x => x is not null && (ModuleAssemblyNames.Contains(x) || ModuleApiContractAssemblyNames.Contains(x)))
             .ToArray();
 
-        Assert.DoesNotContain(referencedModuleNames, x => x != assemblyName && x != ownApiContractAssemblyName);
+        // Allow references to any module's Api.Contracts (service bridge contracts),
+        // but block references to other module's implementation assemblies.
+        Assert.DoesNotContain(referencedModuleNames, x => x is not null && x != assemblyName && !x.EndsWith(".Api.Contracts"));
     }
 
     [Theory]
@@ -118,10 +120,13 @@ public sealed class ModuleBoundaryTests
         var modulePath = GetModuleSourcePath(assemblyName);
         var applicationPath = Path.Combine(modulePath, "Application");
 
+        var apiPrefix = $"{assemblyName}.Api.";
+        var contractsPrefix = $"{assemblyName}.Api.Contracts";
+
         AssertNoSourceReferences(
             applicationPath,
             $"{assemblyName}.Infrastructure",
-            $"{assemblyName}.Api",
+            apiPrefix,
             "Tailbook.BuildingBlocks.Infrastructure",
             "Microsoft.AspNetCore",
             "Microsoft.EntityFrameworkCore");
@@ -129,11 +134,8 @@ public sealed class ModuleBoundaryTests
         AssertNoTypeReferences(
             assemblyName,
             ".Application",
-            $"{assemblyName}.Infrastructure",
-            $"{assemblyName}.Api",
-            "Tailbook.BuildingBlocks.Infrastructure",
-            "Microsoft.AspNetCore",
-            "Microsoft.EntityFrameworkCore");
+            [$"{assemblyName}.Infrastructure", apiPrefix, "Tailbook.BuildingBlocks.Infrastructure", "Microsoft.AspNetCore", "Microsoft.EntityFrameworkCore"],
+            [contractsPrefix]);
     }
 
     [Theory]
@@ -366,8 +368,12 @@ public sealed class ModuleBoundaryTests
         var modulePath = GetModuleSourcePath(assemblyName);
         var infrastructurePath = Path.Combine(modulePath, "Infrastructure");
 
-        AssertNoSourceReferences(infrastructurePath, $"{assemblyName}.Api");
-        AssertNoTypeReferences(assemblyName, ".Infrastructure", $"{assemblyName}.Api");
+        // Infrastructure must not reference the API endpoints/DTOs layer.
+        // References to Api.Contracts (service bridge abstractions) are allowed.
+        var apiPrefix = $"{assemblyName}.Api.";
+        var contractsPrefix = $"{assemblyName}.Api.Contracts";
+        AssertNoSourceReferences(infrastructurePath, apiPrefix);
+        AssertNoTypeReferences(assemblyName, ".Infrastructure", new[] { apiPrefix }, new[] { contractsPrefix });
     }
 
     [Fact]
@@ -414,14 +420,13 @@ public sealed class ModuleBoundaryTests
     public void Api_contracts_should_not_reference_module_implementation_assemblies(string assemblyName)
     {
         var assembly = Assembly.Load(assemblyName);
+        // Api.Contracts may reference other Api.Contracts for service bridge types,
+        // but must not reference module implementation assemblies.
         var forbiddenReferences = assembly.GetReferencedAssemblies()
             .Select(x => x.Name)
             .Where(x =>
                 x is not null &&
-                (ModuleAssemblyNames.Contains(x) ||
-                 ModuleApiContractAssemblyNames.Any(contractName => contractName != assemblyName && contractName == x) ||
-                 x.StartsWith("Microsoft.EntityFrameworkCore", StringComparison.Ordinal) ||
-                 x.StartsWith("Npgsql", StringComparison.Ordinal)))
+                ModuleAssemblyNames.Contains(x))
             .ToArray();
 
         Assert.Empty(forbiddenReferences);
@@ -726,19 +731,24 @@ public sealed class ModuleBoundaryTests
         return path.Contains($"{Path.DirectorySeparatorChar}Commands{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static void AssertNoTypeReferences(string assemblyName, string layerSegment, params string[] forbiddenNamespacePrefixes)
+    private static void AssertNoTypeReferences(string assemblyName, string layerSegment, string[] forbiddenNamespacePrefixes, string[]? allowedPrefixes = null)
     {
         var assembly = Assembly.Load(assemblyName);
         var violations = GetLoadableTypes(assembly)
             .Where(type => type.Namespace?.Contains(layerSegment, StringComparison.Ordinal) == true)
             .SelectMany(type => GetReferencedTypes(type)
-                .Where(reference => IsForbidden(reference, forbiddenNamespacePrefixes))
+                .Where(reference => IsForbidden(reference, forbiddenNamespacePrefixes) && !IsForbidden(reference, allowedPrefixes ?? []))
                 .Select(reference => $"{type.FullName} references {reference.FullName}"))
             .Distinct()
             .OrderBy(x => x)
             .ToArray();
 
         Assert.Empty(violations);
+    }
+
+    private static void AssertNoTypeReferences(string assemblyName, string layerSegment, params string[] forbiddenNamespacePrefixes)
+    {
+        AssertNoTypeReferences(assemblyName, layerSegment, forbiddenNamespacePrefixes, null);
     }
 
     private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)

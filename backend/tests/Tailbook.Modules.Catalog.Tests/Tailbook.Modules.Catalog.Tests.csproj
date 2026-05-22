@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Tailbook.Tests.Infrastructure\Tailbook.Tests.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\Tailbook.Modules.Catalog\Tailbook.Modules.Catalog.csproj" />
-    <ProjectReference Include="..\..\src\Tailbook.Modules.Catalog.Api.Contracts\Tailbook.Modules.Catalog.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Catalog\Api\Tailbook.Modules.Catalog.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Catalog\Api.Contracts\Tailbook.Modules.Catalog.Api.Contracts.csproj" />
   </ItemGroup>
 </Project>

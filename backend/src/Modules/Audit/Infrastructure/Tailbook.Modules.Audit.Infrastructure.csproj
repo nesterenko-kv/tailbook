@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Audit.Infrastructure</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Audit.Infrastructure</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Application\Tailbook.Modules.Audit.Application.csproj" />
+    <ProjectReference Include="..\Domain\Tailbook.Modules.Audit.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.SharedKernel\Tailbook.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.7" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tailbook.Modules.Audit.Api" />
+    <InternalsVisibleTo Include="Tailbook.Modules.Audit.Tests" />
+  </ItemGroup>
+</Project>

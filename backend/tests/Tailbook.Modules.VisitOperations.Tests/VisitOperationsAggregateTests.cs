@@ -2,7 +2,7 @@ using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.Api.Tests;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.VisitOperations.Contracts;
+using Tailbook.Modules.VisitOperations.Domain;
 using Tailbook.Modules.VisitOperations.Domain.Events;
 using Xunit;
 

@@ -31,7 +31,14 @@ public static class ModuleCatalog
     ];
 
     public static readonly Assembly[] ModuleAssemblies = Modules.Select(x => x.GetType().Assembly).ToArray();
-    public static readonly ModelConfigurationAssemblies PersistenceModelAssemblies = new(ModuleAssemblies);
+    private static readonly Assembly[] ModuleInfrastructureAssemblies = ModuleAssemblies
+        .Select(x => x.GetName().Name)
+        .Where(name => name is not null)
+        .Select(name => name!.Replace(".Api", ".Infrastructure"))
+        .Select(Assembly.Load)
+        .ToArray();
+    public static readonly ModelConfigurationAssemblies PersistenceModelAssemblies = new(
+        ModuleAssemblies.Concat(ModuleInfrastructureAssemblies).ToArray());
 
     public static IServiceCollection AddTailbookModules(this IServiceCollection services, IConfiguration configuration)
     {

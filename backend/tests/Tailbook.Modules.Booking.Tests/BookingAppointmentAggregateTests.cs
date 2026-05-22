@@ -2,7 +2,7 @@ using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.Api.Tests;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.Booking.Contracts;
+using Tailbook.Modules.Booking.Domain;
 using Tailbook.Modules.Booking.Domain.Events;
 using Xunit;
 

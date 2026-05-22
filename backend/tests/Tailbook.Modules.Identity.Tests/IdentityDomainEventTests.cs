@@ -1,4 +1,4 @@
-using Tailbook.Modules.Identity.Contracts;
+using Tailbook.Modules.Identity.Domain;
 using Tailbook.Modules.Identity.Domain.Events;
 using Xunit;
 

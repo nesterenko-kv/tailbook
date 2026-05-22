@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Reporting.Api</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Reporting.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Api.Contracts\Tailbook.Modules.Reporting.Api.Contracts.csproj" />
+    <ProjectReference Include="..\Application\Tailbook.Modules.Reporting.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\Tailbook.Modules.Reporting.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FastEndpoints" Version="8.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tailbook.Modules.Reporting.Tests" />
+  </ItemGroup>
+</Project>

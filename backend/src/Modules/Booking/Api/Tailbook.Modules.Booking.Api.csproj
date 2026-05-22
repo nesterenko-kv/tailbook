@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Booking.Api</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Booking.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Api.Contracts\Tailbook.Modules.Booking.Api.Contracts.csproj" />
+    <ProjectReference Include="..\Application\Tailbook.Modules.Booking.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\Tailbook.Modules.Booking.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\Identity\Api.Contracts\Tailbook.Modules.Identity.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\Pets\Api.Contracts\Tailbook.Modules.Pets.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\Staff\Api.Contracts\Tailbook.Modules.Staff.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\Catalog\Api.Contracts\Tailbook.Modules.Catalog.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\Customer\Api.Contracts\Tailbook.Modules.Customer.Api.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FastEndpoints" Version="8.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tailbook.Modules.Booking.Tests" />
+  </ItemGroup>
+</Project>

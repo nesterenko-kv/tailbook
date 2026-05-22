@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Identity.Api</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Identity.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Api.Contracts\Tailbook.Modules.Identity.Api.Contracts.csproj" />
+    <ProjectReference Include="..\Application\Tailbook.Modules.Identity.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\Tailbook.Modules.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\Customer\Api.Contracts\Tailbook.Modules.Customer.Api.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FastEndpoints" Version="8.1.0" />
+    <PackageReference Include="FastEndpoints.Security" Version="8.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tailbook.Modules.Identity.Tests" />
+    <InternalsVisibleTo Include="Tailbook.Api.Tests" />
+    <InternalsVisibleTo Include="Tailbook.Tests.Infrastructure" />
+  </ItemGroup>
+</Project>

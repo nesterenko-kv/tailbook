@@ -6,16 +6,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj" />
-    <ProjectReference Include="..\Tailbook.Modules.Identity\Tailbook.Modules.Identity.csproj" />
-    <ProjectReference Include="..\Tailbook.Modules.Customer\Tailbook.Modules.Customer.csproj" />
-    <ProjectReference Include="..\Tailbook.Modules.Pets\Tailbook.Modules.Pets.csproj" />
-    <ProjectReference Include="..\Tailbook.Modules.Catalog\Tailbook.Modules.Catalog.csproj" />
-    <ProjectReference Include="..\Tailbook.Modules.Booking\Tailbook.Modules.Booking.csproj" />
-    <ProjectReference Include="..\Tailbook.Modules.VisitOperations\Tailbook.Modules.VisitOperations.csproj" />
-    <ProjectReference Include="..\Tailbook.Modules.Staff\Tailbook.Modules.Staff.csproj" />
-    <ProjectReference Include="..\Tailbook.Modules.Notifications\Tailbook.Modules.Notifications.csproj" />
-    <ProjectReference Include="..\Tailbook.Modules.Audit\Tailbook.Modules.Audit.csproj" />
-    <ProjectReference Include="..\Tailbook.Modules.Reporting\Tailbook.Modules.Reporting.csproj" />
+    <ProjectReference Include="..\Modules\Identity\Api\Tailbook.Modules.Identity.Api.csproj" />
+    <ProjectReference Include="..\Modules\Customer\Api\Tailbook.Modules.Customer.Api.csproj" />
+    <ProjectReference Include="..\Modules\Pets\Api\Tailbook.Modules.Pets.Api.csproj" />
+    <ProjectReference Include="..\Modules\Catalog\Api\Tailbook.Modules.Catalog.Api.csproj" />
+    <ProjectReference Include="..\Modules\Booking\Api\Tailbook.Modules.Booking.Api.csproj" />
+    <ProjectReference Include="..\Modules\VisitOperations\Api\Tailbook.Modules.VisitOperations.Api.csproj" />
+    <ProjectReference Include="..\Modules\Staff\Api\Tailbook.Modules.Staff.Api.csproj" />
+    <ProjectReference Include="..\Modules\Notifications\Api\Tailbook.Modules.Notifications.Api.csproj" />
+    <ProjectReference Include="..\Modules\Audit\Api\Tailbook.Modules.Audit.Api.csproj" />
+    <ProjectReference Include="..\Modules\Reporting\Api\Tailbook.Modules.Reporting.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

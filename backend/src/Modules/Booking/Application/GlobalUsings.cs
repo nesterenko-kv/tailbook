@@ -1,0 +1,12 @@
+global using Tailbook.Modules.Booking.Application.Booking.Commands;
+global using Tailbook.Modules.Booking.Application.Booking.Models;
+global using Tailbook.Modules.Booking.Application.Booking.Queries;
+global using Tailbook.Modules.Booking.Application.Common.Errors;
+global using Tailbook.Modules.Booking.Application.Common.Validation;
+global using Tailbook.Modules.Booking.Domain.Entities;
+global using Tailbook.Modules.Booking.Domain.ValueObjects;
+global using Tailbook.Modules.Identity.Api.Contracts.Abstractions;
+global using Tailbook.Modules.Pets.Api.Contracts.Abstractions;
+global using Tailbook.Modules.Staff.Api.Contracts.Abstractions;
+global using Tailbook.Modules.Catalog.Api.Contracts.Abstractions;
+global using Tailbook.Modules.Customer.Api.Contracts.Abstractions;

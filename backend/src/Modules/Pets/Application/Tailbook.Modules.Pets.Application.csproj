@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Pets.Application</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Pets.Application</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\Tailbook.Modules.Pets.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.SharedKernel\Tailbook.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Customer\Api.Contracts\Tailbook.Modules.Customer.Api.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ErrorOr" Version="2.0.1" />
+    <PackageReference Include="FastEndpoints" Version="8.1.0" />
+  </ItemGroup>
+</Project>

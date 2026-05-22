@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Catalog.Infrastructure</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Catalog.Infrastructure</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Application\Tailbook.Modules.Catalog.Application.csproj" />
+    <ProjectReference Include="..\Domain\Tailbook.Modules.Catalog.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.SharedKernel\Tailbook.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\Pets\Api.Contracts\Tailbook.Modules.Pets.Api.Contracts.csproj" />
+    <ProjectReference Include="..\Api.Contracts\Tailbook.Modules.Catalog.Api.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tailbook.Modules.Catalog.Api" />
+  </ItemGroup>
+</Project>
+

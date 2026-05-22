@@ -1,0 +1,11 @@
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Tailbook.BuildingBlocks.Abstractions;
+global using Tailbook.BuildingBlocks.Infrastructure.Persistence;
+global using Tailbook.Modules.Notifications.Domain.Aggregates;
+global using Tailbook.Modules.Notifications.Domain.Entities;
+global using Tailbook.Modules.Notifications.Domain;
+global using Tailbook.Modules.Notifications.Application.Abstractions.Services;
+global using Tailbook.Modules.Notifications.Application.Notifications.Commands;
+global using Tailbook.Modules.Notifications.Application.Notifications.Models;
+global using Tailbook.Modules.Notifications.Application.Notifications.Queries;

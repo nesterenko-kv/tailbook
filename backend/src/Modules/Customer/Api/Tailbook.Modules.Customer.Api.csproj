@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Customer.Api</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Customer.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Api.Contracts\Tailbook.Modules.Customer.Api.Contracts.csproj" />
+    <ProjectReference Include="..\Application\Tailbook.Modules.Customer.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\Tailbook.Modules.Customer.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\Identity\Api.Contracts\Tailbook.Modules.Identity.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\Pets\Api.Contracts\Tailbook.Modules.Pets.Api.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FastEndpoints" Version="8.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tailbook.Modules.Customer.Tests" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,15 @@
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Tailbook.BuildingBlocks.Abstractions;
+global using Tailbook.BuildingBlocks.Infrastructure.Persistence;
+global using Tailbook.Modules.Staff.Domain.Aggregates;
+global using Tailbook.Modules.Staff.Domain.Entities;
+global using Tailbook.Modules.Staff.Domain;
+global using Tailbook.Modules.Staff.Application.Staff.Commands;
+global using Tailbook.Modules.Staff.Application.Staff.Models;
+global using Tailbook.Modules.Staff.Application.Staff.Queries;
+global using Tailbook.Modules.Staff.Api.Contracts.Abstractions;
+global using Tailbook.Modules.Pets.Api.Contracts.Abstractions;
+global using Tailbook.Modules.Booking.Api.Contracts.Abstractions;
+global using Tailbook.Modules.Identity.Api.Contracts.Abstractions;
+global using Tailbook.Modules.Catalog.Api.Contracts.Abstractions;

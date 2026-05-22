@@ -1,0 +1,6 @@
+global using Tailbook.Modules.Staff.Api.Contracts.Abstractions;
+global using Tailbook.Modules.Staff.Application.Staff.Commands;
+global using Tailbook.Modules.Staff.Application.Staff.Models;
+global using Tailbook.Modules.Staff.Application.Staff.Queries;
+global using Tailbook.Modules.Staff.Domain.Aggregates;
+global using Tailbook.Modules.Staff.Domain.Entities;

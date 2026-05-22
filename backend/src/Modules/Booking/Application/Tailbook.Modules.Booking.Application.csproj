@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Booking.Application</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Booking.Application</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Modules\Booking\Api.Contracts\Tailbook.Modules.Booking.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Identity\Api.Contracts\Tailbook.Modules.Identity.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Pets\Api.Contracts\Tailbook.Modules.Pets.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Staff\Api.Contracts\Tailbook.Modules.Staff.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Catalog\Api.Contracts\Tailbook.Modules.Catalog.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Customer\Api.Contracts\Tailbook.Modules.Customer.Api.Contracts.csproj" />
+    <ProjectReference Include="..\Domain\Tailbook.Modules.Booking.Domain.csproj" />
+    <ProjectReference Include="..\IntegrationEvents\Tailbook.Modules.Booking.IntegrationEvents.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.SharedKernel\Tailbook.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ErrorOr" Version="2.0.1" />
+    <PackageReference Include="FastEndpoints" Version="8.1.0" />
+  </ItemGroup>
+</Project>

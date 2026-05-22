@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Tailbook.Modules.Staff.Api</AssemblyName>
+    <RootNamespace>Tailbook.Modules.Staff.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Api.Contracts\Tailbook.Modules.Staff.Api.Contracts.csproj" />
+    <ProjectReference Include="..\Application\Tailbook.Modules.Staff.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\Tailbook.Modules.Staff.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Tailbook.BuildingBlocks\Tailbook.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\Pets\Api.Contracts\Tailbook.Modules.Pets.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\Booking\Api.Contracts\Tailbook.Modules.Booking.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\Identity\Api.Contracts\Tailbook.Modules.Identity.Api.Contracts.csproj" />
+    <ProjectReference Include="..\..\Catalog\Api.Contracts\Tailbook.Modules.Catalog.Api.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FastEndpoints" Version="8.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tailbook.Modules.Staff.Tests" />
+  </ItemGroup>
+</Project>

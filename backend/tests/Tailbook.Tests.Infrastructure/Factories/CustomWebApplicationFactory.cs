@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.Identity.Contracts;
+using Tailbook.Modules.Identity.Domain;
 using Tailbook.Modules.Identity.Domain.Aggregates;
 using Tailbook.Modules.Identity.Domain.Entities;
 using Tailbook.Modules.Identity.Infrastructure.Services;

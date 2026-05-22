@@ -6,7 +6,7 @@ using Tailbook.Api.Tests;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
-using Tailbook.Modules.Booking.Contracts;
+using Tailbook.Modules.Booking.Domain;
 using Xunit;
 
 namespace Tailbook.Modules.Booking.Tests;

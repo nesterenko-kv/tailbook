@@ -1,0 +1,11 @@
+global using Tailbook.Modules.VisitOperations.Application.VisitOperations.Commands;
+global using Tailbook.Modules.VisitOperations.Application.VisitOperations.Models;
+global using Tailbook.Modules.VisitOperations.Application.VisitOperations.Queries;
+global using Tailbook.Modules.VisitOperations.Domain;
+global using Tailbook.Modules.VisitOperations.Domain.Aggregates;
+global using Tailbook.Modules.VisitOperations.Domain.Entities;
+global using Tailbook.Modules.VisitOperations.Api.Contracts.Abstractions;
+global using Tailbook.Modules.Booking.Api.Contracts.Abstractions;
+global using Tailbook.Modules.Catalog.Api.Contracts.Abstractions;
+global using Tailbook.Modules.Pets.Api.Contracts.Abstractions;
+global using Tailbook.Modules.Staff.Api.Contracts.Abstractions;

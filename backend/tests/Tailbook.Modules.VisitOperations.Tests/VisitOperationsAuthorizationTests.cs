@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.Api.Tests.Factories;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.Identity.Contracts;
+using Tailbook.Modules.Identity.Domain;
 using Xunit;
 
 namespace Tailbook.Modules.VisitOperations.Tests;
