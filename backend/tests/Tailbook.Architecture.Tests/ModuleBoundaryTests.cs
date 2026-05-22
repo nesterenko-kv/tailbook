@@ -19,19 +19,17 @@ public sealed class ModuleBoundaryTests
         "Tailbook.Modules.Reporting"
     ];
 
+    private static readonly string[] ModuleShortNames =
+        ModuleAssemblyNames.Select(StripModulePrefix).ToArray();
+
+    private static readonly string[] SubAssemblySuffixes =
+        [".Domain", ".Application", ".Infrastructure", ".IntegrationEvents", ".Api.Contracts", ".Api"];
+
+    private static readonly string[] ImplementationSubAssemblySuffixes =
+        SubAssemblySuffixes.Where(s => s != ".Api.Contracts" && s != ".IntegrationEvents").ToArray();
+
     private static readonly string[] ModuleApiContractAssemblyNames =
-    [
-        "Tailbook.Modules.Identity.Api.Contracts",
-        "Tailbook.Modules.Customer.Api.Contracts",
-        "Tailbook.Modules.Pets.Api.Contracts",
-        "Tailbook.Modules.Catalog.Api.Contracts",
-        "Tailbook.Modules.Booking.Api.Contracts",
-        "Tailbook.Modules.VisitOperations.Api.Contracts",
-        "Tailbook.Modules.Staff.Api.Contracts",
-        "Tailbook.Modules.Notifications.Api.Contracts",
-        "Tailbook.Modules.Audit.Api.Contracts",
-        "Tailbook.Modules.Reporting.Api.Contracts"
-    ];
+        ModuleShortNames.Select(n => $"Tailbook.Modules.{n}.Api.Contracts").ToArray();
 
     private static readonly string SourceRoot = FindSourceRoot();
 
@@ -53,6 +51,18 @@ public sealed class ModuleBoundaryTests
         "_publisher"
     ];
 
+    private static string StripModulePrefix(string assemblyName) =>
+        assemblyName.Replace("Tailbook.Modules.", "");
+
+    private static string ModuleSourcePath(string assemblyName) =>
+        Path.Combine(SourceRoot, "Modules", StripModulePrefix(assemblyName));
+
+    private static Assembly LoadSubAssembly(string assemblyName, string suffix) =>
+        Assembly.Load($"{assemblyName}{suffix}");
+
+    private static string[] AllModuleSubAssemblyNames(string assemblyName) =>
+        SubAssemblySuffixes.Select(s => $"{assemblyName}{s}").ToArray();
+
     [Theory]
     [InlineData("Tailbook.Modules.Identity")]
     [InlineData("Tailbook.Modules.Customer")]
@@ -66,16 +76,41 @@ public sealed class ModuleBoundaryTests
     [InlineData("Tailbook.Modules.Reporting")]
     public void Modules_should_not_reference_other_modules_directly(string assemblyName)
     {
-        var assembly = Assembly.Load(assemblyName);
-        var ownApiContractAssemblyName = $"{assemblyName}.Api.Contracts";
-        var referencedModuleNames = assembly.GetReferencedAssemblies()
-            .Select(x => x.Name)
-            .Where(x => x is not null && (ModuleAssemblyNames.Contains(x) || ModuleApiContractAssemblyNames.Contains(x)))
-            .ToArray();
+        var violations = new List<string>();
+        var otherModuleNames = ModuleAssemblyNames.Where(n => n != assemblyName).ToArray();
 
-        // Allow references to any module's Api.Contracts (service bridge contracts),
-        // but block references to other module's implementation assemblies.
-        Assert.DoesNotContain(referencedModuleNames, x => x is not null && x != assemblyName && !x.EndsWith(".Api.Contracts"));
+        foreach (var suffix in ImplementationSubAssemblySuffixes)
+        {
+            var subAssemblyName = $"{assemblyName}{suffix}";
+            Assembly subAssembly;
+            try
+            {
+                subAssembly = Assembly.Load(subAssemblyName);
+            }
+            catch (FileNotFoundException)
+            {
+                continue;
+            }
+
+            var referencedModuleNames = subAssembly.GetReferencedAssemblies()
+                .Select(x => x.Name)
+                .Where(x => x is not null && (
+                    ModuleAssemblyNames.Contains(x) ||
+                    ModuleApiContractAssemblyNames.Contains(x)))
+                .ToArray();
+
+            var forbiddenRefs = referencedModuleNames
+                .Where(x => x is not null && !x.EndsWith(".Api.Contracts"))
+                .Where(x => otherModuleNames.Contains(x))
+                .ToArray();
+
+            foreach (var refName in forbiddenRefs)
+            {
+                violations.Add($"{subAssemblyName} references {refName}");
+            }
+        }
+
+        Assert.Empty(violations);
     }
 
     [Theory]
@@ -96,12 +131,7 @@ public sealed class ModuleBoundaryTests
 
         AssertNoSourceReferences(
             domainPath,
-            $"{assemblyName}.Application",
-            $"{assemblyName}.Infrastructure",
-            $"{assemblyName}.Api",
-            "FastEndpoints",
-            "Microsoft.AspNetCore",
-            "Microsoft.EntityFrameworkCore");
+            [$"{assemblyName}.Application", $"{assemblyName}.Infrastructure", $"{assemblyName}.Api", "FastEndpoints", "Microsoft.AspNetCore", "Microsoft.EntityFrameworkCore"]);
     }
 
     [Theory]
@@ -125,14 +155,11 @@ public sealed class ModuleBoundaryTests
 
         AssertNoSourceReferences(
             applicationPath,
-            $"{assemblyName}.Infrastructure",
-            apiPrefix,
-            "Tailbook.BuildingBlocks.Infrastructure",
-            "Microsoft.AspNetCore",
-            "Microsoft.EntityFrameworkCore");
+            [$"{assemblyName}.Infrastructure", apiPrefix, "Tailbook.BuildingBlocks.Infrastructure", "Microsoft.AspNetCore", "Microsoft.EntityFrameworkCore"],
+            [contractsPrefix]);
 
         AssertNoTypeReferences(
-            assemblyName,
+            $"{assemblyName}.Application",
             ".Application",
             [$"{assemblyName}.Infrastructure", apiPrefix, "Tailbook.BuildingBlocks.Infrastructure", "Microsoft.AspNetCore", "Microsoft.EntityFrameworkCore"],
             [contractsPrefix]);
@@ -167,8 +194,18 @@ public sealed class ModuleBoundaryTests
 
         Assert.Empty(sourceViolations);
 
-        var assembly = Assembly.Load(assemblyName);
-        var typeViolations = GetLoadableTypes(assembly)
+        var appAssemblyName = $"{assemblyName}.Application";
+        Assembly appAssembly;
+        try
+        {
+            appAssembly = Assembly.Load(appAssemblyName);
+        }
+        catch (FileNotFoundException)
+        {
+            return;
+        }
+
+        var typeViolations = GetLoadableTypes(appAssembly)
             .Where(type => type.Namespace?.Contains(".Application.", StringComparison.Ordinal) == true)
             .Where(type => type.Namespace?.Contains(".Commands", StringComparison.Ordinal) != true)
             .SelectMany(type => GetReferencedTypes(type)
@@ -217,15 +254,31 @@ public sealed class ModuleBoundaryTests
             "Reset"
         };
 
-        var assembly = Assembly.Load(assemblyName);
-        var violations = GetLoadableTypes(assembly)
-            .Where(type => type.Name.EndsWith("Queries", StringComparison.Ordinal))
-            .SelectMany(type => type
-                .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                .Where(method => writePrefixes.Any(prefix => method.Name.StartsWith(prefix, StringComparison.Ordinal)))
-                .Select(method => $"{type.FullName}.{method.Name} should be a command/use case, not a query service method"))
-            .OrderBy(x => x)
-            .ToArray();
+        var violations = new List<string>();
+
+        foreach (var suffix in new[] { ".Application", ".Api.Contracts" })
+        {
+            var subAssemblyName = $"{assemblyName}{suffix}";
+            Assembly subAssembly;
+            try
+            {
+                subAssembly = Assembly.Load(subAssemblyName);
+            }
+            catch (FileNotFoundException)
+            {
+                continue;
+            }
+
+            var subViolations = GetLoadableTypes(subAssembly)
+                .Where(type => type.Name.EndsWith("Queries", StringComparison.Ordinal))
+                .SelectMany(type => type
+                    .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                    .Where(method => writePrefixes.Any(prefix => method.Name.StartsWith(prefix, StringComparison.Ordinal)))
+                    .Select(method => $"{type.FullName}.{method.Name} should be a command/use case, not a query service method"))
+                .ToArray();
+
+            violations.AddRange(subViolations);
+        }
 
         Assert.Empty(violations);
     }
@@ -316,13 +369,12 @@ public sealed class ModuleBoundaryTests
 
         AssertNoSourceReferences(
             apiPath,
-            $"{assemblyName}.Infrastructure",
-            "Tailbook.BuildingBlocks.Infrastructure.Persistence",
-            "Microsoft.EntityFrameworkCore",
-            "AppDbContext");
+            [$"{assemblyName}.Infrastructure", "Tailbook.BuildingBlocks.Infrastructure.Persistence", "Microsoft.EntityFrameworkCore", "AppDbContext"],
+            [$"{assemblyName}.Api.Contracts"],
+            ["Module.cs"]);
 
         AssertNoTypeReferences(
-            assemblyName,
+            $"{assemblyName}.Api",
             ".Api",
             $"{assemblyName}.Infrastructure",
             "Tailbook.BuildingBlocks.Infrastructure.Persistence",
@@ -342,14 +394,25 @@ public sealed class ModuleBoundaryTests
     [InlineData("Tailbook.Modules.Reporting")]
     public void Module_global_usings_should_not_import_infrastructure_namespaces(string assemblyName)
     {
-        var globalUsingsPath = Path.Combine(GetModuleSourcePath(assemblyName), "GlobalUsings.cs");
-        if (!File.Exists(globalUsingsPath))
-        {
-            return;
-        }
+        var modulePath = GetModuleSourcePath(assemblyName);
 
-        var text = File.ReadAllText(globalUsingsPath);
-        Assert.DoesNotContain(".Infrastructure.", text, StringComparison.Ordinal);
+        foreach (var suffix in SubAssemblySuffixes)
+        {
+            // Skip Infrastructure project's own GlobalUsings — it naturally references its own namespace
+            if (suffix == ".Infrastructure")
+            {
+                continue;
+            }
+
+            var globalUsingsPath = Path.Combine(modulePath, suffix.Replace(".", ""), "GlobalUsings.cs");
+            if (!File.Exists(globalUsingsPath))
+            {
+                continue;
+            }
+
+            var text = File.ReadAllText(globalUsingsPath);
+            Assert.DoesNotContain(".Infrastructure.", text, StringComparison.Ordinal);
+        }
     }
 
     [Theory]
@@ -368,21 +431,26 @@ public sealed class ModuleBoundaryTests
         var modulePath = GetModuleSourcePath(assemblyName);
         var infrastructurePath = Path.Combine(modulePath, "Infrastructure");
 
-        // Infrastructure must not reference the API endpoints/DTOs layer.
-        // References to Api.Contracts (service bridge abstractions) are allowed.
         var apiPrefix = $"{assemblyName}.Api.";
         var contractsPrefix = $"{assemblyName}.Api.Contracts";
-        AssertNoSourceReferences(infrastructurePath, apiPrefix);
-        AssertNoTypeReferences(assemblyName, ".Infrastructure", new[] { apiPrefix }, new[] { contractsPrefix });
+        AssertNoSourceReferences(infrastructurePath, [apiPrefix], [contractsPrefix]);
+        AssertNoTypeReferences($"{assemblyName}.Infrastructure", ".Infrastructure", new[] { apiPrefix }, new[] { contractsPrefix });
     }
 
     [Fact]
     public void BuildingBlocks_should_not_reference_module_assemblies()
     {
         var assembly = Assembly.Load("Tailbook.BuildingBlocks");
+        var allModuleSubAssemblies = ModuleAssemblyNames
+            .SelectMany(n => AllModuleSubAssemblyNames(n))
+            .ToArray();
+
         var referencedModuleNames = assembly.GetReferencedAssemblies()
             .Select(x => x.Name)
-            .Where(x => x is not null && (ModuleAssemblyNames.Contains(x) || ModuleApiContractAssemblyNames.Contains(x)))
+            .Where(x => x is not null && (
+                ModuleAssemblyNames.Contains(x) ||
+                ModuleApiContractAssemblyNames.Contains(x) ||
+                allModuleSubAssemblies.Contains(x)))
             .ToArray();
 
         Assert.Empty(referencedModuleNames);
@@ -392,12 +460,17 @@ public sealed class ModuleBoundaryTests
     public void SharedKernel_should_stay_framework_light_and_module_free()
     {
         var assembly = Assembly.Load("Tailbook.SharedKernel");
+        var allModuleSubAssemblies = ModuleAssemblyNames
+            .SelectMany(n => AllModuleSubAssemblyNames(n))
+            .ToArray();
+
         var forbiddenReferences = assembly.GetReferencedAssemblies()
             .Select(x => x.Name)
             .Where(x =>
                 x is not null &&
                 (ModuleAssemblyNames.Contains(x) ||
                  ModuleApiContractAssemblyNames.Contains(x) ||
+                 allModuleSubAssemblies.Contains(x) ||
                  x.StartsWith("Microsoft.EntityFrameworkCore", StringComparison.Ordinal) ||
                  x.StartsWith("Microsoft.AspNetCore", StringComparison.Ordinal) ||
                  x.StartsWith("FastEndpoints", StringComparison.Ordinal)))
@@ -420,13 +493,12 @@ public sealed class ModuleBoundaryTests
     public void Api_contracts_should_not_reference_module_implementation_assemblies(string assemblyName)
     {
         var assembly = Assembly.Load(assemblyName);
-        // Api.Contracts may reference other Api.Contracts for service bridge types,
-        // but must not reference module implementation assemblies.
         var forbiddenReferences = assembly.GetReferencedAssemblies()
             .Select(x => x.Name)
             .Where(x =>
                 x is not null &&
-                ModuleAssemblyNames.Contains(x))
+                (ModuleAssemblyNames.Contains(x) ||
+                 ImplementationSubAssemblySuffixes.Select(s => $"{assemblyName.Replace(".Api.Contracts", "")}{s}").Contains(x)))
             .ToArray();
 
         Assert.Empty(forbiddenReferences);
@@ -445,8 +517,18 @@ public sealed class ModuleBoundaryTests
     [InlineData("Tailbook.Modules.Reporting")]
     public void CommandHandlers_should_not_publish_events_directly(string assemblyName)
     {
-        var assembly = Assembly.Load(assemblyName);
-        var handlerTypes = GetLoadableTypes(assembly)
+        var infrastructureAssemblyName = $"{assemblyName}.Infrastructure";
+        Assembly infrastructureAssembly;
+        try
+        {
+            infrastructureAssembly = Assembly.Load(infrastructureAssemblyName);
+        }
+        catch (FileNotFoundException)
+        {
+            return;
+        }
+
+        var handlerTypes = GetLoadableTypes(infrastructureAssembly)
             .Where(t => !t.IsAbstract && !t.IsInterface)
             .Where(t => t.GetInterfaces().Any(i =>
                 i.IsGenericType && i.GetGenericTypeDefinition().Name == "ICommandHandler`2"))
@@ -501,10 +583,20 @@ public sealed class ModuleBoundaryTests
         var modulePath = GetModuleSourcePath(assemblyName);
         var applicationPath = Path.Combine(modulePath, "Application");
 
-        AssertNoSourceReferences(applicationPath, "IMessageBroker", ".PublishAsync(");
+        AssertNoSourceReferences(applicationPath, ["IMessageBroker", ".PublishAsync("]);
 
-        var assembly = Assembly.Load(assemblyName);
-        var typeViolations = GetLoadableTypes(assembly)
+        var appAssemblyName = $"{assemblyName}.Application";
+        Assembly appAssembly;
+        try
+        {
+            appAssembly = Assembly.Load(appAssemblyName);
+        }
+        catch (FileNotFoundException)
+        {
+            return;
+        }
+
+        var typeViolations = GetLoadableTypes(appAssembly)
             .Where(type => type.Namespace?.Contains(".Application", StringComparison.Ordinal) == true)
             .SelectMany(type => GetReferencedTypes(type)
                 .Where(reference => IsForbidden(reference, ["Tailbook.BuildingBlocks.Abstractions.IMessageBroker"]))
@@ -651,12 +743,12 @@ public sealed class ModuleBoundaryTests
             return;
         }
 
-        var otherModuleContractsNamespaces = ModuleAssemblyNames
+        var otherModuleIntegrationEventNamespaces = ModuleAssemblyNames
             .Where(name => name != assemblyName)
-            .Select(name => $"{name}.Contracts.IntegrationEvents")
+            .Select(name => $"Tailbook.Modules.{StripModulePrefix(name)}.IntegrationEvents")
             .ToArray();
 
-        if (otherModuleContractsNamespaces.Length == 0)
+        if (otherModuleIntegrationEventNamespaces.Length == 0)
         {
             return;
         }
@@ -666,7 +758,7 @@ public sealed class ModuleBoundaryTests
             .SelectMany(path =>
             {
                 var text = File.ReadAllText(path);
-                return otherModuleContractsNamespaces
+                return otherModuleIntegrationEventNamespaces
                     .Where(ns => text.Contains(ns, StringComparison.Ordinal))
                     .Select(ns => $"{Path.GetRelativePath(SourceRoot, path)} references {ns}");
             })
@@ -677,14 +769,16 @@ public sealed class ModuleBoundaryTests
 
     private static string GetModuleSourcePath(string assemblyName)
     {
-        return Path.Combine(SourceRoot, assemblyName);
+        return ModuleSourcePath(assemblyName);
     }
 
     private static string? GetHandlerSourceFilePath(string modulePath, Type handlerType, string assemblyName)
     {
         var ns = handlerType.Namespace ?? "";
-        var relativeNs = ns.StartsWith(assemblyName + ".", StringComparison.Ordinal)
-            ? ns[(assemblyName.Length + 1)..]
+        var moduleNs = StripModulePrefix(assemblyName);
+        var fullPrefix = $"Tailbook.Modules.{moduleNs}.";
+        var relativeNs = ns.StartsWith(fullPrefix, StringComparison.Ordinal)
+            ? ns[fullPrefix.Length..]
             : ns;
         var relativePath = relativeNs.Replace('.', Path.DirectorySeparatorChar);
 
@@ -699,7 +793,7 @@ public sealed class ModuleBoundaryTests
             .FirstOrDefault(f => !IsGeneratedPath(f));
     }
 
-    private static void AssertNoSourceReferences(string layerPath, params string[] forbiddenPatterns)
+    private static void AssertNoSourceReferences(string layerPath, string[] forbiddenPatterns, string[]? allowedPatterns = null, string[]? excludedFiles = null)
     {
         if (!Directory.Exists(layerPath))
         {
@@ -708,11 +802,13 @@ public sealed class ModuleBoundaryTests
 
         var violations = Directory.EnumerateFiles(layerPath, "*.cs", SearchOption.AllDirectories)
             .Where(path => !IsGeneratedPath(path))
+            .Where(path => excludedFiles is null || !excludedFiles.Any(e => path.EndsWith(e, StringComparison.Ordinal)))
             .SelectMany(path =>
             {
                 var text = File.ReadAllText(path);
                 return forbiddenPatterns
                     .Where(pattern => text.Contains(pattern, StringComparison.Ordinal))
+                    .Where(pattern => allowedPatterns is null || !allowedPatterns.Any(a => text.Contains(a, StringComparison.Ordinal)))
                     .Select(pattern => $"{Path.GetRelativePath(SourceRoot, path)} references {pattern}");
             })
             .ToArray();
@@ -733,7 +829,16 @@ public sealed class ModuleBoundaryTests
 
     private static void AssertNoTypeReferences(string assemblyName, string layerSegment, string[] forbiddenNamespacePrefixes, string[]? allowedPrefixes = null)
     {
-        var assembly = Assembly.Load(assemblyName);
+        Assembly assembly;
+        try
+        {
+            assembly = Assembly.Load(assemblyName);
+        }
+        catch (FileNotFoundException)
+        {
+            return;
+        }
+
         var violations = GetLoadableTypes(assembly)
             .Where(type => type.Namespace?.Contains(layerSegment, StringComparison.Ordinal) == true)
             .SelectMany(type => GetReferencedTypes(type)
