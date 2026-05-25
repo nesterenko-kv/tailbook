@@ -39,6 +39,7 @@ public sealed class VisitCancellationConsumerTests
 
         var services = new ServiceCollection();
         services.AddLogging();
+        services.AddSingleton(TimeProvider.System);
         services.AddRabbitMqMessageBroker(config);
 
         var module = new VisitOperationsModule();

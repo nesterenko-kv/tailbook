@@ -250,6 +250,25 @@ public sealed class Visit : AggregateRoot
         return priceAdjustment.Value;
     }
 
+    public ErrorOr<Success> Cancel(string? reasonCode, Guid? actorUserId, DateTimeOffset now)
+    {
+        if (Status is not VisitStatusCodes.Open and not VisitStatusCodes.InProgress)
+        {
+            return VisitErrors.CancelNotAllowed;
+        }
+
+        Status = VisitStatusCodes.Cancelled;
+        Touch(actorUserId, now);
+        RaiseDomainEvent(new VisitCancelledDomainEvent(
+            Guid.NewGuid(),
+            StampUtc(now),
+            Id,
+            AppointmentId,
+            Status,
+            reasonCode));
+        return Result.Success;
+    }
+
     public ErrorOr<Success> Complete(Guid? actorUserId, DateTimeOffset now)
     {
         var canBeCompleted = EnsureCanBeCompleted();

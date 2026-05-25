@@ -5,6 +5,7 @@ namespace Tailbook.Modules.VisitOperations.IntegrationEvents;
 public static class VisitOperationsIntegrationEventVersions
 {
     public const int FinalPriceAdjusted = IntegrationEventVersionPolicy.InitialVersion;
+    public const int VisitCancelled = IntegrationEventVersionPolicy.InitialVersion;
     public const int VisitCheckedIn = IntegrationEventVersionPolicy.InitialVersion;
     public const int VisitClosed = IntegrationEventVersionPolicy.InitialVersion;
     public const int VisitCompleted = IntegrationEventVersionPolicy.InitialVersion;

@@ -69,6 +69,11 @@ public static class VisitErrors
         description: "Visit execution item already exists for this appointment item."
     );
 
+    public static Error CancelNotAllowed => Error.Conflict(
+        code: "VisitOperations.VisitCancelNotAllowed",
+        description: "Visit is not eligible for cancellation."
+    );
+
     public static Error NotEditable => Error.Conflict(
         code: "VisitOperations.VisitNotEditable",
         description: "Visit is not editable in its current status."

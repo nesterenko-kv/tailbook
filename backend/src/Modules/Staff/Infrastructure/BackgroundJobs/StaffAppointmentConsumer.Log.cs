@@ -19,6 +19,6 @@ internal static partial class StaffAppointmentConsumerLog
     [LoggerMessage(
         EventId = 9202,
         Level = LogLevel.Debug,
-        Message = "Appointment event {MessageId} ({EventType}) received from {RoutingKey}.")]
-    public static partial void AppointmentEventReceived(this ILogger logger, Guid messageId, string eventType, string routingKey);
+        Message = "Appointment event {MessageId} ({EventType}) received from {RoutingKey}. GroomerId: {GroomerId}, AppointmentId: {AppointmentId}.")]
+    public static partial void AppointmentEventReceived(this ILogger logger, Guid messageId, string eventType, string routingKey, Guid groomerId, Guid appointmentId);
 }

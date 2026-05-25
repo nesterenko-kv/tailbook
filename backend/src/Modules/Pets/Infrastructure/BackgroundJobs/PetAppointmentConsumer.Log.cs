@@ -10,6 +10,6 @@ internal static partial class PetAppointmentConsumerLogExtensions
     [LoggerMessage(2, LogLevel.Information, "PetAppointmentConsumer stopped.")]
     public static partial void PetAppointmentConsumerStopped(this ILogger logger);
 
-    [LoggerMessage(3, LogLevel.Debug, "Pet appointment event {MessageId} ({EventType}) received from routing key {RoutingKey}.")]
-    public static partial void PetAppointmentEventReceived(this ILogger logger, Guid messageId, string eventType, string routingKey);
+    [LoggerMessage(3, LogLevel.Debug, "Pet appointment event {MessageId} ({EventType}) received from routing key {RoutingKey}. PetId: {PetId}, AppointmentId: {AppointmentId}.")]
+    public static partial void PetAppointmentEventReceived(this ILogger logger, Guid messageId, string eventType, string routingKey, Guid petId, Guid appointmentId);
 }

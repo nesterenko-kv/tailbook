@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
+using Tailbook.Modules.Booking.Infrastructure.BackgroundJobs;
 using Tailbook.Modules.Booking.Infrastructure.Services;
 using Tailbook.Modules.Booking.Infrastructure.Services.CommandHandlers;
 
@@ -25,6 +26,7 @@ public sealed class BookingModule : IModuleDefinition
         services.AddScoped<IGroomerBookingReadService, GroomerBookingReadService>();
         services.AddScoped<IAppointmentOverlapReadService, BookingOverlapReadService>();
         services.AddScoped<IAppointmentVisitService, AppointmentVisitService>();
+        services.AddHostedService<VisitEventConsumer>();
         return services;
     }
 

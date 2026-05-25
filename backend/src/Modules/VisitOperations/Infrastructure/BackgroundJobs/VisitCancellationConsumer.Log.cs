@@ -15,4 +15,7 @@ internal static partial class VisitCancellationConsumerLogExtensions
 
     [LoggerMessage(4, LogLevel.Information, "Processing cancellation for appointment {AppointmentId}, visit {VisitId} (status: {Status}). MessageId: {MessageId}.")]
     public static partial void AppointmentCancellationProcessing(this ILogger logger, Guid messageId, Guid appointmentId, Guid visitId, string status);
+
+    [LoggerMessage(5, LogLevel.Information, "Visit {VisitId} cancelled due to appointment {AppointmentId} cancellation. MessageId: {MessageId}.")]
+    public static partial void VisitCancelled(this ILogger logger, Guid messageId, Guid appointmentId, Guid visitId);
 }
