@@ -6,6 +6,7 @@ import { formatDateTime } from "@/lib/format";
 import type { BookingRequestDetail, BookingRequestListItem, ClientDetail, GroomerListItem, GroomerListResponse, OfferListItem, PagedResult } from "@/lib/types";
 import { unwrapItems } from "@/lib/contracts";
 import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
+import { Pagination } from "@/components/pagination";
 
 function toneForStatus(status: string): "default" | "success" | "warning" {
   switch (status) {
@@ -19,7 +20,8 @@ function toneForStatus(status: string): "default" | "success" | "warning" {
 }
 
 export default function BookingRequestsPage() {
-  const [requests, setRequests] = useState<BookingRequestListItem[]>([]);
+  const [requestResult, setRequestResult] = useState<PagedResult<BookingRequestListItem> | null>(null);
+  const [page, setPage] = useState(1);
   const [offers, setOffers] = useState<OfferListItem[]>([]);
   const [clients, setClients] = useState<{ id: string; displayName: string }[]>([]);
   const [selectedClient, setSelectedClient] = useState<ClientDetail | null>(null);
@@ -39,12 +41,12 @@ export default function BookingRequestsPage() {
     setIsLoading(true);
     try {
       const [requestResponse, offerResponse, clientResponse, groomerResponse] = await Promise.all([
-        apiRequest<PagedResult<BookingRequestListItem>>("/api/admin/booking-requests?page=1&pageSize=50"),
+        apiRequest<PagedResult<BookingRequestListItem>>(`/api/admin/booking-requests?page=${page}&pageSize=50`),
         apiRequest<OfferListItem[]>("/api/admin/catalog/offers"),
         apiRequest<PagedResult<{ id: string; displayName: string }>>("/api/admin/clients?page=1&pageSize=100"),
         apiRequest<GroomerListResponse>("/api/admin/groomers")
       ]);
-      setRequests(requestResponse.items);
+      setRequestResult(requestResponse);
       setOffers(offerResponse);
       setClients(clientResponse.items);
       setGroomers(unwrapItems(groomerResponse));
@@ -200,10 +202,10 @@ export default function BookingRequestsPage() {
       <div className="grid gap-6 xl:grid-cols-[1.15fr_1fr]">
         <Card title="Booking request queue" description="Guest requests can stay in NeedsReview until staff links them to a real pet and confirms details.">
           {isLoading ? <LoadingState label="Loading booking requests..." /> : null}
-          {!isLoading && requests.length === 0 ? <EmptyState title="No booking requests found" description="New public or admin-assisted booking requests will appear here." /> : null}
-          {!isLoading && requests.length > 0 ? (
+          {!isLoading && (!requestResult || requestResult.items.length === 0) ? <EmptyState title="No booking requests found" description="New public or admin-assisted booking requests will appear here." /> : null}
+          {!isLoading && requestResult && requestResult.items.length > 0 ? (
             <div className="grid gap-3">
-              {requests.map((item) => (
+              {requestResult.items.map((item) => (
                 <button key={item.id} type="button" onClick={() => setSelectedRequestId(item.id)} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-left transition hover:border-emerald-500/40">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -222,6 +224,7 @@ export default function BookingRequestsPage() {
               ))}
             </div>
           ) : null}
+          {requestResult ? <Pagination page={page} pageSize={50} totalCount={requestResult.totalCount} onPageChange={(p) => { setPage(p); void loadBase(); }} /> : null}
         </Card>
 
         <Card title="Create booking request" description="Admin-assisted intake for already-known clients still works as before.">

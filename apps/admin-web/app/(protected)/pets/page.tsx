@@ -8,6 +8,7 @@ import { addRecentPetId } from "@/lib/recent";
 import { formatDateTime } from "@/lib/format";
 import type { ClientListItem, PagedResult, PetCatalog, PetDetail, PetListItem } from "@/lib/types";
 import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
+import { Pagination } from "@/components/pagination";
 
 export default function PetsPage() {
     const router = useRouter();
@@ -15,6 +16,7 @@ export default function PetsPage() {
     const [clients, setClients] = useState<ClientListItem[]>([]);
     const [pets, setPets] = useState<PagedResult<PetListItem> | null>(null);
     const [filters, setFilters] = useState({ search: "", clientId: "", animalTypeCode: "", breedId: "" });
+    const [page, setPage] = useState(1);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,7 +53,7 @@ export default function PetsPage() {
     async function loadPets() {
         setError(null);
         try {
-            const query = new URLSearchParams({ page: "1", pageSize: "25" });
+            const query = new URLSearchParams({ page: String(page), pageSize: "25" });
             if (filters.search.trim()) query.set("search", filters.search.trim());
             if (filters.clientId) query.set("clientId", filters.clientId);
             if (filters.animalTypeCode) query.set("animalTypeCode", filters.animalTypeCode);
@@ -64,8 +66,12 @@ export default function PetsPage() {
     }
 
     useEffect(() => {
-        void loadPets();
+        setPage(1);
     }, [filters.search, filters.clientId, filters.animalTypeCode, filters.breedId]);
+
+    useEffect(() => {
+        void loadPets();
+    }, [filters.search, filters.clientId, filters.animalTypeCode, filters.breedId, page]);
 
     const selectedAnimalType = useMemo(() => catalog?.animalTypes.find((item) => item.code === form.animalTypeCode) ?? null, [catalog, form.animalTypeCode]);
     const breedOptions = useMemo(() => catalog?.breeds.filter((breed) => breed.animalTypeId === selectedAnimalType?.id) ?? [], [catalog, selectedAnimalType]);
@@ -206,7 +212,7 @@ export default function PetsPage() {
                             ))}
                             {pets && pets.items.length === 0 ? <EmptyState title="No pets found" description="Adjust filters or register a pet." /> : null}
                             {!pets ? <LoadingState label="Loading pets..." /> : null}
-                            {pets ? <p className="text-xs text-slate-500">Showing {pets.items.length} of {pets.totalCount} pets.</p> : null}
+                            {pets ? <Pagination page={page} pageSize={25} totalCount={pets.totalCount} onPageChange={setPage} /> : null}
                         </div>
                     </Card>
 

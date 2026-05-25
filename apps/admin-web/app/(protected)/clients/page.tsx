@@ -6,10 +6,12 @@ import { apiRequest, ApiError } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import type { ClientListItem, PagedResult } from "@/lib/types";
 import { Badge, Card, ErrorBanner, Field, Input, PageHeader, PrimaryButton, SuccessBanner, TextArea } from "@/components/ui";
+import { Pagination } from "@/components/pagination";
 
 export default function ClientsPage() {
-    const [clients, setClients] = useState<ClientListItem[]>([]);
+    const [clientResult, setClientResult] = useState<PagedResult<ClientListItem> | null>(null);
     const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
     const [displayName, setDisplayName] = useState("");
     const [notes, setNotes] = useState("");
     const [isLoading, setIsLoading] = useState(true);
@@ -17,16 +19,16 @@ export default function ClientsPage() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
-    async function loadClients(term?: string) {
+    async function loadClients(term: string | undefined, pageNum: number) {
         setIsLoading(true);
         setError(null);
         try {
-            const query = new URLSearchParams({ page: "1", pageSize: "50" });
+            const query = new URLSearchParams({ page: String(pageNum), pageSize: "50" });
             if (term) {
                 query.set("search", term);
             }
             const response = await apiRequest<PagedResult<ClientListItem>>(`/api/admin/clients?${query.toString()}`);
-            setClients(response.items);
+            setClientResult(response);
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Failed to load clients.");
         } finally {
@@ -35,7 +37,7 @@ export default function ClientsPage() {
     }
 
     useEffect(() => {
-        void loadClients();
+        void loadClients(undefined, 1);
     }, []);
 
     async function createClient(event: FormEvent<HTMLFormElement>) {
@@ -52,7 +54,7 @@ export default function ClientsPage() {
             setDisplayName("");
             setNotes("");
             setSuccess("Client created.");
-            await loadClients(search);
+            await loadClients(search, 1);
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Failed to create client.");
         } finally {
@@ -72,13 +74,13 @@ export default function ClientsPage() {
                 <Card title="Client list" description="Search and open client profiles.">
                     <div className="mb-4 flex gap-3">
                         <Input placeholder="Search by display name" value={search} onChange={(event) => setSearch(event.target.value)} />
-                        <PrimaryButton type="button" onClick={() => void loadClients(search)}>Search</PrimaryButton>
+                        <PrimaryButton type="button" onClick={() => { setPage(1); void loadClients(search, 1); }}>Search</PrimaryButton>
                     </div>
                     <ErrorBanner message={error} />
                     <SuccessBanner message={success} />
                     {isLoading ? <p className="text-sm text-slate-300">Loading clients…</p> : null}
                     <div className="grid gap-3">
-                        {clients.map((client) => (
+                        {clientResult?.items.map((client) => (
                             <Link key={client.id} href={`/clients/${client.id}`} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 transition hover:border-emerald-500/40">
                                 <div className="flex items-start justify-between gap-4">
                                     <div>
@@ -90,8 +92,9 @@ export default function ClientsPage() {
                                 <p className="mt-3 text-sm text-slate-300">Contacts: {client.contactCount}</p>
                             </Link>
                         ))}
-                        {!isLoading && clients.length === 0 ? <p className="text-sm text-slate-400">No clients found.</p> : null}
+                        {!isLoading && (!clientResult || clientResult.items.length === 0) ? <p className="text-sm text-slate-400">No clients found.</p> : null}
                     </div>
+                    {clientResult ? <Pagination page={page} pageSize={50} totalCount={clientResult.totalCount} onPageChange={(p) => { setPage(p); void loadClients(search, p); }} /> : null}
                 </Card>
 
                 <Card title="Create client" description="Minimal CRM account creation for front desk/admin.">

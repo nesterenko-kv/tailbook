@@ -7,6 +7,7 @@ import { formatDateTime, formatMoney } from "@/lib/format";
 import type { GroomerListResponse, PagedResult, VisitListItem } from "@/lib/types";
 import { buildVisitFilterQuery } from "@/lib/visit-filters";
 import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, Select } from "@/components/ui";
+import { Pagination } from "@/components/pagination";
 
 const statusOptions = ["Open", "InProgress", "AwaitingFinalization", "Closed"];
 
@@ -14,12 +15,13 @@ export default function VisitsPage() {
   const [visits, setVisits] = useState<PagedResult<VisitListItem> | null>(null);
   const [groomers, setGroomers] = useState<GroomerListResponse>({ items: [] });
   const [filters, setFilters] = useState({ status: "", groomerId: "", from: "", to: "", appointmentId: "" });
+  const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
   async function loadVisits() {
     setError(null);
     try {
-      const queryString = buildVisitFilterQuery(filters);
+      const queryString = buildVisitFilterQuery(filters, page);
       const response = await apiRequest<PagedResult<VisitListItem>>(`/api/admin/visits${queryString}`);
       setVisits(response);
     } catch (err) {
@@ -34,8 +36,12 @@ export default function VisitsPage() {
   }, []);
 
   useEffect(() => {
-    void loadVisits();
+    setPage(1);
   }, [filters.status, filters.groomerId, filters.from, filters.to, filters.appointmentId]);
+
+  useEffect(() => {
+    void loadVisits();
+  }, [filters.status, filters.groomerId, filters.from, filters.to, filters.appointmentId, page]);
 
   return (
     <div className="flex flex-col gap-6 px-2 py-2">
@@ -72,7 +78,7 @@ export default function VisitsPage() {
           ))}
           {visits && visits.items.length === 0 ? <EmptyState title="No visits found" description="Adjust filters or check in an appointment." /> : null}
           {!visits ? <LoadingState label="Loading visits..." /> : null}
-          {visits ? <p className="text-xs text-slate-500">Showing {visits.items.length} of {visits.totalCount} visits.</p> : null}
+          {visits ? <Pagination page={page} pageSize={25} totalCount={visits.totalCount} onPageChange={setPage} /> : null}
         </div>
       </Card>
     </div>

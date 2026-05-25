@@ -6,8 +6,8 @@ export type VisitFiltersState = {
     appointmentId: string;
 };
 
-export function buildVisitFilterQuery(filters: VisitFiltersState): string {
-    const query = new URLSearchParams({ page: "1", pageSize: "25" });
+export function buildVisitFilterQuery(filters: VisitFiltersState, page: number = 1): string {
+    const query = new URLSearchParams({ page: String(page), pageSize: "25" });
     if (filters.status) query.set("status", filters.status);
     if (filters.groomerId) query.set("groomerId", filters.groomerId);
     if (filters.appointmentId.trim()) query.set("appointmentId", filters.appointmentId.trim());

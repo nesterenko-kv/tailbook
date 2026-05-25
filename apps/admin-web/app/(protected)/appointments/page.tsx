@@ -7,9 +7,11 @@ import { formatDateTime, formatMoney } from "@/lib/format";
 import { unwrapItems } from "@/lib/contracts";
 import type { AppointmentListItem, ClientDetail, GroomerListItem, GroomerListResponse, OfferListItem, PagedResult } from "@/lib/types";
 import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, PrimaryButton, Select, SuccessBanner } from "@/components/ui";
+import { Pagination } from "@/components/pagination";
 
 export default function AppointmentsPage() {
-  const [appointments, setAppointments] = useState<AppointmentListItem[]>([]);
+  const [appointmentResult, setAppointmentResult] = useState<PagedResult<AppointmentListItem> | null>(null);
+  const [page, setPage] = useState(1);
   const [clients, setClients] = useState<{ id: string; displayName: string }[]>([]);
   const [selectedClient, setSelectedClient] = useState<ClientDetail | null>(null);
   const [offers, setOffers] = useState<OfferListItem[]>([]);
@@ -25,12 +27,12 @@ export default function AppointmentsPage() {
     setIsLoading(true);
     try {
       const [appointmentResponse, clientResponse, offerResponse, groomerResponse] = await Promise.all([
-        apiRequest<PagedResult<AppointmentListItem>>("/api/admin/appointments?page=1&pageSize=50"),
+        apiRequest<PagedResult<AppointmentListItem>>(`/api/admin/appointments?page=${page}&pageSize=50`),
         apiRequest<PagedResult<{ id: string; displayName: string }>>("/api/admin/clients?page=1&pageSize=100"),
         apiRequest<OfferListItem[]>("/api/admin/catalog/offers"),
         apiRequest<GroomerListResponse>("/api/admin/groomers")
       ]);
-      setAppointments(appointmentResponse.items);
+      setAppointmentResult(appointmentResponse);
       setClients(clientResponse.items);
       setOffers(offerResponse);
       setGroomers(unwrapItems(groomerResponse));
@@ -78,10 +80,10 @@ export default function AppointmentsPage() {
       <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
         <Card title="Appointment list">
           {isLoading ? <LoadingState label="Loading appointments..." /> : null}
-          {!isLoading && appointments.length === 0 ? <EmptyState title="No appointments found" description="Create a direct appointment or convert a booking request." /> : null}
-          {!isLoading && appointments.length > 0 ? (
+          {!isLoading && (!appointmentResult || appointmentResult.items.length === 0) ? <EmptyState title="No appointments found" description="Create a direct appointment or convert a booking request." /> : null}
+          {!isLoading && appointmentResult && appointmentResult.items.length > 0 ? (
             <div className="grid gap-3">
-              {appointments.map((item) => (
+              {appointmentResult.items.map((item) => (
                 <Link key={item.id} href={`/appointments/${item.id}`} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 transition hover:border-emerald-500/40">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -95,6 +97,7 @@ export default function AppointmentsPage() {
               ))}
             </div>
           ) : null}
+          {appointmentResult ? <Pagination page={page} pageSize={50} totalCount={appointmentResult.totalCount} onPageChange={(p) => { setPage(p); void loadBase(); }} /> : null}
         </Card>
         <Card title="Create direct appointment">
           <form className="grid gap-4" onSubmit={createAppointment}>
