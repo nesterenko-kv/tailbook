@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -60,12 +60,9 @@ public static class ApiDiagnosticsTelemetry
         HttpRequestDuration.Record(durationMilliseconds, tags);
     }
 
-    public static string GetStatusClass(int statusCode)
-    {
-        return statusCode is >= 100 and <= 599
+    public static string GetStatusClass(int statusCode) => statusCode is >= 100 and <= 599
             ? $"{statusCode / 100}xx"
             : "unknown";
-    }
 
     public static void RecordHealthReport(HealthReport report)
     {
@@ -91,8 +88,5 @@ public static class ApiDiagnosticsTelemetry
         }
     }
 
-    private static string Normalize(string value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? "unknown" : value.Trim();
-    }
+    private static string Normalize(string value) => string.IsNullOrWhiteSpace(value) ? "unknown" : value.Trim();
 }

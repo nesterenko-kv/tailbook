@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Customer.Api.Admin.ListClients;
+﻿namespace Tailbook.Modules.Customer.Api.Admin.ListClients;
 
 public sealed class ListClientsRequest
 {

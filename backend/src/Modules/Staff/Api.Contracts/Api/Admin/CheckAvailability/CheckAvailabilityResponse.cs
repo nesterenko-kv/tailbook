@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Staff.Api.Admin.CheckAvailability;
+﻿namespace Tailbook.Modules.Staff.Api.Admin.CheckAvailability;
 
 public sealed class CheckAvailabilityResponse
 {

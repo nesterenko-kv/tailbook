@@ -1,4 +1,4 @@
-namespace Tailbook.BuildingBlocks.Infrastructure.Auth;
+﻿namespace Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 public interface ICurrentUser
 {

@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Tailbook.BuildingBlocks.Abstractions.Security;
@@ -78,9 +78,6 @@ public sealed class AesGcmSensitivePayloadProtector : ISensitivePayloadProtector
         }
     }
 
-    private static byte[] DeriveKey(string key)
-    {
-        return SHA256.HashData(Encoding.UTF8.GetBytes(key));
-    }
+    private static byte[] DeriveKey(string key) => SHA256.HashData(Encoding.UTF8.GetBytes(key));
 
 }

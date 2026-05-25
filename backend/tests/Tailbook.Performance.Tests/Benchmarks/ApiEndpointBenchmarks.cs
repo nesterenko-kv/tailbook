@@ -1,4 +1,4 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
@@ -37,19 +37,16 @@ public class ApiEndpointBenchmarks : IDisposable
             {
                 builder.UseEnvironment("PerformanceTest");
 
-                builder.ConfigureAppConfiguration((_, config) =>
+                builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    config.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        ["BootstrapAdmin:Email"] = AdminEmail,
-                        ["BootstrapAdmin:Password"] = AdminPassword,
-                        ["BootstrapAdmin:DisplayName"] = "Perf Admin",
-                        ["Jwt:Issuer"] = TestJwtIssuer,
-                        ["Jwt:Audience"] = TestJwtAudience,
-                        ["Jwt:SigningKey"] = TestJwtSigningKey,
-                        ["Jwt:ExpirationMinutes"] = "120",
-                    });
-                });
+                    ["BootstrapAdmin:Email"] = AdminEmail,
+                    ["BootstrapAdmin:Password"] = AdminPassword,
+                    ["BootstrapAdmin:DisplayName"] = "Perf Admin",
+                    ["Jwt:Issuer"] = TestJwtIssuer,
+                    ["Jwt:Audience"] = TestJwtAudience,
+                    ["Jwt:SigningKey"] = TestJwtSigningKey,
+                    ["Jwt:ExpirationMinutes"] = "120",
+                }));
 
                 builder.ConfigureServices(services =>
                 {
@@ -82,19 +79,16 @@ public class ApiEndpointBenchmarks : IDisposable
                         options.ExpirationMinutes = 120;
                     });
 
-                    services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+                    services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options => options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateIssuer = true,
-                            ValidateAudience = true,
-                            ValidateLifetime = true,
-                            ValidateIssuerSigningKey = true,
-                            ValidIssuer = TestJwtIssuer,
-                            ValidAudience = TestJwtAudience,
-                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestJwtSigningKey)),
-                            ClockSkew = TimeSpan.Zero
-                        };
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = TestJwtIssuer,
+                        ValidAudience = TestJwtAudience,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestJwtSigningKey)),
+                        ClockSkew = TimeSpan.Zero
                     });
                 });
             });

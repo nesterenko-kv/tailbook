@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Contracts.Abstractions;
+﻿namespace Tailbook.Modules.Identity.Api.Contracts.Abstractions;
 
 public interface IUserReferenceValidationService
 {

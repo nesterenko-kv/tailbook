@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Abstractions;
+﻿using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.Pets.Domain.Events;
 
 namespace Tailbook.Modules.Pets.Domain.Aggregates;

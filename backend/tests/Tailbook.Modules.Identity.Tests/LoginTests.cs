@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Tailbook.Api.Tests.Factories;
@@ -175,16 +175,13 @@ public sealed class LoginTests(RealDbWebApplicationFactory factory) : IClassFixt
         Assert.True(ContainsErrorCode(errors, expectedCode), content);
     }
 
-    private static bool ContainsErrorCode(JsonElement errors, string expectedCode)
+    private static bool ContainsErrorCode(JsonElement errors, string expectedCode) => errors.ValueKind switch
     {
-        return errors.ValueKind switch
-        {
-            JsonValueKind.Array => errors.EnumerateArray()
-                .Any(error => string.Equals(ReadProperty(error, "code"), expectedCode, StringComparison.Ordinal)),
-            JsonValueKind.Object => errors.TryGetProperty(expectedCode, out _),
-            _ => false
-        };
-    }
+        JsonValueKind.Array => errors.EnumerateArray()
+            .Any(error => string.Equals(ReadProperty(error, "code"), expectedCode, StringComparison.Ordinal)),
+        JsonValueKind.Object => errors.TryGetProperty(expectedCode, out _),
+        _ => false
+    };
 
     private static string? ReadProperty(JsonElement element, string camelCaseName)
     {

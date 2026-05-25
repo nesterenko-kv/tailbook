@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Booking.Domain.ValueObjects;
+﻿namespace Tailbook.Modules.Booking.Domain.ValueObjects;
 
 public sealed record AppointmentItemDraft(
     string ItemType,

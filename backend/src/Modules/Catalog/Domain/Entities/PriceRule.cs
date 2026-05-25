@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 
 namespace Tailbook.Modules.Catalog.Domain.Entities;
 
@@ -51,10 +51,7 @@ public sealed class PriceRule
         };
     }
 
-    internal bool HasEquivalentCondition(Guid? animalTypeId, Guid? breedId, Guid? breedGroupId, Guid? coatTypeId, Guid? sizeCategoryId)
-    {
-        return Condition.Matches(animalTypeId, breedId, breedGroupId, coatTypeId, sizeCategoryId);
-    }
+    internal bool HasEquivalentCondition(Guid? animalTypeId, Guid? breedId, Guid? breedGroupId, Guid? coatTypeId, Guid? sizeCategoryId) => Condition.Matches(animalTypeId, breedId, breedGroupId, coatTypeId, sizeCategoryId);
 
     private static ErrorOr<string> NormalizeCurrency(string currency)
     {

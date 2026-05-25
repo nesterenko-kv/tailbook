@@ -1,4 +1,4 @@
-namespace Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
+﻿namespace Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 
 public sealed class InboxOptions
 {

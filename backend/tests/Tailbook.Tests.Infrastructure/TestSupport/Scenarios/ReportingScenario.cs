@@ -1,4 +1,4 @@
-namespace Tailbook.Api.Tests.TestSupport.Scenarios;
+﻿namespace Tailbook.Api.Tests.TestSupport.Scenarios;
 
 public sealed class ReportingScenario
 {

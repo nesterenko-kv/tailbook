@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Domain.Aggregates;
+﻿namespace Tailbook.Modules.Identity.Domain.Aggregates;
 
 public sealed class IdentityRole
 {

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
 namespace Tailbook.Modules.Notifications.Infrastructure.Seeding;

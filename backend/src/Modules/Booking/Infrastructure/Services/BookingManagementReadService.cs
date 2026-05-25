@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -124,13 +124,10 @@ public sealed class BookingManagementReadService(
             bookingRequest.UpdatedAt);
     }
 
-    public async Task<Guid?> GetAppointmentIdByBookingRequestAsync(Guid bookingRequestId, CancellationToken cancellationToken)
-    {
-        return await dbContext.Set<Appointment>()
+    public async Task<Guid?> GetAppointmentIdByBookingRequestAsync(Guid bookingRequestId, CancellationToken cancellationToken) => await dbContext.Set<Appointment>()
             .Where(x => x.BookingRequestId == bookingRequestId)
             .Select(x => (Guid?)x.Id)
             .SingleOrDefaultAsync(cancellationToken);
-    }
 
     public async Task<PagedResult<AppointmentListItemView>> ListAppointmentsAsync(string? search, DateTimeOffset? from, DateTimeOffset? to, Guid? groomerId, int page, int pageSize, CancellationToken cancellationToken)
     {

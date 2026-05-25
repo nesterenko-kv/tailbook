@@ -1,4 +1,4 @@
-using Xunit;
+﻿using Xunit;
 
 namespace Tailbook.Modules.Identity.Tests;
 
@@ -28,16 +28,10 @@ public sealed class PasswordHasherTests
     [InlineData("password", null)]
     [InlineData("password", "")]
     [InlineData("password", "  ")]
-    public void Verify_returns_false_for_invalid_inputs(string? password, string? hash)
-    {
-        Assert.False(_sut.Verify(password!, hash!));
-    }
+    public void Verify_returns_false_for_invalid_inputs(string? password, string? hash) => Assert.False(_sut.Verify(password!, hash!));
 
     [Fact]
-    public void Verify_wrong_prefix_returns_false()
-    {
-        Assert.False(_sut.Verify("password", "INVALID$10000$salt$hash"));
-    }
+    public void Verify_wrong_prefix_returns_false() => Assert.False(_sut.Verify("password", "INVALID$10000$salt$hash"));
 
     [Fact]
     public void TryParseHashParts_parses_valid_format()

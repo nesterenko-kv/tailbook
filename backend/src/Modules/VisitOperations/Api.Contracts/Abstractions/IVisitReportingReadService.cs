@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.VisitOperations.Api.Contracts.Abstractions;
+﻿namespace Tailbook.Modules.VisitOperations.Api.Contracts.Abstractions;
 
 public interface IVisitReportingReadService
 {

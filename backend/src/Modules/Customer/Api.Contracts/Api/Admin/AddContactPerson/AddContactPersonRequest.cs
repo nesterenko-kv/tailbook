@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Customer.Api.Admin.AddContactPerson;
+﻿namespace Tailbook.Modules.Customer.Api.Admin.AddContactPerson;
 
 public sealed class AddContactPersonRequest
 {

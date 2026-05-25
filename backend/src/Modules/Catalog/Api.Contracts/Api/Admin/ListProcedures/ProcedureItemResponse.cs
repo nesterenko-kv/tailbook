@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Api.Admin.ListProcedures;
+﻿namespace Tailbook.Modules.Catalog.Api.Admin.ListProcedures;
 
 public sealed class ProcedureItemResponse
 {

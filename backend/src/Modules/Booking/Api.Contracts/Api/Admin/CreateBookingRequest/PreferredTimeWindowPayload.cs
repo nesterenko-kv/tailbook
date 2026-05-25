@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Booking.Api.Admin.CreateBookingRequest;
+﻿namespace Tailbook.Modules.Booking.Api.Admin.CreateBookingRequest;
 
 public sealed class PreferredTimeWindowPayload
 {

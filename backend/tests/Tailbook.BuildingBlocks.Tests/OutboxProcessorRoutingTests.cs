@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
@@ -46,10 +46,7 @@ public sealed class OutboxProcessorRoutingTests
     public async Task Messages_are_ordered_by_occurred_at()
     {
         var captured = new List<(string routingKey, DateTimeOffset? processedAt)>();
-        var broker = new CapturingMessageBroker((_, routingKey, _, _) =>
-        {
-            captured.Add((routingKey, DateTimeOffset.UtcNow));
-        });
+        var broker = new CapturingMessageBroker((_, routingKey, _, _) => captured.Add((routingKey, DateTimeOffset.UtcNow)));
 
         var dbContext = CreateInMemoryDbContext();
         var now = DateTimeOffset.UtcNow;

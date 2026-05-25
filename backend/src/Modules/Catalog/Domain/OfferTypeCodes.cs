@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Domain;
+﻿namespace Tailbook.Modules.Catalog.Domain;
 
 public static class OfferTypeCodes
 {

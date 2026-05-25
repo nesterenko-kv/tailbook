@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace Tailbook.BuildingBlocks.Migrations;
 
@@ -118,6 +118,6 @@ public partial class IdentityMfaRecoveryCodes
 }
 
 [ExcludeFromCodeCoverage]
-partial class AppDbContextModelSnapshot
+internal partial class AppDbContextModelSnapshot
 {
 }

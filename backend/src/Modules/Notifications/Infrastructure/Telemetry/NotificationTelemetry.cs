@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
 namespace Tailbook.Modules.Notifications.Infrastructure.Telemetry;
@@ -51,10 +51,7 @@ public static class NotificationTelemetry
         return activity;
     }
 
-    public static void SetPendingNotificationCount(Activity? activity, int pendingCount)
-    {
-        activity?.SetTag("tailbook.notifications.pending_notification_count", pendingCount);
-    }
+    public static void SetPendingNotificationCount(Activity? activity, int pendingCount) => activity?.SetTag("tailbook.notifications.pending_notification_count", pendingCount);
 
     public static void SetNotificationProcessingCounts(
         Activity? activity,
@@ -117,13 +114,7 @@ public static class NotificationTelemetry
         DeliveryAttempts.Add(1, tags);
     }
 
-    public static void RecordBackgroundProcessingFailure()
-    {
-        BackgroundProcessingFailures.Add(1);
-    }
+    public static void RecordBackgroundProcessingFailure() => BackgroundProcessingFailures.Add(1);
 
-    private static string Normalize(string value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? "unknown" : value.Trim();
-    }
+    private static string Normalize(string value) => string.IsNullOrWhiteSpace(value) ? "unknown" : value.Trim();
 }

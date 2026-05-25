@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using Microsoft.AspNetCore.Hosting;
 using Tailbook.Api.Tests.Factories;
 using Xunit;

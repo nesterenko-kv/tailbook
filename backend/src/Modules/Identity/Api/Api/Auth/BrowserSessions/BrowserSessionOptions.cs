@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Auth.BrowserSessions;
+﻿namespace Tailbook.Modules.Identity.Api.Auth.BrowserSessions;
 
 public sealed class BrowserSessionOptions
 {
@@ -20,18 +20,12 @@ public sealed class BrowserSessionOptions
     public bool UseRefreshCookies =>
         string.Equals(TokenTransport, BrowserSessionTokenTransportModes.RefreshCookie, StringComparison.OrdinalIgnoreCase);
 
-    public static bool HasValidTokenTransport(BrowserSessionOptions options)
-    {
-        return string.Equals(options.TokenTransport, BrowserSessionTokenTransportModes.BodyTokens, StringComparison.OrdinalIgnoreCase)
+    public static bool HasValidTokenTransport(BrowserSessionOptions options) => string.Equals(options.TokenTransport, BrowserSessionTokenTransportModes.BodyTokens, StringComparison.OrdinalIgnoreCase)
                || string.Equals(options.TokenTransport, BrowserSessionTokenTransportModes.RefreshCookie, StringComparison.OrdinalIgnoreCase);
-    }
 
-    public static bool HasValidSameSite(BrowserSessionOptions options)
-    {
-        return string.Equals(options.CookieSameSite, "Strict", StringComparison.OrdinalIgnoreCase)
+    public static bool HasValidSameSite(BrowserSessionOptions options) => string.Equals(options.CookieSameSite, "Strict", StringComparison.OrdinalIgnoreCase)
                || string.Equals(options.CookieSameSite, "Lax", StringComparison.OrdinalIgnoreCase)
                || string.Equals(options.CookieSameSite, "None", StringComparison.OrdinalIgnoreCase);
-    }
 }
 
 public static class BrowserSessionTokenTransportModes

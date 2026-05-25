@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -603,22 +603,19 @@ public sealed class NotificationUseCasesTests
         return message;
     }
 
-    private static NotificationJob CreateJob(string sourceEventType, string status, DateTimeOffset createdAt)
+    private static NotificationJob CreateJob(string sourceEventType, string status, DateTimeOffset createdAt) => new NotificationJob
     {
-        return new NotificationJob
-        {
-            Id = Guid.NewGuid(),
-            SourceEventType = sourceEventType,
-            Channel = "LocalFile",
-            Recipient = "front-desk",
-            Subject = sourceEventType,
-            Body = sourceEventType,
-            Status = status,
-            AttemptCount = status == NotificationStatusCodes.Sent ? 1 : 0,
-            CreatedAt = createdAt,
-            SentAt = status == NotificationStatusCodes.Sent ? createdAt.AddMinutes(1) : null
-        };
-    }
+        Id = Guid.NewGuid(),
+        SourceEventType = sourceEventType,
+        Channel = "LocalFile",
+        Recipient = "front-desk",
+        Subject = sourceEventType,
+        Body = sourceEventType,
+        Status = status,
+        AttemptCount = status == NotificationStatusCodes.Sent ? 1 : 0,
+        CreatedAt = createdAt,
+        SentAt = status == NotificationStatusCodes.Sent ? createdAt.AddMinutes(1) : null
+    };
 
     private sealed class CapturingNotificationSink(string? failureMessage = null) : INotificationSink
     {
@@ -638,10 +635,7 @@ public sealed class NotificationUseCasesTests
 
     private sealed class TestSensitivePayloadProtector : ISensitivePayloadProtector
     {
-        public string Protect(string purpose, string plaintext)
-        {
-            return purpose + "::" + plaintext;
-        }
+        public string Protect(string purpose, string plaintext) => purpose + "::" + plaintext;
 
         public string Unprotect(string purpose, string protectedPayload)
         {

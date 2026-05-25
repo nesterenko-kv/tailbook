@@ -28,10 +28,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     BeforeJson = table.Column<string>(type: "jsonb", nullable: true),
                     AfterJson = table.Column<string>(type: "jsonb", nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_audit_entries", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_audit_entries", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "notification_delivery_attempts",
@@ -45,10 +42,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     ErrorMessage = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true),
                     AttemptedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_notification_delivery_attempts", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_notification_delivery_attempts", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "notification_jobs",
@@ -71,10 +65,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     ProcessedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     SourceOutboxMessageId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_notification_jobs", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_notification_jobs", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "notification_templates",
@@ -90,10 +81,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_notification_templates", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_notification_templates", x => x.Id));
 
             migrationBuilder.CreateIndex(
                 name: "IX_audit_entries_ActorUserId",

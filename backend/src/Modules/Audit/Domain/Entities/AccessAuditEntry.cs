@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Audit.Domain.Entities;
+﻿namespace Tailbook.Modules.Audit.Domain.Entities;
 
 public sealed class AccessAuditEntry
 {

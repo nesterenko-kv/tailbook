@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Customer.Domain;
+﻿namespace Tailbook.Modules.Customer.Domain;
 
 public static class ContactRoleCodes
 {

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Routing;
+﻿using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.BuildingBlocks.Abstractions;
@@ -28,8 +28,5 @@ public sealed class StaffModule : IModuleDefinition
         return services;
     }
 
-    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
-    {
-        return endpoints;
-    }
+    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints;
 }

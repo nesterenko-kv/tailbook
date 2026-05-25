@@ -1,4 +1,4 @@
-namespace Tailbook.Api.Tests;
+﻿namespace Tailbook.Api.Tests;
 
 public static class TestApiHelpers
 {

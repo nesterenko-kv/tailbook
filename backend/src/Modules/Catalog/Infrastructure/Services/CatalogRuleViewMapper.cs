@@ -1,10 +1,8 @@
-namespace Tailbook.Modules.Catalog.Infrastructure.Services;
+﻿namespace Tailbook.Modules.Catalog.Infrastructure.Services;
 
 internal static class CatalogRuleViewMapper
 {
-    public static PriceRuleView ToView(PriceRule rule, PriceRuleCondition? condition, CommercialOffer offer)
-    {
-        return new PriceRuleView(
+    public static PriceRuleView ToView(PriceRule rule, PriceRuleCondition? condition, CommercialOffer offer) => new PriceRuleView(
             rule.Id,
             rule.RuleSetId,
             rule.OfferId,
@@ -22,11 +20,8 @@ internal static class CatalogRuleViewMapper
                 condition?.CoatTypeId,
                 condition?.SizeCategoryId),
             rule.CreatedAt);
-    }
 
-    public static DurationRuleView ToView(DurationRule rule, DurationRuleCondition? condition, CommercialOffer offer)
-    {
-        return new DurationRuleView(
+    public static DurationRuleView ToView(DurationRule rule, DurationRuleCondition? condition, CommercialOffer offer) => new DurationRuleView(
             rule.Id,
             rule.RuleSetId,
             rule.OfferId,
@@ -44,15 +39,11 @@ internal static class CatalogRuleViewMapper
                 condition?.CoatTypeId,
                 condition?.SizeCategoryId),
             rule.CreatedAt);
-    }
 
     private static RuleConditionView ToConditionView(
         Guid? animalTypeId,
         Guid? breedId,
         Guid? breedGroupId,
         Guid? coatTypeId,
-        Guid? sizeCategoryId)
-    {
-        return new RuleConditionView(animalTypeId, breedId, breedGroupId, coatTypeId, sizeCategoryId);
-    }
+        Guid? sizeCategoryId) => new RuleConditionView(animalTypeId, breedId, breedGroupId, coatTypeId, sizeCategoryId);
 }

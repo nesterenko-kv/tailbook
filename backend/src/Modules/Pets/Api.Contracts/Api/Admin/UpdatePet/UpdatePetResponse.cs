@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Pets.Api.Admin.UpdatePet;
+﻿namespace Tailbook.Modules.Pets.Api.Admin.UpdatePet;
 
 public sealed class UpdatePetResponse
 {

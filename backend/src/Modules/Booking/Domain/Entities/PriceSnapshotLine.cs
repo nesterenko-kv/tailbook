@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Booking.Domain.Entities;
+﻿namespace Tailbook.Modules.Booking.Domain.Entities;
 
 public sealed class PriceSnapshotLine
 {

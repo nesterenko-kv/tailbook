@@ -1,4 +1,4 @@
-namespace Tailbook.BuildingBlocks.Infrastructure.Persistence;
+﻿namespace Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
 public interface IDataSeeder
 {

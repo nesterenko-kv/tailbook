@@ -1,4 +1,4 @@
-using FastEndpoints;
+﻿using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 
@@ -23,8 +23,5 @@ public sealed class RequestPasswordResetEndpoint(IPasswordResetService passwordR
 
 public sealed class RequestPasswordResetRequestValidator : Validator<RequestPasswordResetRequest>
 {
-    public RequestPasswordResetRequestValidator()
-    {
-        RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(256);
-    }
+    public RequestPasswordResetRequestValidator() => RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(256);
 }

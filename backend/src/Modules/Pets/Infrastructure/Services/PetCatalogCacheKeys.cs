@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Pets.Infrastructure.Services;
+﻿namespace Tailbook.Modules.Pets.Infrastructure.Services;
 
 internal static class PetCatalogCacheKeys
 {

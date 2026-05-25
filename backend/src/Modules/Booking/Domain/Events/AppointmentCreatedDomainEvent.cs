@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Abstractions;
+﻿using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.Booking.IntegrationEvents;
 
 namespace Tailbook.Modules.Booking.Domain.Events;
@@ -18,9 +18,7 @@ public sealed record AppointmentCreatedDomainEvent(
     public string EventType => "AppointmentCreated";
     public string ModuleCode => "booking";
 
-    public IIntegrationEventDto ToIntegrationEvent()
-    {
-        return new AppointmentCreatedIntegrationEvent(
+    public IIntegrationEventDto ToIntegrationEvent() => new AppointmentCreatedIntegrationEvent(
             AppointmentId,
             BookingRequestId,
             PetId,
@@ -29,5 +27,4 @@ public sealed record AppointmentCreatedDomainEvent(
             EndAt,
             Status,
             VersionNo);
-    }
 }

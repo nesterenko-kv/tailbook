@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Audit.Infrastructure.WriteBuffering;
+﻿namespace Tailbook.Modules.Audit.Infrastructure.WriteBuffering;
 
 internal abstract record AuditWriteItem(Guid Id, Guid? ActorUserId, DateTimeOffset HappenedAt);
 
@@ -23,13 +23,10 @@ internal sealed record AuditTrailWriteItem(
 
 internal static class AuditWriteItemTypes
 {
-    public static string GetTelemetryItemType(AuditWriteItem item)
+    public static string GetTelemetryItemType(AuditWriteItem item) => item switch
     {
-        return item switch
-        {
-            AccessAuditWriteItem => Telemetry.AuditTelemetry.ItemTypeAccessAudit,
-            AuditTrailWriteItem => Telemetry.AuditTelemetry.ItemTypeAuditTrail,
-            _ => "unknown"
-        };
-    }
+        AccessAuditWriteItem => Telemetry.AuditTelemetry.ItemTypeAccessAudit,
+        AuditTrailWriteItem => Telemetry.AuditTelemetry.ItemTypeAuditTrail,
+        _ => "unknown"
+    };
 }

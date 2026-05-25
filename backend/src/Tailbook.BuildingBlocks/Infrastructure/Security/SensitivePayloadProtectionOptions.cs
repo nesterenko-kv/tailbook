@@ -1,4 +1,4 @@
-namespace Tailbook.BuildingBlocks.Infrastructure.Security;
+﻿namespace Tailbook.BuildingBlocks.Infrastructure.Security;
 
 public sealed class SensitivePayloadProtectionOptions
 {

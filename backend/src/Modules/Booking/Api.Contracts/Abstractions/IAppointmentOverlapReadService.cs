@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Booking.Api.Contracts.Abstractions;
+﻿namespace Tailbook.Modules.Booking.Api.Contracts.Abstractions;
 
 public interface IAppointmentOverlapReadService
 {

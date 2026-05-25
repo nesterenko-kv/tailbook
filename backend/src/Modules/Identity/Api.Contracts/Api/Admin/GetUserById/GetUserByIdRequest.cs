@@ -1,4 +1,4 @@
-using FastEndpoints;
+﻿using FastEndpoints;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 namespace Tailbook.Modules.Identity.Api.Admin.GetUserById;

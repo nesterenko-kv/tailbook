@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
@@ -379,16 +379,13 @@ public sealed class StaffSchedulingService(
         }, cancellationToken);
     }
 
-    private async Task<CachedTimeBlockData?> LoadOverlappingTimeBlockAsync(Guid groomerId, DateTimeOffset startAt, DateTimeOffset endAt, CancellationToken cancellationToken)
-    {
-        return await dbContext.Set<TimeBlock>()
+    private async Task<CachedTimeBlockData?> LoadOverlappingTimeBlockAsync(Guid groomerId, DateTimeOffset startAt, DateTimeOffset endAt, CancellationToken cancellationToken) => await dbContext.Set<TimeBlock>()
             .AsNoTracking()
             .Where(x => x.GroomerId == groomerId)
             .Where(x => x.StartAt < endAt && x.EndAt > startAt)
             .OrderBy(x => x.StartAt)
             .Select(x => new CachedTimeBlockData(x.Id, x.GroomerId, x.StartAt, x.EndAt, x.ReasonCode))
             .FirstOrDefaultAsync(cancellationToken);
-    }
 
     // --- EXISTING LOGIC (unchanged) ---
 
@@ -548,19 +545,16 @@ public sealed class StaffSchedulingService(
         return $"Groomer capability modifier for {pet.BreedName}: {sign}{capability.ReservedDurationModifierMinutes} min.";
     }
 
-    private static int ToIsoWeekday(DayOfWeek dayOfWeek)
+    private static int ToIsoWeekday(DayOfWeek dayOfWeek) => dayOfWeek switch
     {
-        return dayOfWeek switch
-        {
-            DayOfWeek.Monday => 1,
-            DayOfWeek.Tuesday => 2,
-            DayOfWeek.Wednesday => 3,
-            DayOfWeek.Thursday => 4,
-            DayOfWeek.Friday => 5,
-            DayOfWeek.Saturday => 6,
-            _ => 7
-        };
-    }
+        DayOfWeek.Monday => 1,
+        DayOfWeek.Tuesday => 2,
+        DayOfWeek.Wednesday => 3,
+        DayOfWeek.Thursday => 4,
+        DayOfWeek.Friday => 5,
+        DayOfWeek.Saturday => 6,
+        _ => 7
+    };
 
     private sealed record AvailabilityWindowSegment(DateTimeOffset StartAt, DateTimeOffset EndAt);
 

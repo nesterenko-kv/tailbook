@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using FastEndpoints;
 using StackExchange.Redis;
 using Tailbook.BuildingBlocks.Infrastructure.Diagnostics;
@@ -400,8 +400,5 @@ public sealed class RedisJobProvider(ConnectionMultiplexer redis, TimeProvider t
     private static DateTime TryParseDateTime(string? value)
         => value is not null && long.TryParse(value, out var ticks) ? new DateTime(ticks, DateTimeKind.Utc) : DateTime.UnixEpoch;
 
-    private static async Task UpdateJobFieldAsync(IDatabase db, string dataKey, string field, string value)
-    {
-        await db.HashSetAsync(dataKey, field, value);
-    }
+    private static async Task UpdateJobFieldAsync(IDatabase db, string dataKey, string field, string value) => await db.HashSetAsync(dataKey, field, value);
 }

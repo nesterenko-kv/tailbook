@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.VisitOperations.Infrastructure.Services;
+﻿namespace Tailbook.Modules.VisitOperations.Infrastructure.Services;
 
 internal static class GroomerVisitMapper
 {

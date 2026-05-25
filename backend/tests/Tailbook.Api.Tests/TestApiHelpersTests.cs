@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Infrastructure.Diagnostics;
+﻿using Tailbook.BuildingBlocks.Infrastructure.Diagnostics;
 using Xunit;
 
 namespace Tailbook.Api.Tests;

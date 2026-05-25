@@ -1,4 +1,4 @@
-using Tailbook.Api.Tests.TestSupport.Models;
+﻿using Tailbook.Api.Tests.TestSupport.Models;
 using Xunit;
 
 namespace Tailbook.Api.Tests.TestSupport.Assertions;

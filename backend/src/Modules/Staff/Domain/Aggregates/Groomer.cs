@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Abstractions;
+﻿using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.Staff.Domain.Events;
 
 namespace Tailbook.Modules.Staff.Domain.Aggregates;

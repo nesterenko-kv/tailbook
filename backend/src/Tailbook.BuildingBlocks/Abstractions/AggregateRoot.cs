@@ -1,4 +1,4 @@
-namespace Tailbook.BuildingBlocks.Abstractions;
+﻿namespace Tailbook.BuildingBlocks.Abstractions;
 
 public abstract class AggregateRoot : IHasDomainEvents
 {
@@ -10,8 +10,5 @@ public abstract class AggregateRoot : IHasDomainEvents
 
     public void ClearDomainEvents() => _domainEvents.Clear();
 
-    protected void RaiseDomainEvent(IDomainEvent domainEvent)
-    {
-        _domainEvents.Add(domainEvent);
-    }
+    protected void RaiseDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
 }

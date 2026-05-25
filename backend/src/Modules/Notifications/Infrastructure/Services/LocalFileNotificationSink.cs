@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.Extensions.Options;
 using Tailbook.Modules.Notifications.Infrastructure.Options;
 

@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Reporting.Api.Admin.GetEstimateAccuracy;
+﻿namespace Tailbook.Modules.Reporting.Api.Admin.GetEstimateAccuracy;
 
 public sealed class GetEstimateAccuracyRequest
 {

@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Infrastructure.Imports;
+﻿using Tailbook.BuildingBlocks.Infrastructure.Imports;
 using Xunit;
 
 namespace Tailbook.Modules.Catalog.Tests;

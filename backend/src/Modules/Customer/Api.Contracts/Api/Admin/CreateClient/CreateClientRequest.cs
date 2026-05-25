@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Customer.Api.Admin.CreateClient;
+﻿namespace Tailbook.Modules.Customer.Api.Admin.CreateClient;
 
 public sealed class CreateClientRequest
 {

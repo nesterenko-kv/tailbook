@@ -1,4 +1,4 @@
-using Tailbook.Modules.Customer.Domain;
+﻿using Tailbook.Modules.Customer.Domain;
 
 namespace Tailbook.Modules.Customer.Domain.Entities;
 

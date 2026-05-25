@@ -31,10 +31,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_appointments", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_appointments", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "booking_requests",
@@ -52,10 +49,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_booking_requests", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_booking_requests", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "appointment_items",

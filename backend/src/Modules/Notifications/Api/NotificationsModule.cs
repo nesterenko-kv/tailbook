@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Routing;
+﻿using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -50,8 +50,5 @@ public sealed class NotificationsModule : IModuleDefinition
         return services;
     }
 
-    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
-    {
-        return endpoints;
-    }
+    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints;
 }

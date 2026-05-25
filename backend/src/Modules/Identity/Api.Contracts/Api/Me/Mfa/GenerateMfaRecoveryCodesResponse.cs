@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Me.Mfa;
+﻿namespace Tailbook.Modules.Identity.Api.Me.Mfa;
 
 public sealed class GenerateMfaRecoveryCodesResponse
 {

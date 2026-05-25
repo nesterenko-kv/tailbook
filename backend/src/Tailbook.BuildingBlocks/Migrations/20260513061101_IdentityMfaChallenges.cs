@@ -30,10 +30,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     RequestIpAddress = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
                     UserAgent = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_iam_mfa_challenges", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_iam_mfa_challenges", x => x.Id));
 
             migrationBuilder.CreateIndex(
                 name: "IX_iam_mfa_challenges_FactorId",
@@ -55,11 +52,8 @@ namespace Tailbook.BuildingBlocks.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
+        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
                 name: "iam_mfa_challenges",
                 schema: "iam");
-        }
     }
 }

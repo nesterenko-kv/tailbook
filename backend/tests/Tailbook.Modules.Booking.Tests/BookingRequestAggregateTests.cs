@@ -1,4 +1,4 @@
-using Tailbook.Modules.Booking.Domain;
+﻿using Tailbook.Modules.Booking.Domain;
 using Tailbook.Modules.Booking.Domain.Events;
 using Xunit;
 
@@ -63,8 +63,5 @@ public sealed class BookingRequestAggregateTests
         Assert.Equal(appointmentId, domainEvent.AppointmentId);
     }
 
-    private static DateTimeOffset Utc(string value)
-    {
-        return DateTimeOffset.Parse(value).ToUniversalTime();
-    }
+    private static DateTimeOffset Utc(string value) => DateTimeOffset.Parse(value).ToUniversalTime();
 }

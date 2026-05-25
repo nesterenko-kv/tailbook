@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Staff.Api.Admin.ListGroomers;
+﻿namespace Tailbook.Modules.Staff.Api.Admin.ListGroomers;
 
 public sealed class GroomerListItemResponse
 {

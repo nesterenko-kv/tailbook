@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Abstractions;
+﻿using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.Identity.IntegrationEvents;
 
 namespace Tailbook.Modules.Identity.Domain.Events;
@@ -14,8 +14,5 @@ public sealed record PasswordResetRequestedDomainEvent(
     public string EventType => "Tailbook.Modules.Identity.Integration.PasswordResetRequested";
     public string ModuleCode => "identity";
 
-    public IIntegrationEventDto ToIntegrationEvent()
-    {
-        return new PasswordResetRequestedIntegrationEvent(Email, DisplayName, ProtectedResetLink, ExpiresAt);
-    }
+    public IIntegrationEventDto ToIntegrationEvent() => new PasswordResetRequestedIntegrationEvent(Email, DisplayName, ProtectedResetLink, ExpiresAt);
 }

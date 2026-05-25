@@ -1,4 +1,4 @@
-global using Tailbook.Modules.Customer.Api.Contracts.Abstractions;
+﻿global using Tailbook.Modules.Customer.Api.Contracts.Abstractions;
 global using Tailbook.Modules.Pets.Application.Abstractions.Services;
 global using Tailbook.Modules.Pets.Application.Pets.Commands;
 global using Tailbook.Modules.Pets.Application.Pets.Models;

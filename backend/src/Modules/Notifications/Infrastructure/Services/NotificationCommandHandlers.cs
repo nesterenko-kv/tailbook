@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using FastEndpoints;
 using Tailbook.Modules.Notifications.Infrastructure.Telemetry;
 
@@ -9,18 +9,9 @@ public sealed class NotificationCommandHandlers(NotificationUseCases useCases)
       ICommandHandler<RequeueNotificationJobCommand, ErrorOr<NotificationJobListItemView>>,
       ICommandHandler<AbandonNotificationJobCommand, ErrorOr<NotificationJobListItemView>>
 {
-    public Task<int> ExecuteAsync(ProcessNotificationsCommand command, CancellationToken ct = default)
-    {
-        return useCases.ProcessPendingNotificationsAsync(NotificationTelemetry.TriggerManual, ct);
-    }
+    public Task<int> ExecuteAsync(ProcessNotificationsCommand command, CancellationToken ct = default) => useCases.ProcessPendingNotificationsAsync(NotificationTelemetry.TriggerManual, ct);
 
-    public Task<ErrorOr<NotificationJobListItemView>> ExecuteAsync(RequeueNotificationJobCommand command, CancellationToken ct = default)
-    {
-        return useCases.RequeueJobAsync(command.JobId, command.ActorUserId, ct);
-    }
+    public Task<ErrorOr<NotificationJobListItemView>> ExecuteAsync(RequeueNotificationJobCommand command, CancellationToken ct = default) => useCases.RequeueJobAsync(command.JobId, command.ActorUserId, ct);
 
-    public Task<ErrorOr<NotificationJobListItemView>> ExecuteAsync(AbandonNotificationJobCommand command, CancellationToken ct = default)
-    {
-        return useCases.AbandonJobAsync(command.JobId, command.ActorUserId, ct);
-    }
+    public Task<ErrorOr<NotificationJobListItemView>> ExecuteAsync(AbandonNotificationJobCommand command, CancellationToken ct = default) => useCases.AbandonJobAsync(command.JobId, command.ActorUserId, ct);
 }

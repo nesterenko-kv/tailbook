@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Pets.Domain.Entities;
+﻿namespace Tailbook.Modules.Pets.Domain.Entities;
 
 public sealed class BreedAllowedCoatType
 {

@@ -1,4 +1,4 @@
-namespace Tailbook.Api.Tests.TestSupport.Models;
+﻿namespace Tailbook.Api.Tests.TestSupport.Models;
 
 public sealed record GroomerAvailabilityResult
 {

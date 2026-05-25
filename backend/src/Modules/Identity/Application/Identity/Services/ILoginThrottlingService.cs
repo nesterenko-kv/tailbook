@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Application.Identity.Services;
+﻿namespace Tailbook.Modules.Identity.Application.Identity.Services;
 
 public interface ILoginThrottlingService
 {

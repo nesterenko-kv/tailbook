@@ -1,4 +1,4 @@
-namespace Tailbook.BuildingBlocks.Abstractions.Security;
+﻿namespace Tailbook.BuildingBlocks.Abstractions.Security;
 
 public static class PermissionCodes
 {

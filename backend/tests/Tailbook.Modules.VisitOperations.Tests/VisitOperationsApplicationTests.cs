@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.Api.Tests;
@@ -98,17 +98,11 @@ public sealed class VisitOperationsApplicationTests
         Assert.True(payload.RootElement.GetProperty("closedAt").GetDateTimeOffset() > default(DateTimeOffset));
     }
 
-    private static Task<int> CountVisitEventsAsync(AppDbContext dbContext, string eventType)
-    {
-        return dbContext.OutboxMessages.CountAsync(x => x.ModuleCode == "visitops" && x.EventType == eventType);
-    }
+    private static Task<int> CountVisitEventsAsync(AppDbContext dbContext, string eventType) => dbContext.OutboxMessages.CountAsync(x => x.ModuleCode == "visitops" && x.EventType == eventType);
 
     private static async Task<OutboxMessage> SingleVisitEventAsync(
         AppDbContext dbContext,
-        string eventType)
-    {
-        return await dbContext.OutboxMessages.SingleAsync(x => x.ModuleCode == "visitops" && x.EventType == eventType);
-    }
+        string eventType) => await dbContext.OutboxMessages.SingleAsync(x => x.ModuleCode == "visitops" && x.EventType == eventType);
 
     private sealed class VisitApplicationHarness : IAsyncDisposable
     {
@@ -204,10 +198,7 @@ public sealed class VisitOperationsApplicationTests
                 visit.ExecutionItems.Single().Id);
         }
 
-        public ValueTask DisposeAsync()
-        {
-            return DbContext.DisposeAsync();
-        }
+        public ValueTask DisposeAsync() => DbContext.DisposeAsync();
     }
 
     private sealed class StubAppointmentVisitService : IAppointmentVisitService
@@ -218,12 +209,9 @@ public sealed class VisitOperationsApplicationTests
         public Guid AppointmentItemId { get; } = Guid.NewGuid();
         public Guid OfferVersionId { get; } = Guid.NewGuid();
 
-        public Task<VisitAppointmentInfo?> GetAppointmentAsync(Guid appointmentId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(appointmentId == AppointmentId
+        public Task<VisitAppointmentInfo?> GetAppointmentAsync(Guid appointmentId, CancellationToken cancellationToken) => Task.FromResult(appointmentId == AppointmentId
                 ? CreateAppointment()
                 : null);
-        }
 
         public Task<IReadOnlyDictionary<Guid, VisitAppointmentInfo>> ListAppointmentsAsync(
             IReadOnlyCollection<Guid> appointmentIds,
@@ -238,29 +226,15 @@ public sealed class VisitOperationsApplicationTests
             return Task.FromResult(result);
         }
 
-        public Task<ErrorOr<Success>> MarkCheckedInAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<ErrorOr<Success>>(Result.Success);
-        }
+        public Task<ErrorOr<Success>> MarkCheckedInAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken) => Task.FromResult<ErrorOr<Success>>(Result.Success);
 
-        public Task<ErrorOr<Success>> MarkInProgressAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<ErrorOr<Success>>(Result.Success);
-        }
+        public Task<ErrorOr<Success>> MarkInProgressAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken) => Task.FromResult<ErrorOr<Success>>(Result.Success);
 
-        public Task<ErrorOr<Success>> MarkCompletedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<ErrorOr<Success>>(Result.Success);
-        }
+        public Task<ErrorOr<Success>> MarkCompletedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken) => Task.FromResult<ErrorOr<Success>>(Result.Success);
 
-        public Task<ErrorOr<Success>> MarkClosedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<ErrorOr<Success>>(Result.Success);
-        }
+        public Task<ErrorOr<Success>> MarkClosedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken) => Task.FromResult<ErrorOr<Success>>(Result.Success);
 
-        private VisitAppointmentInfo CreateAppointment()
-        {
-            return new VisitAppointmentInfo(
+        private VisitAppointmentInfo CreateAppointment() => new VisitAppointmentInfo(
                 AppointmentId,
                 null,
                 PetId,
@@ -282,60 +256,35 @@ public sealed class VisitOperationsApplicationTests
                     1500m,
                     90,
                     120)]);
-        }
     }
 
     private sealed class StubVisitCatalogReadService : IVisitCatalogReadService
     {
-        public Task<IReadOnlyCollection<OfferExecutionComponentInfo>> GetIncludedComponentsAsync(Guid offerVersionId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IReadOnlyCollection<OfferExecutionComponentInfo>>([]);
-        }
+        public Task<IReadOnlyCollection<OfferExecutionComponentInfo>> GetIncludedComponentsAsync(Guid offerVersionId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyCollection<OfferExecutionComponentInfo>>([]);
 
-        public Task<OfferExecutionComponentInfo?> GetComponentAsync(Guid offerVersionComponentId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<OfferExecutionComponentInfo?>(null);
-        }
+        public Task<OfferExecutionComponentInfo?> GetComponentAsync(Guid offerVersionComponentId, CancellationToken cancellationToken) => Task.FromResult<OfferExecutionComponentInfo?>(null);
 
-        public Task<ProcedureReadModel?> GetProcedureAsync(Guid procedureId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<ProcedureReadModel?>(null);
-        }
+        public Task<ProcedureReadModel?> GetProcedureAsync(Guid procedureId, CancellationToken cancellationToken) => Task.FromResult<ProcedureReadModel?>(null);
     }
 
     private sealed class StubPetSummaryReadService(Guid petId) : IPetSummaryReadService
     {
-        public Task<PetSummaryReadModel?> GetPetSummaryAsync(Guid requestedPetId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(requestedPetId == petId
+        public Task<PetSummaryReadModel?> GetPetSummaryAsync(Guid requestedPetId, CancellationToken cancellationToken) => Task.FromResult(requestedPetId == petId
                 ? new PetSummaryReadModel(petId, "Milo", null, "DOG", "Dog", "Samoyed", "DOUBLE_COAT", "LARGE")
                 : null);
-        }
 
-        public Task<IReadOnlyCollection<PetSummaryReadModel>> ListPetSummariesByClientAsync(Guid clientId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IReadOnlyCollection<PetSummaryReadModel>>([]);
-        }
+        public Task<IReadOnlyCollection<PetSummaryReadModel>> ListPetSummariesByClientAsync(Guid clientId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyCollection<PetSummaryReadModel>>([]);
 
-        public Task<IReadOnlyCollection<Guid>> SearchPetIdsAsync(string? search, int maxResults, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IReadOnlyCollection<Guid>>([petId]);
-        }
+        public Task<IReadOnlyCollection<Guid>> SearchPetIdsAsync(string? search, int maxResults, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyCollection<Guid>>([petId]);
     }
 
     private sealed class NoOpAccessAuditService : IAccessAuditService
     {
-        public ValueTask RecordAsync(string resourceType, string resourceId, string actionCode, Guid? actorUserId, CancellationToken cancellationToken)
-        {
-            return default;
-        }
+        public ValueTask RecordAsync(string resourceType, string resourceId, string actionCode, Guid? actorUserId, CancellationToken cancellationToken) => default;
     }
 
     private sealed class NoOpAuditTrailService : IAuditTrailService
     {
-        public ValueTask RecordAsync(string moduleCode, string entityType, string entityId, string actionCode, Guid? actorUserId, string? beforeJson, string? afterJson, CancellationToken cancellationToken)
-        {
-            return default;
-        }
+        public ValueTask RecordAsync(string moduleCode, string entityType, string entityId, string actionCode, Guid? actorUserId, string? beforeJson, string? afterJson, CancellationToken cancellationToken) => default;
     }
 }

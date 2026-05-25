@@ -1,4 +1,4 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -35,33 +35,30 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         builder.UseEnvironment("Testing");
 
-        builder.ConfigureAppConfiguration((_, config) =>
+        builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
         {
-            config.AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["BootstrapAdmin:Email"] = "admin@test.local",
-                ["BootstrapAdmin:Password"] = "MyV3ryC00lAdminP@ss",
-                ["BootstrapAdmin:DisplayName"] = "Test Admin",
+            ["BootstrapAdmin:Email"] = "admin@test.local",
+            ["BootstrapAdmin:Password"] = "MyV3ryC00lAdminP@ss",
+            ["BootstrapAdmin:DisplayName"] = "Test Admin",
 
-                ["Jwt:Issuer"] = TestJwtIssuer,
-                ["Jwt:Audience"] = TestJwtAudience,
-                ["Jwt:SigningKey"] = TestJwtSigningKey,
-                ["Jwt:ExpirationMinutes"] = "120",
-                ["LoginThrottling:MaxFailedAttempts"] = TestMaxFailedLoginAttempts.ToString(),
-                ["LoginThrottling:FailureWindowMinutes"] = "15",
-                ["LoginThrottling:LockoutMinutes"] = "15",
-                ["PasswordReset:ExpirationMinutes"] = "30",
-                ["PasswordReset:TokenBytes"] = "32",
-                ["PasswordReset:ResetUrlBase"] = "http://localhost:3002/reset-password",
-                ["SensitivePayloadProtection:Key"] = "test-sensitive-payload-key-that-is-at-least-32chars",
-                ["Notifications:LocalFilePath"] = Path.Combine(Path.GetTempPath(), $"tailbook-test-notifications-{Guid.NewGuid():N}.log"),
-                ["Audit:QueueCapacity"] = "100",
-                ["Audit:BatchSize"] = "1",
-                ["Audit:FlushIntervalMilliseconds"] = "10",
-                ["Audit:MaxWriteRetries"] = "1",
-                ["Audit:RetryDelayMilliseconds"] = "1"
-            });
-        });
+            ["Jwt:Issuer"] = TestJwtIssuer,
+            ["Jwt:Audience"] = TestJwtAudience,
+            ["Jwt:SigningKey"] = TestJwtSigningKey,
+            ["Jwt:ExpirationMinutes"] = "120",
+            ["LoginThrottling:MaxFailedAttempts"] = TestMaxFailedLoginAttempts.ToString(),
+            ["LoginThrottling:FailureWindowMinutes"] = "15",
+            ["LoginThrottling:LockoutMinutes"] = "15",
+            ["PasswordReset:ExpirationMinutes"] = "30",
+            ["PasswordReset:TokenBytes"] = "32",
+            ["PasswordReset:ResetUrlBase"] = "http://localhost:3002/reset-password",
+            ["SensitivePayloadProtection:Key"] = "test-sensitive-payload-key-that-is-at-least-32chars",
+            ["Notifications:LocalFilePath"] = Path.Combine(Path.GetTempPath(), $"tailbook-test-notifications-{Guid.NewGuid():N}.log"),
+            ["Audit:QueueCapacity"] = "100",
+            ["Audit:BatchSize"] = "1",
+            ["Audit:FlushIntervalMilliseconds"] = "10",
+            ["Audit:MaxWriteRetries"] = "1",
+            ["Audit:RetryDelayMilliseconds"] = "1"
+        }));
 
         builder.ConfigureServices(services =>
         {
@@ -95,19 +92,16 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 options.ExpirationMinutes = 120;
             });
 
-            services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+            services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options => options.TokenValidationParameters = new TokenValidationParameters
             {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = TestJwtIssuer,
-                    ValidAudience = TestJwtAudience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestJwtSigningKey)),
-                    ClockSkew = TimeSpan.Zero
-                };
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = TestJwtIssuer,
+                ValidAudience = TestJwtAudience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestJwtSigningKey)),
+                ClockSkew = TimeSpan.Zero
             });
         });
     }
@@ -167,10 +161,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         return user.Id;
     }
 
-    public static void SetBearer(HttpClient client, string accessToken)
-    {
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-    }
+    public static void SetBearer(HttpClient client, string accessToken) => client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
     private sealed class LoginResponseEnvelope
     {

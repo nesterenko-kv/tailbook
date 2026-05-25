@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Application.Identity.Models;
+﻿namespace Tailbook.Modules.Identity.Application.Identity.Models;
 
 public abstract record AuthenticationResult;
 public sealed record AuthenticationSucceededResult(LoginResult Login) : AuthenticationResult;

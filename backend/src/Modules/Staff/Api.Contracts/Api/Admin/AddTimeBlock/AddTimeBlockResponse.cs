@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Staff.Api.Admin.AddTimeBlock;
+﻿namespace Tailbook.Modules.Staff.Api.Admin.AddTimeBlock;
 
 public sealed class AddTimeBlockResponse
 {

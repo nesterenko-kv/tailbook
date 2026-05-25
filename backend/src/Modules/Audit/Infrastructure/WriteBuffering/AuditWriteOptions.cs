@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Audit.Infrastructure.WriteBuffering;
+﻿namespace Tailbook.Modules.Audit.Infrastructure.WriteBuffering;
 
 internal sealed class AuditWriteOptions
 {

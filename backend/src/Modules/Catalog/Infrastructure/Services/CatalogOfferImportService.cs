@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using ErrorOr;
@@ -78,9 +78,7 @@ public sealed class CatalogOfferImportService(
         return Map(batch);
     }
 
-    public async Task<IReadOnlyCollection<ImportBatchSummaryView>> ListAsync(CancellationToken cancellationToken)
-    {
-        return await dbContext.Set<ImportBatch>()
+    public async Task<IReadOnlyCollection<ImportBatchSummaryView>> ListAsync(CancellationToken cancellationToken) => await dbContext.Set<ImportBatch>()
             .AsNoTracking()
             .Where(x => x.Domain == ImportDomainCodes.CatalogOffers)
             .OrderByDescending(x => x.CreatedAt)
@@ -97,7 +95,6 @@ public sealed class CatalogOfferImportService(
                 x.CreatedAt,
                 x.CommittedAt))
             .ToArrayAsync(cancellationToken);
-    }
 
     public async Task<ErrorOr<string>> ExportErrorsAsync(Guid batchId, CancellationToken cancellationToken)
     {

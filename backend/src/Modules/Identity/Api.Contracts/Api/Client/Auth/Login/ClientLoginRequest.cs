@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Client.Auth.Login;
+﻿namespace Tailbook.Modules.Identity.Api.Client.Auth.Login;
 
 public sealed class ClientLoginRequest
 {

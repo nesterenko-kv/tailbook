@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 
 namespace Tailbook.Modules.Identity.Infrastructure.Services;
 
@@ -59,10 +59,7 @@ public sealed class PasswordHasher
         return CryptographicOperations.FixedTimeEquals(actual, expected);
     }
 
-    private static string FormatHash(ReadOnlySpan<byte> salt, ReadOnlySpan<byte> key)
-    {
-        return $"{Prefix}{Iterations}${Convert.ToBase64String(salt)}${Convert.ToBase64String(key)}";
-    }
+    private static string FormatHash(ReadOnlySpan<byte> salt, ReadOnlySpan<byte> key) => $"{Prefix}{Iterations}${Convert.ToBase64String(salt)}${Convert.ToBase64String(key)}";
 
     internal static bool TryParseHashParts(
         ReadOnlySpan<char> remaining,

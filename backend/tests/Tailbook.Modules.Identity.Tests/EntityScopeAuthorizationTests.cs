@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,11 +48,8 @@ public sealed class EntityScopeAuthorizationTests(RealDbWebApplicationFactory fa
 
         Assert.False(result.IsError);
 
-        await TestApiHelpers.WaitUntilAsync(async () =>
-        {
-            return await dbContext.Set<AccessAuditEntry>()
-                .AnyAsync(x => x.ResourceType == "test_resource" && x.ResourceId == resourceId && x.ActionCode == "READ_DETAIL");
-        }, "Entity scope service access audit entry was not persisted.");
+        await TestApiHelpers.WaitUntilAsync(async () => await dbContext.Set<AccessAuditEntry>()
+                .AnyAsync(x => x.ResourceType == "test_resource" && x.ResourceId == resourceId && x.ActionCode == "READ_DETAIL"), "Entity scope service access audit entry was not persisted.");
     }
 
     [Fact]

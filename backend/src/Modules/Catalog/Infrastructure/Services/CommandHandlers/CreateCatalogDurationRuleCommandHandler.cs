@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
@@ -61,11 +61,8 @@ public sealed class CreateCatalogDurationRuleCommandHandler(
         return CatalogRuleViewMapper.ToView(rule.Value, rule.Value.Condition, offer);
     }
 
-    private async Task<DurationRuleSet?> LoadDurationRuleSetAggregateAsync(Guid ruleSetId, CancellationToken cancellationToken)
-    {
-        return await dbContext.Set<DurationRuleSet>()
+    private async Task<DurationRuleSet?> LoadDurationRuleSetAggregateAsync(Guid ruleSetId, CancellationToken cancellationToken) => await dbContext.Set<DurationRuleSet>()
             .Include(x => x.Rules)
             .ThenInclude(x => x.Condition)
             .SingleOrDefaultAsync(x => x.Id == ruleSetId, cancellationToken);
-    }
 }

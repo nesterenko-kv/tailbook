@@ -8,15 +8,12 @@ public class RuleConditionPayload
     public Guid? CoatTypeId { get; set; }
     public Guid? SizeCategoryId { get; set; }
 
-    public static RuleConditionPayload FromView(RuleConditionView view)
+    public static RuleConditionPayload FromView(RuleConditionView view) => new RuleConditionPayload
     {
-        return new RuleConditionPayload
-        {
-            AnimalTypeId = view.AnimalTypeId,
-            BreedId = view.BreedId,
-            BreedGroupId = view.BreedGroupId,
-            CoatTypeId = view.CoatTypeId,
-            SizeCategoryId = view.SizeCategoryId
-        };
-    }
+        AnimalTypeId = view.AnimalTypeId,
+        BreedId = view.BreedId,
+        BreedGroupId = view.BreedGroupId,
+        CoatTypeId = view.CoatTypeId,
+        SizeCategoryId = view.SizeCategoryId
+    };
 }

@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;

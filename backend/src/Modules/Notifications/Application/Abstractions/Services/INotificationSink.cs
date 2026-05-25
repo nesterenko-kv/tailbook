@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Notifications.Application.Abstractions.Services;
+﻿namespace Tailbook.Modules.Notifications.Application.Abstractions.Services;
 
 public interface INotificationSink
 {

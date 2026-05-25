@@ -1,4 +1,4 @@
-using FastEndpoints;
+﻿using FastEndpoints;
 using FluentValidation;
 
 namespace Tailbook.Modules.Booking.Api.Admin.RescheduleAppointment;

@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Http;

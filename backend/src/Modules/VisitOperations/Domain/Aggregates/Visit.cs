@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.VisitOperations.Domain.Events;
 
@@ -341,8 +341,5 @@ public sealed class Visit : AggregateRoot
         UpdatedByUserId = actorUserId;
     }
 
-    private static DateTimeOffset StampUtc(DateTimeOffset value)
-    {
-        return value.ToUniversalTime();
-    }
+    private static DateTimeOffset StampUtc(DateTimeOffset value) => value.ToUniversalTime();
 }

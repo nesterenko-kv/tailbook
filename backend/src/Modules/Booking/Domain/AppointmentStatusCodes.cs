@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Booking.Domain;
+﻿namespace Tailbook.Modules.Booking.Domain;
 
 public static class AppointmentStatusCodes
 {

@@ -1,4 +1,4 @@
-using System.Buffers;
+﻿using System.Buffers;
 using System.Runtime.CompilerServices;
 
 namespace Tailbook.BuildingBlocks.Infrastructure.Search;
@@ -105,10 +105,7 @@ public static class SearchText
         return terms.All(term => ContainsInValues(term.AsSpan(), values));
     }
 
-    public static bool ContainsTerm(string term, params string?[] values)
-    {
-        return ContainsInValues(term.AsSpan(), values);
-    }
+    public static bool ContainsTerm(string term, params string?[] values) => ContainsInValues(term.AsSpan(), values);
 
     private static bool ContainsInValues(ReadOnlySpan<char> term, string?[] values)
     {
@@ -130,7 +127,7 @@ public static class SearchText
         for (var i = 0; i < value.Length; i++)
         {
             var c = value[i];
-            if (c == '\\' || c == '%' || c == '_')
+            if (c is '\\' or '%' or '_')
             {
                 totalExtra++;
             }
@@ -148,7 +145,7 @@ public static class SearchText
             for (var i = 0; i < src.Length; i++)
             {
                 var c = src[i];
-                if (c == '\\' || c == '%' || c == '_')
+                if (c is '\\' or '%' or '_')
                 {
                     buffer[idx++] = '\\';
                 }
@@ -174,14 +171,11 @@ public static class SearchText
         return span[..(end + 1)];
     }
 
-    private static string ToLowerInvariant(ReadOnlySpan<char> span)
-    {
-        return string.Create(span.Length, span, (buffer, state) =>
-        {
-            for (var i = 0; i < state.Length; i++)
-            {
-                buffer[i] = char.ToLowerInvariant(state[i]);
-            }
-        });
-    }
+    private static string ToLowerInvariant(ReadOnlySpan<char> span) => string.Create(span.Length, span, (buffer, state) =>
+                                                                            {
+                                                                                for (var i = 0; i < state.Length; i++)
+                                                                                {
+                                                                                    buffer[i] = char.ToLowerInvariant(state[i]);
+                                                                                }
+                                                                            });
 }

@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.Api.Tests;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -427,25 +427,19 @@ public sealed class VisitOperationsAggregateTests
         }
     }
 
-    private static void AssertInvalidExecutionItem(VisitExecutionItemDraft draft)
-    {
-        AssertError(Visit.CheckIn(
+    private static void AssertInvalidExecutionItem(VisitExecutionItemDraft draft) => AssertError(Visit.CheckIn(
             Guid.NewGuid(),
             Guid.NewGuid(),
             [draft],
             null,
             Utc("2026-04-24T07:00:00Z")));
-    }
 
-    private static Visit CreateVisit()
-    {
-        return AssertSuccess(Visit.CheckIn(
+    private static Visit CreateVisit() => AssertSuccess(Visit.CheckIn(
             Guid.NewGuid(),
             Guid.NewGuid(),
             [CreateExecutionItemDraft()],
             null,
             Utc("2026-04-24T07:00:00Z")));
-    }
 
     private static VisitExecutionItemDraft CreateExecutionItemDraft(
         Guid? appointmentItemId = null,
@@ -457,9 +451,7 @@ public sealed class VisitOperationsAggregateTests
         int quantity = 1,
         decimal priceAmountSnapshot = 1500m,
         int serviceMinutesSnapshot = 90,
-        int reservedMinutesSnapshot = 120)
-    {
-        return new VisitExecutionItemDraft(
+        int reservedMinutesSnapshot = 120) => new VisitExecutionItemDraft(
             appointmentItemId ?? Guid.NewGuid(),
             itemType,
             offerId ?? Guid.NewGuid(),
@@ -470,20 +462,16 @@ public sealed class VisitOperationsAggregateTests
             priceAmountSnapshot,
             serviceMinutesSnapshot,
             reservedMinutesSnapshot);
-    }
 
     private static VisitPerformedProcedureDraft CreatePerformedProcedureDraft(
         Guid? procedureId = null,
         string procedureCodeSnapshot = " BATH ",
         string procedureNameSnapshot = " Bath ",
-        string? note = null)
-    {
-        return new VisitPerformedProcedureDraft(
+        string? note = null) => new VisitPerformedProcedureDraft(
             procedureId ?? Guid.Parse("11111111-1111-1111-1111-111111111111"),
             procedureCodeSnapshot,
             procedureNameSnapshot,
             note);
-    }
 
     private static VisitSkippedComponentDraft CreateSkippedComponentDraft(
         Guid? offerVersionComponentId = null,
@@ -491,16 +479,13 @@ public sealed class VisitOperationsAggregateTests
         string procedureCodeSnapshot = " DRY ",
         string procedureNameSnapshot = " Dry ",
         string? omissionReasonCode = "PET_STRESSED",
-        string? note = null)
-    {
-        return new VisitSkippedComponentDraft(
+        string? note = null) => new VisitSkippedComponentDraft(
             offerVersionComponentId ?? Guid.Parse("22222222-2222-2222-2222-222222222222"),
             procedureId ?? Guid.Parse("33333333-3333-3333-3333-333333333333"),
             procedureCodeSnapshot,
             procedureNameSnapshot,
             omissionReasonCode,
             note);
-    }
 
     private static T AssertSuccess<T>(ErrorOr<T> result)
     {
@@ -520,8 +505,5 @@ public sealed class VisitOperationsAggregateTests
         Assert.Equal(expectedCodes, codes);
     }
 
-    private static DateTimeOffset Utc(string value)
-    {
-        return DateTimeOffset.Parse(value).ToUniversalTime();
-    }
+    private static DateTimeOffset Utc(string value) => DateTimeOffset.Parse(value).ToUniversalTime();
 }

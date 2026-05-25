@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Infrastructure.Persistence;
+﻿namespace Tailbook.Modules.Identity.Infrastructure.Persistence;
 
 internal static class AuthenticateSql
 {

@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -23,22 +23,16 @@ public sealed class GroomerProfileReadService(AppDbContext dbContext) : IGroomer
         return groomer;
     }
 
-    public async Task<GroomerProfileReadModel?> GetByGroomerIdAsync(Guid groomerId, CancellationToken cancellationToken)
-    {
-        return await dbContext.Set<Groomer>()
+    public async Task<GroomerProfileReadModel?> GetByGroomerIdAsync(Guid groomerId, CancellationToken cancellationToken) => await dbContext.Set<Groomer>()
             .AsNoTracking()
             .Where(x => x.Id == groomerId)
             .Select(x => new GroomerProfileReadModel(x.Id, x.UserId, x.DisplayName, x.Active))
             .SingleOrDefaultAsync(cancellationToken);
-    }
 
-    public async Task<IReadOnlyCollection<GroomerProfileReadModel>> ListActiveAsync(CancellationToken cancellationToken)
-    {
-        return await dbContext.Set<Groomer>()
+    public async Task<IReadOnlyCollection<GroomerProfileReadModel>> ListActiveAsync(CancellationToken cancellationToken) => await dbContext.Set<Groomer>()
             .AsNoTracking()
             .Where(x => x.Active)
             .OrderBy(x => x.DisplayName)
             .Select(x => new GroomerProfileReadModel(x.Id, x.UserId, x.DisplayName, x.Active))
             .ToArrayAsync(cancellationToken);
-    }
 }

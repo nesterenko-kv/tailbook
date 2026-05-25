@@ -1,4 +1,4 @@
-using FastEndpoints;
+﻿using FastEndpoints;
 
 namespace Tailbook.Modules.Catalog.Application.Catalog.Commands;
 

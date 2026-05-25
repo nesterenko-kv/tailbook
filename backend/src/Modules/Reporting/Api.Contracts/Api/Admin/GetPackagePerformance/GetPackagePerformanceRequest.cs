@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Reporting.Api.Admin.GetPackagePerformance;
+﻿namespace Tailbook.Modules.Reporting.Api.Admin.GetPackagePerformance;
 
 public sealed class GetPackagePerformanceRequest
 {

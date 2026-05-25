@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using FastEndpoints;
 using FastEndpoints.Security;
 using FastEndpoints.Swagger;
@@ -59,19 +59,13 @@ else
 {
     builder.Services.AddJobQueues<JobRecord, JobProvider>();
 }
-builder.Services.ConfigureHttpJsonOptions(options =>
-{
-    options.SerializerOptions.Converters.Add(new UtcDateTimeOffsetJsonConverter());
-});
+builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.Converters.Add(new UtcDateTimeOffsetJsonConverter()));
 
-builder.Services.SwaggerDocument(o =>
-{
-    o.DocumentSettings = s =>
+builder.Services.SwaggerDocument(o => o.DocumentSettings = s =>
     {
         s.Title = "Tailbook API";
         s.Version = "v1";
-    };
-});
+    });
 
 builder.Services
     .AddOptions<JwtOptions>()
@@ -295,10 +289,7 @@ if (telemetryOptions.Enabled)
                 .AddAspNetCoreInstrumentation(options =>
                 {
                     options.Filter = context => !context.Request.Path.StartsWithSegments("/health");
-                    options.EnrichWithHttpRequest = (activity, request) =>
-                    {
-                        activity.SetTag("tailbook.request_id", request.HttpContext.TraceIdentifier);
-                    };
+                    options.EnrichWithHttpRequest = (activity, request) => activity.SetTag("tailbook.request_id", request.HttpContext.TraceIdentifier);
                     options.RecordException = true;
                 })
                 .AddNpgsql()

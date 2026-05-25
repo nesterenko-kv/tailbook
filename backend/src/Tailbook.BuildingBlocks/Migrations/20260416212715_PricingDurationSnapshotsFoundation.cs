@@ -26,10 +26,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     PublishedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_duration_rule_sets", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_duration_rule_sets", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "duration_snapshots",
@@ -43,10 +40,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     CreatedByUserId = table.Column<Guid>(type: "uuid", nullable: true),
                     CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_duration_snapshots", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_duration_snapshots", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "price_snapshots",
@@ -61,10 +55,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     CreatedByUserId = table.Column<Guid>(type: "uuid", nullable: true),
                     CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_price_snapshots", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_price_snapshots", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "pricing_rule_sets",
@@ -79,10 +70,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     PublishedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_pricing_rule_sets", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_pricing_rule_sets", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "duration_rules",

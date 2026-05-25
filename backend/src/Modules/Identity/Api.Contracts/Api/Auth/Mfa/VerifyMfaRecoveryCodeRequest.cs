@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Auth.Mfa;
+﻿namespace Tailbook.Modules.Identity.Api.Auth.Mfa;
 
 public sealed class VerifyMfaRecoveryCodeRequest
 {

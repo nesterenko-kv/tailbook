@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
 namespace Tailbook.Modules.Identity.Infrastructure.Services;
@@ -7,16 +7,13 @@ public static class MfaRecoveryCodeHelpers
 {
     internal const string Alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-    public static string GenerateNormalizedCode(int length)
-    {
-        return string.Create(length, length, (buffer, len) =>
-        {
-            for (var i = 0; i < len; i++)
-            {
-                buffer[i] = Alphabet[RandomNumberGenerator.GetInt32(Alphabet.Length)];
-            }
-        });
-    }
+    public static string GenerateNormalizedCode(int length) => string.Create(length, length, (buffer, len) =>
+                                                                    {
+                                                                        for (var i = 0; i < len; i++)
+                                                                        {
+                                                                            buffer[i] = Alphabet[RandomNumberGenerator.GetInt32(Alphabet.Length)];
+                                                                        }
+                                                                    });
 
     public static string FormatRecoveryCode(string normalizedCode)
     {
@@ -65,12 +62,9 @@ public static class MfaRecoveryCodeHelpers
         });
     }
 
-    public static string GetCodeSuffix(string normalizedCode)
-    {
-        return normalizedCode.Length <= 4
+    public static string GetCodeSuffix(string normalizedCode) => normalizedCode.Length <= 4
             ? normalizedCode
             : normalizedCode[^4..];
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int CountAlphaNumeric(ReadOnlySpan<char> span)

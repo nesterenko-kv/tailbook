@@ -1,4 +1,4 @@
-using FastEndpoints;
+﻿using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
@@ -40,11 +40,8 @@ public sealed class CreateCatalogOfferVersionCommandHandler(AppDbContext dbConte
             []);
     }
 
-    private async Task<CommercialOffer?> LoadOfferAggregateAsync(Guid offerId, CancellationToken cancellationToken)
-    {
-        return await dbContext.Set<CommercialOffer>()
+    private async Task<CommercialOffer?> LoadOfferAggregateAsync(Guid offerId, CancellationToken cancellationToken) => await dbContext.Set<CommercialOffer>()
             .Include(x => x.Versions)
             .ThenInclude(x => x.Components)
             .SingleOrDefaultAsync(x => x.Id == offerId, cancellationToken);
-    }
 }

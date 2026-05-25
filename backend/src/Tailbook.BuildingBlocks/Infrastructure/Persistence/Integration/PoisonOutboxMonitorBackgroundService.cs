@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -56,10 +56,7 @@ public sealed class PoisonOutboxMonitorBackgroundService(
         }
     }
 
-    public async Task<List<OutboxMessage>> GetStuckMessagesAsync(CancellationToken cancellationToken)
-    {
-        return await GetStuckMessagesCoreAsync(cancellationToken);
-    }
+    public async Task<List<OutboxMessage>> GetStuckMessagesAsync(CancellationToken cancellationToken) => await GetStuckMessagesCoreAsync(cancellationToken);
 
     private async Task<List<OutboxMessage>> GetStuckMessagesCoreAsync(CancellationToken cancellationToken)
     {

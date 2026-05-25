@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Domain.Entities;
+﻿namespace Tailbook.Modules.Catalog.Domain.Entities;
 
 public sealed class ProcedureCatalogItem
 {

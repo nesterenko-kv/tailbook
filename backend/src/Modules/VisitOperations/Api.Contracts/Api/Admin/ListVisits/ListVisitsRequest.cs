@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.VisitOperations.Api.Admin.ListVisits;
+﻿namespace Tailbook.Modules.VisitOperations.Api.Admin.ListVisits;
 
 public sealed class ListVisitsRequest
 {

@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Pets.Application.Abstractions.Services;
+﻿namespace Tailbook.Modules.Pets.Application.Abstractions.Services;
 
 public interface IPetPhotoStorage
 {

@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Domain;
+﻿namespace Tailbook.Modules.Identity.Domain;
 
 public static class MfaFactorStatusCodes
 {

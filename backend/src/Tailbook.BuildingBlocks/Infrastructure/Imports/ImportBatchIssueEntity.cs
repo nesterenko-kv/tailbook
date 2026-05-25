@@ -1,4 +1,4 @@
-namespace Tailbook.BuildingBlocks.Infrastructure.Imports;
+﻿namespace Tailbook.BuildingBlocks.Infrastructure.Imports;
 
 public sealed class ImportBatchIssueEntity
 {

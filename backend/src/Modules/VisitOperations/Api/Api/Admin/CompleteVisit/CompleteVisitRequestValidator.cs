@@ -5,8 +5,5 @@ namespace Tailbook.Modules.VisitOperations.Api.Admin.CompleteVisit;
 
 public sealed class CompleteVisitRequestValidator : Validator<CompleteVisitRequest>
 {
-    public CompleteVisitRequestValidator()
-    {
-        RuleFor(x => x.VisitId).NotEmpty();
-    }
+    public CompleteVisitRequestValidator() => RuleFor(x => x.VisitId).NotEmpty();
 }

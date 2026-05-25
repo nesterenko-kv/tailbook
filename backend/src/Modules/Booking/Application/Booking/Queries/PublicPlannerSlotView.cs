@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Booking.Application.Booking.Queries;
+﻿namespace Tailbook.Modules.Booking.Application.Booking.Queries;
 
 public sealed record PublicPlannerSlotView(
     DateTimeOffset StartAt,

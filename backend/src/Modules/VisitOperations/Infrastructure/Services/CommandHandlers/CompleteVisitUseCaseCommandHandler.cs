@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using ErrorOr;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;

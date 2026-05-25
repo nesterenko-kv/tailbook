@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Pets.Api.Admin.GetPetDetail;
+﻿namespace Tailbook.Modules.Pets.Api.Admin.GetPetDetail;
 
 public sealed class GetPetDetailResponse
 {

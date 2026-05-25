@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Api.Admin.CreateOfferVersion;
+﻿namespace Tailbook.Modules.Catalog.Api.Admin.CreateOfferVersion;
 
 public sealed class CreateOfferVersionRequest
 {

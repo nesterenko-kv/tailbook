@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.Api.Tests.Factories;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;

@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Admin.AssignRoles;
+﻿namespace Tailbook.Modules.Identity.Api.Admin.AssignRoles;
 
 public sealed class AssignRolesResponse
 {

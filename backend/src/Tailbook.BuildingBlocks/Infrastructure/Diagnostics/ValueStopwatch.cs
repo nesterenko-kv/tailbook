@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -34,19 +34,13 @@ public readonly struct ValueStopwatch
     /// <param name="startTimestamp">The starting timestamp for the stopwatch.</param>
     private ValueStopwatch(
         long startTimestamp
-    )
-    {
-        _startTimestamp = startTimestamp;
-    }
+    ) => _startTimestamp = startTimestamp;
 
     /// <summary>
     ///     Starts a new instance of the <see cref="ValueStopwatch" /> structure.
     /// </summary>
     /// <returns>A new instance of the <see cref="ValueStopwatch" /> structure.</returns>
-    public static ValueStopwatch StartNew()
-    {
-        return new ValueStopwatch(Stopwatch.GetTimestamp());
-    }
+    public static ValueStopwatch StartNew() => new ValueStopwatch(Stopwatch.GetTimestamp());
 
     /// <summary>
     ///     Gets the number of elapsed ticks.

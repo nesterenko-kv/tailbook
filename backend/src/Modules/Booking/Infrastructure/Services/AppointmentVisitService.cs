@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;

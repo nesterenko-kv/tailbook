@@ -1,4 +1,4 @@
-namespace Tailbook.BuildingBlocks.Infrastructure;
+﻿namespace Tailbook.BuildingBlocks.Infrastructure;
 
 public static class CacheKeys
 {

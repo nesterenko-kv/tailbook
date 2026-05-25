@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
+﻿namespace Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
 public sealed class OfferVersionComponentResponse
 {
@@ -12,19 +12,16 @@ public sealed class OfferVersionComponentResponse
     public bool DefaultExpected { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 
-    public static OfferVersionComponentResponse Map(OfferVersionComponentView view)
+    public static OfferVersionComponentResponse Map(OfferVersionComponentView view) => new OfferVersionComponentResponse
     {
-        return new OfferVersionComponentResponse
-        {
-            Id = view.Id,
-            OfferVersionId = view.OfferVersionId,
-            ProcedureId = view.ProcedureId,
-            ProcedureCode = view.ProcedureCode,
-            ProcedureName = view.ProcedureName,
-            ComponentRole = view.ComponentRole,
-            SequenceNo = view.SequenceNo,
-            DefaultExpected = view.DefaultExpected,
-            CreatedAt = view.CreatedAt
-        };
-    }
+        Id = view.Id,
+        OfferVersionId = view.OfferVersionId,
+        ProcedureId = view.ProcedureId,
+        ProcedureCode = view.ProcedureCode,
+        ProcedureName = view.ProcedureName,
+        ComponentRole = view.ComponentRole,
+        SequenceNo = view.SequenceNo,
+        DefaultExpected = view.DefaultExpected,
+        CreatedAt = view.CreatedAt
+    };
 }

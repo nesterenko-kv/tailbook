@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Admin.CreateUser;
+﻿namespace Tailbook.Modules.Identity.Api.Admin.CreateUser;
 
 public sealed class CreateUserResponse
 {

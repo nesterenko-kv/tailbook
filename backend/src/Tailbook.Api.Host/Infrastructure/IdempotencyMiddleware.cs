@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Tailbook.BuildingBlocks.Abstractions;
 
 namespace Tailbook.Api.Host.Infrastructure;
@@ -66,7 +66,7 @@ public sealed class IdempotencyMiddleware(RequestDelegate next, ILogger<Idempote
         {
             await next(context);
 
-            if (context.Response.StatusCode >= 200 && context.Response.StatusCode < 300)
+            if (context.Response.StatusCode is >= 200 and < 300)
             {
                 captureStream.Seek(0, SeekOrigin.Begin);
                 var body = await new StreamReader(captureStream, Encoding.UTF8).ReadToEndAsync(context.RequestAborted);

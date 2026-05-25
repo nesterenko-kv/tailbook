@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Pets.Api.Contracts.Abstractions;
+﻿namespace Tailbook.Modules.Pets.Api.Contracts.Abstractions;
 
 public interface IPetOperationalReadService
 {

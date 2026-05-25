@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Admin.GetUserById;
+﻿namespace Tailbook.Modules.Identity.Api.Admin.GetUserById;
 
 public sealed class GetUserByIdResponse
 {

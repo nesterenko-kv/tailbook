@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Notifications.Infrastructure.Options;
+﻿namespace Tailbook.Modules.Notifications.Infrastructure.Options;
 
 public sealed class NotificationsOptions
 {
@@ -21,18 +21,9 @@ public sealed class NotificationsOptions
     public string SmtpPassword { get; set; } = string.Empty;
     public int SmtpTimeoutSeconds { get; set; } = 30;
 
-    public static bool IsLocalFileProvider(string? provider)
-    {
-        return string.Equals(provider, LocalFileProvider, StringComparison.OrdinalIgnoreCase);
-    }
+    public static bool IsLocalFileProvider(string? provider) => string.Equals(provider, LocalFileProvider, StringComparison.OrdinalIgnoreCase);
 
-    public static bool IsSmtpProvider(string? provider)
-    {
-        return string.Equals(provider, SmtpProvider, StringComparison.OrdinalIgnoreCase);
-    }
+    public static bool IsSmtpProvider(string? provider) => string.Equals(provider, SmtpProvider, StringComparison.OrdinalIgnoreCase);
 
-    public static bool IsSupportedProvider(string? provider)
-    {
-        return IsLocalFileProvider(provider) || IsSmtpProvider(provider);
-    }
+    public static bool IsSupportedProvider(string? provider) => IsLocalFileProvider(provider) || IsSmtpProvider(provider);
 }

@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Notifications.Api.Admin.ListNotificationJobs;
+﻿namespace Tailbook.Modules.Notifications.Api.Admin.ListNotificationJobs;
 
 public sealed class ListNotificationJobsRequest
 {

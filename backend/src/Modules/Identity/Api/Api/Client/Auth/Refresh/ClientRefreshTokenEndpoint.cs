@@ -1,4 +1,4 @@
-using FastEndpoints;
+﻿using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Tailbook.Modules.Identity.Api.Auth.BrowserSessions;
 using Tailbook.BuildingBlocks.Infrastructure.Http;

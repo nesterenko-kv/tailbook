@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
+﻿namespace Tailbook.Modules.Staff.Api.Admin.CreateGroomer;
 
 public sealed class WorkingScheduleResponse
 {

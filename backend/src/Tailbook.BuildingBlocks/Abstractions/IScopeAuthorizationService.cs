@@ -1,4 +1,4 @@
-namespace Tailbook.BuildingBlocks.Abstractions;
+﻿namespace Tailbook.BuildingBlocks.Abstractions;
 
 public sealed record UserScope(string ScopeType, string? ScopeId);
 

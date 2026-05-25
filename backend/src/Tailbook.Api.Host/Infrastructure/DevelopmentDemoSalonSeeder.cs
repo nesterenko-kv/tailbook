@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Catalog.Domain;
 using Tailbook.Modules.Catalog.Domain.Aggregates;
@@ -495,9 +495,7 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
         IReadOnlyCollection<PriceRuleCondition> conditions,
         Guid ruleSetId,
         Guid offerId,
-        ResolvedCondition resolved)
-    {
-        return rules
+        ResolvedCondition resolved) => rules
             .Where(x => x.RuleSetId == ruleSetId && x.OfferId == offerId)
             .Select(rule => new RuleMatch<PriceRule, PriceRuleCondition>(rule, conditions.Single(x => x.PriceRuleId == rule.Id)))
             .SingleOrDefault(x => Matches(x.Condition.AnimalTypeId, resolved.AnimalTypeId)
@@ -505,16 +503,13 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
                                   && Matches(x.Condition.BreedGroupId, resolved.BreedGroupId)
                                   && Matches(x.Condition.CoatTypeId, resolved.CoatTypeId)
                                   && Matches(x.Condition.SizeCategoryId, resolved.SizeCategoryId));
-    }
 
     private static RuleMatch<DurationRule, DurationRuleCondition>? FindMatchingRule(
         IReadOnlyCollection<DurationRule> rules,
         IReadOnlyCollection<DurationRuleCondition> conditions,
         Guid ruleSetId,
         Guid offerId,
-        ResolvedCondition resolved)
-    {
-        return rules
+        ResolvedCondition resolved) => rules
             .Where(x => x.RuleSetId == ruleSetId && x.OfferId == offerId)
             .Select(rule => new RuleMatch<DurationRule, DurationRuleCondition>(rule, conditions.Single(x => x.DurationRuleId == rule.Id)))
             .SingleOrDefault(x => Matches(x.Condition.AnimalTypeId, resolved.AnimalTypeId)
@@ -522,113 +517,106 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
                                   && Matches(x.Condition.BreedGroupId, resolved.BreedGroupId)
                                   && Matches(x.Condition.CoatTypeId, resolved.CoatTypeId)
                                   && Matches(x.Condition.SizeCategoryId, resolved.SizeCategoryId));
-    }
 
     private static bool Matches(Guid? left, Guid? right) => left == right;
 
-    private static IReadOnlyCollection<PriceSeed> BuildPriceSeeds()
-    {
-        return new[]
+    private static IReadOnlyCollection<PriceSeed> BuildPriceSeeds() => new[]
         {
-            new PriceSeed("DOG_FULL_GROOMING", 10, 700m, breedCode: "YORKSHIRE_TERRIER"),
-            new PriceSeed("DOG_FULL_GROOMING", 10, 700m, breedCode: "BIEWER_TERRIER"),
-            new PriceSeed("DOG_FULL_GROOMING", 10, 800m, breedCode: "MALTIPOO_F1"),
-            new PriceSeed("DOG_FULL_GROOMING", 10, 800m, breedCode: "MALTIPOO_F2"),
-            new PriceSeed("DOG_FULL_GROOMING", 10, 550m, breedCode: "CHIHUAHUA"),
-            new PriceSeed("DOG_FULL_GROOMING", 10, 700m, breedCode: "POMERANIAN"),
-            new PriceSeed("DOG_FULL_GROOMING", 10, 700m, breedCode: "GERMAN_SPITZ"),
-            new PriceSeed("DOG_FULL_GROOMING", 10, 800m, breedCode: "JAPANESE_SPITZ"),
-            new PriceSeed("DOG_FULL_GROOMING", 10, 800m, breedCode: "POODLE_TOY"),
-            new PriceSeed("DOG_FULL_GROOMING", 10, 800m, breedCode: "BICHON_FRISE"),
-            new PriceSeed("DOG_FULL_GROOMING", 10, 700m, breedCode: "PEKINGESE"),
-            new PriceSeed("DOG_FULL_GROOMING", 10, 700m, breedCode: "MALTESE"),
-            new PriceSeed("DOG_FULL_GROOMING", 10, 700m, breedCode: "SHIH_TZU"),
-            new PriceSeed("DOG_FULL_GROOMING", 10, 900m, breedCode: "COCKER_SPANIEL"),
-            new PriceSeed("DOG_FULL_GROOMING", 20, 900m, breedCode: "CAVALIER_KING_CHARLES_SPANIEL"),
-            new PriceSeed("DOG_FULL_GROOMING", 100, 800m, animalTypeCode: "DOG"),
+            new PriceSeed("DOG_FULL_GROOMING", 10, 700m, BreedCode: "YORKSHIRE_TERRIER"),
+            new PriceSeed("DOG_FULL_GROOMING", 10, 700m, BreedCode: "BIEWER_TERRIER"),
+            new PriceSeed("DOG_FULL_GROOMING", 10, 800m, BreedCode: "MALTIPOO_F1"),
+            new PriceSeed("DOG_FULL_GROOMING", 10, 800m, BreedCode: "MALTIPOO_F2"),
+            new PriceSeed("DOG_FULL_GROOMING", 10, 550m, BreedCode: "CHIHUAHUA"),
+            new PriceSeed("DOG_FULL_GROOMING", 10, 700m, BreedCode: "POMERANIAN"),
+            new PriceSeed("DOG_FULL_GROOMING", 10, 700m, BreedCode: "GERMAN_SPITZ"),
+            new PriceSeed("DOG_FULL_GROOMING", 10, 800m, BreedCode: "JAPANESE_SPITZ"),
+            new PriceSeed("DOG_FULL_GROOMING", 10, 800m, BreedCode: "POODLE_TOY"),
+            new PriceSeed("DOG_FULL_GROOMING", 10, 800m, BreedCode: "BICHON_FRISE"),
+            new PriceSeed("DOG_FULL_GROOMING", 10, 700m, BreedCode: "PEKINGESE"),
+            new PriceSeed("DOG_FULL_GROOMING", 10, 700m, BreedCode: "MALTESE"),
+            new PriceSeed("DOG_FULL_GROOMING", 10, 700m, BreedCode: "SHIH_TZU"),
+            new PriceSeed("DOG_FULL_GROOMING", 10, 900m, BreedCode: "COCKER_SPANIEL"),
+            new PriceSeed("DOG_FULL_GROOMING", 20, 900m, BreedCode: "CAVALIER_KING_CHARLES_SPANIEL"),
+            new PriceSeed("DOG_FULL_GROOMING", 100, 800m, AnimalTypeCode: "DOG"),
 
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 500m, breedCode: "TOY_TERRIER"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 500m, breedCode: "CHIHUAHUA"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 600m, breedGroupCode: "DOG_DACHSHUND"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 600m, breedCode: "FOX_TERRIER"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 600m, breedCode: "JACK_RUSSELL_TERRIER"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 600m, breedCode: "PUG"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 650m, breedCode: "FRENCH_BULLDOG"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 700m, breedCode: "BEAGLE"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 700m, breedCode: "WELSH_CORGI_PEMBROKE"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 700m, breedCode: "WELSH_CORGI_CARDIGAN"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 700m, breedCode: "SHIBA_INU"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 850m, breedCode: "ENGLISH_BULLDOG"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 1000m, breedGroupCode: "DOG_RETRIEVER"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 1000m, breedCode: "HUSKY"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 1300m, breedCode: "GERMAN_SHEPHERD"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 1100m, breedCode: "ALASKAN_MALAMUTE"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 1500m, breedCode: "AKITA"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 1400m, breedCode: "SAMOYED"),
-            new PriceSeed("DOG_EXPRESS_DESHEDDING", 100, 700m, animalTypeCode: "DOG"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 500m, BreedCode: "TOY_TERRIER"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 500m, BreedCode: "CHIHUAHUA"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 600m, BreedGroupCode: "DOG_DACHSHUND"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 600m, BreedCode: "FOX_TERRIER"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 600m, BreedCode: "JACK_RUSSELL_TERRIER"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 600m, BreedCode: "PUG"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 650m, BreedCode: "FRENCH_BULLDOG"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 700m, BreedCode: "BEAGLE"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 700m, BreedCode: "WELSH_CORGI_PEMBROKE"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 700m, BreedCode: "WELSH_CORGI_CARDIGAN"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 700m, BreedCode: "SHIBA_INU"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 850m, BreedCode: "ENGLISH_BULLDOG"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 1000m, BreedGroupCode: "DOG_RETRIEVER"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 1000m, BreedCode: "HUSKY"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 1300m, BreedCode: "GERMAN_SHEPHERD"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 1100m, BreedCode: "ALASKAN_MALAMUTE"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 1500m, BreedCode: "AKITA"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 10, 1400m, BreedCode: "SAMOYED"),
+            new PriceSeed("DOG_EXPRESS_DESHEDDING", 100, 700m, AnimalTypeCode: "DOG"),
 
-            new PriceSeed("CAT_EXPRESS_DESHEDDING", 10, 1100m, animalTypeCode: "CAT", breedCode: "MAINE_COON"),
-            new PriceSeed("CAT_EXPRESS_DESHEDDING", 20, 800m, animalTypeCode: "CAT", coatTypeCode: "LONG_COAT"),
-            new PriceSeed("CAT_EXPRESS_DESHEDDING", 20, 700m, animalTypeCode: "CAT", coatTypeCode: "SHORT_COAT"),
-            new PriceSeed("CAT_HAIRCUT", 10, 700m, animalTypeCode: "CAT"),
+            new PriceSeed("CAT_EXPRESS_DESHEDDING", 10, 1100m, AnimalTypeCode: "CAT", BreedCode: "MAINE_COON"),
+            new PriceSeed("CAT_EXPRESS_DESHEDDING", 20, 800m, AnimalTypeCode: "CAT", CoatTypeCode: "LONG_COAT"),
+            new PriceSeed("CAT_EXPRESS_DESHEDDING", 20, 700m, AnimalTypeCode: "CAT", CoatTypeCode: "SHORT_COAT"),
+            new PriceSeed("CAT_HAIRCUT", 10, 700m, AnimalTypeCode: "CAT"),
 
             new PriceSeed("DELIVERY_ADDON", 10, 150m),
             new PriceSeed("NAIL_TRIM_ONLY", 10, 50m),
             new PriceSeed("EAR_CLEANING_ONLY", 10, 50m)
         };
-    }
 
-    private static IReadOnlyCollection<DurationSeed> BuildDurationSeeds()
-    {
-        return new[]
+    private static IReadOnlyCollection<DurationSeed> BuildDurationSeeds() => new[]
         {
-            new DurationSeed("DOG_FULL_GROOMING", 10, 80, 10, 10, breedCode: "YORKSHIRE_TERRIER"),
-            new DurationSeed("DOG_FULL_GROOMING", 10, 80, 10, 10, breedCode: "BIEWER_TERRIER"),
-            new DurationSeed("DOG_FULL_GROOMING", 10, 95, 10, 15, breedCode: "MALTIPOO_F1"),
-            new DurationSeed("DOG_FULL_GROOMING", 10, 95, 10, 15, breedCode: "MALTIPOO_F2"),
-            new DurationSeed("DOG_FULL_GROOMING", 10, 60, 5, 10, breedCode: "CHIHUAHUA"),
-            new DurationSeed("DOG_FULL_GROOMING", 10, 85, 10, 10, breedCode: "POMERANIAN"),
-            new DurationSeed("DOG_FULL_GROOMING", 10, 90, 10, 10, breedCode: "GERMAN_SPITZ"),
-            new DurationSeed("DOG_FULL_GROOMING", 10, 95, 10, 10, breedCode: "JAPANESE_SPITZ"),
-            new DurationSeed("DOG_FULL_GROOMING", 10, 95, 10, 15, breedCode: "POODLE_TOY"),
-            new DurationSeed("DOG_FULL_GROOMING", 10, 95, 10, 15, breedCode: "BICHON_FRISE"),
-            new DurationSeed("DOG_FULL_GROOMING", 10, 85, 10, 10, breedCode: "PEKINGESE"),
-            new DurationSeed("DOG_FULL_GROOMING", 10, 80, 10, 10, breedCode: "MALTESE"),
-            new DurationSeed("DOG_FULL_GROOMING", 10, 85, 10, 10, breedCode: "SHIH_TZU"),
-            new DurationSeed("DOG_FULL_GROOMING", 10, 110, 10, 15, breedCode: "COCKER_SPANIEL"),
-            new DurationSeed("DOG_FULL_GROOMING", 20, 110, 10, 15, breedCode: "CAVALIER_KING_CHARLES_SPANIEL"),
-            new DurationSeed("DOG_FULL_GROOMING", 100, 90, 10, 10, animalTypeCode: "DOG"),
+            new DurationSeed("DOG_FULL_GROOMING", 10, 80, 10, 10, BreedCode: "YORKSHIRE_TERRIER"),
+            new DurationSeed("DOG_FULL_GROOMING", 10, 80, 10, 10, BreedCode: "BIEWER_TERRIER"),
+            new DurationSeed("DOG_FULL_GROOMING", 10, 95, 10, 15, BreedCode: "MALTIPOO_F1"),
+            new DurationSeed("DOG_FULL_GROOMING", 10, 95, 10, 15, BreedCode: "MALTIPOO_F2"),
+            new DurationSeed("DOG_FULL_GROOMING", 10, 60, 5, 10, BreedCode: "CHIHUAHUA"),
+            new DurationSeed("DOG_FULL_GROOMING", 10, 85, 10, 10, BreedCode: "POMERANIAN"),
+            new DurationSeed("DOG_FULL_GROOMING", 10, 90, 10, 10, BreedCode: "GERMAN_SPITZ"),
+            new DurationSeed("DOG_FULL_GROOMING", 10, 95, 10, 10, BreedCode: "JAPANESE_SPITZ"),
+            new DurationSeed("DOG_FULL_GROOMING", 10, 95, 10, 15, BreedCode: "POODLE_TOY"),
+            new DurationSeed("DOG_FULL_GROOMING", 10, 95, 10, 15, BreedCode: "BICHON_FRISE"),
+            new DurationSeed("DOG_FULL_GROOMING", 10, 85, 10, 10, BreedCode: "PEKINGESE"),
+            new DurationSeed("DOG_FULL_GROOMING", 10, 80, 10, 10, BreedCode: "MALTESE"),
+            new DurationSeed("DOG_FULL_GROOMING", 10, 85, 10, 10, BreedCode: "SHIH_TZU"),
+            new DurationSeed("DOG_FULL_GROOMING", 10, 110, 10, 15, BreedCode: "COCKER_SPANIEL"),
+            new DurationSeed("DOG_FULL_GROOMING", 20, 110, 10, 15, BreedCode: "CAVALIER_KING_CHARLES_SPANIEL"),
+            new DurationSeed("DOG_FULL_GROOMING", 100, 90, 10, 10, AnimalTypeCode: "DOG"),
 
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 50, 5, 10, breedCode: "TOY_TERRIER"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 50, 5, 10, breedCode: "CHIHUAHUA"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 60, 5, 10, breedGroupCode: "DOG_DACHSHUND"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 60, 5, 10, breedCode: "FOX_TERRIER"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 60, 5, 10, breedCode: "JACK_RUSSELL_TERRIER"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 60, 5, 10, breedCode: "PUG"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 65, 5, 10, breedCode: "FRENCH_BULLDOG"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 75, 5, 10, breedCode: "BEAGLE"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 80, 10, 10, breedCode: "WELSH_CORGI_PEMBROKE"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 80, 10, 10, breedCode: "WELSH_CORGI_CARDIGAN"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 80, 10, 10, breedCode: "SHIBA_INU"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 85, 10, 10, breedCode: "ENGLISH_BULLDOG"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 110, 10, 15, breedGroupCode: "DOG_RETRIEVER"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 120, 10, 15, breedCode: "HUSKY"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 140, 10, 20, breedCode: "GERMAN_SHEPHERD"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 130, 10, 20, breedCode: "ALASKAN_MALAMUTE"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 150, 10, 20, breedCode: "AKITA"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 145, 10, 20, breedCode: "SAMOYED"),
-            new DurationSeed("DOG_EXPRESS_DESHEDDING", 100, 80, 10, 10, animalTypeCode: "DOG"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 50, 5, 10, BreedCode: "TOY_TERRIER"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 50, 5, 10, BreedCode: "CHIHUAHUA"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 60, 5, 10, BreedGroupCode: "DOG_DACHSHUND"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 60, 5, 10, BreedCode: "FOX_TERRIER"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 60, 5, 10, BreedCode: "JACK_RUSSELL_TERRIER"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 60, 5, 10, BreedCode: "PUG"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 65, 5, 10, BreedCode: "FRENCH_BULLDOG"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 75, 5, 10, BreedCode: "BEAGLE"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 80, 10, 10, BreedCode: "WELSH_CORGI_PEMBROKE"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 80, 10, 10, BreedCode: "WELSH_CORGI_CARDIGAN"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 80, 10, 10, BreedCode: "SHIBA_INU"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 85, 10, 10, BreedCode: "ENGLISH_BULLDOG"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 110, 10, 15, BreedGroupCode: "DOG_RETRIEVER"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 120, 10, 15, BreedCode: "HUSKY"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 140, 10, 20, BreedCode: "GERMAN_SHEPHERD"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 130, 10, 20, BreedCode: "ALASKAN_MALAMUTE"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 150, 10, 20, BreedCode: "AKITA"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 10, 145, 10, 20, BreedCode: "SAMOYED"),
+            new DurationSeed("DOG_EXPRESS_DESHEDDING", 100, 80, 10, 10, AnimalTypeCode: "DOG"),
 
-            new DurationSeed("CAT_EXPRESS_DESHEDDING", 10, 120, 10, 20, animalTypeCode: "CAT", breedCode: "MAINE_COON"),
-            new DurationSeed("CAT_EXPRESS_DESHEDDING", 20, 90, 10, 15, animalTypeCode: "CAT", coatTypeCode: "LONG_COAT"),
-            new DurationSeed("CAT_EXPRESS_DESHEDDING", 20, 75, 10, 10, animalTypeCode: "CAT", coatTypeCode: "SHORT_COAT"),
-            new DurationSeed("CAT_HAIRCUT", 10, 105, 10, 15, animalTypeCode: "CAT"),
+            new DurationSeed("CAT_EXPRESS_DESHEDDING", 10, 120, 10, 20, AnimalTypeCode: "CAT", BreedCode: "MAINE_COON"),
+            new DurationSeed("CAT_EXPRESS_DESHEDDING", 20, 90, 10, 15, AnimalTypeCode: "CAT", CoatTypeCode: "LONG_COAT"),
+            new DurationSeed("CAT_EXPRESS_DESHEDDING", 20, 75, 10, 10, AnimalTypeCode: "CAT", CoatTypeCode: "SHORT_COAT"),
+            new DurationSeed("CAT_HAIRCUT", 10, 105, 10, 15, AnimalTypeCode: "CAT"),
 
             new DurationSeed("DELIVERY_ADDON", 10, 0, 0, 0),
             new DurationSeed("NAIL_TRIM_ONLY", 10, 10, 0, 5),
             new DurationSeed("EAR_CLEANING_ONLY", 10, 10, 0, 5)
         };
-    }
 
     private sealed record TaxonomyLookup(
         IReadOnlyDictionary<string, AnimalType> AnimalTypes,
@@ -672,24 +660,24 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
     private sealed record ResolvedCondition(Guid? AnimalTypeId, Guid? BreedId, Guid? BreedGroupId, Guid? CoatTypeId, Guid? SizeCategoryId, int SpecificityScore);
     private sealed record ProcedureSeed(string Code, string Name);
     private sealed record OfferSeed(string Code, string OfferType, string DisplayName);
-    private sealed record PriceSeed(string OfferCode, int Priority, decimal Amount, string? animalTypeCode = null, string? breedCode = null, string? breedGroupCode = null, string? coatTypeCode = null, string? sizeCategoryCode = null)
+    private sealed record PriceSeed(string OfferCode, int Priority, decimal Amount, string? AnimalTypeCode = null, string? BreedCode = null, string? BreedGroupCode = null, string? CoatTypeCode = null, string? SizeCategoryCode = null)
     {
-        public string? AnimalTypeCode { get; } = animalTypeCode;
-        public string? BreedCode { get; } = breedCode;
-        public string? BreedGroupCode { get; } = breedGroupCode;
-        public string? CoatTypeCode { get; } = coatTypeCode;
-        public string? SizeCategoryCode { get; } = sizeCategoryCode;
+        public string? AnimalTypeCode { get; } = AnimalTypeCode;
+        public string? BreedCode { get; } = BreedCode;
+        public string? BreedGroupCode { get; } = BreedGroupCode;
+        public string? CoatTypeCode { get; } = CoatTypeCode;
+        public string? SizeCategoryCode { get; } = SizeCategoryCode;
 
         public ResolvedCondition Resolve(TaxonomyLookup taxonomy) => taxonomy.Resolve(AnimalTypeCode, BreedCode, BreedGroupCode, CoatTypeCode, SizeCategoryCode);
     }
 
-    private sealed record DurationSeed(string OfferCode, int Priority, int BaseMinutes, int BufferBeforeMinutes, int BufferAfterMinutes, string? animalTypeCode = null, string? breedCode = null, string? breedGroupCode = null, string? coatTypeCode = null, string? sizeCategoryCode = null)
+    private sealed record DurationSeed(string OfferCode, int Priority, int BaseMinutes, int BufferBeforeMinutes, int BufferAfterMinutes, string? AnimalTypeCode = null, string? BreedCode = null, string? BreedGroupCode = null, string? CoatTypeCode = null, string? SizeCategoryCode = null)
     {
-        public string? AnimalTypeCode { get; } = animalTypeCode;
-        public string? BreedCode { get; } = breedCode;
-        public string? BreedGroupCode { get; } = breedGroupCode;
-        public string? CoatTypeCode { get; } = coatTypeCode;
-        public string? SizeCategoryCode { get; } = sizeCategoryCode;
+        public string? AnimalTypeCode { get; } = AnimalTypeCode;
+        public string? BreedCode { get; } = BreedCode;
+        public string? BreedGroupCode { get; } = BreedGroupCode;
+        public string? CoatTypeCode { get; } = CoatTypeCode;
+        public string? SizeCategoryCode { get; } = SizeCategoryCode;
 
         public ResolvedCondition Resolve(TaxonomyLookup taxonomy) => taxonomy.Resolve(AnimalTypeCode, BreedCode, BreedGroupCode, CoatTypeCode, SizeCategoryCode);
     }

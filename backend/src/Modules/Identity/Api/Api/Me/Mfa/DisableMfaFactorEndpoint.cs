@@ -1,4 +1,4 @@
-using FastEndpoints;
+﻿using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Tailbook.BuildingBlocks.Infrastructure.Http;
@@ -29,8 +29,5 @@ public sealed class DisableMfaFactorEndpoint(IMfaFactorService mfaFactorService)
 
 public sealed class DisableMfaFactorRequestValidator : Validator<DisableMfaFactorRequest>
 {
-    public DisableMfaFactorRequestValidator()
-    {
-        RuleFor(x => x.FactorId).NotEmpty();
-    }
+    public DisableMfaFactorRequestValidator() => RuleFor(x => x.FactorId).NotEmpty();
 }

@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 
 namespace Tailbook.Modules.Catalog.Domain.Aggregates;
 

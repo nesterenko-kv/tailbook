@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Auth.Refresh;
+﻿namespace Tailbook.Modules.Identity.Api.Auth.Refresh;
 
 public sealed class RefreshTokenRequest
 {

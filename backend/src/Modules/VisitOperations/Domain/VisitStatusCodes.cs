@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.VisitOperations.Domain;
+﻿namespace Tailbook.Modules.VisitOperations.Domain;
 
 public static class VisitStatusCodes
 {

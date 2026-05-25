@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Me;
+﻿namespace Tailbook.Modules.Identity.Api.Me;
 
 public sealed class GetCurrentUserResponse
 {

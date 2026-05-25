@@ -1,1 +1,1 @@
-global using Tailbook.Modules.Reporting.Domain.Entities;
+﻿global using Tailbook.Modules.Reporting.Domain.Entities;

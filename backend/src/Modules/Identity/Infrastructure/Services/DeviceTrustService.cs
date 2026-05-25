@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -58,15 +58,12 @@ public sealed class DeviceTrustService(
         return true;
     }
 
-    public async Task<IReadOnlyCollection<DeviceTrustView>> ListTrustsAsync(Guid userId, CancellationToken cancellationToken)
-    {
-        return await dbContext.Set<IdentityDeviceTrust>()
+    public async Task<IReadOnlyCollection<DeviceTrustView>> ListTrustsAsync(Guid userId, CancellationToken cancellationToken) => await dbContext.Set<IdentityDeviceTrust>()
             .AsNoTracking()
             .Where(x => x.UserId == userId && x.ExpiresAt > timeProvider.GetUtcNow())
             .OrderByDescending(x => x.CreatedAt)
             .Select(x => new DeviceTrustView(x.Id, x.Surface, x.Label, x.CreatedAt, x.ExpiresAt, x.LastUsedAt))
             .ToListAsync(cancellationToken);
-    }
 
     public async Task<ErrorOr<Success>> RevokeTrustAsync(Guid trustId, Guid userId, CancellationToken cancellationToken)
     {

@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Application.Identity.Models;
+﻿namespace Tailbook.Modules.Identity.Application.Identity.Models;
 
 public readonly record struct LoginThrottleDecision(bool IsLockedOut, TimeSpan? RetryAfter)
 {

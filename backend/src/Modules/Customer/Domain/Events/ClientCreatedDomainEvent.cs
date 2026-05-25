@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Abstractions;
+﻿using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.Customer.IntegrationEvents;
 
 namespace Tailbook.Modules.Customer.Domain.Events;
@@ -14,12 +14,9 @@ public sealed record ClientCreatedDomainEvent(
     public string EventType => "ClientCreated";
     public string ModuleCode => "customer";
 
-    public IIntegrationEventDto ToIntegrationEvent()
-    {
-        return new ClientCreatedIntegrationEvent(
+    public IIntegrationEventDto ToIntegrationEvent() => new ClientCreatedIntegrationEvent(
             ClientId,
             DisplayName,
             Status,
             Notes);
-    }
 }

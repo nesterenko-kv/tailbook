@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
+﻿namespace Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 public class DurationRuleResponseBase
 {
@@ -19,9 +19,7 @@ public class DurationRuleResponseBase
         => FromView<DurationRuleResponseBase>(view);
 
     protected static TResponse FromView<TResponse>(DurationRuleView view)
-        where TResponse : DurationRuleResponseBase, new()
-    {
-        return new TResponse
+        where TResponse : DurationRuleResponseBase, new() => new TResponse
         {
             Id = view.Id,
             RuleSetId = view.RuleSetId,
@@ -36,5 +34,4 @@ public class DurationRuleResponseBase
             Condition = RuleConditionPayload.FromView(view.Condition),
             CreatedAt = view.CreatedAt
         };
-    }
 }

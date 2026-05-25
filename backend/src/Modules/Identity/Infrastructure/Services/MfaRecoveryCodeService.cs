@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -233,9 +233,7 @@ public sealed class MfaRecoveryCodeService(
         int invalidatedRecoveryCodeCount,
         int invalidatedChallengeCount,
         DateTimeOffset resetAt,
-        CancellationToken cancellationToken)
-    {
-        return auditTrailService.RecordAsync(
+        CancellationToken cancellationToken) => auditTrailService.RecordAsync(
             ModuleCode,
             MfaRecoveryEntityType,
             userId.ToString("D"),
@@ -257,5 +255,4 @@ public sealed class MfaRecoveryCodeService(
                 resetAt
             }),
             cancellationToken);
-    }
 }

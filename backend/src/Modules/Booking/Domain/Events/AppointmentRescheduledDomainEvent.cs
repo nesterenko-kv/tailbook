@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Abstractions;
+﻿using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.Booking.IntegrationEvents;
 
 namespace Tailbook.Modules.Booking.Domain.Events;
@@ -16,8 +16,5 @@ public sealed record AppointmentRescheduledDomainEvent(
     public string EventType => "AppointmentRescheduled";
     public string ModuleCode => "booking";
 
-    public IIntegrationEventDto ToIntegrationEvent()
-    {
-        return new AppointmentRescheduledIntegrationEvent(AppointmentId, GroomerId, StartAt, EndAt, Status, VersionNo);
-    }
+    public IIntegrationEventDto ToIntegrationEvent() => new AppointmentRescheduledIntegrationEvent(AppointmentId, GroomerId, StartAt, EndAt, Status, VersionNo);
 }

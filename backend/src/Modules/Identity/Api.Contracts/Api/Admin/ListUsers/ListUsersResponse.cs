@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Admin.ListUsers;
+﻿namespace Tailbook.Modules.Identity.Api.Admin.ListUsers;
 
 public sealed class ListUsersResponse
 {

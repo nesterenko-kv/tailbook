@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
@@ -26,10 +26,7 @@ public sealed class RabbitMqMessageBroker : IMessageBroker, IAsyncDisposable
         _logger = logger;
     }
 
-    public async Task PublishAsync(string exchange, string routingKey, object payload, CancellationToken cancellationToken = default)
-    {
-        await PublishAsync(exchange, routingKey, payload, messageId: null, cancellationToken);
-    }
+    public async Task PublishAsync(string exchange, string routingKey, object payload, CancellationToken cancellationToken = default) => await PublishAsync(exchange, routingKey, payload, messageId: null, cancellationToken);
 
     public async Task PublishAsync(string exchange, string routingKey, object payload, string? messageId, CancellationToken cancellationToken = default)
     {

@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Staff.Domain.Entities;
+﻿namespace Tailbook.Modules.Staff.Domain.Entities;
 
 public sealed class GroomerCapability
 {

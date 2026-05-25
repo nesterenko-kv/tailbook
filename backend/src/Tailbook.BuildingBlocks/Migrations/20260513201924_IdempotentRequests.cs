@@ -25,10 +25,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     CompletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     ExpiresAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_idempotent_requests", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_idempotent_requests", x => x.Id));
 
             migrationBuilder.CreateIndex(
                 name: "IX_idempotent_requests_ExpiresAt",
@@ -46,11 +43,8 @@ namespace Tailbook.BuildingBlocks.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
+        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
                 name: "idempotent_requests",
                 schema: "integration");
-        }
     }
 }

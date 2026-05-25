@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Abstractions;
+﻿using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.Pets.IntegrationEvents;
 
 namespace Tailbook.Modules.Pets.Domain.Events;
@@ -20,9 +20,7 @@ public sealed record PetCreatedDomainEvent(
     public string EventType => "PetCreated";
     public string ModuleCode => "pets";
 
-    public IIntegrationEventDto ToIntegrationEvent()
-    {
-        return new PetCreatedIntegrationEvent(
+    public IIntegrationEventDto ToIntegrationEvent() => new PetCreatedIntegrationEvent(
             PetId,
             ClientId,
             Name,
@@ -33,5 +31,4 @@ public sealed record PetCreatedDomainEvent(
             BirthDate,
             WeightKg,
             Notes);
-    }
 }

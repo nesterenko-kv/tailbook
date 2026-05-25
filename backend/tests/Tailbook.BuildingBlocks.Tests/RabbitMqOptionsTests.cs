@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Tailbook.BuildingBlocks.Abstractions;
@@ -10,10 +10,7 @@ namespace Tailbook.BuildingBlocks.Tests;
 public sealed class RabbitMqOptionsTests
 {
     [Fact]
-    public void SectionName_is_RabbitMq()
-    {
-        Assert.Equal("RabbitMq", RabbitMqOptions.SectionName);
-    }
+    public void SectionName_is_RabbitMq() => Assert.Equal("RabbitMq", RabbitMqOptions.SectionName);
 
     [Fact]
     public void Default_options_have_expected_values()

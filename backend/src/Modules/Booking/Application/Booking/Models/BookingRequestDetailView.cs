@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Booking.Application.Booking.Models;
+﻿namespace Tailbook.Modules.Booking.Application.Booking.Models;
 
 public sealed record BookingRequestDetailView(
     Guid Id,

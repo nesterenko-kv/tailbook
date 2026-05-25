@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Api.Admin.Imports;
+﻿namespace Tailbook.Modules.Catalog.Api.Admin.Imports;
 
 internal static class ImportBatchResponseMapper
 {

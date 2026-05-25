@@ -25,10 +25,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     Code = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_animal_types", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_animal_types", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "crm_clients",
@@ -42,10 +39,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_crm_clients", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_crm_clients", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "breed_groups",

@@ -22,10 +22,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UsedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_iam_password_reset_tokens", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_iam_password_reset_tokens", x => x.Id));
 
             migrationBuilder.CreateIndex(
                 name: "IX_iam_password_reset_tokens_TokenHash",
@@ -42,11 +39,8 @@ namespace Tailbook.BuildingBlocks.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
+        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
                 name: "iam_password_reset_tokens",
                 schema: "iam");
-        }
     }
 }

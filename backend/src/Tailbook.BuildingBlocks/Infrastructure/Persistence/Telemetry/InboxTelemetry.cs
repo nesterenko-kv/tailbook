@@ -1,4 +1,4 @@
-using System.Diagnostics.Metrics;
+﻿using System.Diagnostics.Metrics;
 
 namespace Tailbook.BuildingBlocks.Infrastructure.Persistence.Telemetry;
 
@@ -28,28 +28,13 @@ public static class InboxTelemetry
         "tailbook.inbox.messages.retry_depth",
         description: "Distribution of retry counts for inbox messages.");
 
-    public static void RecordReceived(string consumerName)
-    {
-        MessagesReceived.Add(1, new KeyValuePair<string, object?>("consumer", consumerName));
-    }
+    public static void RecordReceived(string consumerName) => MessagesReceived.Add(1, new KeyValuePair<string, object?>("consumer", consumerName));
 
-    public static void RecordCompleted(string consumerName)
-    {
-        MessagesCompleted.Add(1, new KeyValuePair<string, object?>("consumer", consumerName));
-    }
+    public static void RecordCompleted(string consumerName) => MessagesCompleted.Add(1, new KeyValuePair<string, object?>("consumer", consumerName));
 
-    public static void RecordFailed(string consumerName)
-    {
-        MessagesFailed.Add(1, new KeyValuePair<string, object?>("consumer", consumerName));
-    }
+    public static void RecordFailed(string consumerName) => MessagesFailed.Add(1, new KeyValuePair<string, object?>("consumer", consumerName));
 
-    public static void RecordPoisoned(string consumerName)
-    {
-        MessagesPoisoned.Add(1, new KeyValuePair<string, object?>("consumer", consumerName));
-    }
+    public static void RecordPoisoned(string consumerName) => MessagesPoisoned.Add(1, new KeyValuePair<string, object?>("consumer", consumerName));
 
-    public static void RecordRetryDepth(string consumerName, int retryCount)
-    {
-        RetryDepth.Record(retryCount, new KeyValuePair<string, object?>("consumer", consumerName));
-    }
+    public static void RecordRetryDepth(string consumerName, int retryCount) => RetryDepth.Record(retryCount, new KeyValuePair<string, object?>("consumer", consumerName));
 }

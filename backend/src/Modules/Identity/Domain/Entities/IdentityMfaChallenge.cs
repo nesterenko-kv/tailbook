@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Abstractions;
+﻿using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.Identity.Domain.Events;
 
 namespace Tailbook.Modules.Identity.Domain.Entities;
@@ -62,10 +62,7 @@ public sealed class IdentityMfaChallenge : AggregateRoot
         return entity;
     }
 
-    public void Invalidate(DateTimeOffset invalidatedAt)
-    {
-        InvalidatedAt = invalidatedAt.ToUniversalTime();
-    }
+    public void Invalidate(DateTimeOffset invalidatedAt) => InvalidatedAt = invalidatedAt.ToUniversalTime();
 
     public void RecordFailedAttempt(DateTimeOffset failedAt)
     {
@@ -73,8 +70,5 @@ public sealed class IdentityMfaChallenge : AggregateRoot
         LastFailedAt = failedAt.ToUniversalTime();
     }
 
-    public void MarkConsumed(DateTimeOffset consumedAt)
-    {
-        ConsumedAt = consumedAt.ToUniversalTime();
-    }
+    public void MarkConsumed(DateTimeOffset consumedAt) => ConsumedAt = consumedAt.ToUniversalTime();
 }

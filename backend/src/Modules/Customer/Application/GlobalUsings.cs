@@ -1,4 +1,4 @@
-global using Tailbook.Modules.Customer.Application.Customer.Models;
+﻿global using Tailbook.Modules.Customer.Application.Customer.Models;
 global using Tailbook.Modules.Customer.Application.Customer.Commands;
 global using Tailbook.Modules.Customer.Application.Customer.Queries;
 global using Tailbook.Modules.Customer.Domain.Aggregates;

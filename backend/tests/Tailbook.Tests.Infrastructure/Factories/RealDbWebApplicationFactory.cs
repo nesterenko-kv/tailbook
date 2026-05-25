@@ -1,4 +1,4 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -62,34 +62,31 @@ public sealed class RealDbWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.UseEnvironment("Testing");
 
-        builder.ConfigureAppConfiguration((_, config) =>
+        builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
         {
-            config.AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:Main"] = pgConnectionString,
-                ["ConnectionStrings:Redis"] = redisConnectionString,
-                ["BootstrapAdmin:Email"] = "admin@test.local",
-                ["BootstrapAdmin:Password"] = "MyV3ryC00lAdminP@ss",
-                ["BootstrapAdmin:DisplayName"] = "Test Admin",
-                ["Jwt:Issuer"] = "tailbook.tests",
-                ["Jwt:Audience"] = "tailbook.tests.clients",
-                ["Jwt:SigningKey"] = "test-signing-key-that-is-at-least-32chars",
-                ["Jwt:ExpirationMinutes"] = "120",
-                ["LoginThrottling:MaxFailedAttempts"] = "3",
-                ["LoginThrottling:FailureWindowMinutes"] = "15",
-                ["LoginThrottling:LockoutMinutes"] = "15",
-                ["PasswordReset:ExpirationMinutes"] = "30",
-                ["PasswordReset:TokenBytes"] = "32",
-                ["PasswordReset:ResetUrlBase"] = "http://localhost:3002/reset-password",
-                ["SensitivePayloadProtection:Key"] = "test-sensitive-payload-key-that-is-at-least-32chars",
-                ["Notifications:LocalFilePath"] = Path.Combine(Path.GetTempPath(), $"tailbook-test-notifications-{Guid.NewGuid():N}.log"),
-                ["Audit:QueueCapacity"] = "100",
-                ["Audit:BatchSize"] = "1",
-                ["Audit:FlushIntervalMilliseconds"] = "10",
-                ["Audit:MaxWriteRetries"] = "1",
-                ["Audit:RetryDelayMilliseconds"] = "1"
-            });
-        });
+            ["ConnectionStrings:Main"] = pgConnectionString,
+            ["ConnectionStrings:Redis"] = redisConnectionString,
+            ["BootstrapAdmin:Email"] = "admin@test.local",
+            ["BootstrapAdmin:Password"] = "MyV3ryC00lAdminP@ss",
+            ["BootstrapAdmin:DisplayName"] = "Test Admin",
+            ["Jwt:Issuer"] = "tailbook.tests",
+            ["Jwt:Audience"] = "tailbook.tests.clients",
+            ["Jwt:SigningKey"] = "test-signing-key-that-is-at-least-32chars",
+            ["Jwt:ExpirationMinutes"] = "120",
+            ["LoginThrottling:MaxFailedAttempts"] = "3",
+            ["LoginThrottling:FailureWindowMinutes"] = "15",
+            ["LoginThrottling:LockoutMinutes"] = "15",
+            ["PasswordReset:ExpirationMinutes"] = "30",
+            ["PasswordReset:TokenBytes"] = "32",
+            ["PasswordReset:ResetUrlBase"] = "http://localhost:3002/reset-password",
+            ["SensitivePayloadProtection:Key"] = "test-sensitive-payload-key-that-is-at-least-32chars",
+            ["Notifications:LocalFilePath"] = Path.Combine(Path.GetTempPath(), $"tailbook-test-notifications-{Guid.NewGuid():N}.log"),
+            ["Audit:QueueCapacity"] = "100",
+            ["Audit:BatchSize"] = "1",
+            ["Audit:FlushIntervalMilliseconds"] = "10",
+            ["Audit:MaxWriteRetries"] = "1",
+            ["Audit:RetryDelayMilliseconds"] = "1"
+        }));
 
         builder.ConfigureServices(services =>
         {
@@ -167,10 +164,7 @@ public sealed class RealDbWebApplicationFactory : WebApplicationFactory<Program>
         return user.Id;
     }
 
-    public static void SetBearer(HttpClient client, string accessToken)
-    {
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-    }
+    public static void SetBearer(HttpClient client, string accessToken) => client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
     private sealed class LoginResponseEnvelope
     {

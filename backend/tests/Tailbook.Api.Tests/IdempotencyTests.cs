@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.Api.Tests.Factories;
 using Tailbook.BuildingBlocks.Abstractions;

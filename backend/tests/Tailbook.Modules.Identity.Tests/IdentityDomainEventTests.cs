@@ -1,4 +1,4 @@
-using Tailbook.Modules.Identity.Domain;
+﻿using Tailbook.Modules.Identity.Domain;
 using Tailbook.Modules.Identity.Domain.Events;
 using Xunit;
 
@@ -78,8 +78,5 @@ public sealed class IdentityDomainEventTests
         Assert.Equal("identity", domainEvent.ModuleCode);
     }
 
-    private static DateTimeOffset Utc(string value)
-    {
-        return DateTimeOffset.Parse(value, null, System.Globalization.DateTimeStyles.AssumeUniversal);
-    }
+    private static DateTimeOffset Utc(string value) => DateTimeOffset.Parse(value, null, System.Globalization.DateTimeStyles.AssumeUniversal);
 }

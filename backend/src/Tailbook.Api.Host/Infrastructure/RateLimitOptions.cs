@@ -1,4 +1,4 @@
-namespace Tailbook.Api.Host.Infrastructure;
+﻿namespace Tailbook.Api.Host.Infrastructure;
 
 public sealed class RateLimitOptions
 {

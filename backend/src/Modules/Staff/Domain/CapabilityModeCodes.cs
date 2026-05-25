@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Staff.Domain;
+﻿namespace Tailbook.Modules.Staff.Domain;
 
 public static class CapabilityModeCodes
 {

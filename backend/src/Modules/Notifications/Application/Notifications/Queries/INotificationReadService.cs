@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Notifications.Application.Notifications.Queries;
+﻿namespace Tailbook.Modules.Notifications.Application.Notifications.Queries;
 
 public interface INotificationReadService
 {

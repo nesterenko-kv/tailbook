@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Staff.Infrastructure.Options;
+﻿namespace Tailbook.Modules.Staff.Infrastructure.Options;
 
 public sealed class StaffSchedulingOptions
 {

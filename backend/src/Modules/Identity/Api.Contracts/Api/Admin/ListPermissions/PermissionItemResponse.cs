@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Admin.ListPermissions;
+﻿namespace Tailbook.Modules.Identity.Api.Admin.ListPermissions;
 
 public sealed class PermissionItemResponse
 {

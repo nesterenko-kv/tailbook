@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Api.Admin.ListOffers;
+﻿namespace Tailbook.Modules.Catalog.Api.Admin.ListOffers;
 
 public sealed class OfferListItemResponse
 {

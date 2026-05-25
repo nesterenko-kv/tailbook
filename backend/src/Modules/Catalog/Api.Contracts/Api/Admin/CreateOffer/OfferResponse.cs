@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
+﻿namespace Tailbook.Modules.Catalog.Api.Admin.CreateOffer;
 
 public sealed class OfferResponse
 {
@@ -11,18 +11,15 @@ public sealed class OfferResponse
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 
-    public static OfferResponse Map(OfferDetailView view)
+    public static OfferResponse Map(OfferDetailView view) => new OfferResponse
     {
-        return new OfferResponse
-        {
-            Id = view.Id,
-            Code = view.Code,
-            OfferType = view.OfferType,
-            DisplayName = view.DisplayName,
-            IsActive = view.IsActive,
-            Versions = view.Versions.Select(OfferVersionResponse.Map).ToArray(),
-            CreatedAt = view.CreatedAt,
-            UpdatedAt = view.UpdatedAt
-        };
-    }
+        Id = view.Id,
+        Code = view.Code,
+        OfferType = view.OfferType,
+        DisplayName = view.DisplayName,
+        IsActive = view.IsActive,
+        Versions = view.Versions.Select(OfferVersionResponse.Map).ToArray(),
+        CreatedAt = view.CreatedAt,
+        UpdatedAt = view.UpdatedAt
+    };
 }

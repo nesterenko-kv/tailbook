@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -72,14 +72,11 @@ public sealed class ReportingNotificationsFlowTests(RealDbWebApplicationFactory 
     public async Task Failed_notification_delivery_retries_same_job_and_exposes_last_error()
     {
         FailingOnceNotificationSink.Reset();
-        using var factory1 = factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
+        using var factory1 = factory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             {
                 services.RemoveAll<INotificationSink>();
                 services.AddSingleton<INotificationSink, FailingOnceNotificationSink>();
-            });
-        });
+            }));
 
         using var client = factory1.CreateClient();
         var loginResponse = await client.PostAsJsonAsync("/api/identity/auth/login", new
@@ -218,10 +215,7 @@ public sealed class ReportingNotificationsFlowTests(RealDbWebApplicationFactory 
     {
         private static int _attemptCount;
 
-        public static void Reset()
-        {
-            _attemptCount = 0;
-        }
+        public static void Reset() => _attemptCount = 0;
 
         public Task SendAsync(NotificationDispatchEnvelope envelope, CancellationToken cancellationToken)
         {

@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Abstractions;
+﻿using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.Customer.Domain.Entities;
 using Tailbook.Modules.Customer.Domain.Events;
 

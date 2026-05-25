@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
@@ -382,19 +382,14 @@ public sealed class AuditWriteBufferingTests
         }
     }
 
-    private static AuditWriteQueue CreateQueue(int queueCapacity = 100)
-    {
-        return new AuditWriteQueue(Options.Create(CreateOptions(queueCapacity: queueCapacity)));
-    }
+    private static AuditWriteQueue CreateQueue(int queueCapacity = 100) => new AuditWriteQueue(Options.Create(CreateOptions(queueCapacity: queueCapacity)));
 
     private static AuditWriteOptions CreateOptions(
         int queueCapacity = 100,
         int batchSize = 10,
         int flushIntervalMilliseconds = 50,
         int maxWriteRetries = 1,
-        int retryDelayMilliseconds = 1)
-    {
-        return new AuditWriteOptions
+        int retryDelayMilliseconds = 1) => new AuditWriteOptions
         {
             QueueCapacity = queueCapacity,
             BatchSize = batchSize,
@@ -402,7 +397,6 @@ public sealed class AuditWriteBufferingTests
             MaxWriteRetries = maxWriteRetries,
             RetryDelayMilliseconds = retryDelayMilliseconds
         };
-    }
 
     private sealed class ObservedAuditWriteQueue : IAuditWriteQueue
     {
@@ -417,15 +411,9 @@ public sealed class AuditWriteBufferingTests
 
         public ChannelReader<AuditWriteItem> Reader => _reader;
 
-        public ValueTask EnqueueAsync(AuditWriteItem item, CancellationToken cancellationToken)
-        {
-            return _inner.EnqueueAsync(item, cancellationToken);
-        }
+        public ValueTask EnqueueAsync(AuditWriteItem item, CancellationToken cancellationToken) => _inner.EnqueueAsync(item, cancellationToken);
 
-        public Task WaitForFlushWaitAsync(TimeSpan timeout)
-        {
-            return _reader.WaitForFlushWaitAsync(timeout);
-        }
+        public Task WaitForFlushWaitAsync(TimeSpan timeout) => _reader.WaitForFlushWaitAsync(timeout);
     }
 
     private sealed class ObservedChannelReader(ChannelReader<AuditWriteItem> inner) : ChannelReader<AuditWriteItem>
@@ -455,10 +443,7 @@ public sealed class AuditWriteBufferingTests
             return waitToRead;
         }
 
-        public Task WaitForFlushWaitAsync(TimeSpan timeout)
-        {
-            return _flushWaitObserved.Task.WaitAsync(timeout);
-        }
+        public Task WaitForFlushWaitAsync(TimeSpan timeout) => _flushWaitObserved.Task.WaitAsync(timeout);
     }
 
     private static ServiceProvider CreateServiceProvider(
@@ -506,20 +491,15 @@ public sealed class AuditWriteBufferingTests
         return services.BuildServiceProvider(validateScopes: true);
     }
 
-    private static AccessAuditWriteItem CreateAccessItem(string resourceId)
-    {
-        return new AccessAuditWriteItem(
+    private static AccessAuditWriteItem CreateAccessItem(string resourceId) => new AccessAuditWriteItem(
             Guid.NewGuid(),
             Guid.NewGuid(),
             "test_resource",
             resourceId,
             "READ_DETAIL",
             new DateTimeOffset(2026, 5, 7, 12, 0, 0, TimeSpan.Zero));
-    }
 
-    private static AuditTrailWriteItem CreateTrailItem(string entityId, string actionCode)
-    {
-        return new AuditTrailWriteItem(
+    private static AuditTrailWriteItem CreateTrailItem(string entityId, string actionCode) => new AuditTrailWriteItem(
             Guid.NewGuid(),
             Guid.NewGuid(),
             "test_module",
@@ -529,7 +509,6 @@ public sealed class AuditWriteBufferingTests
             new DateTimeOffset(2026, 5, 7, 12, 5, 0, TimeSpan.Zero),
             """{"before":true}""",
             """{"after":true}""");
-    }
 
     private static async Task<List<TEntity>> ListAsync<TEntity>(IServiceProvider provider)
         where TEntity : class
@@ -546,10 +525,7 @@ public sealed class AuditWriteBufferingTests
 
         public int SaveChangesCount => _saveChangesCount;
 
-        public Task WaitForSaveAsync(TimeSpan? timeout = null)
-        {
-            return _saveObserved.Task.WaitAsync(timeout ?? TimeSpan.FromSeconds(3));
-        }
+        public Task WaitForSaveAsync(TimeSpan? timeout = null) => _saveObserved.Task.WaitAsync(timeout ?? TimeSpan.FromSeconds(3));
 
         public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
             DbContextEventData eventData,
@@ -570,10 +546,7 @@ public sealed class AuditWriteBufferingTests
 
         public int SaveAttempts => _saveAttempts;
 
-        public Task WaitForSuccessfulSaveAsync()
-        {
-            return _successfulSaveObserved.Task.WaitAsync(TimeSpan.FromSeconds(3));
-        }
+        public Task WaitForSuccessfulSaveAsync() => _successfulSaveObserved.Task.WaitAsync(TimeSpan.FromSeconds(3));
 
         public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
             DbContextEventData eventData,
@@ -595,10 +568,7 @@ public sealed class AuditWriteBufferingTests
     {
         public ConcurrentQueue<RecordedLogEntry> Entries { get; } = new();
 
-        public ILogger CreateLogger(string categoryName)
-        {
-            return new RecordingLogger(Entries);
-        }
+        public ILogger CreateLogger(string categoryName) => new RecordingLogger(Entries);
 
         public void Dispose()
         {
@@ -610,25 +580,16 @@ public sealed class AuditWriteBufferingTests
     private sealed class RecordingLogger(ConcurrentQueue<RecordedLogEntry> entries) : ILogger
     {
         public IDisposable BeginScope<TState>(TState state)
-            where TState : notnull
-        {
-            return NullScope.Instance;
-        }
+            where TState : notnull => NullScope.Instance;
 
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return true;
-        }
+        public bool IsEnabled(LogLevel logLevel) => true;
 
         public void Log<TState>(
             LogLevel logLevel,
             EventId eventId,
             TState state,
             Exception? exception,
-            Func<TState, Exception?, string> formatter)
-        {
-            entries.Enqueue(new RecordedLogEntry(logLevel, formatter(state, exception), exception));
-        }
+            Func<TState, Exception?, string> formatter) => entries.Enqueue(new RecordedLogEntry(logLevel, formatter(state, exception), exception));
     }
 
     private sealed class NullScope : IDisposable

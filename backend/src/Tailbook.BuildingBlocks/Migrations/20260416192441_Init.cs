@@ -31,10 +31,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     ActionCode = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     HappenedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_access_audit_entries", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_access_audit_entries", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "iam_permissions",
@@ -45,10 +42,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     Code = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     DisplayName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_iam_permissions", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_iam_permissions", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "iam_role_assignments",
@@ -63,10 +57,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     AssignedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     AssignedByUserId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_iam_role_assignments", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_iam_role_assignments", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "iam_role_permissions",
@@ -76,10 +67,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     RoleId = table.Column<Guid>(type: "uuid", nullable: false),
                     PermissionId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_iam_role_permissions", x => new { x.RoleId, x.PermissionId });
-                });
+                constraints: table => table.PrimaryKey("PK_iam_role_permissions", x => new { x.RoleId, x.PermissionId }));
 
             migrationBuilder.CreateTable(
                 name: "iam_roles",
@@ -91,10 +79,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     DisplayName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     IsSystem = table.Column<bool>(type: "boolean", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_iam_roles", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_iam_roles", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "iam_users",
@@ -111,10 +96,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_iam_users", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_iam_users", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "outbox_messages",
@@ -128,10 +110,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     OccurredAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ProcessedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_outbox_messages", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_outbox_messages", x => x.Id));
 
             migrationBuilder.CreateIndex(
                 name: "IX_access_audit_entries_HappenedAtUtc",

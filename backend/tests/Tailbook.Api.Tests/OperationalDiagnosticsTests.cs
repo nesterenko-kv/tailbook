@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Net;
 using System.Text.Json;
@@ -93,10 +93,7 @@ public sealed class OperationalDiagnosticsTests(RealDbWebApplicationFactory fact
     [InlineData(500, "5xx")]
     [InlineData(99, "unknown")]
     [InlineData(600, "unknown")]
-    public void Api_diagnostics_maps_status_codes_to_status_classes(int statusCode, string expectedStatusClass)
-    {
-        Assert.Equal(expectedStatusClass, ApiDiagnosticsTelemetry.GetStatusClass(statusCode));
-    }
+    public void Api_diagnostics_maps_status_codes_to_status_classes(int statusCode, string expectedStatusClass) => Assert.Equal(expectedStatusClass, ApiDiagnosticsTelemetry.GetStatusClass(statusCode));
 
     [Fact]
     public async Task Request_logging_middleware_records_request_count_and_duration_metrics()
@@ -344,25 +341,16 @@ public sealed class OperationalDiagnosticsTests(RealDbWebApplicationFactory fact
     {
         public List<LogEntry> Entries { get; } = [];
 
-        public IDisposable BeginScope<TState>(TState state) where TState : notnull
-        {
-            return NullScope.Instance;
-        }
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull => NullScope.Instance;
 
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return true;
-        }
+        public bool IsEnabled(LogLevel logLevel) => true;
 
         public void Log<TState>(
             LogLevel logLevel,
             EventId eventId,
             TState state,
             Exception? exception,
-            Func<TState, Exception?, string> formatter)
-        {
-            Entries.Add(new LogEntry(logLevel, formatter(state, exception), exception));
-        }
+            Func<TState, Exception?, string> formatter) => Entries.Add(new LogEntry(logLevel, formatter(state, exception), exception));
     }
 
     private sealed record LogEntry(LogLevel Level, string Message, Exception? Exception);
@@ -375,10 +363,7 @@ public sealed class OperationalDiagnosticsTests(RealDbWebApplicationFactory fact
         public string EventType => "AppointmentCreated";
         public string ModuleCode => "booking";
 
-        public IIntegrationEventDto ToIntegrationEvent()
-        {
-            return new OutboxTelemetryTestIntegrationEvent(AppointmentId);
-        }
+        public IIntegrationEventDto ToIntegrationEvent() => new OutboxTelemetryTestIntegrationEvent(AppointmentId);
     }
 
     private sealed record OutboxTelemetryTestIntegrationEvent(string AppointmentId) : IIntegrationEventDto

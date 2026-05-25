@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Tailbook.Api.Tests.Factories;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Xunit;

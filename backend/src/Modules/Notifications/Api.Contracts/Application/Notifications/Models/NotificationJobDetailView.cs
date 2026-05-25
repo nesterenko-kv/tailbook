@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Notifications.Application.Notifications.Models;
+﻿namespace Tailbook.Modules.Notifications.Application.Notifications.Models;
 
 public sealed record NotificationJobDetailView(
     Guid Id,

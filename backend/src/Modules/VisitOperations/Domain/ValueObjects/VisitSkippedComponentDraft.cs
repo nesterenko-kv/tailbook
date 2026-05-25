@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.VisitOperations.Domain.ValueObjects;
+﻿namespace Tailbook.Modules.VisitOperations.Domain.ValueObjects;
 
 public sealed record VisitSkippedComponentDraft(
     Guid OfferVersionComponentId,

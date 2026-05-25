@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using ErrorOr;
 using FastEndpoints;
 using Tailbook.BuildingBlocks.Abstractions;
@@ -14,9 +14,7 @@ public sealed class CreateAppointmentUseCaseCommandHandler(
     TimeProvider timeProvider)
     : ICommandHandler<CreateAppointmentUseCaseCommand, ErrorOr<AppointmentDetailView>>
 {
-    public Task<ErrorOr<AppointmentDetailView>> ExecuteAsync(CreateAppointmentUseCaseCommand command, CancellationToken ct = default)
-    {
-        return CreateAppointmentAsync(
+    public Task<ErrorOr<AppointmentDetailView>> ExecuteAsync(CreateAppointmentUseCaseCommand command, CancellationToken ct = default) => CreateAppointmentAsync(
             null,
             command.PetId,
             command.GroomerId,
@@ -24,7 +22,6 @@ public sealed class CreateAppointmentUseCaseCommandHandler(
             command.Items.Select(x => new PreviewQuoteItemQuery(x.OfferId, x.ItemType)).ToArray(),
             command.ActorUserId,
             ct);
-    }
 
     public async Task<ErrorOr<AppointmentDetailView>> CreateAppointmentAsync(
         Guid? bookingRequestId,

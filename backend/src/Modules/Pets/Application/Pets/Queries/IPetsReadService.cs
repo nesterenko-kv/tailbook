@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Pets.Application.Pets.Queries;
+﻿namespace Tailbook.Modules.Pets.Application.Pets.Queries;
 
 public interface IPetsReadService
 {

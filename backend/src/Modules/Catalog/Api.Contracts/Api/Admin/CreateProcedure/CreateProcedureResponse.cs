@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Api.Admin.CreateProcedure;
+﻿namespace Tailbook.Modules.Catalog.Api.Admin.CreateProcedure;
 
 public sealed class CreateProcedureResponse
 {

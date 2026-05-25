@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Api.Admin.CreatePriceRuleSet;
+﻿namespace Tailbook.Modules.Catalog.Api.Admin.CreatePriceRuleSet;
 
 public sealed class CreatePriceRuleSetRequest
 {

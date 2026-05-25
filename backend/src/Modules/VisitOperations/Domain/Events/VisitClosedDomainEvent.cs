@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Abstractions;
+﻿using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.VisitOperations.IntegrationEvents;
 
 namespace Tailbook.Modules.VisitOperations.Domain.Events;
@@ -15,8 +15,5 @@ public sealed record VisitClosedDomainEvent(
     public string EventType => "VisitClosed";
     public string ModuleCode => "visitops";
 
-    public IIntegrationEventDto ToIntegrationEvent()
-    {
-        return new VisitClosedIntegrationEvent(VisitId, AppointmentId, Status, FinalTotalAmount, ClosedAt);
-    }
+    public IIntegrationEventDto ToIntegrationEvent() => new VisitClosedIntegrationEvent(VisitId, AppointmentId, Status, FinalTotalAmount, ClosedAt);
 }

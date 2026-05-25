@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Audit.Application.AuditEntries.Models;
+﻿namespace Tailbook.Modules.Audit.Application.AuditEntries.Models;
 
 public sealed record AuditEntryReadModel(
     Guid Id,

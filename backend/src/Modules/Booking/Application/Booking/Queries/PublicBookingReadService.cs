@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using Tailbook.BuildingBlocks.Abstractions;
 
 namespace Tailbook.Modules.Booking.Application.Booking.Queries;
@@ -251,8 +251,5 @@ public sealed class PublicBookingReadService(
 
     public async Task<BookingRequestDetailView?> GetBookingRequestStatusAsync(
         Guid bookingRequestId,
-        CancellationToken cancellationToken)
-    {
-        return await bookingManagementReadService.GetBookingRequestAsync(bookingRequestId, cancellationToken);
-    }
+        CancellationToken cancellationToken) => await bookingManagementReadService.GetBookingRequestAsync(bookingRequestId, cancellationToken);
 }

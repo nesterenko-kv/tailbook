@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Customer.Api.Admin.LinkContactToPet;
+﻿namespace Tailbook.Modules.Customer.Api.Admin.LinkContactToPet;
 
 public sealed class LinkContactToPetRequest
 {

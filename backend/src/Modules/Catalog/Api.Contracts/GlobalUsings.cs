@@ -1,1 +1,1 @@
-global using Tailbook.Modules.Catalog.Application.Catalog.Models;
+﻿global using Tailbook.Modules.Catalog.Application.Catalog.Models;

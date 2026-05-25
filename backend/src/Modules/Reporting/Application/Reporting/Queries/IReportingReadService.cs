@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Reporting.Application.Reporting.Queries;
+﻿namespace Tailbook.Modules.Reporting.Application.Reporting.Queries;
 
 public interface IReportingReadService
 {

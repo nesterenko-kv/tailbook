@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Booking.Api.Admin.ListAppointments;
+﻿namespace Tailbook.Modules.Booking.Api.Admin.ListAppointments;
 
 public sealed class ListAppointmentsRequest
 {

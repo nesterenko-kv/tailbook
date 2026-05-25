@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text.Json;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
@@ -30,10 +30,7 @@ public sealed class NotificationUseCases(
     {
     }
 
-    public Task<int> ProcessPendingNotificationsAsync(CancellationToken cancellationToken)
-    {
-        return ProcessPendingNotificationsAsync(NotificationTelemetry.TriggerManual, cancellationToken);
-    }
+    public Task<int> ProcessPendingNotificationsAsync(CancellationToken cancellationToken) => ProcessPendingNotificationsAsync(NotificationTelemetry.TriggerManual, cancellationToken);
 
     public async Task<int> ProcessPendingNotificationsAsync(string trigger, CancellationToken cancellationToken)
     {
@@ -593,23 +590,17 @@ public sealed class NotificationUseCases(
         await auditTrailService.RecordAsync("notifications", "notification_job", jobId.ToString("D"), actionCode, actorUserId, beforeJson, afterJson, cancellationToken);
     }
 
-    private static string ToAuditSnapshot(NotificationJob job)
+    private static string ToAuditSnapshot(NotificationJob job) => JsonSerializer.Serialize(new
     {
-        return JsonSerializer.Serialize(new
-        {
-            job.Id,
-            job.SourceEventType,
-            job.Status,
-            job.AttemptCount,
-            job.NextAttemptAt,
-            job.DeadLetteredAt
-        });
-    }
+        job.Id,
+        job.SourceEventType,
+        job.Status,
+        job.AttemptCount,
+        job.NextAttemptAt,
+        job.DeadLetteredAt
+    });
 
-    private static NotificationJobListItemView ToListItem(NotificationJob job)
-    {
-        return new NotificationJobListItemView(job.Id, job.SourceEventType, job.Channel, job.Recipient, job.Status, job.AttemptCount, job.LastErrorMessage, job.CreatedAt, job.SentAt, job.NextAttemptAt, job.DeadLetteredAt);
-    }
+    private static NotificationJobListItemView ToListItem(NotificationJob job) => new NotificationJobListItemView(job.Id, job.SourceEventType, job.Channel, job.Recipient, job.Status, job.AttemptCount, job.LastErrorMessage, job.CreatedAt, job.SentAt, job.NextAttemptAt, job.DeadLetteredAt);
 
     private NotificationDispatchEnvelope CreateDispatchEnvelope(
         NotificationJob job,
@@ -668,10 +659,7 @@ public sealed class NotificationUseCases(
         return TimeSpan.FromSeconds(delaySeconds);
     }
 
-    private static string TruncateError(string message)
-    {
-        return message.Length > 1024 ? message[..1024] : message;
-    }
+    private static string TruncateError(string message) => message.Length > 1024 ? message[..1024] : message;
 
     private static string? ResolveTemplateCode(string eventType)
     {
@@ -682,15 +670,9 @@ public sealed class NotificationUseCases(
         return null;
     }
 
-    private static bool IsPasswordResetTemplate(string templateCode)
-    {
-        return string.Equals(templateCode, "PASSWORD_RESET_REQUESTED", StringComparison.OrdinalIgnoreCase);
-    }
+    private static bool IsPasswordResetTemplate(string templateCode) => string.Equals(templateCode, "PASSWORD_RESET_REQUESTED", StringComparison.OrdinalIgnoreCase);
 
-    private static bool IsMfaEmailOtpTemplate(string templateCode)
-    {
-        return string.Equals(templateCode, "MFA_EMAIL_OTP_CHALLENGE", StringComparison.OrdinalIgnoreCase);
-    }
+    private static bool IsMfaEmailOtpTemplate(string templateCode) => string.Equals(templateCode, "MFA_EMAIL_OTP_CHALLENGE", StringComparison.OrdinalIgnoreCase);
 
     private static string? ResolveRecipient(string payloadJson)
     {

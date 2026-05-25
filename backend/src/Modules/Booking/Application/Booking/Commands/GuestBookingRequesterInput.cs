@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Booking.Application.Booking.Commands;
+﻿namespace Tailbook.Modules.Booking.Application.Booking.Commands;
 
 public sealed record GuestBookingRequesterInput(
     string? DisplayName,

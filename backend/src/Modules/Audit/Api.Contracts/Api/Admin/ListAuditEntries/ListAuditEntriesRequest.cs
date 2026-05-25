@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Audit.Api.Admin.ListAuditEntries;
+﻿namespace Tailbook.Modules.Audit.Api.Admin.ListAuditEntries;
 
 public sealed class ListAuditEntriesRequest
 {

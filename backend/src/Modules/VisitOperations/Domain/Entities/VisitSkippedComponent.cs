@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 
 namespace Tailbook.Modules.VisitOperations.Domain.Entities;
 
@@ -100,8 +100,5 @@ public sealed class VisitSkippedComponent
         return normalized.ToUpperInvariant();
     }
 
-    private static string? NormalizeOptional(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    }
+    private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

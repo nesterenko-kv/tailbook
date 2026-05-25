@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
@@ -454,20 +454,14 @@ public sealed class PetsUseCases(
         CoatTypeView[] CoatTypes,
         SizeCategoryView[] SizeCategories)
     {
-        public static CachedPetCatalogView FromView(PetCatalogView view)
-        {
-            return new CachedPetCatalogView(
+        public static CachedPetCatalogView FromView(PetCatalogView view) => new CachedPetCatalogView(
                 view.AnimalTypes.ToArray(),
                 view.BreedGroups.ToArray(),
                 view.Breeds.ToArray(),
                 view.CoatTypes.ToArray(),
                 view.SizeCategories.ToArray());
-        }
 
-        public PetCatalogView ToView()
-        {
-            return new PetCatalogView(AnimalTypes, BreedGroups, Breeds, CoatTypes, SizeCategories);
-        }
+        public PetCatalogView ToView() => new PetCatalogView(AnimalTypes, BreedGroups, Breeds, CoatTypes, SizeCategories);
     }
 }
 

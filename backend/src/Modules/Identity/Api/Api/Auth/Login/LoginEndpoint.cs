@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Tailbook.Modules.Identity.Api.Auth.BrowserSessions;

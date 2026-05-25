@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.VisitOperations.Application;
+﻿namespace Tailbook.Modules.VisitOperations.Application;
 
 public static class VisitAdjustmentAllocator
 {

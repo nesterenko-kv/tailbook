@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Tailbook.Api.Tests.Factories;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;

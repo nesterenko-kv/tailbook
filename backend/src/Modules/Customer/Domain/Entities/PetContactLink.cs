@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Customer.Domain.Entities;
+﻿namespace Tailbook.Modules.Customer.Domain.Entities;
 
 public sealed class PetContactLink
 {

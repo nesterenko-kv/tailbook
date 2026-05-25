@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Admin.ResetMfaRecovery;
+﻿namespace Tailbook.Modules.Identity.Api.Admin.ResetMfaRecovery;
 
 public sealed class ResetMfaRecoveryResponse
 {

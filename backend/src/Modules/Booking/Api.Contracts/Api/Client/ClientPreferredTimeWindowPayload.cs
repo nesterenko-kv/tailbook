@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Booking.Api.Client;
+﻿namespace Tailbook.Modules.Booking.Api.Client;
 
 public sealed class ClientPreferredTimeWindowPayload
 {

@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Abstractions;
+﻿using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.Catalog.IntegrationEvents;
 
 namespace Tailbook.Modules.Catalog.Domain.Events;
@@ -13,11 +13,8 @@ public sealed record PriceRuleSetArchivedDomainEvent(
     public string EventType => "PriceRuleSetArchived";
     public string ModuleCode => "catalog";
 
-    public IIntegrationEventDto ToIntegrationEvent()
-    {
-        return new PriceRuleSetArchivedIntegrationEvent(
+    public IIntegrationEventDto ToIntegrationEvent() => new PriceRuleSetArchivedIntegrationEvent(
             RuleSetId,
             VersionNo,
             Status);
-    }
 }

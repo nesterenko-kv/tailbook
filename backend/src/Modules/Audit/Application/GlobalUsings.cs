@@ -1,1 +1,1 @@
-global using Tailbook.Modules.Audit.Domain.Entities;
+﻿global using Tailbook.Modules.Audit.Domain.Entities;

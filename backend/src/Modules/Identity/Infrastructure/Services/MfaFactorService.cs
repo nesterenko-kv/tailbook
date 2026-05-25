@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
@@ -6,15 +6,12 @@ namespace Tailbook.Modules.Identity.Infrastructure.Services;
 
 public sealed class MfaFactorService(AppDbContext dbContext, TimeProvider timeProvider) : IMfaFactorService
 {
-    public async Task<IReadOnlyCollection<MfaFactorView>> ListFactorsAsync(Guid userId, CancellationToken cancellationToken)
-    {
-        return await dbContext.Set<IdentityMfaFactor>()
+    public async Task<IReadOnlyCollection<MfaFactorView>> ListFactorsAsync(Guid userId, CancellationToken cancellationToken) => await dbContext.Set<IdentityMfaFactor>()
             .Where(x => x.UserId == userId)
             .OrderBy(x => x.FactorType)
             .ThenByDescending(x => x.CreatedAt)
             .Select(x => new MfaFactorView(x.Id, x.FactorType, x.Status, x.TargetEmail, x.CreatedAt, x.EnabledAt, x.DisabledAt))
             .ToListAsync(cancellationToken);
-    }
 
     public async Task<ErrorOr<MfaFactorView>> EnableEmailOtpAsync(Guid userId, CancellationToken cancellationToken)
     {
@@ -71,8 +68,5 @@ public sealed class MfaFactorService(AppDbContext dbContext, TimeProvider timePr
         return Result.Success;
     }
 
-    private static MfaFactorView ToView(IdentityMfaFactor factor)
-    {
-        return new MfaFactorView(factor.Id, factor.FactorType, factor.Status, factor.TargetEmail, factor.CreatedAt, factor.EnabledAt, factor.DisabledAt);
-    }
+    private static MfaFactorView ToView(IdentityMfaFactor factor) => new MfaFactorView(factor.Id, factor.FactorType, factor.Status, factor.TargetEmail, factor.CreatedAt, factor.EnabledAt, factor.DisabledAt);
 }

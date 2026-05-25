@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Application.Catalog.Queries;
+﻿namespace Tailbook.Modules.Catalog.Application.Catalog.Queries;
 
 public interface ICatalogReadService
 {

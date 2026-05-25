@@ -1,4 +1,4 @@
-using FastEndpoints;
+﻿using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 
 namespace Tailbook.Modules.Catalog.Api.Admin.CreatePriceRuleSet;

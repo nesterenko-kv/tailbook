@@ -26,10 +26,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_catalog_offers", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_catalog_offers", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "catalog_procedures",
@@ -43,10 +40,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_catalog_procedures", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_catalog_procedures", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "catalog_offer_versions",

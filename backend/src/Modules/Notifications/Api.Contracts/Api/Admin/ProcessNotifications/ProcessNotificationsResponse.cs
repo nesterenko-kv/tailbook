@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Notifications.Api.Admin.ProcessNotifications;
+﻿namespace Tailbook.Modules.Notifications.Api.Admin.ProcessNotifications;
 
 public sealed class ProcessNotificationsResponse
 {

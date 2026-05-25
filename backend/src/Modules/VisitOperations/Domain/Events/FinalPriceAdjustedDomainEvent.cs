@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Abstractions;
+﻿using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.VisitOperations.IntegrationEvents;
 
 namespace Tailbook.Modules.VisitOperations.Domain.Events;
@@ -15,8 +15,5 @@ public sealed record FinalPriceAdjustedDomainEvent(
     public string EventType => "FinalPriceAdjusted";
     public string ModuleCode => "visitops";
 
-    public IIntegrationEventDto ToIntegrationEvent()
-    {
-        return new FinalPriceAdjustedIntegrationEvent(VisitId, Status, Sign, Amount, ReasonCode);
-    }
+    public IIntegrationEventDto ToIntegrationEvent() => new FinalPriceAdjustedIntegrationEvent(VisitId, Status, Sign, Amount, ReasonCode);
 }

@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Abstractions;
+﻿using Tailbook.BuildingBlocks.Abstractions;
 
 namespace Tailbook.Modules.Identity.IntegrationEvents;
 

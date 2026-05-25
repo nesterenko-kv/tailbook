@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Infrastructure.Options;
+﻿namespace Tailbook.Modules.Identity.Infrastructure.Options;
 
 public sealed class BootstrapAdminOptions
 {

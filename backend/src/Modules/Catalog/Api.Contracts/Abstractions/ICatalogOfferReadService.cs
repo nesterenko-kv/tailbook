@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Api.Contracts.Abstractions;
+﻿namespace Tailbook.Modules.Catalog.Api.Contracts.Abstractions;
 
 public interface ICatalogOfferReadService
 {

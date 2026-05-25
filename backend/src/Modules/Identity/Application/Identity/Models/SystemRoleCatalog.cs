@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Application.Identity.Models;
+﻿namespace Tailbook.Modules.Identity.Application.Identity.Models;
 
 public static class SystemRoleCatalog
 {

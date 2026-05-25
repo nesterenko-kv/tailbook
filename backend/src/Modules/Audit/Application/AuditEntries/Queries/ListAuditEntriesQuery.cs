@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Audit.Application.AuditEntries.Queries;
+﻿namespace Tailbook.Modules.Audit.Application.AuditEntries.Queries;
 
 public sealed record ListAuditEntriesQuery(
     string? ModuleCode,

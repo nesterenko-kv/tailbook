@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Admin.ListRoles;
+﻿namespace Tailbook.Modules.Identity.Api.Admin.ListRoles;
 
 public sealed class RoleItemResponse
 {

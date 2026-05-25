@@ -1,4 +1,4 @@
-global using Tailbook.Modules.Staff.Api.Contracts.Abstractions;
+﻿global using Tailbook.Modules.Staff.Api.Contracts.Abstractions;
 global using Tailbook.Modules.Staff.Application.Staff.Commands;
 global using Tailbook.Modules.Staff.Application.Staff.Models;
 global using Tailbook.Modules.Staff.Application.Staff.Queries;

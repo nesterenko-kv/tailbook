@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -300,9 +300,7 @@ public sealed class StaffUseCases(
             windows);
     }
 
-    public async Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(CheckGroomerAvailabilityQuery query, CancellationToken cancellationToken)
-    {
-        return await staffSchedulingService.CheckAvailabilityAsync(
+    public async Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(CheckGroomerAvailabilityQuery query, CancellationToken cancellationToken) => await staffSchedulingService.CheckAvailabilityAsync(
             query.GroomerId,
             query.PetId,
             query.OfferIds,
@@ -310,7 +308,6 @@ public sealed class StaffUseCases(
             query.ReservedMinutes,
             null,
             cancellationToken);
-    }
 
     private IReadOnlyCollection<AvailabilityWindowView> BuildAvailabilityWindows(DateTimeOffset from, DateTimeOffset to, IReadOnlyCollection<WorkingSchedule> schedules, IReadOnlyCollection<TimeBlock> timeBlocks)
     {
@@ -424,8 +421,5 @@ public sealed class StaffUseCases(
 
     private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
-    private static int ToIsoWeekday(DayOfWeek dayOfWeek)
-    {
-        return dayOfWeek == DayOfWeek.Sunday ? 7 : (int)dayOfWeek;
-    }
+    private static int ToIsoWeekday(DayOfWeek dayOfWeek) => dayOfWeek == DayOfWeek.Sunday ? 7 : (int)dayOfWeek;
 }

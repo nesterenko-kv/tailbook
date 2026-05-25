@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Client.Auth.Register;
+﻿namespace Tailbook.Modules.Identity.Api.Client.Auth.Register;
 
 public sealed class ClientRegisterResponse
 {

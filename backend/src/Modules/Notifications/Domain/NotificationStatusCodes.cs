@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Notifications.Domain;
+﻿namespace Tailbook.Modules.Notifications.Domain;
 
 public static class NotificationStatusCodes
 {

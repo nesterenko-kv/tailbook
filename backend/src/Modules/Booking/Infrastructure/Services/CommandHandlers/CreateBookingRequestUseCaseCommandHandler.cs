@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using ErrorOr;
 using FastEndpoints;
 using Tailbook.BuildingBlocks.Abstractions;
@@ -130,10 +130,7 @@ public sealed class CreateBookingRequestUseCaseCommandHandler(
         return (await bookingReadService.GetBookingRequestAsync(entity.Id, ct))!;
     }
 
-    private static string? NormalizeOptional(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    }
+    private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private static ErrorOr<string> NormalizeStatus(string? status, string fallback)
     {

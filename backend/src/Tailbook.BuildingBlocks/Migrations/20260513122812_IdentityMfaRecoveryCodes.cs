@@ -26,10 +26,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     ConsumedChallengeId = table.Column<Guid>(type: "uuid", nullable: true),
                     InvalidatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_iam_mfa_recovery_codes", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_iam_mfa_recovery_codes", x => x.Id));
 
             migrationBuilder.CreateIndex(
                 name: "IX_iam_mfa_recovery_codes_BatchId",
@@ -51,11 +48,8 @@ namespace Tailbook.BuildingBlocks.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
+        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
                 name: "iam_mfa_recovery_codes",
                 schema: "iam");
-        }
     }
 }

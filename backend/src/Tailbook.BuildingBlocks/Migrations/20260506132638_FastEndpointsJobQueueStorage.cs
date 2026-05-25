@@ -28,10 +28,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     CommandJson = table.Column<string>(type: "text", nullable: false),
                     ResultJson = table.Column<string>(type: "text", nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Jobs", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_Jobs", x => x.Id));
 
             migrationBuilder.CreateIndex(
                 name: "IX_Jobs_QueueID_IsComplete_ExecuteAfter_ExpireOn_DequeueAfter",
@@ -48,11 +45,8 @@ namespace Tailbook.BuildingBlocks.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
+        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
                 name: "Jobs",
                 schema: "public");
-        }
     }
 }

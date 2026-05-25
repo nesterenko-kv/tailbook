@@ -25,10 +25,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     ExpiresAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     LastUsedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_iam_device_trusts", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_iam_device_trusts", x => x.Id));
 
             migrationBuilder.CreateIndex(
                 name: "IX_iam_device_trusts_DeviceTokenHash",
@@ -45,11 +42,8 @@ namespace Tailbook.BuildingBlocks.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
+        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
                 name: "iam_device_trusts",
                 schema: "iam");
-        }
     }
 }

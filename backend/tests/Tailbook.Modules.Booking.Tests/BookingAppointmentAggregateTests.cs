@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.Api.Tests;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -213,13 +213,10 @@ public sealed class BookingAppointmentAggregateTests
     }
 
     [Fact]
-    public void BookingPeriod_returns_all_endpoint_validation_errors()
-    {
-        AssertErrorCodes(
+    public void BookingPeriod_returns_all_endpoint_validation_errors() => AssertErrorCodes(
             BookingPeriod.Create(default, default),
             "Booking.startAtRequired",
             "Booking.endAtRequired");
-    }
 
     [Fact]
     public void Reschedule_updates_period_status_and_version()
@@ -398,9 +395,7 @@ public sealed class BookingAppointmentAggregateTests
         }
     }
 
-    private static void AssertInvalidDraft(AppointmentItemDraft draft)
-    {
-        AssertError(Appointment.Create(
+    private static void AssertInvalidDraft(AppointmentItemDraft draft) => AssertError(Appointment.Create(
             Guid.NewGuid(),
             null,
             Guid.NewGuid(),
@@ -409,11 +404,8 @@ public sealed class BookingAppointmentAggregateTests
             [draft],
             null,
             Utc("2026-04-21T12:00:00Z")));
-    }
 
-    private static Appointment CreateAppointment()
-    {
-        return AssertSuccess(Appointment.Create(
+    private static Appointment CreateAppointment() => AssertSuccess(Appointment.Create(
             Guid.NewGuid(),
             null,
             Guid.NewGuid(),
@@ -422,7 +414,6 @@ public sealed class BookingAppointmentAggregateTests
             [CreateItemDraft()],
             null,
             Utc("2026-04-21T12:00:00Z")));
-    }
 
     private static AppointmentItemDraft CreateItemDraft(
         string itemType = " Package ",
@@ -432,9 +423,7 @@ public sealed class BookingAppointmentAggregateTests
         string offerDisplayNameSnapshot = " Basic Groom ",
         int quantity = 1,
         Guid? priceSnapshotId = null,
-        Guid? durationSnapshotId = null)
-    {
-        return new AppointmentItemDraft(
+        Guid? durationSnapshotId = null) => new AppointmentItemDraft(
             itemType,
             offerId ?? Guid.NewGuid(),
             offerVersionId ?? Guid.NewGuid(),
@@ -443,12 +432,8 @@ public sealed class BookingAppointmentAggregateTests
             quantity,
             priceSnapshotId ?? Guid.NewGuid(),
             durationSnapshotId ?? Guid.NewGuid());
-    }
 
-    private static BookingPeriod CreatePeriod(string startAt, string endAt)
-    {
-        return AssertSuccess(BookingPeriod.Create(Utc(startAt), Utc(endAt)));
-    }
+    private static BookingPeriod CreatePeriod(string startAt, string endAt) => AssertSuccess(BookingPeriod.Create(Utc(startAt), Utc(endAt)));
 
     private static T AssertSuccess<T>(ErrorOr<T> result)
     {
@@ -468,8 +453,5 @@ public sealed class BookingAppointmentAggregateTests
         Assert.Equal(expectedCodes, codes);
     }
 
-    private static DateTimeOffset Utc(string value)
-    {
-        return DateTimeOffset.Parse(value).ToUniversalTime();
-    }
+    private static DateTimeOffset Utc(string value) => DateTimeOffset.Parse(value).ToUniversalTime();
 }

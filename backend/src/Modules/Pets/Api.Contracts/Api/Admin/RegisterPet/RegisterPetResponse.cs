@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Pets.Api.Admin.RegisterPet;
+﻿namespace Tailbook.Modules.Pets.Api.Admin.RegisterPet;
 
 public sealed class RegisterPetResponse
 {

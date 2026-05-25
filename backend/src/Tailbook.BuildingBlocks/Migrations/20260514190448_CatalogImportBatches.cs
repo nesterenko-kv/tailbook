@@ -27,10 +27,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     CommittedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_import_batches", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_import_batches", x => x.Id));
 
             migrationBuilder.CreateTable(
                 name: "import_batch_issues",

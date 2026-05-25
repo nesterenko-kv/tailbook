@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Customer.Api.Admin.AddContactMethod;
+﻿namespace Tailbook.Modules.Customer.Api.Admin.AddContactMethod;
 
 public sealed class AddContactMethodRequest
 {

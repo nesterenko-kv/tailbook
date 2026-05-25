@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Domain.Entities;
+﻿namespace Tailbook.Modules.Identity.Domain.Entities;
 
 public sealed class IdentityMfaRecoveryCode
 {

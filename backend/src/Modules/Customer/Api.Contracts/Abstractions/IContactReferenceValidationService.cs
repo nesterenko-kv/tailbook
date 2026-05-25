@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Customer.Api.Contracts.Abstractions;
+﻿namespace Tailbook.Modules.Customer.Api.Contracts.Abstractions;
 
 public interface IContactReferenceValidationService
 {

@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Audit.Application.AccessAuditEntries.Queries;
+﻿namespace Tailbook.Modules.Audit.Application.AccessAuditEntries.Queries;
 
 public sealed record ListAccessAuditEntriesQuery(
     string? ResourceType,

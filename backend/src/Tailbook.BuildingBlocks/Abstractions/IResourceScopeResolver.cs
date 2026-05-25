@@ -1,4 +1,4 @@
-namespace Tailbook.BuildingBlocks.Abstractions;
+﻿namespace Tailbook.BuildingBlocks.Abstractions;
 
 public interface IResourceScopeResolver
 {

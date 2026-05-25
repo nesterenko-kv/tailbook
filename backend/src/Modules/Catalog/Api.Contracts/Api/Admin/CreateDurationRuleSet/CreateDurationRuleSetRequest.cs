@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Api.Admin.CreateDurationRuleSet;
+﻿namespace Tailbook.Modules.Catalog.Api.Admin.CreateDurationRuleSet;
 
 public sealed class CreateDurationRuleSetRequest
 {

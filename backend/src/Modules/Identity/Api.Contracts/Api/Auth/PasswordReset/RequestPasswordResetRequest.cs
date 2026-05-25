@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Auth.PasswordReset;
+﻿namespace Tailbook.Modules.Identity.Api.Auth.PasswordReset;
 
 public sealed class RequestPasswordResetRequest
 {

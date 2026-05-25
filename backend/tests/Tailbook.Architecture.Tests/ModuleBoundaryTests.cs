@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Xunit;
 
 namespace Tailbook.Architecture.Tests;
@@ -26,7 +26,7 @@ public sealed class ModuleBoundaryTests
         [".Domain", ".Application", ".Infrastructure", ".IntegrationEvents", ".Api.Contracts", ".Api"];
 
     private static readonly string[] ImplementationSubAssemblySuffixes =
-        SubAssemblySuffixes.Where(s => s != ".Api.Contracts" && s != ".IntegrationEvents").ToArray();
+        SubAssemblySuffixes.Where(s => s is not ".Api.Contracts" and not ".IntegrationEvents").ToArray();
 
     private static readonly string[] ModuleApiContractAssemblyNames =
         ModuleShortNames.Select(n => $"Tailbook.Modules.{n}.Api.Contracts").ToArray();
@@ -767,10 +767,7 @@ public sealed class ModuleBoundaryTests
         Assert.Empty(violations);
     }
 
-    private static string GetModuleSourcePath(string assemblyName)
-    {
-        return ModuleSourcePath(assemblyName);
-    }
+    private static string GetModuleSourcePath(string assemblyName) => ModuleSourcePath(assemblyName);
 
     private static string? GetHandlerSourceFilePath(string modulePath, Type handlerType, string assemblyName)
     {
@@ -816,16 +813,10 @@ public sealed class ModuleBoundaryTests
         Assert.Empty(violations);
     }
 
-    private static bool IsGeneratedPath(string path)
-    {
-        return path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase) ||
+    private static bool IsGeneratedPath(string path) => path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase) ||
                path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase);
-    }
 
-    private static bool IsCommandsPath(string path)
-    {
-        return path.Contains($"{Path.DirectorySeparatorChar}Commands{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase);
-    }
+    private static bool IsCommandsPath(string path) => path.Contains($"{Path.DirectorySeparatorChar}Commands{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase);
 
     private static void AssertNoTypeReferences(string assemblyName, string layerSegment, string[] forbiddenNamespacePrefixes, string[]? allowedPrefixes = null)
     {
@@ -851,10 +842,7 @@ public sealed class ModuleBoundaryTests
         Assert.Empty(violations);
     }
 
-    private static void AssertNoTypeReferences(string assemblyName, string layerSegment, params string[] forbiddenNamespacePrefixes)
-    {
-        AssertNoTypeReferences(assemblyName, layerSegment, forbiddenNamespacePrefixes, null);
-    }
+    private static void AssertNoTypeReferences(string assemblyName, string layerSegment, params string[] forbiddenNamespacePrefixes) => AssertNoTypeReferences(assemblyName, layerSegment, forbiddenNamespacePrefixes, null);
 
     private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
     {

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -30,8 +30,5 @@ public static class ApplicationInitializationExtensions
         }
     }
 
-    private static bool IsInMemoryProvider(AppDbContext dbContext)
-    {
-        return !dbContext.Database.IsRelational();
-    }
+    private static bool IsInMemoryProvider(AppDbContext dbContext) => !dbContext.Database.IsRelational();
 }

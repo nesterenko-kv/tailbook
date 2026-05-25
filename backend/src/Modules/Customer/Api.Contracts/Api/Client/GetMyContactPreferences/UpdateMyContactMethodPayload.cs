@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Customer.Api.Client.GetMyContactPreferences;
+﻿namespace Tailbook.Modules.Customer.Api.Client.GetMyContactPreferences;
 
 public sealed class UpdateMyContactMethodPayload
 {

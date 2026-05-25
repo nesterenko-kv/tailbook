@@ -1,4 +1,4 @@
-using Tailbook.BuildingBlocks.Abstractions;
+﻿using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.Identity.Domain.Events;
 
 namespace Tailbook.Modules.Identity.Domain.Entities;
@@ -46,8 +46,5 @@ public sealed class IdentityPasswordResetToken : AggregateRoot
         return entity;
     }
 
-    public void MarkUsed(DateTimeOffset usedAt)
-    {
-        UsedAt = usedAt.ToUniversalTime();
-    }
+    public void MarkUsed(DateTimeOffset usedAt) => UsedAt = usedAt.ToUniversalTime();
 }

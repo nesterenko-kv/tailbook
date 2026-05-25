@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Booking.Api.Public;
+﻿namespace Tailbook.Modules.Booking.Api.Public;
 
 public sealed class PublicPlannerSlotResponse
 {

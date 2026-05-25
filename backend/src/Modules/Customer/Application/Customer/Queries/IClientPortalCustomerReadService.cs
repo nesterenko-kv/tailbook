@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Customer.Application.Customer.Queries;
+﻿namespace Tailbook.Modules.Customer.Application.Customer.Queries;
 
 public interface IClientPortalCustomerReadService
 {

@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 
 namespace Tailbook.Modules.Booking.Api.Contracts.Abstractions;
 

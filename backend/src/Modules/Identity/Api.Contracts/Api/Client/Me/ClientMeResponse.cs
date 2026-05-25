@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Identity.Api.Client.Me;
+﻿namespace Tailbook.Modules.Identity.Api.Client.Me;
 
 public sealed class ClientMeResponse
 {

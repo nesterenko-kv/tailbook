@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Reporting.Domain.Entities;
+﻿namespace Tailbook.Modules.Reporting.Domain.Entities;
 
 public sealed class ReportingVisitSkippedComponent
 {

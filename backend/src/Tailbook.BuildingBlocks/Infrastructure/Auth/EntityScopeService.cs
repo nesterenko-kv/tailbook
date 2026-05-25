@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using Tailbook.BuildingBlocks.Abstractions;
 
 namespace Tailbook.BuildingBlocks.Infrastructure.Auth;

@@ -23,10 +23,7 @@ namespace Tailbook.BuildingBlocks.Migrations
                     RevokedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ReplacedByTokenId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_iam_refresh_tokens", x => x.Id);
-                });
+                constraints: table => table.PrimaryKey("PK_iam_refresh_tokens", x => x.Id));
 
             migrationBuilder.CreateIndex(
                 name: "IX_iam_refresh_tokens_TokenHash",
@@ -43,11 +40,8 @@ namespace Tailbook.BuildingBlocks.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
+        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
                 name: "iam_refresh_tokens",
                 schema: "iam");
-        }
     }
 }

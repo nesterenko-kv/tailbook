@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
+﻿namespace Tailbook.Modules.Catalog.Api.Admin.PricingContracts;
 
 public class PriceRuleSetResponseBase
 {
@@ -15,9 +15,7 @@ public class PriceRuleSetResponseBase
         => FromView<PriceRuleSetResponseBase>(view);
 
     protected static TResponse FromView<TResponse>(PriceRuleSetView view)
-        where TResponse : PriceRuleSetResponseBase, new()
-    {
-        return new TResponse
+        where TResponse : PriceRuleSetResponseBase, new() => new TResponse
         {
             Id = view.Id,
             VersionNo = view.VersionNo,
@@ -28,5 +26,4 @@ public class PriceRuleSetResponseBase
             PublishedAt = view.PublishedAt,
             Rules = view.Rules.Select(PriceRuleResponseBase.FromView).ToArray()
         };
-    }
 }

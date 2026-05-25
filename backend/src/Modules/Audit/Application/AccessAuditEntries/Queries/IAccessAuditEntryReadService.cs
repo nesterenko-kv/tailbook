@@ -1,4 +1,4 @@
-using Tailbook.Modules.Audit.Application.AccessAuditEntries.Models;
+﻿using Tailbook.Modules.Audit.Application.AccessAuditEntries.Models;
 using Tailbook.Modules.Audit.Application.Common.Pagination;
 
 namespace Tailbook.Modules.Audit.Application.AccessAuditEntries.Queries;

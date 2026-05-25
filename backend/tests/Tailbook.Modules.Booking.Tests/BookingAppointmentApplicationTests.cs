@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.Json;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
@@ -47,21 +47,15 @@ public sealed class BookingAppointmentApplicationTests
     }
 
     [Fact]
-    public void Time_normalizer_delegates_period_order_validation_to_booking_period()
-    {
-        AssertError(BookingTimeInputNormalizer.CreatePeriod(
+    public void Time_normalizer_delegates_period_order_validation_to_booking_period() => AssertError(BookingTimeInputNormalizer.CreatePeriod(
             UtcWallClock("2026-04-22T08:30:00"),
             UtcWallClock("2026-04-22T07:00:00")));
-    }
 
     [Fact]
-    public void Time_normalizer_returns_all_required_period_errors()
-    {
-        AssertErrorCodes(
+    public void Time_normalizer_returns_all_required_period_errors() => AssertErrorCodes(
             BookingTimeInputNormalizer.CreatePeriod(default, default),
             "Booking.startAtRequired",
             "Booking.endAtRequired");
-    }
 
     [Fact]
     public async Task Create_and_reschedule_use_the_same_legacy_utc_normalization_path()
@@ -171,28 +165,16 @@ public sealed class BookingAppointmentApplicationTests
         Assert.Equal(2, payload.RootElement.GetProperty("versionNo").GetInt32());
     }
 
-    private static Task<int> CountBookingAppointmentEventsAsync(AppDbContext dbContext)
-    {
-        return dbContext.OutboxMessages
+    private static Task<int> CountBookingAppointmentEventsAsync(AppDbContext dbContext) => dbContext.OutboxMessages
             .CountAsync(x => x.ModuleCode == "booking" && x.EventType.StartsWith("Appointment"));
-    }
 
     private static async Task<OutboxMessage> SingleBookingAppointmentEventAsync(
         AppDbContext dbContext,
-        string eventType)
-    {
-        return await dbContext.OutboxMessages.SingleAsync(x => x.ModuleCode == "booking" && x.EventType == eventType);
-    }
+        string eventType) => await dbContext.OutboxMessages.SingleAsync(x => x.ModuleCode == "booking" && x.EventType == eventType);
 
-    private static DateTimeOffset Utc(string value)
-    {
-        return DateTimeOffset.Parse(value).ToUniversalTime();
-    }
+    private static DateTimeOffset Utc(string value) => DateTimeOffset.Parse(value).ToUniversalTime();
 
-    private static DateTimeOffset UtcWallClock(string value)
-    {
-        return new DateTimeOffset(DateTime.Parse(value, CultureInfo.InvariantCulture), TimeSpan.Zero);
-    }
+    private static DateTimeOffset UtcWallClock(string value) => new DateTimeOffset(DateTime.Parse(value, CultureInfo.InvariantCulture), TimeSpan.Zero);
 
     private static T AssertSuccess<T>(ErrorOr<T> result)
     {
@@ -305,10 +287,7 @@ public sealed class BookingAppointmentApplicationTests
                 appointmentId);
         }
 
-        public ValueTask DisposeAsync()
-        {
-            return DbContext.DisposeAsync();
-        }
+        public ValueTask DisposeAsync() => DbContext.DisposeAsync();
 
         private static async Task<Guid> SeedAppointmentAsync(AppDbContext dbContext, Guid petId, Guid groomerId)
         {
@@ -389,10 +368,7 @@ public sealed class BookingAppointmentApplicationTests
             return Task.FromResult(pet);
         }
 
-        public Task<ErrorOr<PetQuoteProfile>> CreateAdHocAsync(PetQuoteProfileInput input, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<ErrorOr<PetQuoteProfile>>(Error.Unexpected("Test.NotSupported", "Ad hoc pets are not supported by this stub."));
-        }
+        public Task<ErrorOr<PetQuoteProfile>> CreateAdHocAsync(PetQuoteProfileInput input, CancellationToken cancellationToken) => Task.FromResult<ErrorOr<PetQuoteProfile>>(Error.Unexpected("Test.NotSupported", "Ad hoc pets are not supported by this stub."));
     }
 
     private sealed class StubCatalogQuoteResolver : ICatalogQuoteResolver
@@ -449,20 +425,14 @@ public sealed class BookingAppointmentApplicationTests
             Guid petId,
             IReadOnlyCollection<Guid> offerIds,
             int baseReservedMinutes,
-            CancellationToken cancellationToken)
-        {
-            return Task.FromResult<ErrorOr<ReservedDurationResolution>>(new ReservedDurationResolution(baseReservedMinutes, baseReservedMinutes, 0, []));
-        }
+            CancellationToken cancellationToken) => Task.FromResult<ErrorOr<ReservedDurationResolution>>(new ReservedDurationResolution(baseReservedMinutes, baseReservedMinutes, 0, []));
 
         public Task<ErrorOr<ReservedDurationResolution>> ResolveReservedDurationAsync(
             Guid groomerId,
             PetQuoteProfile pet,
             IReadOnlyCollection<Guid> offerIds,
             int baseReservedMinutes,
-            CancellationToken cancellationToken)
-        {
-            return Task.FromResult<ErrorOr<ReservedDurationResolution>>(new ReservedDurationResolution(baseReservedMinutes, baseReservedMinutes, 0, []));
-        }
+            CancellationToken cancellationToken) => Task.FromResult<ErrorOr<ReservedDurationResolution>>(new ReservedDurationResolution(baseReservedMinutes, baseReservedMinutes, 0, []));
 
         public Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(
             Guid groomerId,
@@ -488,18 +458,12 @@ public sealed class BookingAppointmentApplicationTests
             DateTimeOffset startAt,
             int reservedMinutes,
             Guid? ignoredAppointmentId,
-            CancellationToken cancellationToken)
-        {
-            return CheckAvailabilityAsync(groomerId, pet.Id, offerIds, startAt, reservedMinutes, ignoredAppointmentId, cancellationToken);
-        }
+            CancellationToken cancellationToken) => CheckAvailabilityAsync(groomerId, pet.Id, offerIds, startAt, reservedMinutes, ignoredAppointmentId, cancellationToken);
 
         public Task<IReadOnlyCollection<AvailabilityWindowReadModel>> GetAvailabilityWindowsAsync(
             Guid groomerId,
             DateOnly localDate,
-            CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IReadOnlyCollection<AvailabilityWindowReadModel>>([]);
-        }
+            CancellationToken cancellationToken) => Task.FromResult<IReadOnlyCollection<AvailabilityWindowReadModel>>([]);
 
         public Task<ErrorOr<GroomerAvailableSlotsReadModel>> GetAvailableSlotsAsync(
             Guid groomerId,
@@ -510,80 +474,47 @@ public sealed class BookingAppointmentApplicationTests
             DateTimeOffset earliestStartAt,
             int slotStepMinutes,
             Guid? ignoredAppointmentId,
-            CancellationToken cancellationToken)
-        {
-            return Task.FromResult<ErrorOr<GroomerAvailableSlotsReadModel>>(
+            CancellationToken cancellationToken) => Task.FromResult<ErrorOr<GroomerAvailableSlotsReadModel>>(
                 new GroomerAvailableSlotsReadModel(
                     new ReservedDurationResolution(baseReservedMinutes, baseReservedMinutes, 0, []),
                     []));
-        }
     }
 
     private sealed class StubPetSummaryReadService : IPetSummaryReadService
     {
-        public Task<PetSummaryReadModel?> GetPetSummaryAsync(Guid petId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<PetSummaryReadModel?>(null);
-        }
+        public Task<PetSummaryReadModel?> GetPetSummaryAsync(Guid petId, CancellationToken cancellationToken) => Task.FromResult<PetSummaryReadModel?>(null);
 
-        public Task<IReadOnlyCollection<PetSummaryReadModel>> ListPetSummariesByClientAsync(Guid clientId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IReadOnlyCollection<PetSummaryReadModel>>([]);
-        }
+        public Task<IReadOnlyCollection<PetSummaryReadModel>> ListPetSummariesByClientAsync(Guid clientId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyCollection<PetSummaryReadModel>>([]);
 
-        public Task<IReadOnlyCollection<Guid>> SearchPetIdsAsync(string? search, int maxResults, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IReadOnlyCollection<Guid>>([]);
-        }
+        public Task<IReadOnlyCollection<Guid>> SearchPetIdsAsync(string? search, int maxResults, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyCollection<Guid>>([]);
     }
 
     private sealed class StubClientReferenceValidationService : IClientReferenceValidationService
     {
-        public Task<bool> ExistsAsync(Guid clientId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(true);
-        }
+        public Task<bool> ExistsAsync(Guid clientId, CancellationToken cancellationToken) => Task.FromResult(true);
     }
 
     private sealed class StubContactReferenceValidationService : IContactReferenceValidationService
     {
-        public Task<bool> ExistsAsync(Guid contactId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(true);
-        }
+        public Task<bool> ExistsAsync(Guid contactId, CancellationToken cancellationToken) => Task.FromResult(true);
     }
 
     private sealed class StubOfferReferenceValidationService : IOfferReferenceValidationService
     {
-        public Task<bool> ExistsAsync(Guid offerId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(true);
-        }
+        public Task<bool> ExistsAsync(Guid offerId, CancellationToken cancellationToken) => Task.FromResult(true);
     }
 
     private sealed class StubGroomerProfileReadService : IGroomerProfileReadService
     {
-        public Task<ErrorOr<GroomerProfileReadModel>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<ErrorOr<GroomerProfileReadModel>>(Error.Forbidden("Staff.GroomerProfileRequired", "Current user is not linked to an active groomer profile."));
-        }
+        public Task<ErrorOr<GroomerProfileReadModel>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken) => Task.FromResult<ErrorOr<GroomerProfileReadModel>>(Error.Forbidden("Staff.GroomerProfileRequired", "Current user is not linked to an active groomer profile."));
 
-        public Task<GroomerProfileReadModel?> GetByGroomerIdAsync(Guid groomerId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<GroomerProfileReadModel?>(null);
-        }
+        public Task<GroomerProfileReadModel?> GetByGroomerIdAsync(Guid groomerId, CancellationToken cancellationToken) => Task.FromResult<GroomerProfileReadModel?>(null);
 
-        public Task<IReadOnlyCollection<GroomerProfileReadModel>> ListActiveAsync(CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IReadOnlyCollection<GroomerProfileReadModel>>([]);
-        }
+        public Task<IReadOnlyCollection<GroomerProfileReadModel>> ListActiveAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyCollection<GroomerProfileReadModel>>([]);
     }
 
     private sealed class NoOpAuditTrailService : IAuditTrailService
     {
-        public ValueTask RecordAsync(string moduleCode, string entityType, string entityId, string actionCode, Guid? actorUserId, string? beforeJson, string? afterJson, CancellationToken cancellationToken)
-        {
-            return default;
-        }
+        public ValueTask RecordAsync(string moduleCode, string entityType, string entityId, string actionCode, Guid? actorUserId, string? beforeJson, string? afterJson, CancellationToken cancellationToken) => default;
     }
 }

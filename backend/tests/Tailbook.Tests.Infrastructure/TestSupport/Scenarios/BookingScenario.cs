@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using Tailbook.Api.Tests.TestSupport.Http;
 using Tailbook.Api.Tests.TestSupport.Models;
 

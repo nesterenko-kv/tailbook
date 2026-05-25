@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Catalog.Domain.Entities;
+﻿namespace Tailbook.Modules.Catalog.Domain.Entities;
 
 public sealed class PriceRuleCondition
 {
@@ -18,9 +18,7 @@ public sealed class PriceRuleCondition
         Guid? breedId,
         Guid? breedGroupId,
         Guid? coatTypeId,
-        Guid? sizeCategoryId)
-    {
-        return new PriceRuleCondition
+        Guid? sizeCategoryId) => new PriceRuleCondition
         {
             Id = id,
             PriceRuleId = priceRuleId,
@@ -30,14 +28,10 @@ public sealed class PriceRuleCondition
             CoatTypeId = coatTypeId,
             SizeCategoryId = sizeCategoryId
         };
-    }
 
-    internal bool Matches(Guid? animalTypeId, Guid? breedId, Guid? breedGroupId, Guid? coatTypeId, Guid? sizeCategoryId)
-    {
-        return AnimalTypeId == animalTypeId &&
+    internal bool Matches(Guid? animalTypeId, Guid? breedId, Guid? breedGroupId, Guid? coatTypeId, Guid? sizeCategoryId) => AnimalTypeId == animalTypeId &&
                BreedId == breedId &&
                BreedGroupId == breedGroupId &&
                CoatTypeId == coatTypeId &&
                SizeCategoryId == sizeCategoryId;
-    }
 }

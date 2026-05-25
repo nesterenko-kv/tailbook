@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
@@ -78,10 +78,7 @@ public sealed class OutboxPayloadProjectorTests
         public string EventType => "SampleCreated";
         public string ModuleCode => "sample";
 
-        public IIntegrationEventDto ToIntegrationEvent()
-        {
-            return new SampleIntegrationEvent(AppointmentId, Status, VersionNo);
-        }
+        public IIntegrationEventDto ToIntegrationEvent() => new SampleIntegrationEvent(AppointmentId, Status, VersionNo);
     }
 
     private sealed record SampleIntegrationEvent(
@@ -99,10 +96,7 @@ public sealed class OutboxPayloadProjectorTests
         public string EventType => "InvalidVersion";
         public string ModuleCode => "sample";
 
-        public IIntegrationEventDto ToIntegrationEvent()
-        {
-            return new InvalidVersionIntegrationEvent();
-        }
+        public IIntegrationEventDto ToIntegrationEvent() => new InvalidVersionIntegrationEvent();
     }
 
     private sealed record InvalidVersionIntegrationEvent : IIntegrationEventDto

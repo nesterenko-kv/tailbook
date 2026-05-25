@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Notifications.Domain.Aggregates;
+﻿namespace Tailbook.Modules.Notifications.Domain.Aggregates;
 
 public sealed class NotificationJob
 {

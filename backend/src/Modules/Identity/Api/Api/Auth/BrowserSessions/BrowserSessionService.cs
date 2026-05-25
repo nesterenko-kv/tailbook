@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
@@ -13,25 +13,13 @@ public sealed class BrowserSessionService(IOptions<BrowserSessionOptions> option
 
     private readonly BrowserSessionOptions _options = optionsAccessor.Value;
 
-    public ErrorOr<BrowserSessionResponseMode> ApplyIdentitySession(HttpContext httpContext, LoginResult login)
-    {
-        return ApplySession(httpContext, login.RefreshToken, login.RefreshTokenExpiresAt, defaultSurface: null, IdentitySurfaces);
-    }
+    public ErrorOr<BrowserSessionResponseMode> ApplyIdentitySession(HttpContext httpContext, LoginResult login) => ApplySession(httpContext, login.RefreshToken, login.RefreshTokenExpiresAt, defaultSurface: null, IdentitySurfaces);
 
-    public ErrorOr<BrowserSessionResponseMode> ApplyClientSession(HttpContext httpContext, LoginResult login)
-    {
-        return ApplySession(httpContext, login.RefreshToken, login.RefreshTokenExpiresAt, BrowserSessionSurfaces.Client, ClientSurfaces);
-    }
+    public ErrorOr<BrowserSessionResponseMode> ApplyClientSession(HttpContext httpContext, LoginResult login) => ApplySession(httpContext, login.RefreshToken, login.RefreshTokenExpiresAt, BrowserSessionSurfaces.Client, ClientSurfaces);
 
-    public ErrorOr<BrowserRefreshTokenResolution> ResolveIdentityRefreshToken(HttpContext httpContext, string? requestRefreshToken)
-    {
-        return ResolveRefreshToken(httpContext, requestRefreshToken, defaultSurface: null, IdentitySurfaces);
-    }
+    public ErrorOr<BrowserRefreshTokenResolution> ResolveIdentityRefreshToken(HttpContext httpContext, string? requestRefreshToken) => ResolveRefreshToken(httpContext, requestRefreshToken, defaultSurface: null, IdentitySurfaces);
 
-    public ErrorOr<BrowserRefreshTokenResolution> ResolveClientRefreshToken(HttpContext httpContext, string? requestRefreshToken)
-    {
-        return ResolveRefreshToken(httpContext, requestRefreshToken, BrowserSessionSurfaces.Client, ClientSurfaces);
-    }
+    public ErrorOr<BrowserRefreshTokenResolution> ResolveClientRefreshToken(HttpContext httpContext, string? requestRefreshToken) => ResolveRefreshToken(httpContext, requestRefreshToken, BrowserSessionSurfaces.Client, ClientSurfaces);
 
     public void ClearRefreshCookie(HttpContext httpContext, string surface)
     {
@@ -164,40 +152,31 @@ public sealed class BrowserSessionService(IOptions<BrowserSessionOptions> option
             : IdentityErrors.InvalidBrowserSessionCsrf();
     }
 
-    private CookieOptions BuildCookieOptions(DateTimeOffset expiresAt, bool httpOnly)
+    private CookieOptions BuildCookieOptions(DateTimeOffset expiresAt, bool httpOnly) => new CookieOptions
     {
-        return new CookieOptions
-        {
-            Expires = expiresAt,
-            HttpOnly = httpOnly,
-            IsEssential = true,
-            Path = "/",
-            SameSite = ParseSameSiteMode(_options.CookieSameSite),
-            Secure = _options.CookieSecure
-        };
-    }
+        Expires = expiresAt,
+        HttpOnly = httpOnly,
+        IsEssential = true,
+        Path = "/",
+        SameSite = ParseSameSiteMode(_options.CookieSameSite),
+        Secure = _options.CookieSecure
+    };
 
-    private string GetRefreshCookieName(string surface)
+    private string GetRefreshCookieName(string surface) => surface switch
     {
-        return surface switch
-        {
-            BrowserSessionSurfaces.Admin => _options.AdminRefreshCookieName,
-            BrowserSessionSurfaces.Groomer => _options.GroomerRefreshCookieName,
-            BrowserSessionSurfaces.Client => _options.ClientRefreshCookieName,
-            _ => throw new InvalidOperationException("Unsupported browser session surface.")
-        };
-    }
+        BrowserSessionSurfaces.Admin => _options.AdminRefreshCookieName,
+        BrowserSessionSurfaces.Groomer => _options.GroomerRefreshCookieName,
+        BrowserSessionSurfaces.Client => _options.ClientRefreshCookieName,
+        _ => throw new InvalidOperationException("Unsupported browser session surface.")
+    };
 
-    private string GetCsrfCookieName(string surface)
+    private string GetCsrfCookieName(string surface) => surface switch
     {
-        return surface switch
-        {
-            BrowserSessionSurfaces.Admin => _options.AdminCsrfCookieName,
-            BrowserSessionSurfaces.Groomer => _options.GroomerCsrfCookieName,
-            BrowserSessionSurfaces.Client => _options.ClientCsrfCookieName,
-            _ => throw new InvalidOperationException("Unsupported browser session surface.")
-        };
-    }
+        BrowserSessionSurfaces.Admin => _options.AdminCsrfCookieName,
+        BrowserSessionSurfaces.Groomer => _options.GroomerCsrfCookieName,
+        BrowserSessionSurfaces.Client => _options.ClientCsrfCookieName,
+        _ => throw new InvalidOperationException("Unsupported browser session surface.")
+    };
 
     private static SameSiteMode ParseSameSiteMode(string value)
     {
@@ -214,10 +193,7 @@ public sealed class BrowserSessionService(IOptions<BrowserSessionOptions> option
         return SameSiteMode.Lax;
     }
 
-    private static string CreateCsrfToken()
-    {
-        return WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32));
-    }
+    private static string CreateCsrfToken() => WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32));
 }
 
 public sealed record BrowserSessionResponseMode(bool IncludeRefreshTokenInResponse);

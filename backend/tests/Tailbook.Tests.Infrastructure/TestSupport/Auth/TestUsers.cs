@@ -1,4 +1,4 @@
-namespace Tailbook.Api.Tests.TestSupport.Auth;
+﻿namespace Tailbook.Api.Tests.TestSupport.Auth;
 
 public static class TestUsers
 {
