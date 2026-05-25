@@ -28,6 +28,8 @@ public sealed class VisitReadService(
         Guid? appointmentId,
         int page,
         int pageSize,
+        string? sortBy,
+        string? sortDirection,
         CancellationToken cancellationToken
     )
     {
@@ -55,9 +57,7 @@ public sealed class VisitReadService(
             query = query.Where(x => x.AppointmentId == appointmentId.Value);
         }
 
-        var candidateVisits = await query
-            .OrderByDescending(x => x.CheckedInAt)
-            .ToListAsync(cancellationToken);
+        var candidateVisits = await query.ToListAsync(cancellationToken);
         var appointments = await appointmentVisitService.ListAppointmentsAsync(
             candidateVisits.Select(x => x.AppointmentId).ToArray(),
             from.HasValue ? from.Value.ToUniversalTime() : null,
@@ -72,7 +72,16 @@ public sealed class VisitReadService(
                         MatchesSearch(x, appointment, searchTerms, petIdsBySearchTerm))
             .ToArray();
         var totalCount = filteredVisits.Length;
-        var pageVisits = filteredVisits
+        var descending = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase);
+        IOrderedEnumerable<Visit> sortedVisits = sortBy?.ToLowerInvariant() switch
+        {
+            "status" => descending ? filteredVisits.OrderByDescending(x => x.Status) : filteredVisits.OrderBy(x => x.Status),
+            "appointmentstartat" => descending
+                ? filteredVisits.OrderByDescending(x => appointments.TryGetValue(x.AppointmentId, out var appt) ? appt.StartAt : DateTimeOffset.MinValue)
+                : filteredVisits.OrderBy(x => appointments.TryGetValue(x.AppointmentId, out var appt) ? appt.StartAt : DateTimeOffset.MinValue),
+            _ => descending ? filteredVisits.OrderByDescending(x => x.CheckedInAt) : filteredVisits.OrderBy(x => x.CheckedInAt),
+        };
+        var pageVisits = sortedVisits
             .Skip((safePage - 1) * safePageSize)
             .Take(safePageSize)
             .ToArray();

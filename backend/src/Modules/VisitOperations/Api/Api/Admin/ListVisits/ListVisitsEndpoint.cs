@@ -36,6 +36,8 @@ public sealed class ListVisitsEndpoint(
             req.AppointmentId,
             req.Page,
             req.PageSize,
+            req.SortBy,
+            req.SortDirection,
             ct
         );
         if (result.IsError)

@@ -8,10 +8,13 @@ import { unwrapItems } from "@/lib/contracts";
 import type { AppointmentListItem, ClientDetail, GroomerListItem, GroomerListResponse, OfferListItem, PagedResult } from "@/lib/types";
 import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, PrimaryButton, Select, SuccessBanner } from "@/components/ui";
 import { Pagination } from "@/components/pagination";
+import { SortControl } from "@/components/sort-control";
 
 export default function AppointmentsPage() {
   const [appointmentResult, setAppointmentResult] = useState<PagedResult<AppointmentListItem> | null>(null);
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState("startAt");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [clients, setClients] = useState<{ id: string; displayName: string }[]>([]);
   const [selectedClient, setSelectedClient] = useState<ClientDetail | null>(null);
   const [offers, setOffers] = useState<OfferListItem[]>([]);
@@ -27,7 +30,7 @@ export default function AppointmentsPage() {
     setIsLoading(true);
     try {
       const [appointmentResponse, clientResponse, offerResponse, groomerResponse] = await Promise.all([
-        apiRequest<PagedResult<AppointmentListItem>>(`/api/admin/appointments?page=${page}&pageSize=50`),
+        apiRequest<PagedResult<AppointmentListItem>>(`/api/admin/appointments?page=${page}&pageSize=50&sortBy=${sortBy}&sortDirection=${sortDirection}`),
         apiRequest<PagedResult<{ id: string; displayName: string }>>("/api/admin/clients?page=1&pageSize=100"),
         apiRequest<OfferListItem[]>("/api/admin/catalog/offers"),
         apiRequest<GroomerListResponse>("/api/admin/groomers")
@@ -43,7 +46,7 @@ export default function AppointmentsPage() {
     }
   }
 
-  useEffect(() => { void loadBase(); }, []);
+  useEffect(() => { void loadBase(); }, [sortBy, sortDirection]);
   useEffect(() => {
     if (!form.clientId) { setSelectedClient(null); return; }
     apiRequest<ClientDetail>(`/api/admin/clients/${form.clientId}`)
@@ -79,6 +82,17 @@ export default function AppointmentsPage() {
       <SuccessBanner message={success} />
       <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
         <Card title="Appointment list">
+          <SortControl
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            options={[
+              { value: "startAt", label: "Start date" },
+              { value: "status", label: "Status" },
+              { value: "createdAt", label: "Created date" },
+            ]}
+            onSortByChange={(v) => { setSortBy(v); setPage(1); }}
+            onSortDirectionChange={(v) => { setSortDirection(v); setPage(1); }}
+          />
           {isLoading ? <LoadingState label="Loading appointments..." /> : null}
           {!isLoading && (!appointmentResult || appointmentResult.items.length === 0) ? <EmptyState title="No appointments found" description="Create a direct appointment or convert a booking request." /> : null}
           {!isLoading && appointmentResult && appointmentResult.items.length > 0 ? (

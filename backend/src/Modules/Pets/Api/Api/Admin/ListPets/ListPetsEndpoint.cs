@@ -27,6 +27,8 @@ public sealed class ListPetsEndpoint(
             req.BreedId,
             req.Page,
             req.PageSize,
+            req.SortBy,
+            req.SortDirection,
             ct
         );
 

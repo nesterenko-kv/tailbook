@@ -20,7 +20,7 @@ public sealed class ListBookingRequestsEndpoint(
 
     public override async Task HandleAsync(ListBookingRequestsRequest req, CancellationToken ct)
     {
-        var result = await bookingReadService.ListBookingRequestsAsync(req.Search, req.Status, req.Page, req.PageSize, ct);
+        var result = await bookingReadService.ListBookingRequestsAsync(req.Search, req.Status, req.Page, req.PageSize, req.SortBy, req.SortDirection, ct);
 
         var actorUserId = User.FindFirst(TailbookClaimTypes.UserId)?.Value;
         IReadOnlyCollection<BookingRequestListItemView> filteredItems = result.Items;

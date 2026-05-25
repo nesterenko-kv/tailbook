@@ -7,6 +7,7 @@ import type { BookingRequestDetail, BookingRequestListItem, ClientDetail, Groome
 import { unwrapItems } from "@/lib/contracts";
 import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
 import { Pagination } from "@/components/pagination";
+import { SortControl } from "@/components/sort-control";
 
 function toneForStatus(status: string): "default" | "success" | "warning" {
   switch (status) {
@@ -22,6 +23,8 @@ function toneForStatus(status: string): "default" | "success" | "warning" {
 export default function BookingRequestsPage() {
   const [requestResult, setRequestResult] = useState<PagedResult<BookingRequestListItem> | null>(null);
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [offers, setOffers] = useState<OfferListItem[]>([]);
   const [clients, setClients] = useState<{ id: string; displayName: string }[]>([]);
   const [selectedClient, setSelectedClient] = useState<ClientDetail | null>(null);
@@ -41,7 +44,7 @@ export default function BookingRequestsPage() {
     setIsLoading(true);
     try {
       const [requestResponse, offerResponse, clientResponse, groomerResponse] = await Promise.all([
-        apiRequest<PagedResult<BookingRequestListItem>>(`/api/admin/booking-requests?page=${page}&pageSize=50`),
+        apiRequest<PagedResult<BookingRequestListItem>>(`/api/admin/booking-requests?page=${page}&pageSize=50&sortBy=${sortBy}&sortDirection=${sortDirection}`),
         apiRequest<OfferListItem[]>("/api/admin/catalog/offers"),
         apiRequest<PagedResult<{ id: string; displayName: string }>>("/api/admin/clients?page=1&pageSize=100"),
         apiRequest<GroomerListResponse>("/api/admin/groomers")
@@ -57,7 +60,7 @@ export default function BookingRequestsPage() {
     }
   }
 
-  useEffect(() => { void loadBase(); }, []);
+  useEffect(() => { void loadBase(); }, [sortBy, sortDirection]);
 
   useEffect(() => {
     if (!form.clientId) {
@@ -201,6 +204,17 @@ export default function BookingRequestsPage() {
 
       <div className="grid gap-6 xl:grid-cols-[1.15fr_1fr]">
         <Card title="Booking request queue" description="Guest requests can stay in NeedsReview until staff links them to a real pet and confirms details.">
+          <SortControl
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            options={[
+              { value: "createdAt", label: "Created date" },
+              { value: "status", label: "Status" },
+              { value: "channel", label: "Channel" },
+            ]}
+            onSortByChange={(v) => { setSortBy(v); setPage(1); }}
+            onSortDirectionChange={(v) => { setSortDirection(v); setPage(1); }}
+          />
           {isLoading ? <LoadingState label="Loading booking requests..." /> : null}
           {!isLoading && (!requestResult || requestResult.items.length === 0) ? <EmptyState title="No booking requests found" description="New public or admin-assisted booking requests will appear here." /> : null}
           {!isLoading && requestResult && requestResult.items.length > 0 ? (

@@ -156,6 +156,8 @@ public sealed class PetsUseCases(
         Guid? breedId,
         int page,
         int pageSize,
+        string? sortBy,
+        string? sortDirection,
         CancellationToken cancellationToken
     )
     {
@@ -210,9 +212,15 @@ public sealed class PetsUseCases(
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
+        var descending = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase);
+        query = sortBy?.ToLowerInvariant() switch
+        {
+            "breed" => descending ? query.OrderByDescending(x => x.Breed.Name).ThenBy(x => x.Pet.Name) : query.OrderBy(x => x.Breed.Name).ThenBy(x => x.Pet.Name),
+            "updatedat" => descending ? query.OrderByDescending(x => x.Pet.UpdatedAt) : query.OrderBy(x => x.Pet.UpdatedAt),
+            "createdat" => descending ? query.OrderByDescending(x => x.Pet.CreatedAt) : query.OrderBy(x => x.Pet.CreatedAt),
+            _ => descending ? query.OrderByDescending(x => x.Pet.Name) : query.OrderBy(x => x.Pet.Name).ThenBy(x => x.Pet.CreatedAt),
+        };
         var rows = await query
-            .OrderBy(x => x.Pet.Name)
-            .ThenBy(x => x.Pet.CreatedAt)
             .Skip((safePage - 1) * safePageSize)
             .Take(safePageSize)
             .Select(x => new

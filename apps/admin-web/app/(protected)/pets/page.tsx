@@ -9,6 +9,7 @@ import { formatDateTime } from "@/lib/format";
 import type { ClientListItem, PagedResult, PetCatalog, PetDetail, PetListItem } from "@/lib/types";
 import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
 import { Pagination } from "@/components/pagination";
+import { SortControl } from "@/components/sort-control";
 
 export default function PetsPage() {
     const router = useRouter();
@@ -17,6 +18,8 @@ export default function PetsPage() {
     const [pets, setPets] = useState<PagedResult<PetListItem> | null>(null);
     const [filters, setFilters] = useState({ search: "", clientId: "", animalTypeCode: "", breedId: "" });
     const [page, setPage] = useState(1);
+    const [sortBy, setSortBy] = useState("name");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,6 +61,8 @@ export default function PetsPage() {
             if (filters.clientId) query.set("clientId", filters.clientId);
             if (filters.animalTypeCode) query.set("animalTypeCode", filters.animalTypeCode);
             if (filters.breedId) query.set("breedId", filters.breedId);
+            query.set("sortBy", sortBy);
+            query.set("sortDirection", sortDirection);
             const response = await apiRequest<PagedResult<PetListItem>>(`/api/admin/pets?${query.toString()}`);
             setPets(response);
         } catch (err) {
@@ -71,7 +76,7 @@ export default function PetsPage() {
 
     useEffect(() => {
         void loadPets();
-    }, [filters.search, filters.clientId, filters.animalTypeCode, filters.breedId, page]);
+    }, [filters.search, filters.clientId, filters.animalTypeCode, filters.breedId, page, sortBy, sortDirection]);
 
     const selectedAnimalType = useMemo(() => catalog?.animalTypes.find((item) => item.code === form.animalTypeCode) ?? null, [catalog, form.animalTypeCode]);
     const breedOptions = useMemo(() => catalog?.breeds.filter((breed) => breed.animalTypeId === selectedAnimalType?.id) ?? [], [catalog, selectedAnimalType]);
@@ -194,7 +199,19 @@ export default function PetsPage() {
                             <Field label="Animal type"><Select value={filters.animalTypeCode} onChange={(event) => setFilters((current) => ({ ...current, animalTypeCode: event.target.value, breedId: "" }))}><option value="">All animal types</option>{catalog?.animalTypes.map((item) => <option key={item.id} value={item.code}>{item.name}</option>)}</Select></Field>
                             <Field label="Breed"><Select value={filters.breedId} onChange={(event) => setFilters((current) => ({ ...current, breedId: event.target.value }))}><option value="">All breeds</option>{catalog?.breeds.filter((breed) => !filters.animalTypeCode || breed.animalTypeId === catalog.animalTypes.find((item) => item.code === filters.animalTypeCode)?.id).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></Field>
                         </div>
-                        <div className="mt-4 grid gap-3">
+                        <SortControl
+                          sortBy={sortBy}
+                          sortDirection={sortDirection}
+                          options={[
+                            { value: "name", label: "Name" },
+                            { value: "breed", label: "Breed" },
+                            { value: "createdAt", label: "Created date" },
+                            { value: "updatedAt", label: "Updated date" },
+                          ]}
+                          onSortByChange={(v) => { setSortBy(v); setPage(1); }}
+                          onSortDirectionChange={(v) => { setSortDirection(v); setPage(1); }}
+                        />
+                        <div className="grid gap-3">
                             {pets?.items.map((pet) => (
                                 <Link key={pet.id} href={`/pets/${pet.id}`} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 transition hover:border-emerald-500/40">
                                     <div className="flex flex-wrap items-start justify-between gap-3">

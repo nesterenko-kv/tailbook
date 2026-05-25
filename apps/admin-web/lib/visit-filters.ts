@@ -6,7 +6,7 @@ export type VisitFiltersState = {
     appointmentId: string;
 };
 
-export function buildVisitFilterQuery(filters: VisitFiltersState, page: number = 1): string {
+export function buildVisitFilterQuery(filters: VisitFiltersState, page: number = 1, sortBy?: string, sortDirection?: string): string {
     const query = new URLSearchParams({ page: String(page), pageSize: "25" });
     if (filters.status) query.set("status", filters.status);
     if (filters.groomerId) query.set("groomerId", filters.groomerId);
@@ -25,5 +25,7 @@ export function buildVisitFilterQuery(filters: VisitFiltersState, page: number =
             // ignore invalid date
         }
     }
+    if (sortBy) query.set("sortBy", sortBy);
+    if (sortDirection) query.set("sortDirection", sortDirection);
     return `?${query.toString()}`;
 }

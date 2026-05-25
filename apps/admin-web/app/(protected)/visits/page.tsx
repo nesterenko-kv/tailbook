@@ -8,6 +8,7 @@ import type { GroomerListResponse, PagedResult, VisitListItem } from "@/lib/type
 import { buildVisitFilterQuery } from "@/lib/visit-filters";
 import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, Select } from "@/components/ui";
 import { Pagination } from "@/components/pagination";
+import { SortControl } from "@/components/sort-control";
 
 const statusOptions = ["Open", "InProgress", "AwaitingFinalization", "Closed"];
 
@@ -16,12 +17,14 @@ export default function VisitsPage() {
   const [groomers, setGroomers] = useState<GroomerListResponse>({ items: [] });
   const [filters, setFilters] = useState({ status: "", groomerId: "", from: "", to: "", appointmentId: "" });
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState("checkedInAt");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [error, setError] = useState<string | null>(null);
 
   async function loadVisits() {
     setError(null);
     try {
-      const queryString = buildVisitFilterQuery(filters, page);
+      const queryString = buildVisitFilterQuery(filters, page, sortBy, sortDirection);
       const response = await apiRequest<PagedResult<VisitListItem>>(`/api/admin/visits${queryString}`);
       setVisits(response);
     } catch (err) {
@@ -41,7 +44,7 @@ export default function VisitsPage() {
 
   useEffect(() => {
     void loadVisits();
-  }, [filters.status, filters.groomerId, filters.from, filters.to, filters.appointmentId, page]);
+  }, [filters.status, filters.groomerId, filters.from, filters.to, filters.appointmentId, page, sortBy, sortDirection]);
 
   return (
     <div className="flex flex-col gap-6 px-2 py-2">
@@ -57,6 +60,17 @@ export default function VisitsPage() {
         </div>
       </Card>
       <Card title="Visit list">
+        <SortControl
+          sortBy={sortBy}
+          sortDirection={sortDirection}
+          options={[
+            { value: "checkedInAt", label: "Checked in" },
+            { value: "status", label: "Status" },
+            { value: "appointmentStartAt", label: "Appointment start" },
+          ]}
+          onSortByChange={(v) => { setSortBy(v); setPage(1); }}
+          onSortDirectionChange={(v) => { setSortDirection(v); setPage(1); }}
+        />
         <div className="grid gap-3">
           {visits?.items.map((visit) => (
             <Link key={visit.id} href={`/visits/${visit.id}`} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 transition hover:border-emerald-500/40">

@@ -7,11 +7,14 @@ import { formatDateTime } from "@/lib/format";
 import type { ClientListItem, PagedResult } from "@/lib/types";
 import { Badge, Card, ErrorBanner, Field, Input, PageHeader, PrimaryButton, SuccessBanner, TextArea } from "@/components/ui";
 import { Pagination } from "@/components/pagination";
+import { SortControl } from "@/components/sort-control";
 
 export default function ClientsPage() {
     const [clientResult, setClientResult] = useState<PagedResult<ClientListItem> | null>(null);
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
+    const [sortBy, setSortBy] = useState("displayName");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
     const [displayName, setDisplayName] = useState("");
     const [notes, setNotes] = useState("");
     const [isLoading, setIsLoading] = useState(true);
@@ -19,7 +22,7 @@ export default function ClientsPage() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
-    async function loadClients(term: string | undefined, pageNum: number) {
+    async function loadClients(term: string | undefined, pageNum: number, sortField?: string, sortDir?: string) {
         setIsLoading(true);
         setError(null);
         try {
@@ -27,6 +30,8 @@ export default function ClientsPage() {
             if (term) {
                 query.set("search", term);
             }
+            query.set("sortBy", sortField ?? sortBy);
+            query.set("sortDirection", sortDir ?? sortDirection);
             const response = await apiRequest<PagedResult<ClientListItem>>(`/api/admin/clients?${query.toString()}`);
             setClientResult(response);
         } catch (err) {
@@ -37,8 +42,8 @@ export default function ClientsPage() {
     }
 
     useEffect(() => {
-        void loadClients(undefined, 1);
-    }, []);
+        void loadClients(undefined, 1, sortBy, sortDirection);
+    }, [sortBy, sortDirection]);
 
     async function createClient(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -54,7 +59,7 @@ export default function ClientsPage() {
             setDisplayName("");
             setNotes("");
             setSuccess("Client created.");
-            await loadClients(search, 1);
+            await loadClients(search, 1, sortBy, sortDirection);
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Failed to create client.");
         } finally {
@@ -74,11 +79,22 @@ export default function ClientsPage() {
                 <Card title="Client list" description="Search and open client profiles.">
                     <div className="mb-4 flex gap-3">
                         <Input placeholder="Search by display name" value={search} onChange={(event) => setSearch(event.target.value)} />
-                        <PrimaryButton type="button" onClick={() => { setPage(1); void loadClients(search, 1); }}>Search</PrimaryButton>
+                        <PrimaryButton type="button" onClick={() => { setPage(1); void loadClients(search, 1, sortBy, sortDirection); }}>Search</PrimaryButton>
                     </div>
                     <ErrorBanner message={error} />
                     <SuccessBanner message={success} />
                     {isLoading ? <p className="text-sm text-slate-300">Loading clients…</p> : null}
+                    <SortControl
+                      sortBy={sortBy}
+                      sortDirection={sortDirection}
+                      options={[
+                        { value: "displayName", label: "Display name" },
+                        { value: "createdAt", label: "Created date" },
+                        { value: "updatedAt", label: "Updated date" },
+                      ]}
+                      onSortByChange={(v) => { setSortBy(v); setPage(1); }}
+                      onSortDirectionChange={(v) => { setSortDirection(v); setPage(1); }}
+                    />
                     <div className="grid gap-3">
                         {clientResult?.items.map((client) => (
                             <Link key={client.id} href={`/clients/${client.id}`} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 transition hover:border-emerald-500/40">
@@ -94,7 +110,7 @@ export default function ClientsPage() {
                         ))}
                         {!isLoading && (!clientResult || clientResult.items.length === 0) ? <p className="text-sm text-slate-400">No clients found.</p> : null}
                     </div>
-                    {clientResult ? <Pagination page={page} pageSize={50} totalCount={clientResult.totalCount} onPageChange={(p) => { setPage(p); void loadClients(search, p); }} /> : null}
+                    {clientResult ? <Pagination page={page} pageSize={50} totalCount={clientResult.totalCount} onPageChange={(p) => { setPage(p); void loadClients(search, p, sortBy, sortDirection); }} /> : null}
                 </Card>
 
                 <Card title="Create client" description="Minimal CRM account creation for front desk/admin.">

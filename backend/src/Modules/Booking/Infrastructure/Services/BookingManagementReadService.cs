@@ -12,7 +12,7 @@ public sealed class BookingManagementReadService(
     IPetSummaryReadService petSummaryReadService,
     IGroomerProfileReadService groomerProfileReadService) : IBookingManagementReadService
 {
-    public async Task<PagedResult<BookingRequestListItemView>> ListBookingRequestsAsync(string? search, string? status, int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<PagedResult<BookingRequestListItemView>> ListBookingRequestsAsync(string? search, string? status, int page, int pageSize, string? sortBy, string? sortDirection, CancellationToken cancellationToken)
     {
         var safePage = page <= 0 ? 1 : page;
         var safePageSize = pageSize switch { <= 0 => 20, > 100 => 100, _ => pageSize };
@@ -51,8 +51,15 @@ public sealed class BookingManagementReadService(
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
+        var descending = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase);
+        query = sortBy?.ToLowerInvariant() switch
+        {
+            "status" => descending ? query.OrderByDescending(x => x.Status) : query.OrderBy(x => x.Status),
+            "channel" => descending ? query.OrderByDescending(x => x.Channel) : query.OrderBy(x => x.Channel),
+            "createdat" when !descending => query.OrderBy(x => x.CreatedAt),
+            _ => descending ? query.OrderByDescending(x => x.CreatedAt) : query.OrderBy(x => x.CreatedAt),
+        };
         var items = await query
-            .OrderByDescending(x => x.CreatedAt)
             .Skip((safePage - 1) * safePageSize)
             .Take(safePageSize)
             .ToListAsync(cancellationToken);
@@ -135,7 +142,7 @@ public sealed class BookingManagementReadService(
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<PagedResult<AppointmentListItemView>> ListAppointmentsAsync(string? search, DateTimeOffset? from, DateTimeOffset? to, Guid? groomerId, int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<PagedResult<AppointmentListItemView>> ListAppointmentsAsync(string? search, DateTimeOffset? from, DateTimeOffset? to, Guid? groomerId, int page, int pageSize, string? sortBy, string? sortDirection, CancellationToken cancellationToken)
     {
         var safePage = page <= 0 ? 1 : page;
         var safePageSize = pageSize switch { <= 0 => 20, > 100 => 100, _ => pageSize };
@@ -189,8 +196,14 @@ public sealed class BookingManagementReadService(
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
+        var descending = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase);
+        query = sortBy?.ToLowerInvariant() switch
+        {
+            "status" => descending ? query.OrderByDescending(x => x.Status) : query.OrderBy(x => x.Status),
+            "createdat" => descending ? query.OrderByDescending(x => x.CreatedAt) : query.OrderBy(x => x.CreatedAt),
+            _ => descending ? query.OrderByDescending(x => x.StartAt) : query.OrderBy(x => x.StartAt),
+        };
         var appointments = await query
-            .OrderBy(x => x.StartAt)
             .Skip((safePage - 1) * safePageSize)
             .Take(safePageSize)
             .ToListAsync(cancellationToken);

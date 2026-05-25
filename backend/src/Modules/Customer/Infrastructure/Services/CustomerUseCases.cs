@@ -13,7 +13,7 @@ public sealed class CustomerUseCases(
     IAccessAuditService accessAuditService,
     TimeProvider timeProvider) : ICustomerReadService
 {
-    public async Task<PagedResult<ClientListItemView>> ListClientsAsync(string? search, int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<PagedResult<ClientListItemView>> ListClientsAsync(string? search, int page, int pageSize, string? sortBy, string? sortDirection, CancellationToken cancellationToken)
     {
         var safePage = page <= 0 ? 1 : page;
         var safePageSize = pageSize switch
@@ -66,8 +66,14 @@ public sealed class CustomerUseCases(
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
+        var descending = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase);
+        query = sortBy?.ToLowerInvariant() switch
+        {
+            "createdat" => descending ? query.OrderByDescending(x => x.CreatedAt) : query.OrderBy(x => x.CreatedAt),
+            "updatedat" => descending ? query.OrderByDescending(x => x.UpdatedAt) : query.OrderBy(x => x.UpdatedAt),
+            _ => descending ? query.OrderByDescending(x => x.DisplayName) : query.OrderBy(x => x.DisplayName),
+        };
         var clients = await query
-            .OrderBy(x => x.DisplayName)
             .Skip((safePage - 1) * safePageSize)
             .Take(safePageSize)
             .ToListAsync(cancellationToken);

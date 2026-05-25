@@ -20,7 +20,7 @@ public sealed class ListClientsEndpoint(
 
     public override async Task HandleAsync(ListClientsRequest req, CancellationToken ct)
     {
-        var result = await customerReadService.ListClientsAsync(req.Search, req.Page, req.PageSize, ct);
+        var result = await customerReadService.ListClientsAsync(req.Search, req.Page, req.PageSize, req.SortBy, req.SortDirection, ct);
         var actorUserId = User.FindFirst(TailbookClaimTypes.UserId)?.Value;
         IReadOnlyCollection<ClientListItemView> filteredItems = result.Items;
         var totalCount = result.TotalCount;
