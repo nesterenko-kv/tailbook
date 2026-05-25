@@ -61,8 +61,11 @@ public sealed class CreateCatalogPriceRuleCommandHandler(
         return CatalogRuleViewMapper.ToView(rule.Value, rule.Value.Condition, offer);
     }
 
-    private async Task<PriceRuleSet?> LoadPriceRuleSetAggregateAsync(Guid ruleSetId, CancellationToken cancellationToken) => await dbContext.Set<PriceRuleSet>()
+    private async Task<PriceRuleSet?> LoadPriceRuleSetAggregateAsync(Guid ruleSetId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<PriceRuleSet>()
             .Include(x => x.Rules)
             .ThenInclude(x => x.Condition)
             .SingleOrDefaultAsync(x => x.Id == ruleSetId, cancellationToken);
+    }
 }

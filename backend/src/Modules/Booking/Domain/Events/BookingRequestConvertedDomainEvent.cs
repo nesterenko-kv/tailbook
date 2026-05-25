@@ -12,5 +12,8 @@ public sealed record BookingRequestConvertedDomainEvent(
     public string EventType => "BookingRequestConverted";
     public string ModuleCode => "booking";
 
-    public IIntegrationEventDto ToIntegrationEvent() => new BookingRequestConvertedIntegrationEvent(BookingRequestId, AppointmentId);
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new BookingRequestConvertedIntegrationEvent(BookingRequestId, AppointmentId);
+    }
 }

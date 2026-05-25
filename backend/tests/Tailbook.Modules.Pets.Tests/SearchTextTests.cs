@@ -50,7 +50,10 @@ public sealed class SearchTextTests
     }
 
     [Fact]
-    public void ContainsAllTerms_returns_true_when_terms_empty() => Assert.True(SearchText.ContainsAllTerms("anything", []));
+    public void ContainsAllTerms_returns_true_when_terms_empty()
+    {
+        Assert.True(SearchText.ContainsAllTerms("anything", []));
+    }
 
     [Fact]
     public void ContainsAllTerms_returns_false_when_value_null_or_whitespace()
@@ -61,19 +64,34 @@ public sealed class SearchTextTests
     }
 
     [Fact]
-    public void ContainsAllTerms_matches_case_insensitive() => Assert.True(SearchText.ContainsAllTerms("Hello World", new[] { "hello", "WORLD" }));
+    public void ContainsAllTerms_matches_case_insensitive()
+    {
+        Assert.True(SearchText.ContainsAllTerms("Hello World", new[] { "hello", "WORLD" }));
+    }
 
     [Fact]
-    public void ContainsAllTerms_returns_false_when_any_term_missing() => Assert.False(SearchText.ContainsAllTerms("Hello World", new[] { "hello", "missing" }));
+    public void ContainsAllTerms_returns_false_when_any_term_missing()
+    {
+        Assert.False(SearchText.ContainsAllTerms("Hello World", new[] { "hello", "missing" }));
+    }
 
     [Fact]
-    public void ContainsAnyField_returns_true_when_terms_empty() => Assert.True(SearchText.ContainsAnyField([], "anything"));
+    public void ContainsAnyField_returns_true_when_terms_empty()
+    {
+        Assert.True(SearchText.ContainsAnyField([], "anything"));
+    }
 
     [Fact]
-    public void ContainsAnyField_matches_any_value() => Assert.True(SearchText.ContainsAnyField(new[] { "hello" }, "nope", "hello there", "nope2"));
+    public void ContainsAnyField_matches_any_value()
+    {
+        Assert.True(SearchText.ContainsAnyField(new[] { "hello" }, "nope", "hello there", "nope2"));
+    }
 
     [Fact]
-    public void ContainsAnyField_requires_all_terms() => Assert.False(SearchText.ContainsAnyField(new[] { "hello", "world" }, "hello only"));
+    public void ContainsAnyField_requires_all_terms()
+    {
+        Assert.False(SearchText.ContainsAnyField(new[] { "hello", "world" }, "hello only"));
+    }
 
     [Fact]
     public void ContainsTerm_matches_any_value()

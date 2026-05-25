@@ -14,18 +14,21 @@ public sealed class OfferVersionResponse
     public DateTimeOffset? PublishedAt { get; set; }
     public OfferVersionComponentResponse[] Components { get; set; } = [];
 
-    public static OfferVersionResponse Map(OfferVersionView view) => new OfferVersionResponse
+    public static OfferVersionResponse Map(OfferVersionView view)
     {
-        Id = view.Id,
-        OfferId = view.OfferId,
-        VersionNo = view.VersionNo,
-        Status = view.Status,
-        ValidFrom = view.ValidFrom,
-        ValidTo = view.ValidTo,
-        PolicyText = view.PolicyText,
-        ChangeNote = view.ChangeNote,
-        CreatedAt = view.CreatedAt,
-        PublishedAt = view.PublishedAt,
-        Components = view.Components.Select(OfferVersionComponentResponse.Map).ToArray()
-    };
+        return new OfferVersionResponse
+        {
+            Id = view.Id,
+            OfferId = view.OfferId,
+            VersionNo = view.VersionNo,
+            Status = view.Status,
+            ValidFrom = view.ValidFrom,
+            ValidTo = view.ValidTo,
+            PolicyText = view.PolicyText,
+            ChangeNote = view.ChangeNote,
+            CreatedAt = view.CreatedAt,
+            PublishedAt = view.PublishedAt,
+            Components = view.Components.Select(OfferVersionComponentResponse.Map).ToArray()
+        };
+    }
 }

@@ -5,5 +5,7 @@ namespace Tailbook.Modules.Catalog.Api.Admin.CreatePriceRuleSet;
 public sealed class CreatePriceRuleSetResponse : PriceRuleSetResponseBase
 {
     public static new CreatePriceRuleSetResponse FromView(PriceRuleSetView view)
-        => FromView<CreatePriceRuleSetResponse>(view);
+    {
+        return FromView<CreatePriceRuleSetResponse>(view);
+    }
 }

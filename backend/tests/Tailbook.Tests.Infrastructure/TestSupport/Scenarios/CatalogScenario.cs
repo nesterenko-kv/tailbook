@@ -7,7 +7,9 @@ namespace Tailbook.Api.Tests.TestSupport.Scenarios;
 public sealed class CatalogScenario(HttpClient client)
 {
     public static CatalogScenario For(HttpClient client)
-        => new(client);
+    {
+        return new(client);
+    }
 
     public async Task<OfferEnvelope> CreateOfferAsync(string code, string offerType, string displayName)
     {

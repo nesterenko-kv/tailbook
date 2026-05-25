@@ -4,5 +4,8 @@ public readonly record struct LoginThrottleDecision(bool IsLockedOut, TimeSpan? 
 {
     public static LoginThrottleDecision Allowed => new(false, null);
 
-    public static LoginThrottleDecision Locked(TimeSpan retryAfter) => new(true, retryAfter);
+    public static LoginThrottleDecision Locked(TimeSpan retryAfter)
+    {
+        return new(true, retryAfter);
+    }
 }

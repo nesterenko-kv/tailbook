@@ -7,10 +7,13 @@ namespace Tailbook.Modules.Catalog.Infrastructure.Services;
 public sealed class CatalogOfferReadService(AppDbContext dbContext) : ICatalogOfferReadService
 {
     public async Task<IReadOnlyCollection<CatalogOfferSummary>> ListActiveOffersAsync(
-        CancellationToken cancellationToken) => await dbContext.Set<CommercialOffer>()
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<CommercialOffer>()
             .AsNoTracking()
             .Where(x => x.IsActive)
             .OrderBy(x => x.DisplayName)
             .Select(x => new CatalogOfferSummary(x.Id, x.Code, x.OfferType, x.DisplayName))
             .ToListAsync(cancellationToken);
+    }
 }

@@ -14,9 +14,12 @@ public sealed record ClientCreatedDomainEvent(
     public string EventType => "ClientCreated";
     public string ModuleCode => "customer";
 
-    public IIntegrationEventDto ToIntegrationEvent() => new ClientCreatedIntegrationEvent(
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new ClientCreatedIntegrationEvent(
             ClientId,
             DisplayName,
             Status,
             Notes);
+    }
 }

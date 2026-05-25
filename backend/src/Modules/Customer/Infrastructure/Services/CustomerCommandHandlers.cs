@@ -13,20 +13,30 @@ public sealed class CustomerCommandHandlers(
       ICommandHandler<UpdateClientContactPreferencesUseCaseCommand, ErrorOr<ClientContactPreferencesView>>
 {
     public Task<ClientDetailView> ExecuteAsync(CreateCustomerClientCommand command, CancellationToken cancellationToken)
-        => customerUseCases.CreateClientAsync(command.DisplayName, command.Notes, cancellationToken);
+    {
+        return customerUseCases.CreateClientAsync(command.DisplayName, command.Notes, cancellationToken);
+    }
 
     public Task<ContactPersonView?> ExecuteAsync(AddCustomerContactPersonCommand command, CancellationToken cancellationToken)
-        => customerUseCases.AddContactPersonAsync(command.ClientId, command.FirstName, command.LastName, command.Notes, command.TrustLevel, cancellationToken);
+    {
+        return customerUseCases.AddContactPersonAsync(command.ClientId, command.FirstName, command.LastName, command.Notes, command.TrustLevel, cancellationToken);
+    }
 
     public Task<ErrorOr<ContactMethodView>> ExecuteAsync(AddCustomerContactMethodCommand command, CancellationToken cancellationToken)
-        => customerUseCases.AddContactMethodAsync(command.ContactId, command.MethodType, command.Value, command.DisplayValue, command.IsPreferred, command.VerificationStatus, command.Notes, cancellationToken);
+    {
+        return customerUseCases.AddContactMethodAsync(command.ContactId, command.MethodType, command.Value, command.DisplayValue, command.IsPreferred, command.VerificationStatus, command.Notes, cancellationToken);
+    }
 
     public Task<PetContactLinkView?> ExecuteAsync(LinkCustomerContactToPetCommand command, CancellationToken cancellationToken)
-        => customerUseCases.LinkContactToPetAsync(command.PetId, command.ContactId, command.RoleCodes, command.IsPrimary, command.CanPickUp, command.CanPay, command.ReceivesNotifications, cancellationToken);
+    {
+        return customerUseCases.LinkContactToPetAsync(command.PetId, command.ContactId, command.RoleCodes, command.IsPrimary, command.CanPickUp, command.CanPay, command.ReceivesNotifications, cancellationToken);
+    }
 
     public Task<ErrorOr<ClientContactPreferencesView>> ExecuteAsync(UpdateClientContactPreferencesUseCaseCommand command, CancellationToken cancellationToken)
-        => clientPortalCustomerUseCases.UpdateContactPreferencesAsync(
-            command.ContactPersonId,
-            new UpdateClientContactPreferencesInput(command.Methods),
-            cancellationToken);
+    {
+        return clientPortalCustomerUseCases.UpdateContactPreferencesAsync(
+                command.ContactPersonId,
+                new UpdateClientContactPreferencesInput(command.Methods),
+                cancellationToken);
+    }
 }

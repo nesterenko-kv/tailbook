@@ -32,7 +32,10 @@ public sealed class UtcDateTimeOffsetJsonConverter : JsonConverter<DateTimeOffse
         return DateTimeOffset.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind).ToUniversalTime();
     }
 
-    public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options) => writer.WriteStringValue(value.UtcDateTime);
+    public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.UtcDateTime);
+    }
 
     private static bool HasExplicitOffset(string value)
     {

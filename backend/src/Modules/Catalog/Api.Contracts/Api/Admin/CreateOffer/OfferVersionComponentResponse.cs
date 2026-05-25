@@ -12,16 +12,19 @@ public sealed class OfferVersionComponentResponse
     public bool DefaultExpected { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 
-    public static OfferVersionComponentResponse Map(OfferVersionComponentView view) => new OfferVersionComponentResponse
+    public static OfferVersionComponentResponse Map(OfferVersionComponentView view)
     {
-        Id = view.Id,
-        OfferVersionId = view.OfferVersionId,
-        ProcedureId = view.ProcedureId,
-        ProcedureCode = view.ProcedureCode,
-        ProcedureName = view.ProcedureName,
-        ComponentRole = view.ComponentRole,
-        SequenceNo = view.SequenceNo,
-        DefaultExpected = view.DefaultExpected,
-        CreatedAt = view.CreatedAt
-    };
+        return new OfferVersionComponentResponse
+        {
+            Id = view.Id,
+            OfferVersionId = view.OfferVersionId,
+            ProcedureId = view.ProcedureId,
+            ProcedureCode = view.ProcedureCode,
+            ProcedureName = view.ProcedureName,
+            ComponentRole = view.ComponentRole,
+            SequenceNo = view.SequenceNo,
+            DefaultExpected = view.DefaultExpected,
+            CreatedAt = view.CreatedAt
+        };
+    }
 }

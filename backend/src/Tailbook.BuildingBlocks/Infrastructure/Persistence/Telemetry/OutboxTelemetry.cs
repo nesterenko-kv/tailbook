@@ -76,7 +76,10 @@ public static class OutboxTelemetry
         PayloadSize.Record(payloadSizeBytes, tags);
     }
 
-    public static void RecordPublisherFailure() => PublisherFailures.Add(1);
+    public static void RecordPublisherFailure()
+    {
+        PublisherFailures.Add(1);
+    }
 
     public static void RecordMessagePublished(string moduleCode, string eventType)
     {
@@ -110,11 +113,23 @@ public static class OutboxTelemetry
         RetryDepth.Record(retryCount, tags);
     }
 
-    public static void RecordModuleLag(string moduleCode, double lagSeconds) => ModuleLagSeconds[Normalize(moduleCode)] = lagSeconds;
+    public static void RecordModuleLag(string moduleCode, double lagSeconds)
+    {
+        ModuleLagSeconds[Normalize(moduleCode)] = lagSeconds;
+    }
 
-    public static void ClearModuleLag(string moduleCode) => ModuleLagSeconds.TryRemove(Normalize(moduleCode), out _);
+    public static void ClearModuleLag(string moduleCode)
+    {
+        ModuleLagSeconds.TryRemove(Normalize(moduleCode), out _);
+    }
 
-    public static void RecordOldestUnprocessedAge(double ageSeconds) => _oldestUnprocessedAgeSeconds = ageSeconds;
+    public static void RecordOldestUnprocessedAge(double ageSeconds)
+    {
+        _oldestUnprocessedAgeSeconds = ageSeconds;
+    }
 
-    private static string Normalize(string value) => string.IsNullOrWhiteSpace(value) ? "unknown" : value.Trim();
+    private static string Normalize(string value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? "unknown" : value.Trim();
+    }
 }

@@ -133,13 +133,19 @@ public static class AuditTelemetry
         activity?.AddException(exception);
     }
 
-    private static string GetBatchItemType(int accessAuditCount, int auditTrailCount) => (accessAuditCount, auditTrailCount) switch
+    private static string GetBatchItemType(int accessAuditCount, int auditTrailCount)
     {
-        ( > 0, > 0) => ItemTypeMixed,
-        ( > 0, _) => ItemTypeAccessAudit,
-        (_, > 0) => ItemTypeAuditTrail,
-        _ => "empty"
-    };
+        return (accessAuditCount, auditTrailCount) switch
+        {
+            ( > 0, > 0) => ItemTypeMixed,
+            ( > 0, _) => ItemTypeAccessAudit,
+            (_, > 0) => ItemTypeAuditTrail,
+            _ => "empty"
+        };
+    }
 
-    private static string Normalize(string value) => string.IsNullOrWhiteSpace(value) ? "unknown" : value.Trim();
+    private static string Normalize(string value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? "unknown" : value.Trim();
+    }
 }

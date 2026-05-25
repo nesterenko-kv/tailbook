@@ -2,24 +2,30 @@
 
 internal static class LoginResponseMapper
 {
-    public static LoginResponse FromLoginResult(LoginResult login, bool includeRefreshToken = true) => new LoginResponse
+    public static LoginResponse FromLoginResult(LoginResult login, bool includeRefreshToken = true)
     {
-        Status = LoginResponseStatusCodes.Authenticated,
-        AccessToken = login.AccessToken,
-        ExpiresAt = login.ExpiresAt,
-        RefreshToken = includeRefreshToken ? login.RefreshToken : null,
-        RefreshTokenExpiresAt = login.RefreshTokenExpiresAt,
-        User = login.User
-    };
-
-    public static LoginResponse FromMfaChallenge(AuthenticationMfaRequiredResult challenge) => new LoginResponse
-    {
-        Status = LoginResponseStatusCodes.MfaRequired,
-        MfaChallenge = new MfaChallengeResponse
+        return new LoginResponse
         {
-            ChallengeId = challenge.ChallengeId,
-            FactorType = challenge.FactorType,
-            ExpiresAt = challenge.ExpiresAt
-        }
-    };
+            Status = LoginResponseStatusCodes.Authenticated,
+            AccessToken = login.AccessToken,
+            ExpiresAt = login.ExpiresAt,
+            RefreshToken = includeRefreshToken ? login.RefreshToken : null,
+            RefreshTokenExpiresAt = login.RefreshTokenExpiresAt,
+            User = login.User
+        };
+    }
+
+    public static LoginResponse FromMfaChallenge(AuthenticationMfaRequiredResult challenge)
+    {
+        return new LoginResponse
+        {
+            Status = LoginResponseStatusCodes.MfaRequired,
+            MfaChallenge = new MfaChallengeResponse
+            {
+                ChallengeId = challenge.ChallengeId,
+                FactorType = challenge.FactorType,
+                ExpiresAt = challenge.ExpiresAt
+            }
+        };
+    }
 }

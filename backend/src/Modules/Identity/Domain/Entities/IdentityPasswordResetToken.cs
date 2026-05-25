@@ -46,5 +46,8 @@ public sealed class IdentityPasswordResetToken : AggregateRoot
         return entity;
     }
 
-    public void MarkUsed(DateTimeOffset usedAt) => UsedAt = usedAt.ToUniversalTime();
+    public void MarkUsed(DateTimeOffset usedAt)
+    {
+        UsedAt = usedAt.ToUniversalTime();
+    }
 }

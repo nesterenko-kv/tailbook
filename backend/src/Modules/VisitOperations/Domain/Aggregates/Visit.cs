@@ -341,5 +341,8 @@ public sealed class Visit : AggregateRoot
         UpdatedByUserId = actorUserId;
     }
 
-    private static DateTimeOffset StampUtc(DateTimeOffset value) => value.ToUniversalTime();
+    private static DateTimeOffset StampUtc(DateTimeOffset value)
+    {
+        return value.ToUniversalTime();
+    }
 }

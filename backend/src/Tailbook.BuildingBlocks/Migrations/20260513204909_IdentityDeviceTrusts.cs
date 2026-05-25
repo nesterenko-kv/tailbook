@@ -42,8 +42,11 @@ namespace Tailbook.BuildingBlocks.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(
                 name: "iam_device_trusts",
                 schema: "iam");
+        }
     }
 }

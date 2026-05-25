@@ -164,7 +164,10 @@ public sealed class RealDbWebApplicationFactory : WebApplicationFactory<Program>
         return user.Id;
     }
 
-    public static void SetBearer(HttpClient client, string accessToken) => client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+    public static void SetBearer(HttpClient client, string accessToken)
+    {
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+    }
 
     private sealed class LoginResponseEnvelope
     {

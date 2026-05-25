@@ -443,7 +443,10 @@ public sealed class PetsUseCases(
             pet.Pet.UpdatedAt);
     }
 
-    private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? NormalizeOptional(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
 
     private sealed record ResolvedPetTaxonomy(AnimalType AnimalType, Breed Breed, CoatType? CoatType, SizeCategory? SizeCategory);
 
@@ -454,14 +457,20 @@ public sealed class PetsUseCases(
         CoatTypeView[] CoatTypes,
         SizeCategoryView[] SizeCategories)
     {
-        public static CachedPetCatalogView FromView(PetCatalogView view) => new CachedPetCatalogView(
+        public static CachedPetCatalogView FromView(PetCatalogView view)
+        {
+            return new CachedPetCatalogView(
                 view.AnimalTypes.ToArray(),
                 view.BreedGroups.ToArray(),
                 view.Breeds.ToArray(),
                 view.CoatTypes.ToArray(),
                 view.SizeCategories.ToArray());
+        }
 
-        public PetCatalogView ToView() => new PetCatalogView(AnimalTypes, BreedGroups, Breeds, CoatTypes, SizeCategories);
+        public PetCatalogView ToView()
+        {
+            return new PetCatalogView(AnimalTypes, BreedGroups, Breeds, CoatTypes, SizeCategories);
+        }
     }
 }
 

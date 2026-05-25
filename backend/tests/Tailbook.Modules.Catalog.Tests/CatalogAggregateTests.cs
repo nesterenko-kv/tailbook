@@ -229,12 +229,15 @@ public sealed class CatalogAggregateTests
         }
     }
 
-    private static CommercialOffer CreatePackageOffer() => AssertSuccess(CommercialOffer.Create(
+    private static CommercialOffer CreatePackageOffer()
+    {
+        return AssertSuccess(CommercialOffer.Create(
             Guid.NewGuid(),
             " full grooming ",
             " package ",
             " Full Grooming ",
             Utc("2026-05-01T09:00:00Z")));
+    }
 
     private static T AssertSuccess<T>(ErrorOr<T> result)
     {
@@ -242,7 +245,10 @@ public sealed class CatalogAggregateTests
         return result.Value;
     }
 
-    private static void AssertSuccess(ErrorOr<Success> result) => Assert.False(result.IsError, string.Join("; ", result.Errors.Select(error => error.Description)));
+    private static void AssertSuccess(ErrorOr<Success> result)
+    {
+        Assert.False(result.IsError, string.Join("; ", result.Errors.Select(error => error.Description)));
+    }
 
     private static void AssertErrorCode<T>(ErrorOr<T> result, string expectedCode)
     {
@@ -256,5 +262,8 @@ public sealed class CatalogAggregateTests
         return result.Errors;
     }
 
-    private static DateTimeOffset Utc(string value) => DateTimeOffset.Parse(value).ToUniversalTime();
+    private static DateTimeOffset Utc(string value)
+    {
+        return DateTimeOffset.Parse(value).ToUniversalTime();
+    }
 }

@@ -75,5 +75,8 @@ public static class JobQueueTelemetry
         activity?.AddException(exception);
     }
 
-    private static string Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? "unknown" : value.Trim();
+    private static string Normalize(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? "unknown" : value.Trim();
+    }
 }

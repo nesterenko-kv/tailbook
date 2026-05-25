@@ -10,7 +10,10 @@ namespace Tailbook.Modules.Audit.Tests;
 public sealed class AuditEventConsumerTests
 {
     [Fact]
-    public void Routing_key_is_wildcard() => Assert.Equal("#", "#");
+    public void Routing_key_is_wildcard()
+    {
+        Assert.Equal("#", "#");
+    }
 
     [Fact]
     public async Task Audit_module_registers_consumer()

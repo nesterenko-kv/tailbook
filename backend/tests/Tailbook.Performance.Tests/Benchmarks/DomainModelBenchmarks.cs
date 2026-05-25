@@ -26,16 +26,25 @@ public class DomainModelBenchmarks
     }
 
     [Benchmark]
-    public ErrorOr<Appointment> Create_Appointment_Aggregate() => Appointment.Create(
+    public ErrorOr<Appointment> Create_Appointment_Aggregate()
+    {
+        return Appointment.Create(
             Guid.NewGuid(), null, _petId, _groomerId,
             _period, _items, _actorUserId, _utcNow);
+    }
 
     [Benchmark]
-    public ErrorOr<BookingPeriod> Create_BookingPeriod() => BookingPeriod.Create(_utcNow, _utcNow.AddHours(1));
+    public ErrorOr<BookingPeriod> Create_BookingPeriod()
+    {
+        return BookingPeriod.Create(_utcNow, _utcNow.AddHours(1));
+    }
 
     [Benchmark]
-    public AppointmentItemDraft Create_AppointmentItemDraft() => new AppointmentItemDraft(
+    public AppointmentItemDraft Create_AppointmentItemDraft()
+    {
+        return new AppointmentItemDraft(
             "Service", Guid.NewGuid(), Guid.NewGuid(),
             "SILVER", "Silver Groom", 1,
             Guid.NewGuid(), Guid.NewGuid());
+    }
 }

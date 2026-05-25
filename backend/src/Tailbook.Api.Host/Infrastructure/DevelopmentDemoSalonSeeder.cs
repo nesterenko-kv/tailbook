@@ -495,7 +495,9 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
         IReadOnlyCollection<PriceRuleCondition> conditions,
         Guid ruleSetId,
         Guid offerId,
-        ResolvedCondition resolved) => rules
+        ResolvedCondition resolved)
+    {
+        return rules
             .Where(x => x.RuleSetId == ruleSetId && x.OfferId == offerId)
             .Select(rule => new RuleMatch<PriceRule, PriceRuleCondition>(rule, conditions.Single(x => x.PriceRuleId == rule.Id)))
             .SingleOrDefault(x => Matches(x.Condition.AnimalTypeId, resolved.AnimalTypeId)
@@ -503,13 +505,16 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
                                   && Matches(x.Condition.BreedGroupId, resolved.BreedGroupId)
                                   && Matches(x.Condition.CoatTypeId, resolved.CoatTypeId)
                                   && Matches(x.Condition.SizeCategoryId, resolved.SizeCategoryId));
+    }
 
     private static RuleMatch<DurationRule, DurationRuleCondition>? FindMatchingRule(
         IReadOnlyCollection<DurationRule> rules,
         IReadOnlyCollection<DurationRuleCondition> conditions,
         Guid ruleSetId,
         Guid offerId,
-        ResolvedCondition resolved) => rules
+        ResolvedCondition resolved)
+    {
+        return rules
             .Where(x => x.RuleSetId == ruleSetId && x.OfferId == offerId)
             .Select(rule => new RuleMatch<DurationRule, DurationRuleCondition>(rule, conditions.Single(x => x.DurationRuleId == rule.Id)))
             .SingleOrDefault(x => Matches(x.Condition.AnimalTypeId, resolved.AnimalTypeId)
@@ -517,10 +522,16 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
                                   && Matches(x.Condition.BreedGroupId, resolved.BreedGroupId)
                                   && Matches(x.Condition.CoatTypeId, resolved.CoatTypeId)
                                   && Matches(x.Condition.SizeCategoryId, resolved.SizeCategoryId));
+    }
 
-    private static bool Matches(Guid? left, Guid? right) => left == right;
+    private static bool Matches(Guid? left, Guid? right)
+    {
+        return left == right;
+    }
 
-    private static IReadOnlyCollection<PriceSeed> BuildPriceSeeds() => new[]
+    private static IReadOnlyCollection<PriceSeed> BuildPriceSeeds()
+    {
+        return new[]
         {
             new PriceSeed("DOG_FULL_GROOMING", 10, 700m, BreedCode: "YORKSHIRE_TERRIER"),
             new PriceSeed("DOG_FULL_GROOMING", 10, 700m, BreedCode: "BIEWER_TERRIER"),
@@ -568,8 +579,11 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
             new PriceSeed("NAIL_TRIM_ONLY", 10, 50m),
             new PriceSeed("EAR_CLEANING_ONLY", 10, 50m)
         };
+    }
 
-    private static IReadOnlyCollection<DurationSeed> BuildDurationSeeds() => new[]
+    private static IReadOnlyCollection<DurationSeed> BuildDurationSeeds()
+    {
+        return new[]
         {
             new DurationSeed("DOG_FULL_GROOMING", 10, 80, 10, 10, BreedCode: "YORKSHIRE_TERRIER"),
             new DurationSeed("DOG_FULL_GROOMING", 10, 80, 10, 10, BreedCode: "BIEWER_TERRIER"),
@@ -617,6 +631,7 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
             new DurationSeed("NAIL_TRIM_ONLY", 10, 10, 0, 5),
             new DurationSeed("EAR_CLEANING_ONLY", 10, 10, 0, 5)
         };
+    }
 
     private sealed record TaxonomyLookup(
         IReadOnlyDictionary<string, AnimalType> AnimalTypes,
@@ -668,7 +683,10 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
         public string? CoatTypeCode { get; } = CoatTypeCode;
         public string? SizeCategoryCode { get; } = SizeCategoryCode;
 
-        public ResolvedCondition Resolve(TaxonomyLookup taxonomy) => taxonomy.Resolve(AnimalTypeCode, BreedCode, BreedGroupCode, CoatTypeCode, SizeCategoryCode);
+        public ResolvedCondition Resolve(TaxonomyLookup taxonomy)
+        {
+            return taxonomy.Resolve(AnimalTypeCode, BreedCode, BreedGroupCode, CoatTypeCode, SizeCategoryCode);
+        }
     }
 
     private sealed record DurationSeed(string OfferCode, int Priority, int BaseMinutes, int BufferBeforeMinutes, int BufferAfterMinutes, string? AnimalTypeCode = null, string? BreedCode = null, string? BreedGroupCode = null, string? CoatTypeCode = null, string? SizeCategoryCode = null)
@@ -679,7 +697,10 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
         public string? CoatTypeCode { get; } = CoatTypeCode;
         public string? SizeCategoryCode { get; } = SizeCategoryCode;
 
-        public ResolvedCondition Resolve(TaxonomyLookup taxonomy) => taxonomy.Resolve(AnimalTypeCode, BreedCode, BreedGroupCode, CoatTypeCode, SizeCategoryCode);
+        public ResolvedCondition Resolve(TaxonomyLookup taxonomy)
+        {
+            return taxonomy.Resolve(AnimalTypeCode, BreedCode, BreedGroupCode, CoatTypeCode, SizeCategoryCode);
+        }
     }
 
     private sealed record RuleMatch<TRule, TCondition>(TRule Rule, TCondition Condition);

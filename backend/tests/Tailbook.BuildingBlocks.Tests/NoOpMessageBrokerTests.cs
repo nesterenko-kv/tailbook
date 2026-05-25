@@ -13,10 +13,16 @@ public sealed class NoOpMessageBrokerTests
     public NoOpMessageBrokerTests() => _broker = new NoOpMessageBroker(NullLogger<NoOpMessageBroker>.Instance);
 
     [Fact]
-    public async Task PublishAsync_without_messageId_does_not_throw() => await _broker.PublishAsync("test.exchange", "test.key", new { data = "value" });
+    public async Task PublishAsync_without_messageId_does_not_throw()
+    {
+        await _broker.PublishAsync("test.exchange", "test.key", new { data = "value" });
+    }
 
     [Fact]
-    public async Task PublishAsync_with_messageId_does_not_throw() => await _broker.PublishAsync("test.exchange", "test.key", new { data = "value" }, messageId: "msg-1");
+    public async Task PublishAsync_with_messageId_does_not_throw()
+    {
+        await _broker.PublishAsync("test.exchange", "test.key", new { data = "value" }, messageId: "msg-1");
+    }
 
     [Fact]
     public async Task PublishAsync_with_cancellationToken_completes()

@@ -63,5 +63,8 @@ public sealed class BookingRequestAggregateTests
         Assert.Equal(appointmentId, domainEvent.AppointmentId);
     }
 
-    private static DateTimeOffset Utc(string value) => DateTimeOffset.Parse(value).ToUniversalTime();
+    private static DateTimeOffset Utc(string value)
+    {
+        return DateTimeOffset.Parse(value).ToUniversalTime();
+    }
 }

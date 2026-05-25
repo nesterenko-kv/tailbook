@@ -300,7 +300,9 @@ public sealed class StaffUseCases(
             windows);
     }
 
-    public async Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(CheckGroomerAvailabilityQuery query, CancellationToken cancellationToken) => await staffSchedulingService.CheckAvailabilityAsync(
+    public async Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(CheckGroomerAvailabilityQuery query, CancellationToken cancellationToken)
+    {
+        return await staffSchedulingService.CheckAvailabilityAsync(
             query.GroomerId,
             query.PetId,
             query.OfferIds,
@@ -308,6 +310,7 @@ public sealed class StaffUseCases(
             query.ReservedMinutes,
             null,
             cancellationToken);
+    }
 
     private IReadOnlyCollection<AvailabilityWindowView> BuildAvailabilityWindows(DateTimeOffset from, DateTimeOffset to, IReadOnlyCollection<WorkingSchedule> schedules, IReadOnlyCollection<TimeBlock> timeBlocks)
     {
@@ -369,13 +372,19 @@ public sealed class StaffUseCases(
     }
 
     private static GroomerCapabilityView MapCapability(GroomerCapability x)
-        => new(x.Id, x.GroomerId, x.AnimalTypeId, x.BreedId, x.BreedGroupId, x.CoatTypeId, x.SizeCategoryId, x.OfferId, x.CapabilityMode, x.ReservedDurationModifierMinutes, x.Notes, x.CreatedAt);
+    {
+        return new(x.Id, x.GroomerId, x.AnimalTypeId, x.BreedId, x.BreedGroupId, x.CoatTypeId, x.SizeCategoryId, x.OfferId, x.CapabilityMode, x.ReservedDurationModifierMinutes, x.Notes, x.CreatedAt);
+    }
 
     private static WorkingScheduleView MapSchedule(WorkingSchedule x)
-        => new(x.Id, x.GroomerId, x.Weekday, FormatLocalTime(x.StartLocalTime), FormatLocalTime(x.EndLocalTime), x.CreatedAt, x.UpdatedAt);
+    {
+        return new(x.Id, x.GroomerId, x.Weekday, FormatLocalTime(x.StartLocalTime), FormatLocalTime(x.EndLocalTime), x.CreatedAt, x.UpdatedAt);
+    }
 
     private static TimeBlockView MapTimeBlock(TimeBlock x)
-        => new(x.Id, x.GroomerId, x.StartAt, x.EndAt, x.ReasonCode, x.Notes, x.CreatedAt);
+    {
+        return new(x.Id, x.GroomerId, x.StartAt, x.EndAt, x.ReasonCode, x.Notes, x.CreatedAt);
+    }
 
     private static ErrorOr<string> NormalizeCapabilityMode(string capabilityMode)
     {
@@ -406,7 +415,10 @@ public sealed class StaffUseCases(
         return new TimeSpan(result.Hours, result.Minutes, 0);
     }
 
-    private static string FormatLocalTime(TimeSpan value) => value.ToString(@"hh\:mm");
+    private static string FormatLocalTime(TimeSpan value)
+    {
+        return value.ToString(@"hh\:mm");
+    }
 
     private static ErrorOr<string> NormalizeReasonCode(string value)
     {
@@ -419,7 +431,13 @@ public sealed class StaffUseCases(
         return normalized;
     }
 
-    private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? NormalizeOptional(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
 
-    private static int ToIsoWeekday(DayOfWeek dayOfWeek) => dayOfWeek == DayOfWeek.Sunday ? 7 : (int)dayOfWeek;
+    private static int ToIsoWeekday(DayOfWeek dayOfWeek)
+    {
+        return dayOfWeek == DayOfWeek.Sunday ? 7 : (int)dayOfWeek;
+    }
 }

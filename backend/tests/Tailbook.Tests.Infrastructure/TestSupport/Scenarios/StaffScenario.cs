@@ -7,7 +7,9 @@ namespace Tailbook.Api.Tests.TestSupport.Scenarios;
 public sealed class StaffScenario(HttpClient client)
 {
     public static StaffScenario For(HttpClient client)
-        => new(client);
+    {
+        return new(client);
+    }
 
     public async Task<GroomerEnvelope> CreateGroomerAsync(
         string displayName,
@@ -39,13 +41,15 @@ public sealed class StaffScenario(HttpClient client)
         int weekday,
         string startLocalTime = "09:00",
         string endLocalTime = "18:00")
-        => await client.PostAsJsonAsync($"/api/admin/groomers/{groomerId:D}/working-schedules", new
+    {
+        return await client.PostAsJsonAsync($"/api/admin/groomers/{groomerId:D}/working-schedules", new
         {
             groomerId,
             weekday,
             startLocalTime,
             endLocalTime
         });
+    }
 
     public async Task<GroomerEnvelope> CreateSchedulableGroomerAsync(
         string displayName = "Schedulable Groomer",
@@ -65,7 +69,8 @@ public sealed class StaffScenario(HttpClient client)
     }
 
     public async Task<HttpResponseMessage> AddTimeBlockResponseAsync(Guid groomerId, DateTimeOffset startAt, DateTimeOffset endAt, string reasonCode, string? notes = null)
-        => await client.PostAsJsonAsync($"/api/admin/groomers/{groomerId:D}/time-blocks", new
+    {
+        return await client.PostAsJsonAsync($"/api/admin/groomers/{groomerId:D}/time-blocks", new
         {
             groomerId,
             startAt,
@@ -73,6 +78,7 @@ public sealed class StaffScenario(HttpClient client)
             reasonCode,
             notes
         });
+    }
 
     public async Task AddCapabilityAsync(
         Guid groomerId,
@@ -91,7 +97,8 @@ public sealed class StaffScenario(HttpClient client)
         Guid offerId,
         string capabilityMode,
         int reservedDurationModifierMinutes)
-        => await client.PostAsJsonAsync($"/api/admin/groomers/{groomerId:D}/capabilities", new
+    {
+        return await client.PostAsJsonAsync($"/api/admin/groomers/{groomerId:D}/capabilities", new
         {
             groomerId,
             breedId,
@@ -99,6 +106,7 @@ public sealed class StaffScenario(HttpClient client)
             capabilityMode,
             reservedDurationModifierMinutes
         });
+    }
 
     public async Task<HttpResponseMessage> CheckAvailabilityResponseAsync(
         Guid groomerId,
@@ -106,7 +114,8 @@ public sealed class StaffScenario(HttpClient client)
         DateTimeOffset startAt,
         int reservedMinutes,
         params Guid[] offerIds)
-        => await client.PostAsJsonAsync($"/api/admin/groomers/{groomerId:D}/availability/check", new
+    {
+        return await client.PostAsJsonAsync($"/api/admin/groomers/{groomerId:D}/availability/check", new
         {
             groomerId,
             petId,
@@ -114,6 +123,7 @@ public sealed class StaffScenario(HttpClient client)
             reservedMinutes,
             offerIds
         });
+    }
 
     public async Task<AvailabilityEnvelope> CheckAvailabilityAsync(
         Guid groomerId,

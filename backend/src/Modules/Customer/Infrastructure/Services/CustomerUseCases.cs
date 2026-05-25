@@ -340,8 +340,13 @@ public sealed class CustomerUseCases(
         return normalized.Length == 0 ? [ContactRoleCodes.Owner] : normalized;
     }
 
-    private static string[] SplitRoleCodes(string roleCodes) => roleCodes.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    private static string[] SplitRoleCodes(string roleCodes)
+    {
+        return roleCodes.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    }
 
-    private static string ComposeFullName(string firstName, string? lastName) => string.Join(' ', new[] { firstName, lastName }.Where(x => !string.IsNullOrWhiteSpace(x)));
-
+    private static string ComposeFullName(string firstName, string? lastName)
+    {
+        return string.Join(' ', new[] { firstName, lastName }.Where(x => !string.IsNullOrWhiteSpace(x)));
+    }
 }

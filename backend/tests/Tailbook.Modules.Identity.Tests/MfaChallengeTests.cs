@@ -250,9 +250,15 @@ public sealed class MfaChallengeTests(RealDbWebApplicationFactory factory) : ICl
         return challenge.Value;
     }
 
-    private static string ErrorCodes(IReadOnlyCollection<ErrorOr.Error> errors) => string.Join(", ", errors.Select(x => x.Code));
+    private static string ErrorCodes(IReadOnlyCollection<ErrorOr.Error> errors)
+    {
+        return string.Join(", ", errors.Select(x => x.Code));
+    }
 
-    private static bool ContainsText(string? value, string text) => value?.Contains(text, StringComparison.Ordinal) == true;
+    private static bool ContainsText(string? value, string text)
+    {
+        return value?.Contains(text, StringComparison.Ordinal) == true;
+    }
 
     private sealed class LoginResponseEnvelope
     {

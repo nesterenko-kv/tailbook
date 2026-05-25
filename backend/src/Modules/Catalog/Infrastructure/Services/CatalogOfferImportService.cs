@@ -78,7 +78,9 @@ public sealed class CatalogOfferImportService(
         return Map(batch);
     }
 
-    public async Task<IReadOnlyCollection<ImportBatchSummaryView>> ListAsync(CancellationToken cancellationToken) => await dbContext.Set<ImportBatch>()
+    public async Task<IReadOnlyCollection<ImportBatchSummaryView>> ListAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<ImportBatch>()
             .AsNoTracking()
             .Where(x => x.Domain == ImportDomainCodes.CatalogOffers)
             .OrderByDescending(x => x.CreatedAt)
@@ -95,6 +97,7 @@ public sealed class CatalogOfferImportService(
                 x.CreatedAt,
                 x.CommittedAt))
             .ToArrayAsync(cancellationToken);
+    }
 
     public async Task<ErrorOr<string>> ExportErrorsAsync(Guid batchId, CancellationToken cancellationToken)
     {
@@ -239,13 +242,24 @@ public sealed class CatalogOfferImportService(
         return position >= fields.Count ? null : fields[position].Trim();
     }
 
-    private static decimal? TryDecimal(string? value) => decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed) ? parsed : null;
+    private static decimal? TryDecimal(string? value)
+    {
+        return decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed) ? parsed : null;
+    }
 
-    private static int? TryInt(string? value) => int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) ? parsed : null;
+    private static int? TryInt(string? value)
+    {
+        return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) ? parsed : null;
+    }
 
-    private static string Csv(string value) => $"\"{value.Replace("\"", "\"\"", StringComparison.Ordinal)}\"";
+    private static string Csv(string value)
+    {
+        return $"\"{value.Replace("\"", "\"\"", StringComparison.Ordinal)}\"";
+    }
 
-    private static ImportBatchView Map(ImportBatch batch) => new(
+    private static ImportBatchView Map(ImportBatch batch)
+    {
+        return new(
         batch.Id,
         batch.Domain,
         batch.Status,
@@ -257,4 +271,5 @@ public sealed class CatalogOfferImportService(
         batch.CreatedAt,
         batch.CommittedAt,
         batch.Issues.OrderBy(x => x.RowNumber).ThenBy(x => x.Field).Select(x => new ImportRowIssueView(x.RowNumber, x.Field, x.Code, x.Message)).ToArray());
+    }
 }

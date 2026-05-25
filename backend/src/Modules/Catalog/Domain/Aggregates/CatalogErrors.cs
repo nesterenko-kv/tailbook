@@ -8,13 +8,19 @@ public static class CatalogErrors
         code: "Catalog.CodeRequired",
         description: "Code is required.");
 
-    public static Error UnknownOfferType(string offerType) => Error.Validation(
+    public static Error UnknownOfferType(string offerType)
+    {
+        return Error.Validation(
         code: "Catalog.UnknownOfferType",
         description: $"Unknown offer type '{offerType}'.");
+    }
 
-    public static Error UnknownComponentRole(string componentRole) => Error.Validation(
+    public static Error UnknownComponentRole(string componentRole)
+    {
+        return Error.Validation(
         code: "Catalog.UnknownComponentRole",
         description: $"Unknown component role '{componentRole}'.");
+    }
 
     public static Error OfferVersionImmutable => Error.Conflict(
         code: "Catalog.OfferVersionImmutable",

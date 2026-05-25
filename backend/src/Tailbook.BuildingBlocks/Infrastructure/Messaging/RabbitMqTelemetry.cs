@@ -87,5 +87,8 @@ public static class RabbitMqTelemetry
         }
     }
 
-    private static string Normalize(string value) => string.IsNullOrWhiteSpace(value) ? "unknown" : value.Trim();
+    private static string Normalize(string value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? "unknown" : value.Trim();
+    }
 }

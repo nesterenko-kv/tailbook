@@ -445,11 +445,20 @@ public sealed class MfaRecoveryCodeTests(RealDbWebApplicationFactory factory) : 
         }
     }
 
-    private static string NormalizeRecoveryCode(string code) => new string(code.Where(char.IsLetterOrDigit).Select(char.ToUpperInvariant).ToArray());
+    private static string NormalizeRecoveryCode(string code)
+    {
+        return new string(code.Where(char.IsLetterOrDigit).Select(char.ToUpperInvariant).ToArray());
+    }
 
-    private static string ErrorCodes(IReadOnlyCollection<ErrorOr.Error> errors) => string.Join(", ", errors.Select(x => x.Code));
+    private static string ErrorCodes(IReadOnlyCollection<ErrorOr.Error> errors)
+    {
+        return string.Join(", ", errors.Select(x => x.Code));
+    }
 
-    private static bool ContainsText(string? value, string text) => value?.Contains(text, StringComparison.Ordinal) == true;
+    private static bool ContainsText(string? value, string text)
+    {
+        return value?.Contains(text, StringComparison.Ordinal) == true;
+    }
 
     private sealed class MfaRecoveryCodeStatusEnvelope
     {

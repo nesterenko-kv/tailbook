@@ -40,8 +40,11 @@ namespace Tailbook.BuildingBlocks.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(
                 name: "iam_mfa_factors",
                 schema: "iam");
+        }
     }
 }

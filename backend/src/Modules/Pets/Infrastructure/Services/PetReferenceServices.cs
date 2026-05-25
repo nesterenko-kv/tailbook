@@ -17,7 +17,10 @@ public sealed class PetReferenceServices(AppDbContext dbContext, IDistributedCac
       IPetQuoteProfileService,
       IPetTaxonomyValidationService
 {
-    public async Task<bool> ExistsAsync(Guid petId, CancellationToken cancellationToken) => await dbContext.Set<Pet>().AnyAsync(x => x.Id == petId, cancellationToken);
+    public async Task<bool> ExistsAsync(Guid petId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<Pet>().AnyAsync(x => x.Id == petId, cancellationToken);
+    }
 
     public async Task<IReadOnlyCollection<PetAdminSummary>> GetPetsByClientAsync(Guid clientId, CancellationToken cancellationToken)
     {
@@ -360,40 +363,53 @@ public sealed class PetReferenceServices(AppDbContext dbContext, IDistributedCac
     }
 
     public async Task<bool> AnimalTypeExistsAsync(Guid animalTypeId, CancellationToken cancellationToken)
-        => await dbContext.Set<AnimalType>().AsNoTracking().AnyAsync(x => x.Id == animalTypeId, cancellationToken);
+    {
+        return await dbContext.Set<AnimalType>().AsNoTracking().AnyAsync(x => x.Id == animalTypeId, cancellationToken);
+    }
 
     public async Task<bool> BreedExistsAsync(Guid breedId, CancellationToken cancellationToken)
-        => await dbContext.Set<Breed>().AsNoTracking().AnyAsync(x => x.Id == breedId, cancellationToken);
+    {
+        return await dbContext.Set<Breed>().AsNoTracking().AnyAsync(x => x.Id == breedId, cancellationToken);
+    }
 
     public async Task<bool> BreedGroupExistsAsync(Guid breedGroupId, CancellationToken cancellationToken)
-        => await dbContext.Set<BreedGroup>().AsNoTracking().AnyAsync(x => x.Id == breedGroupId, cancellationToken);
+    {
+        return await dbContext.Set<BreedGroup>().AsNoTracking().AnyAsync(x => x.Id == breedGroupId, cancellationToken);
+    }
 
     public async Task<bool> CoatTypeExistsAsync(Guid coatTypeId, CancellationToken cancellationToken)
-        => await dbContext.Set<CoatType>().AsNoTracking().AnyAsync(x => x.Id == coatTypeId, cancellationToken);
+    {
+        return await dbContext.Set<CoatType>().AsNoTracking().AnyAsync(x => x.Id == coatTypeId, cancellationToken);
+    }
 
     public async Task<bool> SizeCategoryExistsAsync(Guid sizeCategoryId, CancellationToken cancellationToken)
-        => await dbContext.Set<SizeCategory>().AsNoTracking().AnyAsync(x => x.Id == sizeCategoryId, cancellationToken);
+    {
+        return await dbContext.Set<SizeCategory>().AsNoTracking().AnyAsync(x => x.Id == sizeCategoryId, cancellationToken);
+    }
 
-    private IQueryable<PetSummaryReadModel> QueryPetSummaries() => from pet in dbContext.Set<Pet>().AsNoTracking()
-                                                                   join animalType in dbContext.Set<AnimalType>().AsNoTracking()
-                                                                       on pet.AnimalTypeId equals animalType.Id
-                                                                   join breed in dbContext.Set<Breed>().AsNoTracking()
-                                                                       on pet.BreedId equals breed.Id
-                                                                   join coatType in dbContext.Set<CoatType>().AsNoTracking()
-                                                                       on pet.CoatTypeId equals coatType.Id into coatTypes
-                                                                   from coatType in coatTypes.DefaultIfEmpty()
-                                                                   join sizeCategory in dbContext.Set<SizeCategory>().AsNoTracking()
-                                                                       on pet.SizeCategoryId equals sizeCategory.Id into sizeCategories
-                                                                   from sizeCategory in sizeCategories.DefaultIfEmpty()
-                                                                   select new PetSummaryReadModel(
-                                                                       pet.Id,
-                                                                       pet.Name,
-                                                                       pet.ClientId,
-                                                                       animalType.Code,
-                                                                       animalType.Name,
-                                                                       breed.Name,
-                                                                       coatType == null ? null : coatType.Code,
-                                                                       sizeCategory == null ? null : sizeCategory.Code);
+    private IQueryable<PetSummaryReadModel> QueryPetSummaries()
+    {
+        return from pet in dbContext.Set<Pet>().AsNoTracking()
+               join animalType in dbContext.Set<AnimalType>().AsNoTracking()
+                   on pet.AnimalTypeId equals animalType.Id
+               join breed in dbContext.Set<Breed>().AsNoTracking()
+                   on pet.BreedId equals breed.Id
+               join coatType in dbContext.Set<CoatType>().AsNoTracking()
+                   on pet.CoatTypeId equals coatType.Id into coatTypes
+               from coatType in coatTypes.DefaultIfEmpty()
+               join sizeCategory in dbContext.Set<SizeCategory>().AsNoTracking()
+                   on pet.SizeCategoryId equals sizeCategory.Id into sizeCategories
+               from sizeCategory in sizeCategories.DefaultIfEmpty()
+               select new PetSummaryReadModel(
+                   pet.Id,
+                   pet.Name,
+                   pet.ClientId,
+                   animalType.Code,
+                   animalType.Name,
+                   breed.Name,
+                   coatType == null ? null : coatType.Code,
+                   sizeCategory == null ? null : sizeCategory.Code);
+    }
 
     private sealed record ResolvedPetTaxonomy(AnimalType AnimalType, Breed Breed, CoatType? CoatType, SizeCategory? SizeCategory);
     private sealed record ResolvedQuoteTaxonomy(AnimalType AnimalType, Breed Breed, BreedGroup? BreedGroup, CoatType? CoatType, SizeCategory? SizeCategory);

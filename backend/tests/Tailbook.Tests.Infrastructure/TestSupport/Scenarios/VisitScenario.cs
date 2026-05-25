@@ -31,10 +31,14 @@ public sealed class VisitScenario
     public AppointmentEnvelope Appointment { get; }
 
     public static VisitScenarioBuilder For(HttpClient client)
-        => new(client);
+    {
+        return new(client);
+    }
 
     public async Task<HttpResponseMessage> CheckInResponseAsync()
-        => await _client.PostAsJsonAsync($"/api/admin/appointments/{Appointment.Id:D}/check-in", new { appointmentId = Appointment.Id });
+    {
+        return await _client.PostAsJsonAsync($"/api/admin/appointments/{Appointment.Id:D}/check-in", new { appointmentId = Appointment.Id });
+    }
 
     public async Task<VisitEnvelope> CheckInAsync()
     {
@@ -111,5 +115,7 @@ public sealed class VisitScenario
     }
 
     public async Task<HttpResponseMessage> GetVisitDetailResponseAsync(Guid visitId)
-        => await _client.GetAsync($"/api/admin/visits/{visitId:D}");
+    {
+        return await _client.GetAsync($"/api/admin/visits/{visitId:D}");
+    }
 }

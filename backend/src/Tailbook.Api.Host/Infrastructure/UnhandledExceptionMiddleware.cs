@@ -88,9 +88,12 @@ public sealed class UnhandledExceptionMiddleware(RequestDelegate next, ILogger<U
         }
     }
 
-    private static string GetRoutePattern(HttpContext context) => context.GetEndpoint() is RouteEndpoint routeEndpoint
+    private static string GetRoutePattern(HttpContext context)
+    {
+        return context.GetEndpoint() is RouteEndpoint routeEndpoint
             ? routeEndpoint.RoutePattern.RawText ?? "unknown"
             : "unknown";
+    }
 }
 
 internal static partial class UnhandledExceptionMessages

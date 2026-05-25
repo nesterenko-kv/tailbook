@@ -5,7 +5,8 @@ namespace Tailbook.Modules.Staff.Api.Admin;
 internal static class GroomerResponseMapper
 {
     public static CreateGroomerResponse ToCreateGroomerResponse(GroomerDetailView groomer)
-        => new()
+    {
+        return new()
         {
             Id = groomer.Id,
             UserId = groomer.UserId,
@@ -16,9 +17,11 @@ internal static class GroomerResponseMapper
             CreatedAt = groomer.CreatedAt,
             UpdatedAt = groomer.UpdatedAt
         };
+    }
 
     public static GroomerCapabilityResponse ToGroomerCapabilityResponse(GroomerCapabilityView capability)
-        => new()
+    {
+        return new()
         {
             Id = capability.Id,
             GroomerId = capability.GroomerId,
@@ -33,9 +36,11 @@ internal static class GroomerResponseMapper
             Notes = capability.Notes,
             CreatedAt = capability.CreatedAt
         };
+    }
 
     public static WorkingScheduleResponse ToWorkingScheduleResponse(WorkingScheduleView schedule)
-        => new()
+    {
+        return new()
         {
             Id = schedule.Id,
             GroomerId = schedule.GroomerId,
@@ -45,4 +50,5 @@ internal static class GroomerResponseMapper
             CreatedAt = schedule.CreatedAt,
             UpdatedAt = schedule.UpdatedAt
         };
+    }
 }

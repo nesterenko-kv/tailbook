@@ -15,5 +15,8 @@ public sealed record MfaEmailOtpChallengeCreatedDomainEvent(
     public string EventType => "Tailbook.Modules.Identity.Integration.MfaEmailOtpChallengeCreated";
     public string ModuleCode => "identity";
 
-    public IIntegrationEventDto ToIntegrationEvent() => new MfaEmailOtpChallengeCreatedIntegrationEvent(Email, DisplayName, ChallengeId, ProtectedCode, ExpiresAt);
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new MfaEmailOtpChallengeCreatedIntegrationEvent(Email, DisplayName, ChallengeId, ProtectedCode, ExpiresAt);
+    }
 }

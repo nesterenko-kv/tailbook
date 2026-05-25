@@ -20,7 +20,9 @@ public sealed record PetCreatedDomainEvent(
     public string EventType => "PetCreated";
     public string ModuleCode => "pets";
 
-    public IIntegrationEventDto ToIntegrationEvent() => new PetCreatedIntegrationEvent(
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new PetCreatedIntegrationEvent(
             PetId,
             ClientId,
             Name,
@@ -31,4 +33,5 @@ public sealed record PetCreatedDomainEvent(
             BirthDate,
             WeightKg,
             Notes);
+    }
 }

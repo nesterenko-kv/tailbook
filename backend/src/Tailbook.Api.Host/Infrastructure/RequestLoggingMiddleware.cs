@@ -38,7 +38,10 @@ public sealed partial class RequestLoggingMiddleware(RequestDelegate next, ILogg
         }
     }
 
-    private static string GetRoutePattern(HttpContext context) => context.GetEndpoint() is RouteEndpoint routeEndpoint
+    private static string GetRoutePattern(HttpContext context)
+    {
+        return context.GetEndpoint() is RouteEndpoint routeEndpoint
             ? routeEndpoint.RoutePattern.RawText ?? "unknown"
             : "unknown";
+    }
 }

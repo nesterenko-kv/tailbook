@@ -7,7 +7,9 @@ namespace Tailbook.Api.Tests.TestSupport.Scenarios;
 public sealed class PetScenario(HttpClient client)
 {
     public static PetScenario For(HttpClient client)
-        => new(client);
+    {
+        return new(client);
+    }
 
     public async Task<PetCatalogSelection> GetCatalogAsync()
     {

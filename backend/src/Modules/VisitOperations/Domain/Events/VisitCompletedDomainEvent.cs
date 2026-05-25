@@ -14,5 +14,8 @@ public sealed record VisitCompletedDomainEvent(
     public string EventType => "VisitCompleted";
     public string ModuleCode => "visitops";
 
-    public IIntegrationEventDto ToIntegrationEvent() => new VisitCompletedIntegrationEvent(VisitId, AppointmentId, Status, CompletedAt);
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new VisitCompletedIntegrationEvent(VisitId, AppointmentId, Status, CompletedAt);
+    }
 }

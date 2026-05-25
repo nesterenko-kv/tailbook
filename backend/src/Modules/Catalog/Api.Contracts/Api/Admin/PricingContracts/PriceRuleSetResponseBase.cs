@@ -12,10 +12,14 @@ public class PriceRuleSetResponseBase
     public PriceRuleResponseBase[] Rules { get; set; } = [];
 
     public static PriceRuleSetResponseBase FromView(PriceRuleSetView view)
-        => FromView<PriceRuleSetResponseBase>(view);
+    {
+        return FromView<PriceRuleSetResponseBase>(view);
+    }
 
     protected static TResponse FromView<TResponse>(PriceRuleSetView view)
-        where TResponse : PriceRuleSetResponseBase, new() => new TResponse
+        where TResponse : PriceRuleSetResponseBase, new()
+    {
+        return new TResponse
         {
             Id = view.Id,
             VersionNo = view.VersionNo,
@@ -26,4 +30,5 @@ public class PriceRuleSetResponseBase
             PublishedAt = view.PublishedAt,
             Rules = view.Rules.Select(PriceRuleResponseBase.FromView).ToArray()
         };
+    }
 }

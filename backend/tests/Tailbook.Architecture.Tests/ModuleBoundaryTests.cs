@@ -51,17 +51,25 @@ public sealed class ModuleBoundaryTests
         "_publisher"
     ];
 
-    private static string StripModulePrefix(string assemblyName) =>
-        assemblyName.Replace("Tailbook.Modules.", "");
+    private static string StripModulePrefix(string assemblyName)
+    {
+        return assemblyName.Replace("Tailbook.Modules.", "");
+    }
 
-    private static string ModuleSourcePath(string assemblyName) =>
-        Path.Combine(SourceRoot, "Modules", StripModulePrefix(assemblyName));
+    private static string ModuleSourcePath(string assemblyName)
+    {
+        return Path.Combine(SourceRoot, "Modules", StripModulePrefix(assemblyName));
+    }
 
-    private static Assembly LoadSubAssembly(string assemblyName, string suffix) =>
-        Assembly.Load($"{assemblyName}{suffix}");
+    private static Assembly LoadSubAssembly(string assemblyName, string suffix)
+    {
+        return Assembly.Load($"{assemblyName}{suffix}");
+    }
 
-    private static string[] AllModuleSubAssemblyNames(string assemblyName) =>
-        SubAssemblySuffixes.Select(s => $"{assemblyName}{s}").ToArray();
+    private static string[] AllModuleSubAssemblyNames(string assemblyName)
+    {
+        return SubAssemblySuffixes.Select(s => $"{assemblyName}{s}").ToArray();
+    }
 
     [Theory]
     [InlineData("Tailbook.Modules.Identity")]
@@ -767,7 +775,10 @@ public sealed class ModuleBoundaryTests
         Assert.Empty(violations);
     }
 
-    private static string GetModuleSourcePath(string assemblyName) => ModuleSourcePath(assemblyName);
+    private static string GetModuleSourcePath(string assemblyName)
+    {
+        return ModuleSourcePath(assemblyName);
+    }
 
     private static string? GetHandlerSourceFilePath(string modulePath, Type handlerType, string assemblyName)
     {
@@ -813,10 +824,16 @@ public sealed class ModuleBoundaryTests
         Assert.Empty(violations);
     }
 
-    private static bool IsGeneratedPath(string path) => path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase) ||
+    private static bool IsGeneratedPath(string path)
+    {
+        return path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase) ||
                path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase);
+    }
 
-    private static bool IsCommandsPath(string path) => path.Contains($"{Path.DirectorySeparatorChar}Commands{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase);
+    private static bool IsCommandsPath(string path)
+    {
+        return path.Contains($"{Path.DirectorySeparatorChar}Commands{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase);
+    }
 
     private static void AssertNoTypeReferences(string assemblyName, string layerSegment, string[] forbiddenNamespacePrefixes, string[]? allowedPrefixes = null)
     {
@@ -842,7 +859,10 @@ public sealed class ModuleBoundaryTests
         Assert.Empty(violations);
     }
 
-    private static void AssertNoTypeReferences(string assemblyName, string layerSegment, params string[] forbiddenNamespacePrefixes) => AssertNoTypeReferences(assemblyName, layerSegment, forbiddenNamespacePrefixes, null);
+    private static void AssertNoTypeReferences(string assemblyName, string layerSegment, params string[] forbiddenNamespacePrefixes)
+    {
+        AssertNoTypeReferences(assemblyName, layerSegment, forbiddenNamespacePrefixes, null);
+    }
 
     private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
     {

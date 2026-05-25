@@ -188,18 +188,21 @@ public sealed class BrowserSessionCookieTests(RealDbWebApplicationFactory factor
         Assert.Contains("true", values);
     }
 
-    private WebApplicationFactory<Program> CreateCookieModeFactory(bool allowLegacyBodyTokens) => factory.WithWebHostBuilder(builder => builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
+    private WebApplicationFactory<Program> CreateCookieModeFactory(bool allowLegacyBodyTokens)
     {
-        ["BrowserSessions:TokenTransport"] = "RefreshCookie",
-        ["BrowserSessions:AllowLegacyBodyTokens"] = allowLegacyBodyTokens.ToString(),
-        ["BrowserSessions:CookieSecure"] = "false",
-        ["BrowserSessions:AdminRefreshCookieName"] = AdminRefreshCookieName,
-        ["BrowserSessions:AdminCsrfCookieName"] = AdminCsrfCookieName,
-        ["BrowserSessions:ClientRefreshCookieName"] = ClientRefreshCookieName,
-        ["BrowserSessions:ClientCsrfCookieName"] = ClientCsrfCookieName,
-        ["AppCors:AllowedOrigins:0"] = "http://localhost:3001",
-        ["AppCors:AllowCredentials"] = "true"
-    })));
+        return factory.WithWebHostBuilder(builder => builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["BrowserSessions:TokenTransport"] = "RefreshCookie",
+            ["BrowserSessions:AllowLegacyBodyTokens"] = allowLegacyBodyTokens.ToString(),
+            ["BrowserSessions:CookieSecure"] = "false",
+            ["BrowserSessions:AdminRefreshCookieName"] = AdminRefreshCookieName,
+            ["BrowserSessions:AdminCsrfCookieName"] = AdminCsrfCookieName,
+            ["BrowserSessions:ClientRefreshCookieName"] = ClientRefreshCookieName,
+            ["BrowserSessions:ClientCsrfCookieName"] = ClientCsrfCookieName,
+            ["AppCors:AllowedOrigins:0"] = "http://localhost:3001",
+            ["AppCors:AllowCredentials"] = "true"
+        })));
+    }
 
     private static async Task<HttpResponseMessage> LoginWithAdminCookieAsync(HttpClient client)
     {
@@ -218,9 +221,12 @@ public sealed class BrowserSessionCookieTests(RealDbWebApplicationFactory factor
         return response;
     }
 
-    private static IReadOnlyList<string> GetSetCookieHeaders(HttpResponseMessage response) => response.Headers.TryGetValues("Set-Cookie", out var values)
+    private static IReadOnlyList<string> GetSetCookieHeaders(HttpResponseMessage response)
+    {
+        return response.Headers.TryGetValues("Set-Cookie", out var values)
             ? values.ToArray()
             : [];
+    }
 
     private static Dictionary<string, string> GetCookieJar(HttpResponseMessage response)
     {
@@ -240,7 +246,10 @@ public sealed class BrowserSessionCookieTests(RealDbWebApplicationFactory factor
         return cookies;
     }
 
-    private static string BuildCookieHeader(IReadOnlyDictionary<string, string> cookies) => string.Join("; ", cookies.Select(x => $"{x.Key}={x.Value}"));
+    private static string BuildCookieHeader(IReadOnlyDictionary<string, string> cookies)
+    {
+        return string.Join("; ", cookies.Select(x => $"{x.Key}={x.Value}"));
+    }
 
     private sealed class LoginEnvelope
     {

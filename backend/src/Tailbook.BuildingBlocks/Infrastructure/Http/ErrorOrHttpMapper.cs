@@ -5,9 +5,12 @@ namespace Tailbook.BuildingBlocks.Infrastructure.Http;
 
 public static class ErrorOrHttpMapper
 {
-    public static IResult ToHttpResult<T>(this ErrorOr<T> result, int successStatusCode = StatusCodes.Status200OK) => result.IsError
+    public static IResult ToHttpResult<T>(this ErrorOr<T> result, int successStatusCode = StatusCodes.Status200OK)
+    {
+        return result.IsError
             ? result.Errors.ToHttpResult()
             : Results.Json(result.Value, statusCode: successStatusCode);
+    }
 
     public static IResult ToHttpResult(this IReadOnlyList<Error> errors)
     {

@@ -31,10 +31,13 @@ public sealed class IdentityUseCases(AppDbContext dbContext, PasswordHasher pass
             .ToArray();
     }
 
-    public async Task<IReadOnlyList<PermissionView>> ListPermissionsAsync(CancellationToken cancellationToken) => await dbContext.Set<IdentityPermission>()
+    public async Task<IReadOnlyList<PermissionView>> ListPermissionsAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<IdentityPermission>()
             .OrderBy(x => x.Code)
             .Select(x => new PermissionView(x.Id, x.Code, x.DisplayName))
             .ToListAsync(cancellationToken);
+    }
 
     public async Task<PagedResult<UserSummaryView>> ListUsersAsync(int page, int pageSize, CancellationToken cancellationToken)
     {
@@ -218,7 +221,9 @@ public sealed class IdentityUseCases(AppDbContext dbContext, PasswordHasher pass
                 g => g.Select(x => x.Code).Distinct(StringComparer.OrdinalIgnoreCase).ToArray());
     }
 
-    private async Task<HashSet<string>> GetRoleCodesAsync(Guid userId, CancellationToken cancellationToken) => await dbContext.Set<UserRoleAssignment>()
+    private async Task<HashSet<string>> GetRoleCodesAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<UserRoleAssignment>()
             .Where(x => x.UserId == userId)
             .Join(
                 dbContext.Set<IdentityRole>(),
@@ -229,8 +234,11 @@ public sealed class IdentityUseCases(AppDbContext dbContext, PasswordHasher pass
             .OrderBy(x => x)
             .AsAsyncEnumerable()
             .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, cancellationToken);
+    }
 
-    private async Task<HashSet<string>> GetPermissionCodesAsync(Guid userId, CancellationToken cancellationToken) => await dbContext.Set<UserRoleAssignment>()
+    private async Task<HashSet<string>> GetPermissionCodesAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<UserRoleAssignment>()
             .Where(x => x.UserId == userId)
             .Join(
                 dbContext.Set<RolePermission>(),
@@ -246,6 +254,10 @@ public sealed class IdentityUseCases(AppDbContext dbContext, PasswordHasher pass
             .OrderBy(x => x)
             .AsAsyncEnumerable()
             .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, cancellationToken: cancellationToken);
+    }
 
-    public static string NormalizeEmail(string email) => email.Trim().ToUpperInvariant();
+    public static string NormalizeEmail(string email)
+    {
+        return email.Trim().ToUpperInvariant();
+    }
 }

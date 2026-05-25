@@ -40,10 +40,13 @@ public sealed class PublishCatalogPriceRuleSetCommandHandler(AppDbContext dbCont
         return await MapRuleSetAsync(ruleSet, cancellationToken);
     }
 
-    private async Task<PriceRuleSet?> LoadPriceRuleSetAggregateAsync(Guid ruleSetId, CancellationToken cancellationToken) => await dbContext.Set<PriceRuleSet>()
+    private async Task<PriceRuleSet?> LoadPriceRuleSetAggregateAsync(Guid ruleSetId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<PriceRuleSet>()
             .Include(x => x.Rules)
             .ThenInclude(x => x.Condition)
             .SingleOrDefaultAsync(x => x.Id == ruleSetId, cancellationToken);
+    }
 
     private async Task<PriceRuleSetView> MapRuleSetAsync(PriceRuleSet ruleSet, CancellationToken cancellationToken)
     {

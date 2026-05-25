@@ -6,5 +6,8 @@ namespace Tailbook.Api.Tests;
 
 public static class TestModelConfiguration
 {
-    public static AppDbContext CreateDbContext(DbContextOptions<AppDbContext> options) => new AppDbContext(options, ModuleCatalog.PersistenceModelAssemblies);
+    public static AppDbContext CreateDbContext(DbContextOptions<AppDbContext> options)
+    {
+        return new AppDbContext(options, ModuleCatalog.PersistenceModelAssemblies);
+    }
 }

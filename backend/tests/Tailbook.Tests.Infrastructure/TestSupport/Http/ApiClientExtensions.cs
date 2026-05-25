@@ -14,5 +14,7 @@ public static class ApiClientExtensions
     }
 
     public static DateTimeOffset UtcDateTime(string value)
-        => DateTimeOffset.Parse(value, CultureInfo.InvariantCulture).ToUniversalTime();
+    {
+        return DateTimeOffset.Parse(value, CultureInfo.InvariantCulture).ToUniversalTime();
+    }
 }

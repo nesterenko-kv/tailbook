@@ -57,8 +57,11 @@ public sealed class CatalogVisitReadService(AppDbContext dbContext) : IVisitCata
             component.DefaultExpected);
     }
 
-    public async Task<ProcedureReadModel?> GetProcedureAsync(Guid procedureId, CancellationToken cancellationToken) => await dbContext.Set<ProcedureCatalogItem>()
+    public async Task<ProcedureReadModel?> GetProcedureAsync(Guid procedureId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<ProcedureCatalogItem>()
             .Where(x => x.Id == procedureId)
             .Select(x => new ProcedureReadModel(x.Id, x.Code, x.Name, x.IsActive))
             .SingleOrDefaultAsync(cancellationToken);
+    }
 }

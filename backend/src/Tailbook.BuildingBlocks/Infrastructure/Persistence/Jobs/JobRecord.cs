@@ -20,10 +20,14 @@ public class JobRecord : IJobStorageRecord, IJobResultStorage
     public string CommandJson { get; set; } = null!;
 
     TCommand IJobStorageRecord.GetCommand<TCommand>()
-        => JsonSerializer.Deserialize<TCommand>(CommandJson)!;
+    {
+        return JsonSerializer.Deserialize<TCommand>(CommandJson)!;
+    }
 
     void IJobStorageRecord.SetCommand<TCommand>(TCommand command)
-        => CommandJson = JsonSerializer.Serialize(command);
+    {
+        CommandJson = JsonSerializer.Serialize(command);
+    }
 
     [NotMapped]
     public object? Result { get; set; }
@@ -31,10 +35,14 @@ public class JobRecord : IJobStorageRecord, IJobResultStorage
     public string? ResultJson { get; set; }
 
     TResult? IJobResultStorage.GetResult<TResult>() where TResult : default
-        => ResultJson is not null
-            ? JsonSerializer.Deserialize<TResult>(ResultJson)
-            : default;
+    {
+        return ResultJson is not null
+                ? JsonSerializer.Deserialize<TResult>(ResultJson)
+                : default;
+    }
 
     void IJobResultStorage.SetResult<TResult>(TResult result)
-        => ResultJson = JsonSerializer.Serialize(result);
+    {
+        ResultJson = JsonSerializer.Serialize(result);
+    }
 }

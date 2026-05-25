@@ -215,7 +215,10 @@ public sealed class ReportingNotificationsFlowTests(RealDbWebApplicationFactory 
     {
         private static int _attemptCount;
 
-        public static void Reset() => _attemptCount = 0;
+        public static void Reset()
+        {
+            _attemptCount = 0;
+        }
 
         public Task SendAsync(NotificationDispatchEnvelope envelope, CancellationToken cancellationToken)
         {

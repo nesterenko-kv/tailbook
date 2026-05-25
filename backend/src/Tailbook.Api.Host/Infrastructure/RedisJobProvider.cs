@@ -395,10 +395,17 @@ public sealed class RedisJobProvider(ConnectionMultiplexer redis, TimeProvider t
     }
 
     private static Guid TryParseGuid(string? value)
-        => value is not null && Guid.TryParseExact(value, "N", out var id) ? id : Guid.Empty;
+    {
+        return value is not null && Guid.TryParseExact(value, "N", out var id) ? id : Guid.Empty;
+    }
 
     private static DateTime TryParseDateTime(string? value)
-        => value is not null && long.TryParse(value, out var ticks) ? new DateTime(ticks, DateTimeKind.Utc) : DateTime.UnixEpoch;
+    {
+        return value is not null && long.TryParse(value, out var ticks) ? new DateTime(ticks, DateTimeKind.Utc) : DateTime.UnixEpoch;
+    }
 
-    private static async Task UpdateJobFieldAsync(IDatabase db, string dataKey, string field, string value) => await db.HashSetAsync(dataKey, field, value);
+    private static async Task UpdateJobFieldAsync(IDatabase db, string dataKey, string field, string value)
+    {
+        await db.HashSetAsync(dataKey, field, value);
+    }
 }

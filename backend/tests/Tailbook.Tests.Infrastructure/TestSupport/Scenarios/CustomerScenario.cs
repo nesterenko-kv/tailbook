@@ -7,7 +7,9 @@ namespace Tailbook.Api.Tests.TestSupport.Scenarios;
 public sealed class CustomerScenario(HttpClient client)
 {
     public static CustomerScenario For(HttpClient client)
-        => new(client);
+    {
+        return new(client);
+    }
 
     public async Task<Guid> CreateClientAsync(string displayName)
     {

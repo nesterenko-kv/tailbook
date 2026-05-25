@@ -14,9 +14,12 @@ public sealed record PriceRuleSetPublishedDomainEvent(
     public string EventType => "PriceRuleSetPublished";
     public string ModuleCode => "catalog";
 
-    public IIntegrationEventDto ToIntegrationEvent() => new PriceRuleSetPublishedIntegrationEvent(
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new PriceRuleSetPublishedIntegrationEvent(
             RuleSetId,
             VersionNo,
             Status,
             PublishedAt);
+    }
 }

@@ -18,7 +18,9 @@ public sealed class DurationRuleCondition
         Guid? breedId,
         Guid? breedGroupId,
         Guid? coatTypeId,
-        Guid? sizeCategoryId) => new DurationRuleCondition
+        Guid? sizeCategoryId)
+    {
+        return new DurationRuleCondition
         {
             Id = id,
             DurationRuleId = durationRuleId,
@@ -28,10 +30,14 @@ public sealed class DurationRuleCondition
             CoatTypeId = coatTypeId,
             SizeCategoryId = sizeCategoryId
         };
+    }
 
-    internal bool Matches(Guid? animalTypeId, Guid? breedId, Guid? breedGroupId, Guid? coatTypeId, Guid? sizeCategoryId) => AnimalTypeId == animalTypeId &&
+    internal bool Matches(Guid? animalTypeId, Guid? breedId, Guid? breedGroupId, Guid? coatTypeId, Guid? sizeCategoryId)
+    {
+        return AnimalTypeId == animalTypeId &&
                BreedId == breedId &&
                BreedGroupId == breedGroupId &&
                CoatTypeId == coatTypeId &&
                SizeCategoryId == sizeCategoryId;
+    }
 }

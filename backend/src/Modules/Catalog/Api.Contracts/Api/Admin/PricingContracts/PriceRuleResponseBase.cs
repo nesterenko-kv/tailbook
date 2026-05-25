@@ -16,10 +16,14 @@ public class PriceRuleResponseBase
     public DateTimeOffset CreatedAt { get; set; }
 
     public static PriceRuleResponseBase FromView(PriceRuleView view)
-        => FromView<PriceRuleResponseBase>(view);
+    {
+        return FromView<PriceRuleResponseBase>(view);
+    }
 
     protected static TResponse FromView<TResponse>(PriceRuleView view)
-        where TResponse : PriceRuleResponseBase, new() => new TResponse
+        where TResponse : PriceRuleResponseBase, new()
+    {
+        return new TResponse
         {
             Id = view.Id,
             RuleSetId = view.RuleSetId,
@@ -34,4 +38,5 @@ public class PriceRuleResponseBase
             Condition = RuleConditionPayload.FromView(view.Condition),
             CreatedAt = view.CreatedAt
         };
+    }
 }

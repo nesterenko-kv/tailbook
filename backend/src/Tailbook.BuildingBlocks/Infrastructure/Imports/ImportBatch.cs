@@ -42,9 +42,15 @@ public sealed class ImportBatch
         };
     }
 
-    public void AddRow(ImportBatchRow row) => _rows.Add(row);
+    public void AddRow(ImportBatchRow row)
+    {
+        _rows.Add(row);
+    }
 
-    public void AddIssue(ImportBatchIssueEntity issue) => _issues.Add(issue);
+    public void AddIssue(ImportBatchIssueEntity issue)
+    {
+        _issues.Add(issue);
+    }
 }
 
 public static class ImportBatchStatusCodes

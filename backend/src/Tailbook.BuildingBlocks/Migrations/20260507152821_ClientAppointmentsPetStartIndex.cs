@@ -8,16 +8,22 @@ namespace Tailbook.BuildingBlocks.Migrations
     public partial class ClientAppointmentsPetStartIndex : Migration
     {
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.CreateIndex(
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.CreateIndex(
                 name: "IX_appointments_PetId_StartAt",
                 schema: "booking",
                 table: "appointments",
                 columns: new[] { "PetId", "StartAt" });
+        }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropIndex(
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropIndex(
                 name: "IX_appointments_PetId_StartAt",
                 schema: "booking",
                 table: "appointments");
+        }
     }
 }

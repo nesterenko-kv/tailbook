@@ -11,15 +11,18 @@ public sealed class OfferResponse
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 
-    public static OfferResponse Map(OfferDetailView view) => new OfferResponse
+    public static OfferResponse Map(OfferDetailView view)
     {
-        Id = view.Id,
-        Code = view.Code,
-        OfferType = view.OfferType,
-        DisplayName = view.DisplayName,
-        IsActive = view.IsActive,
-        Versions = view.Versions.Select(OfferVersionResponse.Map).ToArray(),
-        CreatedAt = view.CreatedAt,
-        UpdatedAt = view.UpdatedAt
-    };
+        return new OfferResponse
+        {
+            Id = view.Id,
+            Code = view.Code,
+            OfferType = view.OfferType,
+            DisplayName = view.DisplayName,
+            IsActive = view.IsActive,
+            Versions = view.Versions.Select(OfferVersionResponse.Map).ToArray(),
+            CreatedAt = view.CreatedAt,
+            UpdatedAt = view.UpdatedAt
+        };
+    }
 }

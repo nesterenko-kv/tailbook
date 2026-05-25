@@ -23,10 +23,13 @@ internal sealed record AuditTrailWriteItem(
 
 internal static class AuditWriteItemTypes
 {
-    public static string GetTelemetryItemType(AuditWriteItem item) => item switch
+    public static string GetTelemetryItemType(AuditWriteItem item)
     {
-        AccessAuditWriteItem => Telemetry.AuditTelemetry.ItemTypeAccessAudit,
-        AuditTrailWriteItem => Telemetry.AuditTelemetry.ItemTypeAuditTrail,
-        _ => "unknown"
-    };
+        return item switch
+        {
+            AccessAuditWriteItem => Telemetry.AuditTelemetry.ItemTypeAccessAudit,
+            AuditTrailWriteItem => Telemetry.AuditTelemetry.ItemTypeAuditTrail,
+            _ => "unknown"
+        };
+    }
 }

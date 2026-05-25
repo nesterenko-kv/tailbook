@@ -353,7 +353,9 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext, TimeProvider ti
         Dictionary<Guid, CachedConditionData> PriceConditions)
     {
         public bool IsValid(DateTimeOffset utcNow)
-            => ValidFrom <= utcNow && (ValidTo is null || ValidTo >= utcNow);
+        {
+            return ValidFrom <= utcNow && (ValidTo is null || ValidTo >= utcNow);
+        }
     }
 
     internal sealed record CachedDurationRuleSetData(
@@ -365,7 +367,9 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext, TimeProvider ti
         Dictionary<Guid, CachedConditionData> DurationConditions)
     {
         public bool IsValid(DateTimeOffset utcNow)
-            => ValidFrom <= utcNow && (ValidTo is null || ValidTo >= utcNow);
+        {
+            return ValidFrom <= utcNow && (ValidTo is null || ValidTo >= utcNow);
+        }
     }
 
     internal sealed record CachedPriceRuleData(

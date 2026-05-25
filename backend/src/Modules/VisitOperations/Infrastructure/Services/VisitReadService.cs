@@ -215,7 +215,9 @@ public sealed class VisitReadService(
     }
 
     private static string? NormalizeOptional(string? value)
-        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
 
     private async Task<Dictionary<string, Guid[]>> SearchPetIdsByTermAsync(string[] searchTerms, CancellationToken cancellationToken)
     {

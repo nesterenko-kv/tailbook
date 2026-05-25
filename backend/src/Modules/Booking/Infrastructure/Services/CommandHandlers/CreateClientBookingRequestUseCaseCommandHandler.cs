@@ -7,7 +7,9 @@ public sealed class CreateClientBookingRequestUseCaseCommandHandler(
     CreateBookingRequestUseCaseCommandHandler createBookingRequestHandler)
     : ICommandHandler<CreateClientBookingRequestUseCaseCommand, ErrorOr<BookingRequestDetailView>>
 {
-    public Task<ErrorOr<BookingRequestDetailView>> ExecuteAsync(CreateClientBookingRequestUseCaseCommand command, CancellationToken ct = default) => createBookingRequestHandler.ExecuteAsync(
+    public Task<ErrorOr<BookingRequestDetailView>> ExecuteAsync(CreateClientBookingRequestUseCaseCommand command, CancellationToken ct = default)
+    {
+        return createBookingRequestHandler.ExecuteAsync(
             new CreateBookingRequestUseCaseCommand(
                 command.Actor.ClientId,
                 command.PetId,
@@ -20,4 +22,5 @@ public sealed class CreateClientBookingRequestUseCaseCommandHandler(
                     .ToArray(),
                 command.Actor.UserId),
             ct);
+    }
 }

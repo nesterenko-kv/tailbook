@@ -20,9 +20,15 @@ public sealed class TelemetryOptions
 
     public bool ShouldExportLogs => Enabled && ExportLogs && HasExportableOtlpEndpoint;
 
-    public static bool HasValidServiceName(TelemetryOptions options) => !string.IsNullOrWhiteSpace(options.ServiceName);
+    public static bool HasValidServiceName(TelemetryOptions options)
+    {
+        return !string.IsNullOrWhiteSpace(options.ServiceName);
+    }
 
-    public static bool HasValidDatabasePoolName(TelemetryOptions options) => !string.IsNullOrWhiteSpace(options.DatabasePoolName);
+    public static bool HasValidDatabasePoolName(TelemetryOptions options)
+    {
+        return !string.IsNullOrWhiteSpace(options.DatabasePoolName);
+    }
 
     public static bool HasValidOtlpEndpoint(TelemetryOptions options)
     {

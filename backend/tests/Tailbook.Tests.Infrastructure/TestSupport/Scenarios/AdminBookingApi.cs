@@ -7,7 +7,9 @@ namespace Tailbook.Api.Tests.TestSupport.Scenarios;
 public sealed class AdminBookingApi(HttpClient client)
 {
     public static AdminBookingApi For(HttpClient client)
-        => new(client);
+    {
+        return new(client);
+    }
 
     public async Task<AppointmentEnvelope> CreateAppointmentAsync(
         Guid petId,

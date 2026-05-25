@@ -60,7 +60,10 @@ public static class AppointmentErrors
         code: "Booking.AppointmentNotFound",
         description: "Appointment does not exist.");
 
-    public static Error VersionMismatch(int expectedVersionNo, int actualVersionNo) => Error.Conflict(
+    public static Error VersionMismatch(int expectedVersionNo, int actualVersionNo)
+    {
+        return Error.Conflict(
         code: "Booking.AppointmentVersionMismatch",
         description: $"Appointment version mismatch. Expected {expectedVersionNo}, actual {actualVersionNo}.");
+    }
 }

@@ -16,5 +16,8 @@ public sealed record AppointmentRescheduledDomainEvent(
     public string EventType => "AppointmentRescheduled";
     public string ModuleCode => "booking";
 
-    public IIntegrationEventDto ToIntegrationEvent() => new AppointmentRescheduledIntegrationEvent(AppointmentId, GroomerId, StartAt, EndAt, Status, VersionNo);
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new AppointmentRescheduledIntegrationEvent(AppointmentId, GroomerId, StartAt, EndAt, Status, VersionNo);
+    }
 }

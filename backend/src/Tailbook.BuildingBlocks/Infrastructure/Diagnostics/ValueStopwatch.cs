@@ -40,7 +40,10 @@ public readonly struct ValueStopwatch
     ///     Starts a new instance of the <see cref="ValueStopwatch" /> structure.
     /// </summary>
     /// <returns>A new instance of the <see cref="ValueStopwatch" /> structure.</returns>
-    public static ValueStopwatch StartNew() => new ValueStopwatch(Stopwatch.GetTimestamp());
+    public static ValueStopwatch StartNew()
+    {
+        return new ValueStopwatch(Stopwatch.GetTimestamp());
+    }
 
     /// <summary>
     ///     Gets the number of elapsed ticks.

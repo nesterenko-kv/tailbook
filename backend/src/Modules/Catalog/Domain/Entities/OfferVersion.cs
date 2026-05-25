@@ -27,7 +27,9 @@ public sealed class OfferVersion
         DateTimeOffset? validTo,
         string? policyText,
         string? changeNote,
-        DateTimeOffset utcNow) => new OfferVersion
+        DateTimeOffset utcNow)
+    {
+        return new OfferVersion
         {
             Id = id,
             OfferId = offerId,
@@ -40,6 +42,7 @@ public sealed class OfferVersion
             CreatedAt = utcNow.ToUniversalTime(),
             PublishedAt = null
         };
+    }
 
     public ErrorOr<OfferVersionComponent> AddComponent(
         Guid id,

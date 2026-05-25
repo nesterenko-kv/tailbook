@@ -5,5 +5,7 @@ namespace Tailbook.Modules.Catalog.Api.Admin.CreateDurationRuleSet;
 public sealed class CreateDurationRuleSetResponse : DurationRuleSetResponseBase
 {
     public static new CreateDurationRuleSetResponse FromView(DurationRuleSetView view)
-        => FromView<CreateDurationRuleSetResponse>(view);
+    {
+        return FromView<CreateDurationRuleSetResponse>(view);
+    }
 }

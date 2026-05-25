@@ -78,7 +78,10 @@ public sealed class OutboxPayloadProjectorTests
         public string EventType => "SampleCreated";
         public string ModuleCode => "sample";
 
-        public IIntegrationEventDto ToIntegrationEvent() => new SampleIntegrationEvent(AppointmentId, Status, VersionNo);
+        public IIntegrationEventDto ToIntegrationEvent()
+        {
+            return new SampleIntegrationEvent(AppointmentId, Status, VersionNo);
+        }
     }
 
     private sealed record SampleIntegrationEvent(
@@ -96,7 +99,10 @@ public sealed class OutboxPayloadProjectorTests
         public string EventType => "InvalidVersion";
         public string ModuleCode => "sample";
 
-        public IIntegrationEventDto ToIntegrationEvent() => new InvalidVersionIntegrationEvent();
+        public IIntegrationEventDto ToIntegrationEvent()
+        {
+            return new InvalidVersionIntegrationEvent();
+        }
     }
 
     private sealed record InvalidVersionIntegrationEvent : IIntegrationEventDto
@@ -109,11 +115,20 @@ public sealed class OutboxPayloadProjectorTests
         private readonly List<IDomainEvent> _events = [];
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        public IReadOnlyCollection<IDomainEvent> GetDomainEvents() => _events.AsReadOnly();
+        public IReadOnlyCollection<IDomainEvent> GetDomainEvents()
+        {
+            return _events.AsReadOnly();
+        }
 
-        public void ClearDomainEvents() => _events.Clear();
+        public void ClearDomainEvents()
+        {
+            _events.Clear();
+        }
 
-        public void Raise(IDomainEvent domainEvent) => _events.Add(domainEvent);
+        public void Raise(IDomainEvent domainEvent)
+        {
+            _events.Add(domainEvent);
+        }
     }
 
     private sealed class TestDbContext(DbContextOptions<TestDbContext> options) : DbContext(options)

@@ -25,7 +25,9 @@ public sealed class BookingScenario
     public PetCatalogSelection Catalog { get; }
 
     public static Builder For(HttpClient client)
-        => new(client);
+    {
+        return new(client);
+    }
 
     public async Task<AppointmentSummaryItem> CreateBookingRequestAsync(
         DateTimeOffset preferredStartAt, DateTimeOffset preferredEndAt, string label = "Afternoon")
@@ -82,13 +84,15 @@ public sealed class BookingScenario
     }
 
     public async Task<HttpResponseMessage> RescheduleAppointmentResponseAsync(Guid appointmentId, DateTimeOffset startAt, int expectedVersionNo)
-        => await _client.PostAsJsonAsync($"/api/admin/appointments/{appointmentId:D}/reschedule", new
+    {
+        return await _client.PostAsJsonAsync($"/api/admin/appointments/{appointmentId:D}/reschedule", new
         {
             appointmentId,
             groomerId = GroomerId,
             startAt,
             expectedVersionNo
         });
+    }
 
     public async Task<AppointmentSummaryItem> RescheduleAppointmentAsync(Guid appointmentId, DateTimeOffset startAt, int expectedVersionNo)
     {
@@ -102,13 +106,15 @@ public sealed class BookingScenario
         int expectedVersionNo,
         string reasonCode = "CLIENT_REQUEST",
         string? notes = null)
-        => await _client.PostAsJsonAsync($"/api/admin/appointments/{appointmentId:D}/cancel", new
+    {
+        return await _client.PostAsJsonAsync($"/api/admin/appointments/{appointmentId:D}/cancel", new
         {
             appointmentId,
             expectedVersionNo,
             reasonCode,
             notes
         });
+    }
 
     public async Task<AppointmentSummaryItem> CancelAppointmentAsync(
         Guid appointmentId,
@@ -122,7 +128,9 @@ public sealed class BookingScenario
     }
 
     public async Task<AvailabilityEnvelope> CheckGroomerAvailabilityAsync(DateTimeOffset startAt, int reservedMinutes)
-        => await StaffScenario.For(_client).CheckAvailabilityAsync(GroomerId, PetId, startAt, reservedMinutes, OfferId);
+    {
+        return await StaffScenario.For(_client).CheckAvailabilityAsync(GroomerId, PetId, startAt, reservedMinutes, OfferId);
+    }
 }
 
 public sealed class Builder(HttpClient client)

@@ -175,13 +175,16 @@ public sealed class LoginTests(RealDbWebApplicationFactory factory) : IClassFixt
         Assert.True(ContainsErrorCode(errors, expectedCode), content);
     }
 
-    private static bool ContainsErrorCode(JsonElement errors, string expectedCode) => errors.ValueKind switch
+    private static bool ContainsErrorCode(JsonElement errors, string expectedCode)
     {
-        JsonValueKind.Array => errors.EnumerateArray()
-            .Any(error => string.Equals(ReadProperty(error, "code"), expectedCode, StringComparison.Ordinal)),
-        JsonValueKind.Object => errors.TryGetProperty(expectedCode, out _),
-        _ => false
-    };
+        return errors.ValueKind switch
+        {
+            JsonValueKind.Array => errors.EnumerateArray()
+                .Any(error => string.Equals(ReadProperty(error, "code"), expectedCode, StringComparison.Ordinal)),
+            JsonValueKind.Object => errors.TryGetProperty(expectedCode, out _),
+            _ => false
+        };
+    }
 
     private static string? ReadProperty(JsonElement element, string camelCaseName)
     {

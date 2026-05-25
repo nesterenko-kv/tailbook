@@ -28,5 +28,8 @@ public sealed class BookingModule : IModuleDefinition
         return services;
     }
 
-    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints;
+    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
+    {
+        return endpoints;
+    }
 }

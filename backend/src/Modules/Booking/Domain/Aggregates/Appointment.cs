@@ -123,11 +123,20 @@ public sealed class Appointment : AggregateRoot
         return appointment;
     }
 
-    public bool HasVersion(int expectedVersionNo) => VersionNo == expectedVersionNo;
+    public bool HasVersion(int expectedVersionNo)
+    {
+        return VersionNo == expectedVersionNo;
+    }
 
-    public ErrorOr<Success> EnsureCanBeRescheduled() => EnsureMutable();
+    public ErrorOr<Success> EnsureCanBeRescheduled()
+    {
+        return EnsureMutable();
+    }
 
-    public ErrorOr<Success> EnsureCanBeCancelled() => EnsureMutable();
+    public ErrorOr<Success> EnsureCanBeCancelled()
+    {
+        return EnsureMutable();
+    }
 
     public ErrorOr<Success> Reschedule(Guid groomerId, BookingPeriod period, Guid? actorUserId, DateTimeOffset now)
     {
@@ -301,7 +310,10 @@ public sealed class Appointment : AggregateRoot
         UpdatedByUserId = actorUserId;
     }
 
-    private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? NormalizeOptional(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
 
     private static ErrorOr<string> NormalizeReasonCode(string reasonCode)
     {

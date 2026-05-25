@@ -5,22 +5,25 @@ namespace Tailbook.Modules.Audit.Api.Admin.ListAuditEntries;
 
 internal static class Mapping
 {
-    public static ListAuditEntriesResponse ToResponse(this PagedResult<AuditEntryReadModel> result) => new ListAuditEntriesResponse
+    public static ListAuditEntriesResponse ToResponse(this PagedResult<AuditEntryReadModel> result)
     {
-        Items = result.Items.Select(x => new AuditEntryItemResponse
+        return new ListAuditEntriesResponse
         {
-            Id = x.Id,
-            ModuleCode = x.ModuleCode,
-            EntityType = x.EntityType,
-            EntityId = x.EntityId,
-            ActionCode = x.ActionCode,
-            ActorUserId = x.ActorUserId,
-            HappenedAt = x.HappenedAt,
-            BeforeJson = x.BeforeJson,
-            AfterJson = x.AfterJson
-        }).ToArray(),
-        Page = result.Page,
-        PageSize = result.PageSize,
-        TotalCount = result.TotalCount
-    };
+            Items = result.Items.Select(x => new AuditEntryItemResponse
+            {
+                Id = x.Id,
+                ModuleCode = x.ModuleCode,
+                EntityType = x.EntityType,
+                EntityId = x.EntityId,
+                ActionCode = x.ActionCode,
+                ActorUserId = x.ActorUserId,
+                HappenedAt = x.HappenedAt,
+                BeforeJson = x.BeforeJson,
+                AfterJson = x.AfterJson
+            }).ToArray(),
+            Page = result.Page,
+            PageSize = result.PageSize,
+            TotalCount = result.TotalCount
+        };
+    }
 }

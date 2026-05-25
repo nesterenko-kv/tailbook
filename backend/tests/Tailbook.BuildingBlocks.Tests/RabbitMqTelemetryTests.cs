@@ -18,7 +18,10 @@ public sealed class RabbitMqTelemetryTests : IDisposable
         ActivitySource.AddActivityListener(_listener);
     }
 
-    public void Dispose() => _listener.Dispose();
+    public void Dispose()
+    {
+        _listener.Dispose();
+    }
 
     [Fact]
     public void StartPublishActivity_returns_activity_with_tags()

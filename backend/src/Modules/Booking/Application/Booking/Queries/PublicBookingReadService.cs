@@ -251,5 +251,8 @@ public sealed class PublicBookingReadService(
 
     public async Task<BookingRequestDetailView?> GetBookingRequestStatusAsync(
         Guid bookingRequestId,
-        CancellationToken cancellationToken) => await bookingManagementReadService.GetBookingRequestAsync(bookingRequestId, cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        return await bookingManagementReadService.GetBookingRequestAsync(bookingRequestId, cancellationToken);
+    }
 }

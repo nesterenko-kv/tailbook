@@ -16,10 +16,14 @@ public class DurationRuleResponseBase
     public DateTimeOffset CreatedAt { get; set; }
 
     public static DurationRuleResponseBase FromView(DurationRuleView view)
-        => FromView<DurationRuleResponseBase>(view);
+    {
+        return FromView<DurationRuleResponseBase>(view);
+    }
 
     protected static TResponse FromView<TResponse>(DurationRuleView view)
-        where TResponse : DurationRuleResponseBase, new() => new TResponse
+        where TResponse : DurationRuleResponseBase, new()
+    {
+        return new TResponse
         {
             Id = view.Id,
             RuleSetId = view.RuleSetId,
@@ -34,4 +38,5 @@ public class DurationRuleResponseBase
             Condition = RuleConditionPayload.FromView(view.Condition),
             CreatedAt = view.CreatedAt
         };
+    }
 }

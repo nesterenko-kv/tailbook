@@ -7,10 +7,14 @@ public static class AuthenticatedClientFactory
     extension(RealDbWebApplicationFactory factory)
     {
         public HttpClient CreateAnonymousClient()
-            => factory.CreateClient();
+        {
+            return factory.CreateClient();
+        }
 
         public async Task<HttpClient> CreateAdminClientAsync()
-            => await factory.CreateAuthenticatedClientAsync(TestUsers.AdminEmail, TestUsers.AdminPassword);
+        {
+            return await factory.CreateAuthenticatedClientAsync(TestUsers.AdminEmail, TestUsers.AdminPassword);
+        }
 
         public async Task<HttpClient> CreateAuthenticatedClientAsync(string email,
             string password)

@@ -15,5 +15,8 @@ public sealed record FinalPriceAdjustedDomainEvent(
     public string EventType => "FinalPriceAdjusted";
     public string ModuleCode => "visitops";
 
-    public IIntegrationEventDto ToIntegrationEvent() => new FinalPriceAdjustedIntegrationEvent(VisitId, Status, Sign, Amount, ReasonCode);
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new FinalPriceAdjustedIntegrationEvent(VisitId, Status, Sign, Amount, ReasonCode);
+    }
 }

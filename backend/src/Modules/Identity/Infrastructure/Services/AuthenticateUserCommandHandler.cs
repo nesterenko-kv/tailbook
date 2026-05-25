@@ -16,7 +16,9 @@ public class AuthenticateUserCommandHandler(
     IDeviceTrustService deviceTrustService
 ) : ICommandHandler<AuthenticateUserCommand, ErrorOr<AuthenticationResult>>, IAuthenticateUserService
 {
-    public Task<ErrorOr<AuthenticationResult>> ExecuteAsync(AuthenticateUserCommand command, CancellationToken cancellationToken) => AuthenticateAsync(
+    public Task<ErrorOr<AuthenticationResult>> ExecuteAsync(AuthenticateUserCommand command, CancellationToken cancellationToken)
+    {
+        return AuthenticateAsync(
             command.Email,
             command.Password,
             requireClientPortalAccess: false,
@@ -25,6 +27,7 @@ public class AuthenticateUserCommandHandler(
             userAgent: null,
             deviceTrustToken: null,
             cancellationToken);
+    }
 
     public async Task<ErrorOr<AuthenticationResult>> AuthenticateAsync(
         string email,
@@ -117,14 +120,19 @@ public class AuthenticateUserCommandHandler(
         );
     }
 
-    private async Task<bool> HasEnabledEmailOtpFactorAsync(Guid userId, CancellationToken cancellationToken) => await dbContext.Set<IdentityMfaFactor>()
+    private async Task<bool> HasEnabledEmailOtpFactorAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<IdentityMfaFactor>()
             .AsNoTracking()
             .AnyAsync(x => x.UserId == userId
                            && x.FactorType == MfaFactorTypes.EmailOtp
                            && x.Status == MfaFactorStatusCodes.Enabled,
                 cancellationToken);
+    }
 
-    private async Task<HashSet<string>> GetRoleCodesAsync(Guid userId, CancellationToken cancellationToken) => await dbContext.Set<UserRoleAssignment>()
+    private async Task<HashSet<string>> GetRoleCodesAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<UserRoleAssignment>()
             .AsNoTracking()
             .Where(x => x.UserId == userId)
             .Join(
@@ -135,8 +143,11 @@ public class AuthenticateUserCommandHandler(
             .Distinct()
             .OrderBy(x => x)
             .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, cancellationToken);
+    }
 
-    private async Task<HashSet<string>> GetPermissionCodesAsync(Guid userId, CancellationToken cancellationToken) => await dbContext.Set<UserRoleAssignment>()
+    private async Task<HashSet<string>> GetPermissionCodesAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<UserRoleAssignment>()
             .AsNoTracking()
             .Where(x => x.UserId == userId)
             .Join(
@@ -152,21 +163,25 @@ public class AuthenticateUserCommandHandler(
             .Distinct()
             .OrderBy(x => x)
             .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, cancellationToken: cancellationToken);
+    }
 
-    private static IdentityUser BuildUserFromAuth(UserAuthData auth) => new IdentityUser
+    private static IdentityUser BuildUserFromAuth(UserAuthData auth)
     {
-        Id = auth.Id,
-        SubjectId = auth.SubjectId,
-        Email = auth.Email,
-        NormalizedEmail = auth.NormalizedEmail,
-        DisplayName = auth.DisplayName,
-        PasswordHash = auth.PasswordHash,
-        Status = auth.Status,
-        ClientId = auth.ClientId,
-        ContactPersonId = auth.ContactPersonId,
-        CreatedAt = auth.CreatedAt,
-        UpdatedAt = auth.UpdatedAt
-    };
+        return new IdentityUser
+        {
+            Id = auth.Id,
+            SubjectId = auth.SubjectId,
+            Email = auth.Email,
+            NormalizedEmail = auth.NormalizedEmail,
+            DisplayName = auth.DisplayName,
+            PasswordHash = auth.PasswordHash,
+            Status = auth.Status,
+            ClientId = auth.ClientId,
+            ContactPersonId = auth.ContactPersonId,
+            CreatedAt = auth.CreatedAt,
+            UpdatedAt = auth.UpdatedAt
+        };
+    }
 
     private async Task<UserAuthData?> LoadUserAuthAsync(string normalizedEmail, CancellationToken cancellationToken)
     {
@@ -195,7 +210,9 @@ public class AuthenticateUserCommandHandler(
         return ReadUserAuth(reader);
     }
 
-    private static UserAuthData ReadUserAuth(DbDataReader reader) => new UserAuthData(
+    private static UserAuthData ReadUserAuth(DbDataReader reader)
+    {
+        return new UserAuthData(
             Id: reader.GetGuid(0),
             SubjectId: reader.GetString(1),
             Email: reader.GetString(2),
@@ -211,6 +228,7 @@ public class AuthenticateUserCommandHandler(
             PermissionCodes: reader.IsDBNull(12) ? [] : reader.GetFieldValue<string[]>(12),
             HasMfaFactor: reader.GetBoolean(13)
         );
+    }
 
     private sealed record UserAuthData(
         Guid Id,

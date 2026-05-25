@@ -39,8 +39,11 @@ namespace Tailbook.BuildingBlocks.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(
                 name: "iam_password_reset_tokens",
                 schema: "iam");
+        }
     }
 }

@@ -40,10 +40,13 @@ public sealed class PublishCatalogDurationRuleSetCommandHandler(AppDbContext dbC
         return await MapRuleSetAsync(ruleSet, cancellationToken);
     }
 
-    private async Task<DurationRuleSet?> LoadDurationRuleSetAggregateAsync(Guid ruleSetId, CancellationToken cancellationToken) => await dbContext.Set<DurationRuleSet>()
+    private async Task<DurationRuleSet?> LoadDurationRuleSetAggregateAsync(Guid ruleSetId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<DurationRuleSet>()
             .Include(x => x.Rules)
             .ThenInclude(x => x.Condition)
             .SingleOrDefaultAsync(x => x.Id == ruleSetId, cancellationToken);
+    }
 
     private async Task<DurationRuleSetView> MapRuleSetAsync(DurationRuleSet ruleSet, CancellationToken cancellationToken)
     {

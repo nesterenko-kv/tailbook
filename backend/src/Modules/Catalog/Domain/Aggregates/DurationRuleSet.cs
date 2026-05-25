@@ -15,15 +15,18 @@ public sealed class DurationRuleSet
     public DateTimeOffset? PublishedAt { get; set; }
     public IReadOnlyCollection<DurationRule> Rules => _rules.AsReadOnly();
 
-    public static DurationRuleSet Create(Guid id, int versionNo, DateTimeOffset validFrom, DateTimeOffset? validTo, DateTimeOffset utcNow) => new DurationRuleSet
+    public static DurationRuleSet Create(Guid id, int versionNo, DateTimeOffset validFrom, DateTimeOffset? validTo, DateTimeOffset utcNow)
     {
-        Id = id,
-        VersionNo = versionNo,
-        Status = RuleSetStatusCodes.Draft,
-        ValidFrom = validFrom.ToUniversalTime(),
-        ValidTo = validTo?.ToUniversalTime(),
-        CreatedAt = utcNow.ToUniversalTime()
-    };
+        return new DurationRuleSet
+        {
+            Id = id,
+            VersionNo = versionNo,
+            Status = RuleSetStatusCodes.Draft,
+            ValidFrom = validFrom.ToUniversalTime(),
+            ValidTo = validTo?.ToUniversalTime(),
+            CreatedAt = utcNow.ToUniversalTime()
+        };
+    }
 
     public ErrorOr<DurationRule> AddRule(
         Guid offerId,
@@ -94,5 +97,8 @@ public sealed class DurationRuleSet
         return Result.Success;
     }
 
-    public void Archive() => Status = RuleSetStatusCodes.Archived;
+    public void Archive()
+    {
+        Status = RuleSetStatusCodes.Archived;
+    }
 }

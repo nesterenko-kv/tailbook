@@ -18,7 +18,9 @@ public sealed record AppointmentCreatedDomainEvent(
     public string EventType => "AppointmentCreated";
     public string ModuleCode => "booking";
 
-    public IIntegrationEventDto ToIntegrationEvent() => new AppointmentCreatedIntegrationEvent(
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new AppointmentCreatedIntegrationEvent(
             AppointmentId,
             BookingRequestId,
             PetId,
@@ -27,4 +29,5 @@ public sealed record AppointmentCreatedDomainEvent(
             EndAt,
             Status,
             VersionNo);
+    }
 }

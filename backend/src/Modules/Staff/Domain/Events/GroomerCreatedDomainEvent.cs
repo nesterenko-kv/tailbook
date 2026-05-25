@@ -14,9 +14,12 @@ public sealed record GroomerCreatedDomainEvent(
     public string EventType => "GroomerCreated";
     public string ModuleCode => "staff";
 
-    public IIntegrationEventDto ToIntegrationEvent() => new GroomerCreatedIntegrationEvent(
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new GroomerCreatedIntegrationEvent(
             GroomerId,
             UserId,
             DisplayName,
             Active);
+    }
 }

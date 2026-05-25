@@ -233,7 +233,9 @@ public sealed class MfaRecoveryCodeService(
         int invalidatedRecoveryCodeCount,
         int invalidatedChallengeCount,
         DateTimeOffset resetAt,
-        CancellationToken cancellationToken) => auditTrailService.RecordAsync(
+        CancellationToken cancellationToken)
+    {
+        return auditTrailService.RecordAsync(
             ModuleCode,
             MfaRecoveryEntityType,
             userId.ToString("D"),
@@ -255,4 +257,5 @@ public sealed class MfaRecoveryCodeService(
                 resetAt
             }),
             cancellationToken);
+    }
 }

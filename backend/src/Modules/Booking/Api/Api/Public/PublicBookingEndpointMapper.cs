@@ -5,18 +5,21 @@ namespace Tailbook.Modules.Booking.Api.Public;
 internal static class PublicBookingEndpointMapper
 {
     public static PublicPetSelectionQuery MapPet(PublicPetPayload payload)
-        => new(
-            payload.PetId,
-            payload.AnimalTypeId,
-            payload.BreedId,
-            payload.CoatTypeId,
-            payload.SizeCategoryId,
-            payload.WeightKg,
-            payload.PetName,
-            payload.Notes);
+    {
+        return new(
+                payload.PetId,
+                payload.AnimalTypeId,
+                payload.BreedId,
+                payload.CoatTypeId,
+                payload.SizeCategoryId,
+                payload.WeightKg,
+                payload.PetName,
+                payload.Notes);
+    }
 
     public static PublicQuotePreviewResponse MapQuote(QuotePreviewView quote)
-        => new()
+    {
+        return new()
         {
             Currency = quote.PriceSnapshot.Currency,
             TotalAmount = quote.PriceSnapshot.TotalAmount,
@@ -42,41 +45,46 @@ internal static class PublicBookingEndpointMapper
                 Minutes = x.Minutes
             }).ToArray()
         };
+    }
 
     public static PublicPlannerSlotResponse MapSlot(PublicPlannerSlotView slot)
-        => new()
+    {
+        return new()
         {
             StartAt = slot.StartAt,
             EndAt = slot.EndAt,
             GroomerIds = slot.GroomerIds.ToArray()
         };
+    }
 
     public static GuestBookingIntakeInput BuildGuestIntake(CreatePublicBookingRequestRequest req, PublicPetResolutionView resolvedPet)
-        => new(
-            req.Requester is null
-                ? null
-                : new GuestBookingRequesterInput(
-                    Normalize(req.Requester.DisplayName),
-                    Normalize(req.Requester.Phone),
-                    Normalize(req.Requester.InstagramHandle),
-                    Normalize(req.Requester.Email),
-                    Normalize(req.Requester.PreferredContactMethodCode)),
-            new GuestBookingPetInput(
-                Normalize(req.Pet.PetName),
-                resolvedPet.Pet.AnimalTypeId,
-                resolvedPet.Pet.AnimalTypeCode,
-                resolvedPet.Pet.AnimalTypeName,
-                resolvedPet.Pet.BreedId,
-                resolvedPet.Pet.BreedCode,
-                resolvedPet.Pet.BreedName,
-                resolvedPet.Pet.CoatTypeId,
-                resolvedPet.Pet.CoatTypeCode,
-                resolvedPet.Pet.CoatTypeName,
-                resolvedPet.Pet.SizeCategoryId,
-                resolvedPet.Pet.SizeCategoryCode,
-                resolvedPet.Pet.SizeCategoryName,
-                req.Pet.WeightKg,
-                Normalize(req.Pet.Notes)));
+    {
+        return new(
+                req.Requester is null
+                    ? null
+                    : new GuestBookingRequesterInput(
+                        Normalize(req.Requester.DisplayName),
+                        Normalize(req.Requester.Phone),
+                        Normalize(req.Requester.InstagramHandle),
+                        Normalize(req.Requester.Email),
+                        Normalize(req.Requester.PreferredContactMethodCode)),
+                new GuestBookingPetInput(
+                    Normalize(req.Pet.PetName),
+                    resolvedPet.Pet.AnimalTypeId,
+                    resolvedPet.Pet.AnimalTypeCode,
+                    resolvedPet.Pet.AnimalTypeName,
+                    resolvedPet.Pet.BreedId,
+                    resolvedPet.Pet.BreedCode,
+                    resolvedPet.Pet.BreedName,
+                    resolvedPet.Pet.CoatTypeId,
+                    resolvedPet.Pet.CoatTypeCode,
+                    resolvedPet.Pet.CoatTypeName,
+                    resolvedPet.Pet.SizeCategoryId,
+                    resolvedPet.Pet.SizeCategoryCode,
+                    resolvedPet.Pet.SizeCategoryName,
+                    req.Pet.WeightKg,
+                    Normalize(req.Pet.Notes)));
+    }
 
     public static bool IsMissingActionableContact(PublicRequesterPayload? requester)
     {
@@ -106,5 +114,7 @@ internal static class PublicBookingEndpointMapper
     }
 
     private static string? Normalize(string? value)
-        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
 }

@@ -145,5 +145,8 @@ public sealed class CommercialOffer
         return match is null ? CatalogErrors.UnknownOfferType(offerType) : match;
     }
 
-    private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? NormalizeOptional(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
 }

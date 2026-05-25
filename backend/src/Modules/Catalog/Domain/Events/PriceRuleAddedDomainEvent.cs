@@ -16,11 +16,14 @@ public sealed record PriceRuleAddedDomainEvent(
     public string EventType => "PriceRuleAdded";
     public string ModuleCode => "catalog";
 
-    public IIntegrationEventDto ToIntegrationEvent() => new PriceRuleAddedIntegrationEvent(
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new PriceRuleAddedIntegrationEvent(
             RuleSetId,
             RuleId,
             OfferId,
             Priority,
             FixedAmount,
             Currency);
+    }
 }

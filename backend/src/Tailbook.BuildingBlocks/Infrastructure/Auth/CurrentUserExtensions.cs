@@ -2,5 +2,8 @@
 
 public static class CurrentUserExtensions
 {
-    public static bool HasPermission(this ICurrentUser currentUser, string permissionCode) => currentUser.Permissions.Any(x => string.Equals(x, permissionCode, StringComparison.OrdinalIgnoreCase));
+    public static bool HasPermission(this ICurrentUser currentUser, string permissionCode)
+    {
+        return currentUser.Permissions.Any(x => string.Equals(x, permissionCode, StringComparison.OrdinalIgnoreCase));
+    }
 }

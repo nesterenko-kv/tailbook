@@ -9,7 +9,10 @@ public sealed class IdentityReferenceServices(AppDbContext dbContext)
     : IUserReferenceValidationService,
       IClientPortalActorService
 {
-    public async Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken) => await dbContext.Set<IdentityUser>().AnyAsync(x => x.Id == userId, cancellationToken);
+    public async Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<IdentityUser>().AnyAsync(x => x.Id == userId, cancellationToken);
+    }
 
     public async Task<ErrorOr<ClientPortalActor>> GetActorAsync(Guid userId, CancellationToken cancellationToken)
     {

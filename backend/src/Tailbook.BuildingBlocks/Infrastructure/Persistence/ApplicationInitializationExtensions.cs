@@ -30,5 +30,8 @@ public static class ApplicationInitializationExtensions
         }
     }
 
-    private static bool IsInMemoryProvider(AppDbContext dbContext) => !dbContext.Database.IsRelational();
+    private static bool IsInMemoryProvider(AppDbContext dbContext)
+    {
+        return !dbContext.Database.IsRelational();
+    }
 }

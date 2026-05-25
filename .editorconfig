@@ -48,7 +48,7 @@ dotnet_style_prefer_conditional_expression_over_assignment = false:none
 dotnet_style_prefer_conditional_expression_over_return = false:none
 
 # C# code style rules
-csharp_style_expression_bodied_methods = true:error
+csharp_style_expression_bodied_methods = false:error
 csharp_style_expression_bodied_constructors = true:error
 csharp_style_expression_bodied_properties = true:error
 csharp_style_expression_bodied_indexers = true:error

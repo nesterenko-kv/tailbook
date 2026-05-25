@@ -40,7 +40,9 @@ public sealed class VisitValidationTests(RealDbWebApplicationFactory factory)
     }
 
     private async Task<HttpClient> CreateAuthorizedClientAsync()
-        => await factory.CreateAdminClientAsync();
+    {
+        return await factory.CreateAdminClientAsync();
+    }
 
     private static async Task<VisitEnvelope> CreateOpenVisitAsync(HttpClient client)
     {

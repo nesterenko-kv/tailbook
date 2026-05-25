@@ -14,5 +14,8 @@ public sealed record PasswordResetRequestedDomainEvent(
     public string EventType => "Tailbook.Modules.Identity.Integration.PasswordResetRequested";
     public string ModuleCode => "identity";
 
-    public IIntegrationEventDto ToIntegrationEvent() => new PasswordResetRequestedIntegrationEvent(Email, DisplayName, ProtectedResetLink, ExpiresAt);
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new PasswordResetRequestedIntegrationEvent(Email, DisplayName, ProtectedResetLink, ExpiresAt);
+    }
 }

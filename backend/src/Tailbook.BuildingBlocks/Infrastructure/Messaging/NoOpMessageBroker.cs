@@ -9,7 +9,10 @@ public sealed class NoOpMessageBroker : IMessageBroker
 
     public NoOpMessageBroker(ILogger<NoOpMessageBroker> logger) => _logger = logger;
 
-    public Task PublishAsync(string exchange, string routingKey, object payload, CancellationToken cancellationToken = default) => PublishAsync(exchange, routingKey, payload, messageId: null, cancellationToken);
+    public Task PublishAsync(string exchange, string routingKey, object payload, CancellationToken cancellationToken = default)
+    {
+        return PublishAsync(exchange, routingKey, payload, messageId: null, cancellationToken);
+    }
 
     public Task PublishAsync(string exchange, string routingKey, object payload, string? messageId, CancellationToken cancellationToken = default)
     {

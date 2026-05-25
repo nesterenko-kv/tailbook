@@ -12,10 +12,14 @@ public class DurationRuleSetResponseBase
     public DurationRuleResponseBase[] Rules { get; set; } = [];
 
     public static DurationRuleSetResponseBase FromView(DurationRuleSetView view)
-        => FromView<DurationRuleSetResponseBase>(view);
+    {
+        return FromView<DurationRuleSetResponseBase>(view);
+    }
 
     protected static TResponse FromView<TResponse>(DurationRuleSetView view)
-        where TResponse : DurationRuleSetResponseBase, new() => new TResponse
+        where TResponse : DurationRuleSetResponseBase, new()
+    {
+        return new TResponse
         {
             Id = view.Id,
             VersionNo = view.VersionNo,
@@ -26,4 +30,5 @@ public class DurationRuleSetResponseBase
             PublishedAt = view.PublishedAt,
             Rules = view.Rules.Select(DurationRuleResponseBase.FromView).ToArray()
         };
+    }
 }

@@ -10,9 +10,15 @@ public sealed class CustomerReferenceServices(AppDbContext dbContext, TimeProvid
       IPetContactReadModelService,
       IClientOnboardingService
 {
-    public async Task<bool> ExistsAsync(Guid clientId, CancellationToken cancellationToken) => await dbContext.Set<Client>().AnyAsync(x => x.Id == clientId, cancellationToken);
+    public async Task<bool> ExistsAsync(Guid clientId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<Client>().AnyAsync(x => x.Id == clientId, cancellationToken);
+    }
 
-    async Task<bool> IContactReferenceValidationService.ExistsAsync(Guid contactId, CancellationToken cancellationToken) => await dbContext.Set<ContactPerson>().AnyAsync(x => x.Id == contactId && x.IsActive, cancellationToken);
+    async Task<bool> IContactReferenceValidationService.ExistsAsync(Guid contactId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<ContactPerson>().AnyAsync(x => x.Id == contactId && x.IsActive, cancellationToken);
+    }
 
     public async Task<IReadOnlyCollection<PetContactAdminSummary>> GetPetContactsAsync(Guid petId, CancellationToken cancellationToken)
     {
@@ -92,9 +98,18 @@ public sealed class CustomerReferenceServices(AppDbContext dbContext, TimeProvid
         return new ClientOnboardingResult(client.Id, contact.Id);
     }
 
-    private static string ComposeFullName(string firstName, string? lastName) => string.Join(' ', new[] { firstName, lastName }.Where(x => !string.IsNullOrWhiteSpace(x)));
+    private static string ComposeFullName(string firstName, string? lastName)
+    {
+        return string.Join(' ', new[] { firstName, lastName }.Where(x => !string.IsNullOrWhiteSpace(x)));
+    }
 
-    private static string[] SplitRoleCodes(string roleCodes) => roleCodes.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    private static string[] SplitRoleCodes(string roleCodes)
+    {
+        return roleCodes.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    }
 
-    private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? NormalizeOptional(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
 }

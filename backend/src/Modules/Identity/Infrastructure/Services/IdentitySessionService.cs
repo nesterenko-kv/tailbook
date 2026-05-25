@@ -99,7 +99,9 @@ public sealed class IdentitySessionService(
             : IdentityErrors.InvalidRefreshToken();
     }
 
-    private async Task<HashSet<string>> GetRoleCodesAsync(Guid userId, CancellationToken cancellationToken) => await dbContext.Set<UserRoleAssignment>()
+    private async Task<HashSet<string>> GetRoleCodesAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<UserRoleAssignment>()
             .Where(x => x.UserId == userId)
             .Join(
                 dbContext.Set<IdentityRole>(),
@@ -110,8 +112,11 @@ public sealed class IdentitySessionService(
             .OrderBy(x => x)
             .AsAsyncEnumerable()
             .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, cancellationToken);
+    }
 
-    private async Task<HashSet<string>> GetPermissionCodesAsync(Guid userId, CancellationToken cancellationToken) => await dbContext.Set<UserRoleAssignment>()
+    private async Task<HashSet<string>> GetPermissionCodesAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<UserRoleAssignment>()
             .Where(x => x.UserId == userId)
             .Join(
                 dbContext.Set<RolePermission>(),
@@ -127,4 +132,5 @@ public sealed class IdentitySessionService(
             .OrderBy(x => x)
             .AsAsyncEnumerable()
             .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, cancellationToken);
+    }
 }

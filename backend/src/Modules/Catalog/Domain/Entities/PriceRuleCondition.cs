@@ -18,7 +18,9 @@ public sealed class PriceRuleCondition
         Guid? breedId,
         Guid? breedGroupId,
         Guid? coatTypeId,
-        Guid? sizeCategoryId) => new PriceRuleCondition
+        Guid? sizeCategoryId)
+    {
+        return new PriceRuleCondition
         {
             Id = id,
             PriceRuleId = priceRuleId,
@@ -28,10 +30,14 @@ public sealed class PriceRuleCondition
             CoatTypeId = coatTypeId,
             SizeCategoryId = sizeCategoryId
         };
+    }
 
-    internal bool Matches(Guid? animalTypeId, Guid? breedId, Guid? breedGroupId, Guid? coatTypeId, Guid? sizeCategoryId) => AnimalTypeId == animalTypeId &&
+    internal bool Matches(Guid? animalTypeId, Guid? breedId, Guid? breedGroupId, Guid? coatTypeId, Guid? sizeCategoryId)
+    {
+        return AnimalTypeId == animalTypeId &&
                BreedId == breedId &&
                BreedGroupId == breedGroupId &&
                CoatTypeId == coatTypeId &&
                SizeCategoryId == sizeCategoryId;
+    }
 }

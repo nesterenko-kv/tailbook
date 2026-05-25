@@ -249,13 +249,18 @@ public sealed class MfaChallengeService(
         return trimmed.Length <= maxLength ? trimmed : trimmed[..maxLength];
     }
 
-    private static string NormalizeRecoveryCode(string code) => new string(code.Where(char.IsLetterOrDigit).Select(char.ToUpperInvariant).ToArray());
+    private static string NormalizeRecoveryCode(string code)
+    {
+        return new string(code.Where(char.IsLetterOrDigit).Select(char.ToUpperInvariant).ToArray());
+    }
 
     private ValueTask RecordChallengeAuditAsync(
         IdentityMfaChallenge challenge,
         string actionCode,
         string? reason,
-        CancellationToken cancellationToken) => auditTrailService.RecordAsync(
+        CancellationToken cancellationToken)
+    {
+        return auditTrailService.RecordAsync(
             ModuleCode,
             MfaChallengeEntityType,
             challenge.Id.ToString("D"),
@@ -275,12 +280,15 @@ public sealed class MfaChallengeService(
                 reason
             }),
             cancellationToken);
+    }
 
     private ValueTask RecordUnknownChallengeAuditAsync(
         Guid challengeId,
         string actionCode,
         string reason,
-        CancellationToken cancellationToken) => auditTrailService.RecordAsync(
+        CancellationToken cancellationToken)
+    {
+        return auditTrailService.RecordAsync(
             ModuleCode,
             MfaChallengeEntityType,
             challengeId.ToString("D"),
@@ -289,12 +297,15 @@ public sealed class MfaChallengeService(
             null,
             JsonSerializer.Serialize(new { reason }),
             cancellationToken);
+    }
 
     private ValueTask RecordRecoveryCodeAuditAsync(
         IdentityMfaRecoveryCode recoveryCode,
         string actionCode,
         string? reason,
-        CancellationToken cancellationToken) => auditTrailService.RecordAsync(
+        CancellationToken cancellationToken)
+    {
+        return auditTrailService.RecordAsync(
             ModuleCode,
             MfaRecoveryCodeEntityType,
             recoveryCode.Id.ToString("D"),
@@ -312,4 +323,5 @@ public sealed class MfaChallengeService(
                 reason
             }),
             cancellationToken);
+    }
 }

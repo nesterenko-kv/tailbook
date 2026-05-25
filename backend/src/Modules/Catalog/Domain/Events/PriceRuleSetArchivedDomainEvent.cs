@@ -13,8 +13,11 @@ public sealed record PriceRuleSetArchivedDomainEvent(
     public string EventType => "PriceRuleSetArchived";
     public string ModuleCode => "catalog";
 
-    public IIntegrationEventDto ToIntegrationEvent() => new PriceRuleSetArchivedIntegrationEvent(
+    public IIntegrationEventDto ToIntegrationEvent()
+    {
+        return new PriceRuleSetArchivedIntegrationEvent(
             RuleSetId,
             VersionNo,
             Status);
+    }
 }

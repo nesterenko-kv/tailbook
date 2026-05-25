@@ -60,7 +60,10 @@ public static class VisitErrors
         code: "VisitOperations.VisitNotEditable",
         description: "Visit is not editable in its current status.");
 
-    public static Error DefaultComponentIncomplete(string procedureName) => Error.Validation(
+    public static Error DefaultComponentIncomplete(string procedureName)
+    {
+        return Error.Validation(
         code: "VisitOperations.DefaultComponentIncomplete",
         description: $"Default expected component '{procedureName}' must be performed or skipped before completion.");
+    }
 }

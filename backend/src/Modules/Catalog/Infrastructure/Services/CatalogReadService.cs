@@ -5,10 +5,13 @@ namespace Tailbook.Modules.Catalog.Infrastructure.Services;
 
 public sealed class CatalogReadService(AppDbContext dbContext) : ICatalogReadService
 {
-    public async Task<IReadOnlyCollection<ProcedureView>> ListProceduresAsync(CancellationToken cancellationToken) => await dbContext.Set<ProcedureCatalogItem>()
+    public async Task<IReadOnlyCollection<ProcedureView>> ListProceduresAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Set<ProcedureCatalogItem>()
             .OrderBy(x => x.Name)
             .Select(x => new ProcedureView(x.Id, x.Code, x.Name, x.IsActive, x.CreatedAt, x.UpdatedAt))
             .ToListAsync(cancellationToken);
+    }
 
     public async Task<IReadOnlyCollection<OfferListItemView>> ListOffersAsync(CancellationToken cancellationToken)
     {

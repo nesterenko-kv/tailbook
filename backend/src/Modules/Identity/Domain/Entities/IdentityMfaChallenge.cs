@@ -62,7 +62,10 @@ public sealed class IdentityMfaChallenge : AggregateRoot
         return entity;
     }
 
-    public void Invalidate(DateTimeOffset invalidatedAt) => InvalidatedAt = invalidatedAt.ToUniversalTime();
+    public void Invalidate(DateTimeOffset invalidatedAt)
+    {
+        InvalidatedAt = invalidatedAt.ToUniversalTime();
+    }
 
     public void RecordFailedAttempt(DateTimeOffset failedAt)
     {
@@ -70,5 +73,8 @@ public sealed class IdentityMfaChallenge : AggregateRoot
         LastFailedAt = failedAt.ToUniversalTime();
     }
 
-    public void MarkConsumed(DateTimeOffset consumedAt) => ConsumedAt = consumedAt.ToUniversalTime();
+    public void MarkConsumed(DateTimeOffset consumedAt)
+    {
+        ConsumedAt = consumedAt.ToUniversalTime();
+    }
 }

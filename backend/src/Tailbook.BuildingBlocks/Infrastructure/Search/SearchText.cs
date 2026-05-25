@@ -105,7 +105,10 @@ public static class SearchText
         return terms.All(term => ContainsInValues(term.AsSpan(), values));
     }
 
-    public static bool ContainsTerm(string term, params string?[] values) => ContainsInValues(term.AsSpan(), values);
+    public static bool ContainsTerm(string term, params string?[] values)
+    {
+        return ContainsInValues(term.AsSpan(), values);
+    }
 
     private static bool ContainsInValues(ReadOnlySpan<char> term, string?[] values)
     {
@@ -171,11 +174,14 @@ public static class SearchText
         return span[..(end + 1)];
     }
 
-    private static string ToLowerInvariant(ReadOnlySpan<char> span) => string.Create(span.Length, span, (buffer, state) =>
+    private static string ToLowerInvariant(ReadOnlySpan<char> span)
+    {
+        return string.Create(span.Length, span, (buffer, state) =>
                                                                             {
                                                                                 for (var i = 0; i < state.Length; i++)
                                                                                 {
                                                                                     buffer[i] = char.ToLowerInvariant(state[i]);
                                                                                 }
                                                                             });
+    }
 }

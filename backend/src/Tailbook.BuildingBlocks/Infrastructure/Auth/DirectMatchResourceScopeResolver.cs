@@ -4,7 +4,10 @@ namespace Tailbook.BuildingBlocks.Infrastructure.Auth;
 
 public sealed class DirectMatchResourceScopeResolver : IResourceScopeResolver
 {
-    public bool CanResolve(string resourceType, string scopeType) => string.Equals(resourceType, scopeType, StringComparison.OrdinalIgnoreCase);
+    public bool CanResolve(string resourceType, string scopeType)
+    {
+        return string.Equals(resourceType, scopeType, StringComparison.OrdinalIgnoreCase);
+    }
 
     public ValueTask<bool> IsResourceInScopeAsync(string resourceType, string resourceId, string scopeType, string scopeId, CancellationToken cancellationToken)
     {
