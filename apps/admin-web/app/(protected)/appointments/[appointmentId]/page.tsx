@@ -113,7 +113,7 @@ export default function AppointmentDetailPage() {
             </Card>
             <Card title="Cancel">
               <form className="grid gap-4" onSubmit={cancel}>
-                <Field label="Reason code"><Input value={cancelForm.reasonCode} onChange={(e) => setCancelForm(c => ({ ...c, reasonCode: e.target.value }))} /></Field>
+                <Field label="Reason code"><Select value={cancelForm.reasonCode} onChange={(e) => setCancelForm(c => ({ ...c, reasonCode: e.target.value }))}><option value="CUSTOMER_REQUEST">Customer request</option><option value="GROOMER_UNAVAILABLE">Groomer unavailable</option><option value="DUPLICATE_BOOKING">Duplicate booking</option><option value="NO_SHOW">No show</option><option value="OTHER">Other</option></Select></Field>
                 <Field label="Notes"><TextArea value={cancelForm.notes} onChange={(e) => setCancelForm(c => ({ ...c, notes: e.target.value }))} /></Field>
                 <PrimaryButton type="submit" className="bg-rose-500 text-white hover:bg-rose-400">Cancel appointment</PrimaryButton>
               </form>
