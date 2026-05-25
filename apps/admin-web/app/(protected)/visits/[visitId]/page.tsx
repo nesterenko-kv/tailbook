@@ -7,6 +7,7 @@ import { addRecentVisitId } from "@/lib/recent";
 import { formatDateTime, formatMoney } from "@/lib/format";
 import type { VisitDetail } from "@/lib/types";
 import { Badge, Card, ErrorBanner, Field, Input, LinkButton, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 export default function VisitDetailPage() {
   const params = useParams<{ visitId: string }>();
@@ -14,6 +15,7 @@ export default function VisitDetailPage() {
   const [visit, setVisit] = useState<VisitDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<"complete" | "close" | null>(null);
   const [performedForm, setPerformedForm] = useState({ visitExecutionItemId: "", procedureId: "", status: "Performed", note: "" });
   const [skippedForm, setSkippedForm] = useState({ visitExecutionItemId: "", offerVersionComponentId: "", procedureId: "", omissionReasonCode: "NOT_NEEDED", note: "" });
   const [adjustmentForm, setAdjustmentForm] = useState({ sign: "1", amount: "0", reasonCode: "MANUAL_ADJUSTMENT", note: "" });
@@ -112,8 +114,8 @@ export default function VisitDetailPage() {
               ))}
             </div>
             <div className="mt-4 flex flex-wrap gap-3">
-              <PrimaryButton type="button" onClick={() => void markComplete()}>Complete visit</PrimaryButton>
-              <PrimaryButton type="button" onClick={() => void closeVisit()}>Close visit</PrimaryButton>
+              <PrimaryButton type="button" onClick={() => setConfirmAction("complete")}>Complete visit</PrimaryButton>
+              <PrimaryButton type="button" onClick={() => setConfirmAction("close")}>Close visit</PrimaryButton>
             </div>
           </Card>
           <div className="grid gap-6">
@@ -148,6 +150,25 @@ export default function VisitDetailPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmAction === "complete"}
+        onOpenChange={(open) => { if (!open) setConfirmAction(null); }}
+        onConfirm={() => void markComplete()}
+        title="Complete visit?"
+        description="Mark this visit as complete. Performed procedures and adjustments can still be recorded afterward."
+        confirmLabel="Complete visit"
+        confirmTone="primary"
+      />
+
+      <ConfirmDialog
+        open={confirmAction === "close"}
+        onOpenChange={(open) => { if (!open) setConfirmAction(null); }}
+        onConfirm={() => void closeVisit()}
+        title="Close visit?"
+        description={`This will close the visit and finalize the total of ${visit ? formatMoney(visit.finalTotalAmount) : "—"}. No further changes will be allowed.`}
+        confirmLabel="Close visit"
+      />
     </div>
   );
 }

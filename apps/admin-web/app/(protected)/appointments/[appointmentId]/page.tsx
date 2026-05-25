@@ -8,6 +8,7 @@ import { apiRequest, ApiError } from "@/lib/api";
 import { addRecentVisitId } from "@/lib/recent";
 import { formatDateTime, formatMoney } from "@/lib/format";
 import { Badge, Card, ErrorBanner, Field, Input, LinkButton, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 export default function AppointmentDetailPage() {
   const params = useParams<{ appointmentId: string }>();
@@ -19,6 +20,7 @@ export default function AppointmentDetailPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [rescheduleForm, setRescheduleForm] = useState({ groomerId: "", startAt: "" });
   const [cancelForm, setCancelForm] = useState({ reasonCode: "CUSTOMER_REQUEST", notes: "" });
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
 
   async function loadAll() {
     setError(null);
@@ -50,6 +52,10 @@ export default function AppointmentDetailPage() {
 
   async function cancel(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setConfirmCancelOpen(true);
+  }
+
+  async function confirmedCancel() {
     if (!appointment) return;
     setError(null); setSuccess(null);
     try {
@@ -115,6 +121,15 @@ export default function AppointmentDetailPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmCancelOpen}
+        onOpenChange={setConfirmCancelOpen}
+        onConfirm={() => void confirmedCancel()}
+        title="Cancel appointment?"
+        description={`This will cancel the appointment ${appointment?.id ? `(${appointment.id.slice(0, 8)}…)` : ""} and cannot be undone.`}
+        confirmLabel="Cancel appointment"
+      />
     </div>
   );
 }
