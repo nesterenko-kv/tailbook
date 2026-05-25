@@ -175,22 +175,7 @@ export default function PetsPage() {
             <ErrorBanner message={error} />
             <SuccessBanner message={success} />
 
-            <div className="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
-                <Card title="Register pet" description="This MVP view creates a pet and then opens the full detail page.">
-                    <form className="grid gap-4 md:grid-cols-2" onSubmit={registerPet}>
-                        <Field label="Client"><Select value={form.clientId} onChange={(event) => setForm((current) => ({ ...current, clientId: event.target.value }))}><option value="">No client yet</option>{clients.map((client) => <option key={client.id} value={client.id}>{client.displayName}</option>)}</Select></Field>
-                        <Field label="Pet name"><Input value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} required /></Field>
-                        <Field label="Animal type"><Select value={form.animalTypeCode} onChange={(event) => setForm((current) => ({ ...current, animalTypeCode: event.target.value }))}>{catalog?.animalTypes.map((item) => <option key={item.id} value={item.code}>{item.name}</option>)}</Select></Field>
-                        <Field label="Breed"><Select value={form.breedId} onChange={(event) => setForm((current) => ({ ...current, breedId: event.target.value }))}>{breedOptions.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></Field>
-                        <Field label="Coat type"><Select value={form.coatTypeCode} onChange={(event) => setForm((current) => ({ ...current, coatTypeCode: event.target.value }))}><option value="">None</option>{coatOptions.map((item) => <option key={item.id} value={item.code}>{item.name}</option>)}</Select></Field>
-                        <Field label="Size category"><Select value={form.sizeCategoryCode} onChange={(event) => setForm((current) => ({ ...current, sizeCategoryCode: event.target.value }))}><option value="">None</option>{sizeOptions.map((item) => <option key={item.id} value={item.code}>{item.name}</option>)}</Select></Field>
-                        <Field label="Birth date"><Input type="date" value={form.birthDate} onChange={(event) => setForm((current) => ({ ...current, birthDate: event.target.value }))} /></Field>
-                        <Field label="Weight (kg)"><Input type="number" step="0.1" value={form.weightKg} onChange={(event) => setForm((current) => ({ ...current, weightKg: event.target.value }))} /></Field>
-                        <div className="md:col-span-2"><Field label="Notes"><TextArea value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} /></Field></div>
-                        <PrimaryButton type="submit" className="md:col-span-2" disabled={isSubmitting}>{isSubmitting ? "Registering..." : "Register pet"}</PrimaryButton>
-                    </form>
-                </Card>
-
+            <div className="grid gap-6 xl:grid-cols-[1.2fr_1.1fr]">
                 <div className="grid gap-6">
                     <Card title="Pet list" description="Filter registered pets and open the detail record.">
                         <div className="grid gap-3 md:grid-cols-2">
@@ -242,6 +227,21 @@ export default function PetsPage() {
                         </div>
                     </Card>
                 </div>
+
+                <Card title="Register pet" description="This MVP view creates a pet and then opens the full detail page.">
+                    <form className="grid gap-4 md:grid-cols-2" onSubmit={registerPet}>
+                        <Field label="Client"><Select value={form.clientId} onChange={(event) => setForm((current) => ({ ...current, clientId: event.target.value }))}><option value="">No client yet</option>{clients.map((client) => <option key={client.id} value={client.id}>{client.displayName}</option>)}</Select></Field>
+                        <Field label="Pet name"><Input value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} required /></Field>
+                        <Field label="Animal type"><Select value={form.animalTypeCode} onChange={(event) => setForm((current) => ({ ...current, animalTypeCode: event.target.value }))}>{catalog?.animalTypes.map((item) => <option key={item.id} value={item.code}>{item.name}</option>)}</Select></Field>
+                        <Field label="Breed"><Select value={form.breedId} onChange={(event) => setForm((current) => ({ ...current, breedId: event.target.value }))}>{breedOptions.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></Field>
+                        <Field label="Coat type"><Select value={form.coatTypeCode} onChange={(event) => setForm((current) => ({ ...current, coatTypeCode: event.target.value }))}><option value="">None</option>{coatOptions.map((item) => <option key={item.id} value={item.code}>{item.name}</option>)}</Select></Field>
+                        <Field label="Size category"><Select value={form.sizeCategoryCode} onChange={(event) => setForm((current) => ({ ...current, sizeCategoryCode: event.target.value }))}><option value="">None</option>{sizeOptions.map((item) => <option key={item.id} value={item.code}>{item.name}</option>)}</Select></Field>
+                        <Field label="Birth date"><Input type="date" value={form.birthDate} onChange={(event) => setForm((current) => ({ ...current, birthDate: event.target.value }))} /></Field>
+                        <Field label="Weight (kg)"><Input type="number" step="0.1" value={form.weightKg} onChange={(event) => setForm((current) => ({ ...current, weightKg: event.target.value }))} /></Field>
+                        <div className="md:col-span-2"><Field label="Notes"><TextArea value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} /></Field></div>
+                        <PrimaryButton type="submit" className="md:col-span-2" disabled={isSubmitting}>{isSubmitting ? "Registering..." : "Register pet"}</PrimaryButton>
+                    </form>
+                </Card>
             </div>
         </div>
     );

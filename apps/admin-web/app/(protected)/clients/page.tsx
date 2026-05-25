@@ -5,7 +5,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { apiRequest, ApiError } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import type { ClientListItem, PagedResult } from "@/lib/types";
-import { Badge, Card, ErrorBanner, Field, Input, PageHeader, PrimaryButton, SuccessBanner, TextArea } from "@/components/ui";
+import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, PrimaryButton, SuccessBanner, TextArea } from "@/components/ui";
 import { Pagination } from "@/components/pagination";
 import { SortControl } from "@/components/sort-control";
 
@@ -75,15 +75,15 @@ export default function ClientsPage() {
                 description="Create and browse CRM client accounts. Open a client to manage contacts and linked pets."
             />
 
+            <ErrorBanner message={error} />
+            <SuccessBanner message={success} />
             <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
                 <Card title="Client list" description="Search and open client profiles.">
                     <div className="mb-4 flex gap-3">
                         <Input placeholder="Search by display name" value={search} onChange={(event) => setSearch(event.target.value)} />
                         <PrimaryButton type="button" onClick={() => { setPage(1); void loadClients(search, 1, sortBy, sortDirection); }}>Search</PrimaryButton>
                     </div>
-                    <ErrorBanner message={error} />
-                    <SuccessBanner message={success} />
-                    {isLoading ? <p className="text-sm text-slate-300">Loading clients…</p> : null}
+                    {isLoading ? <LoadingState label="Loading clients..." /> : null}
                     <SortControl
                       sortBy={sortBy}
                       sortDirection={sortDirection}
@@ -108,7 +108,7 @@ export default function ClientsPage() {
                                 <p className="mt-3 text-sm text-slate-300">Contacts: {client.contactCount}</p>
                             </Link>
                         ))}
-                        {!isLoading && (!clientResult || clientResult.items.length === 0) ? <p className="text-sm text-slate-400">No clients found.</p> : null}
+                        {!isLoading && (!clientResult || clientResult.items.length === 0) ? <EmptyState title="No clients found" description="Create a client or adjust search." /> : null}
                     </div>
                     {clientResult ? <Pagination page={page} pageSize={50} totalCount={clientResult.totalCount} onPageChange={(p) => { setPage(p); void loadClients(search, p, sortBy, sortDirection); }} /> : null}
                 </Card>
