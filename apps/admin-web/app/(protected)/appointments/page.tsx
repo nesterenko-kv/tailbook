@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import { apiRequest, ApiError } from "@/lib/api";
 import { formatDateTime, formatMoney } from "@/lib/format";
 import { unwrapItems } from "@/lib/contracts";
 import type { AppointmentListItem, ClientDetail, GroomerListItem, GroomerListResponse, OfferListItem, PagedResult } from "@/lib/types";
-import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, PrimaryButton, Select, SuccessBanner } from "@/components/ui";
+import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, PrimaryButton, SecondaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
 import { Pagination } from "@/components/pagination";
 import { SortControl } from "@/components/sort-control";
 
@@ -19,6 +19,11 @@ export default function AppointmentsPage() {
   const [selectedClient, setSelectedClient] = useState<ClientDetail | null>(null);
   const [offers, setOffers] = useState<OfferListItem[]>([]);
   const [groomers, setGroomers] = useState<GroomerListItem[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkCancelOpen, setBulkCancelOpen] = useState(false);
+  const [bulkReasonCode, setBulkReasonCode] = useState("CUSTOMER_REQUEST");
+  const [bulkNotes, setBulkNotes] = useState("");
+  const [isBulkCancelling, setIsBulkCancelling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,13 +51,59 @@ export default function AppointmentsPage() {
     }
   }
 
-  useEffect(() => { void loadBase(); }, [sortBy, sortDirection]);
+  useEffect(() => { void loadBase(); }, [page, sortBy, sortDirection]);
   useEffect(() => {
     if (!form.clientId) { setSelectedClient(null); return; }
     apiRequest<ClientDetail>(`/api/admin/clients/${form.clientId}`)
       .then(setSelectedClient)
       .catch((err) => setError(err instanceof ApiError ? err.message : "Failed to load client detail."));
   }, [form.clientId]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleAll = useCallback(() => {
+    if (!appointmentResult) return;
+    if (selectedIds.size === appointmentResult.items.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(appointmentResult.items.map((x) => x.id)));
+    }
+  }, [appointmentResult, selectedIds]);
+
+  async function handleBulkCancel() {
+    if (isBulkCancelling) return;
+    setIsBulkCancelling(true);
+    setError(null);
+    setSuccess(null);
+    let cancelled = 0;
+    let failed = 0;
+    for (const id of selectedIds) {
+      try {
+        await apiRequest(`/api/admin/appointments/${id}/cancel`, {
+          method: "POST",
+          body: JSON.stringify({ reasonCode: bulkReasonCode, notes: bulkNotes || null, expectedVersionNo: 1 })
+        });
+        cancelled++;
+      } catch {
+        failed++;
+      }
+    }
+    setSelectedIds(new Set());
+    setBulkCancelOpen(false);
+    if (failed === 0) {
+      setSuccess(`${cancelled} appointment${cancelled === 1 ? "" : "s"} cancelled.`);
+    } else {
+      setError(`${cancelled} cancelled, ${failed} failed.`);
+    }
+    await loadBase();
+    setIsBulkCancelling(false);
+  }
 
   async function createAppointment(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -96,22 +147,79 @@ export default function AppointmentsPage() {
           {isLoading ? <LoadingState label="Loading appointments..." /> : null}
           {!isLoading && (!appointmentResult || appointmentResult.items.length === 0) ? <EmptyState title="No appointments found" description="Create a direct appointment or convert a booking request." /> : null}
           {!isLoading && appointmentResult && appointmentResult.items.length > 0 ? (
-            <div className="grid gap-3">
-              {appointmentResult.items.map((item) => (
-                <Link key={item.id} href={`/appointments/${item.id}`} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 transition hover:border-emerald-500/40">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="font-medium">{item.id}</div>
-                      <div className="text-sm text-slate-400">{formatDateTime(item.startAt)}</div>
-                    </div>
-                    <Badge>{item.status}</Badge>
+            <>
+              {selectedIds.size > 0 ? (
+                <div className="mb-3 rounded-2xl border border-emerald-700/40 bg-emerald-950/30 px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-emerald-300">{selectedIds.size} selected</span>
+                    {bulkCancelOpen ? (
+                      <SecondaryButton type="button" onClick={() => { setBulkCancelOpen(false); setBulkNotes(""); }}>Back</SecondaryButton>
+                    ) : (
+                      <>
+                        <SecondaryButton type="button" onClick={() => setBulkCancelOpen(true)} className="ml-auto">Cancel selected</SecondaryButton>
+                        <SecondaryButton type="button" onClick={() => setSelectedIds(new Set())}>Clear</SecondaryButton>
+                      </>
+                    )}
                   </div>
-                  <div className="mt-2 text-sm text-slate-300">{formatMoney(item.totalAmount)} · items {item.itemCount}</div>
-                </Link>
-              ))}
-            </div>
+                  {bulkCancelOpen ? (
+                    <div className="mt-3 grid gap-3 border-t border-emerald-700/30 pt-3">
+                      <Field label="Reason">
+                        <Select value={bulkReasonCode} onChange={(e) => setBulkReasonCode(e.target.value)}>
+                          <option value="CUSTOMER_REQUEST">Customer request</option>
+                          <option value="GROOMER_UNAVAILABLE">Groomer unavailable</option>
+                          <option value="DUPLICATE_BOOKING">Duplicate booking</option>
+                          <option value="NO_SHOW">No show</option>
+                          <option value="OTHER">Other</option>
+                        </Select>
+                      </Field>
+                      <Field label="Notes (optional)">
+                        <TextArea value={bulkNotes} onChange={(e) => setBulkNotes(e.target.value)} rows={2} />
+                      </Field>
+                      <div className="flex justify-end gap-2">
+                        <PrimaryButton type="button" disabled={isBulkCancelling} onClick={handleBulkCancel}>
+                          {isBulkCancelling ? "Cancelling..." : `Cancel ${selectedIds.size} appointment${selectedIds.size === 1 ? "" : "s"}`}
+                        </PrimaryButton>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+              <div className="flex items-center gap-2 px-1 pb-2">
+                <input
+                  type="checkbox"
+                  className="size-4 accent-emerald-500"
+                  checked={appointmentResult.items.length > 0 && selectedIds.size === appointmentResult.items.length}
+                  onChange={toggleAll}
+                  aria-label="Select all"
+                />
+                <span className="text-xs text-slate-500">Select all</span>
+              </div>
+              <div className="grid gap-3">
+                {appointmentResult.items.map((item) => (
+                  <div key={item.id} className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      className="mt-4 size-4 accent-emerald-500"
+                      checked={selectedIds.has(item.id)}
+                      onChange={() => toggleSelect(item.id)}
+                      aria-label={`Select ${item.id}`}
+                    />
+                    <Link href={`/appointments/${item.id}`} className="flex-1 rounded-2xl border border-slate-800 bg-slate-950/60 p-4 transition hover:border-emerald-500/40">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="font-medium">{item.id}</div>
+                          <div className="text-sm text-slate-400">{formatDateTime(item.startAt)}</div>
+                        </div>
+                        <Badge>{item.status}</Badge>
+                      </div>
+                      <div className="mt-2 text-sm text-slate-300">{formatMoney(item.totalAmount)} · items {item.itemCount}</div>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : null}
-          {appointmentResult ? <Pagination page={page} pageSize={50} totalCount={appointmentResult.totalCount} onPageChange={(p) => { setPage(p); void loadBase(); }} /> : null}
+          {appointmentResult ? <Pagination page={page} pageSize={50} totalCount={appointmentResult.totalCount} onPageChange={setPage} /> : null}
         </Card>
         <Card title="Create direct appointment">
           <form className="grid gap-4" onSubmit={createAppointment}>
@@ -124,6 +232,7 @@ export default function AppointmentsPage() {
           </form>
         </Card>
       </div>
+
     </div>
   );
 }
