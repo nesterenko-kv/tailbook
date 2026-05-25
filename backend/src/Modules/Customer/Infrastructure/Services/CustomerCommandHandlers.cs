@@ -8,6 +8,7 @@ public sealed class CustomerCommandHandlers(
     ClientPortalCustomerUseCases clientPortalCustomerUseCases
 )
     : ICommandHandler<CreateCustomerClientCommand, ClientDetailView>,
+      ICommandHandler<UpdateCustomerClientCommand, ClientDetailView?>,
       ICommandHandler<AddCustomerContactPersonCommand, ContactPersonView?>,
       ICommandHandler<AddCustomerContactMethodCommand, ErrorOr<ContactMethodView>>,
       ICommandHandler<LinkCustomerContactToPetCommand, PetContactLinkView?>,
@@ -16,6 +17,11 @@ public sealed class CustomerCommandHandlers(
     public Task<ClientDetailView> ExecuteAsync(CreateCustomerClientCommand command, CancellationToken cancellationToken)
     {
         return customerUseCases.CreateClientAsync(command.DisplayName, command.Notes, cancellationToken);
+    }
+
+    public Task<ClientDetailView?> ExecuteAsync(UpdateCustomerClientCommand command, CancellationToken cancellationToken)
+    {
+        return customerUseCases.UpdateClientAsync(command.ClientId, command.DisplayName, command.Notes, cancellationToken);
     }
 
     public Task<ContactPersonView?> ExecuteAsync(AddCustomerContactPersonCommand command, CancellationToken cancellationToken)

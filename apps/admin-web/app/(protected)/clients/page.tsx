@@ -5,13 +5,15 @@ import { FormEvent, useEffect, useState } from "react";
 import { apiRequest, ApiError } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import type { ClientListItem, PagedResult } from "@/lib/types";
-import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, PrimaryButton, SuccessBanner, TextArea } from "@/components/ui";
+import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, PrimaryButton, SecondaryButton, SuccessBanner, TextArea } from "@/components/ui";
 import { Pagination } from "@/components/pagination";
 import { SortControl } from "@/components/sort-control";
 
 export default function ClientsPage() {
     const [clientResult, setClientResult] = useState<PagedResult<ClientListItem> | null>(null);
     const [search, setSearch] = useState("");
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editName, setEditName] = useState("");
     const [page, setPage] = useState(1);
     const [sortBy, setSortBy] = useState("displayName");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -97,16 +99,65 @@ export default function ClientsPage() {
                     />
                     <div className="grid gap-3">
                         {clientResult?.items.map((client) => (
-                            <Link key={client.id} href={`/clients/${client.id}`} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 transition hover:border-emerald-500/40">
+                            <div key={client.id} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 transition hover:border-emerald-500/40">
                                 <div className="flex items-start justify-between gap-4">
-                                    <div>
-                                        <h3 className="font-medium">{client.displayName}</h3>
+                                    <div className="flex-1">
+                                        {editingId === client.id ? (
+                                            <div className="flex items-center gap-2">
+                                                <Input
+                                                    value={editName}
+                                                    onChange={(e) => setEditName(e.target.value)}
+                                                    maxLength={200}
+                                                    className="flex-1"
+                                                    autoFocus
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Escape") setEditingId(null);
+                                                        if (e.key === "Enter" && editName.trim()) {
+                                                            apiRequest(`/api/admin/clients/${client.id}`, {
+                                                                method: "PUT",
+                                                                body: JSON.stringify({ displayName: editName.trim() })
+                                                            }).then(() => {
+                                                                setEditingId(null);
+                                                                void loadClients(search, page, sortBy, sortDirection);
+                                                            }).catch(() => setEditingId(null));
+                                                        }
+                                                    }}
+                                                />
+                                                <SecondaryButton
+                                                    type="button"
+                                                    className="px-3 py-1 text-xs"
+                                                    onClick={() => {
+                                                        if (editName.trim()) {
+                                                            apiRequest(`/api/admin/clients/${client.id}`, {
+                                                                method: "PUT",
+                                                                body: JSON.stringify({ displayName: editName.trim() })
+                                                            }).then(() => {
+                                                                setEditingId(null);
+                                                                void loadClients(search, page, sortBy, sortDirection);
+                                                            }).catch(() => setEditingId(null));
+                                                        }
+                                                    }}
+                                                >
+                                                    Save
+                                                </SecondaryButton>
+                                                <SecondaryButton type="button" className="px-3 py-1 text-xs" onClick={() => setEditingId(null)}>Cancel</SecondaryButton>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                className="group flex items-center gap-2"
+                                                onClick={() => { setEditingId(client.id); setEditName(client.displayName); }}
+                                            >
+                                                <h3 className="font-medium text-left">{client.displayName}</h3>
+                                                <span className="text-xs text-slate-600 opacity-0 transition group-hover:opacity-100">✎</span>
+                                            </button>
+                                        )}
                                         <p className="mt-1 text-sm text-slate-400">Created {formatDateTime(client.createdAt)}</p>
                                     </div>
                                     <Badge>{client.status}</Badge>
                                 </div>
                                 <p className="mt-3 text-sm text-slate-300">Contacts: {client.contactCount}</p>
-                            </Link>
+                            </div>
                         ))}
                         {!isLoading && (!clientResult || clientResult.items.length === 0) ? <EmptyState title="No clients found" description="Create a client or adjust search." /> : null}
                     </div>

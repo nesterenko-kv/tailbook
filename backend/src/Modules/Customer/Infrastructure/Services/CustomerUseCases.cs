@@ -158,6 +158,18 @@ public sealed class CustomerUseCases(
         return new ClientDetailView(client.Id, client.DisplayName, client.Status, client.Notes, [], [], client.CreatedAt, client.UpdatedAt);
     }
 
+    public async Task<ClientDetailView?> UpdateClientAsync(Guid clientId, string displayName, string? notes, CancellationToken cancellationToken)
+    {
+        var client = await dbContext.Set<Client>().SingleOrDefaultAsync(x => x.Id == clientId, cancellationToken);
+        if (client is null) return null;
+
+        var utcNow = timeProvider.GetUtcNow();
+        client.ChangeDetails(displayName, notes, utcNow);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new ClientDetailView(client.Id, client.DisplayName, client.Status, client.Notes, [], [], client.CreatedAt, client.UpdatedAt);
+    }
+
     public async Task<ContactPersonView?> AddContactPersonAsync(Guid clientId, string firstName, string? lastName, string? notes, string? trustLevel, CancellationToken cancellationToken)
     {
         var client = await dbContext.Set<Client>().SingleOrDefaultAsync(x => x.Id == clientId, cancellationToken);

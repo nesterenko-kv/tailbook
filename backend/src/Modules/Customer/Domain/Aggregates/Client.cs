@@ -43,6 +43,13 @@ public sealed class Client : AggregateRoot
         return client;
     }
 
+    public void ChangeDetails(string displayName, string? notes, DateTimeOffset utcNow)
+    {
+        DisplayName = displayName.Trim();
+        Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+        UpdatedAt = utcNow.ToUniversalTime();
+    }
+
     public ContactPerson AddContactPerson(
         string firstName,
         string? lastName,

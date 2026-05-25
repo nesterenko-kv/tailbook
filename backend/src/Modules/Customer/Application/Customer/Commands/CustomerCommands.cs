@@ -5,6 +5,11 @@ namespace Tailbook.Modules.Customer.Application.Customer.Commands;
 
 public sealed record CreateCustomerClientCommand(string DisplayName, string? Notes) : ICommand<ClientDetailView>;
 
+public sealed record UpdateCustomerClientCommand(
+    Guid ClientId,
+    string DisplayName,
+    string? Notes) : ICommand<ClientDetailView?>;
+
 public sealed record AddCustomerContactPersonCommand(
     Guid ClientId,
     string FirstName,
