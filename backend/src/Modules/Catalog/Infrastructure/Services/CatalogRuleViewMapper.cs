@@ -21,7 +21,8 @@ internal static class CatalogRuleViewMapper
                 condition?.BreedGroupId,
                 condition?.CoatTypeId,
                 condition?.SizeCategoryId),
-            rule.CreatedAt);
+            rule.CreatedAt
+        );
     }
 
     public static DurationRuleView ToView(DurationRule rule, DurationRuleCondition? condition, CommercialOffer offer)
@@ -43,7 +44,8 @@ internal static class CatalogRuleViewMapper
                 condition?.BreedGroupId,
                 condition?.CoatTypeId,
                 condition?.SizeCategoryId),
-            rule.CreatedAt);
+            rule.CreatedAt
+        );
     }
 
     private static RuleConditionView ToConditionView(
@@ -51,7 +53,8 @@ internal static class CatalogRuleViewMapper
         Guid? breedId,
         Guid? breedGroupId,
         Guid? coatTypeId,
-        Guid? sizeCategoryId)
+        Guid? sizeCategoryId
+    )
     {
         return new RuleConditionView(animalTypeId, breedId, breedGroupId, coatTypeId, sizeCategoryId);
     }

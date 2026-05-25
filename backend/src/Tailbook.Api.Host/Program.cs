@@ -102,7 +102,8 @@ var telemetryResourceBuilder = ResourceBuilder.CreateDefault().AddService(teleme
 builder.Services.AddOptions<DatabaseConnectionOptions>()
     .Configure(options => options.Main = mainConnectionString)
     .Validate(DatabaseConnectionOptions.HasValidMainConnectionString,
-        "ConnectionStrings:Main must be a valid PostgreSQL connection string with Host, Database, and Username.")
+        "ConnectionStrings:Main must be a valid PostgreSQL connection string with Host, Database, and Username."
+    )
     .ValidateOnStart();
 
 builder.Services.AddOptions<SensitivePayloadProtectionOptions>()

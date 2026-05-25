@@ -74,6 +74,12 @@ csharp_new_line_before_members_in_object_initializers = true
 csharp_new_line_before_members_in_anonymous_types = true
 csharp_new_line_between_query_expression_clauses = true
 
+# ReSharper: closing parenthesis on its own line for multi-line calls/declarations
+resharper_csharp_place_method_call_open_parenthesis_on_new_line = false
+resharper_csharp_place_method_call_close_parenthesis_on_new_line = true
+resharper_csharp_place_constructor_initializer_open_parenthesis_on_new_line = false
+resharper_csharp_place_constructor_initializer_close_parenthesis_on_new_line = true
+
 # DevelopmentDemoSalonSeeder uses record primary constructor params as local seed data;
 # suppress naming rule IDE1006 to avoid conflicts with record auto-property conventions.
 [backend/src/Tailbook.Api.Host/Infrastructure/DevelopmentDemoSalonSeeder.cs]

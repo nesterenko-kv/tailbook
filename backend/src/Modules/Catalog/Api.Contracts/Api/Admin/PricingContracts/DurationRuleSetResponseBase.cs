@@ -28,7 +28,8 @@ public class DurationRuleSetResponseBase
             ValidTo = view.ValidTo,
             CreatedAt = view.CreatedAt,
             PublishedAt = view.PublishedAt,
-            Rules = view.Rules.Select(DurationRuleResponseBase.FromView).ToArray()
+            Rules = view.Rules.Select(DurationRuleResponseBase.FromView).ToArray(
+        )
         };
     }
 }

@@ -35,7 +35,8 @@ public sealed class BookingRequest : AggregateRoot
         string? guestIntakeJson,
         string? preferredTimeJson,
         string? notes,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         var createdAt = utcNow.ToUniversalTime();
         var entity = new BookingRequest

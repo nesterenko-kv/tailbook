@@ -9,7 +9,8 @@ namespace Tailbook.Modules.Catalog.Api.Admin.GetOfferById;
 
 public sealed class GetOfferByIdEndpoint(
     ICatalogReadService catalogReadService,
-    IEntityScopeService entityScopeService)
+    IEntityScopeService entityScopeService
+)
     : Endpoint<GetOfferByIdRequest, OfferResponse>
 {
     public override void Configure()

@@ -9,7 +9,8 @@ namespace Tailbook.Modules.Catalog.Infrastructure.Services.CommandHandlers;
 public sealed class CreateCatalogPriceRuleCommandHandler(
     AppDbContext dbContext,
     IPetTaxonomyValidationService petTaxonomyValidationService,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider
+)
     : ICommandHandler<CreateCatalogPriceRuleCommand, ErrorOr<PriceRuleView>>
 {
     public async Task<ErrorOr<PriceRuleView>> ExecuteAsync(CreateCatalogPriceRuleCommand command, CancellationToken cancellationToken)

@@ -34,7 +34,8 @@ public sealed class Visit : AggregateRoot
         Guid appointmentId,
         IReadOnlyCollection<VisitExecutionItemDraft> executionItems,
         Guid? actorUserId,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         List<Error> errors = [];
 
@@ -139,7 +140,8 @@ public sealed class Visit : AggregateRoot
         Guid visitExecutionItemId,
         VisitPerformedProcedureDraft procedure,
         Guid? actorUserId,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         var editable = EnsureEditable();
         if (editable.IsError)
@@ -167,7 +169,8 @@ public sealed class Visit : AggregateRoot
         Guid visitExecutionItemId,
         VisitSkippedComponentDraft component,
         Guid? actorUserId,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         var editable = EnsureEditable();
         if (editable.IsError)
@@ -194,7 +197,8 @@ public sealed class Visit : AggregateRoot
     public ErrorOr<VisitPriceAdjustment> ApplyPriceAdjustment(
         VisitPriceAdjustmentDraft adjustment,
         Guid? actorUserId,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         if (adjustment is null)
         {

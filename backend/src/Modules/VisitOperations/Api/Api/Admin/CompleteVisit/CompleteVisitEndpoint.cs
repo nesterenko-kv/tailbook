@@ -7,7 +7,8 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 namespace Tailbook.Modules.VisitOperations.Api.Admin.CompleteVisit;
 
 public sealed class CompleteVisitEndpoint(
-    IEntityScopeService entityScopeService)
+    IEntityScopeService entityScopeService
+)
     : Endpoint<CompleteVisitRequest, VisitDetailView>
 {
     public override void Configure()
@@ -23,7 +24,8 @@ public sealed class CompleteVisitEndpoint(
             EntityScopeResourceTypes.Visit,
             req.VisitId.ToString("D"),
             req.ActorUserId,
-            ct);
+            ct
+        );
         if (scopeResult.IsError)
         {
             await Send.ResultAsync(scopeResult.Errors.ToHttpResult());

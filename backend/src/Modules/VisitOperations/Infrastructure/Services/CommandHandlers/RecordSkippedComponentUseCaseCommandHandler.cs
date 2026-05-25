@@ -11,7 +11,8 @@ public sealed class RecordSkippedComponentUseCaseCommandHandler(
     IVisitReadService visitReadService,
     IAppointmentVisitService appointmentVisitService,
     IVisitCatalogReadService visitCatalogReadService,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider
+)
     : ICommandHandler<RecordSkippedComponentUseCaseCommand, ErrorOr<VisitDetailView>>
 {
     public async Task<ErrorOr<VisitDetailView>> ExecuteAsync(RecordSkippedComponentUseCaseCommand command, CancellationToken ct = default)

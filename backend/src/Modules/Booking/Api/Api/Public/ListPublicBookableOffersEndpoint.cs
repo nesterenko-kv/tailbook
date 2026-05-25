@@ -9,7 +9,8 @@ namespace Tailbook.Modules.Booking.Api.Public;
 
 public sealed class ListPublicBookableOffersEndpoint(
     IClientPortalActorService actorService,
-    PublicBookingReadService queries)
+    PublicBookingReadService queries
+)
     : Endpoint<PublicBookableOffersRequest, IReadOnlyCollection<ClientBookableOfferResponse>>
 {
     public override void Configure()

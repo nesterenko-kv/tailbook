@@ -15,6 +15,7 @@ public sealed record OfferExecutionComponentInfo(
     string ProcedureName,
     string ComponentRole,
     int SequenceNo,
-    bool DefaultExpected);
+    bool DefaultExpected
+);
 
 public sealed record ProcedureReadModel(Guid Id, string Code, string Name, bool IsActive);

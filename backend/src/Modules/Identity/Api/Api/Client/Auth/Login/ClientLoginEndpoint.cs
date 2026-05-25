@@ -40,7 +40,8 @@ public sealed class ClientLoginEndpoint(
             requestIpAddress: null,
             userAgent: null,
             deviceTrustToken: null,
-            cancellationToken: ct);
+            cancellationToken: ct
+        );
         if (result.IsError)
         {
             await loginThrottling.RecordFailureAsync(req.Email, ct);

@@ -18,7 +18,8 @@ public sealed class PriceRuleCondition
         Guid? breedId,
         Guid? breedGroupId,
         Guid? coatTypeId,
-        Guid? sizeCategoryId)
+        Guid? sizeCategoryId
+    )
     {
         return new PriceRuleCondition
         {

@@ -5,7 +5,8 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 namespace Tailbook.Modules.Booking.Api.Groomer.ListMyAppointments;
 
 public sealed class ListMyAppointmentsEndpoint(
-    IGroomerBookingReadService groomerBookingReadService)
+    IGroomerBookingReadService groomerBookingReadService
+)
     : Endpoint<ListMyAppointmentsRequest, PagedResult<GroomerAppointmentListItemView>>
 {
     public override void Configure()

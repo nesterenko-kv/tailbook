@@ -12,7 +12,8 @@ public sealed class CheckInAppointmentUseCaseCommandHandler(
     IVisitReadService visitReadService,
     IAppointmentVisitService appointmentVisitService,
     IAuditTrailService auditTrailService,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider
+)
     : ICommandHandler<CheckInAppointmentUseCaseCommand, ErrorOr<VisitDetailView>>
 {
     public async Task<ErrorOr<VisitDetailView>> ExecuteAsync(CheckInAppointmentUseCaseCommand command, CancellationToken ct = default)
@@ -51,7 +52,8 @@ public sealed class CheckInAppointmentUseCaseCommandHandler(
                 x.ServiceMinutes,
                 x.ReservedMinutes)).ToArray(),
             command.ActorUserId,
-            utcNow);
+            utcNow
+        );
         if (visitResult.IsError)
         {
             return visitResult.Errors;
@@ -69,7 +71,8 @@ public sealed class CheckInAppointmentUseCaseCommandHandler(
             command.ActorUserId,
             null,
             JsonSerializer.Serialize(new { visit.Status }),
-            ct);
+            ct
+        );
 
         return await ReadVisitAsync(visit.Id, command.ActorUserId, ct);
     }

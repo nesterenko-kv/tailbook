@@ -8,7 +8,8 @@ namespace Tailbook.Modules.VisitOperations.Api.Admin.GetVisitDetail;
 
 public sealed class GetVisitDetailEndpoint(
     IVisitReadService visitReadService,
-    IEntityScopeService entityScopeService)
+    IEntityScopeService entityScopeService
+)
     : Endpoint<GetVisitDetailRequest, VisitDetailView>
 {
     public override void Configure()

@@ -20,6 +20,7 @@ public sealed record GroomerCreatedDomainEvent(
             GroomerId,
             UserId,
             DisplayName,
-            Active);
+            Active
+        );
     }
 }

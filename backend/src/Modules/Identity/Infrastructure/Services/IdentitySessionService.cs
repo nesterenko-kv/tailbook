@@ -14,7 +14,8 @@ public sealed class IdentitySessionService(
         IdentityUser user,
         IReadOnlyCollection<string> roles,
         IReadOnlyCollection<string> permissions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var accessToken = jwtTokenFactory.CreateToken(user.Id.ToString("D"), user.SubjectId, user.Email, user.DisplayName, user.ClientId, user.ContactPersonId, roles, permissions);
         var refreshToken = await refreshTokenService.IssueAsync(user.Id, cancellationToken);
@@ -107,7 +108,8 @@ public sealed class IdentitySessionService(
                 dbContext.Set<IdentityRole>(),
                 assignment => assignment.RoleId,
                 role => role.Id,
-                (_, role) => role.Code)
+                (_, role) => role.Code
+            )
             .Distinct()
             .OrderBy(x => x)
             .AsAsyncEnumerable()
@@ -122,12 +124,14 @@ public sealed class IdentitySessionService(
                 dbContext.Set<RolePermission>(),
                 assignment => assignment.RoleId,
                 rolePermission => rolePermission.RoleId,
-                (_, rolePermission) => rolePermission.PermissionId)
+                (_, rolePermission) => rolePermission.PermissionId
+            )
             .Join(
                 dbContext.Set<IdentityPermission>(),
                 permissionId => permissionId,
                 permission => permission.Id,
-                (_, permission) => permission.Code)
+                (_, permission) => permission.Code
+            )
             .Distinct()
             .OrderBy(x => x)
             .AsAsyncEnumerable()

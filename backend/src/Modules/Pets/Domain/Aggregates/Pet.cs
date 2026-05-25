@@ -31,7 +31,8 @@ public sealed class Pet : AggregateRoot
         DateOnly? birthDate,
         decimal? weightKg,
         string? notes,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         var pet = new Pet
         {
@@ -46,7 +47,8 @@ public sealed class Pet : AggregateRoot
             WeightKg = weightKg,
             Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim(),
             CreatedAt = utcNow.ToUniversalTime(),
-            UpdatedAt = utcNow.ToUniversalTime()
+            UpdatedAt = utcNow.ToUniversalTime(
+        )
         };
 
         pet.RaiseDomainEvent(new PetCreatedDomainEvent(
@@ -75,7 +77,8 @@ public sealed class Pet : AggregateRoot
         DateOnly? birthDate,
         decimal? weightKg,
         string? notes,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         Name = name.Trim();
         AnimalTypeId = animalTypeId;

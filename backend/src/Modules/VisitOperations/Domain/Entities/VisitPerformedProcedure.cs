@@ -23,7 +23,8 @@ public sealed class VisitPerformedProcedure
         Guid visitExecutionItemId,
         VisitPerformedProcedureDraft procedure,
         Guid? recordedByUserId,
-        DateTimeOffset recordedAt)
+        DateTimeOffset recordedAt
+    )
     {
         List<Error> errors = [];
 
@@ -72,7 +73,8 @@ public sealed class VisitPerformedProcedure
             Status = ProcedureExecutionStatusCodes.Performed,
             Note = NormalizeOptional(procedure.Note),
             RecordedByUserId = recordedByUserId,
-            RecordedAt = recordedAt.ToUniversalTime()
+            RecordedAt = recordedAt.ToUniversalTime(
+        )
         };
     }
 

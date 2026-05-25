@@ -7,17 +7,20 @@ public interface IAppointmentOverlapReadService
         DateTimeOffset startAt,
         DateTimeOffset endAt,
         Guid? ignoredAppointmentId,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 
     Task<IReadOnlyCollection<AppointmentBusyIntervalReadModel>> ListBusyIntervalsAsync(
         Guid groomerId,
         DateTimeOffset from,
         DateTimeOffset to,
         Guid? ignoredAppointmentId,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 }
 
 public sealed record AppointmentBusyIntervalReadModel(
     Guid AppointmentId,
     DateTimeOffset StartAt,
-    DateTimeOffset EndAt);
+    DateTimeOffset EndAt
+);

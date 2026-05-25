@@ -20,7 +20,8 @@ public sealed class DomainEventToOutboxInterceptor : SaveChangesInterceptor
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
         InterceptionResult<int> result,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         StageDomainEvents(eventData.Context);
         return ValueTask.FromResult(result);
@@ -50,7 +51,8 @@ public sealed class DomainEventToOutboxInterceptor : SaveChangesInterceptor
                     domainEvent.ModuleCode,
                     domainEvent.EventType,
                     domainEvent.EventId,
-                    payloadSizeBytes);
+                    payloadSizeBytes
+                );
 
                 dbContext.Set<OutboxMessage>().Add(new OutboxMessage
                 {

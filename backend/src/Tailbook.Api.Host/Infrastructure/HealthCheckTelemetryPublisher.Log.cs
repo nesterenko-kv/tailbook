@@ -8,7 +8,8 @@ public sealed partial class HealthCheckTelemetryPublisher
         Message = "Health check report {HealthStatus} in {DurationMilliseconds} ms.")]
     public partial void LogHealthCheckReportHealthy(
         string healthStatus,
-        double durationMilliseconds);
+        double durationMilliseconds
+    );
 
     [LoggerMessage(
         EventId = 1201,
@@ -16,7 +17,8 @@ public sealed partial class HealthCheckTelemetryPublisher
         Message = "Health check report {HealthStatus} in {DurationMilliseconds} ms.")]
     public partial void LogHealthCheckReportNotHealthy(
         string healthStatus,
-        double durationMilliseconds);
+        double durationMilliseconds
+    );
 
     [LoggerMessage(
         EventId = 1202,
@@ -27,5 +29,6 @@ public sealed partial class HealthCheckTelemetryPublisher
         string healthCheckName,
         string healthStatus,
         double durationMilliseconds,
-        string errorType);
+        string errorType
+    );
 }

@@ -13,7 +13,8 @@ public sealed class CompleteVisitUseCaseCommandHandler(
     IAppointmentVisitService appointmentVisitService,
     IVisitCatalogReadService visitCatalogReadService,
     IAuditTrailService auditTrailService,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider
+)
     : ICommandHandler<CompleteVisitUseCaseCommand, ErrorOr<VisitDetailView>>
 {
     public async Task<ErrorOr<VisitDetailView>> ExecuteAsync(CompleteVisitUseCaseCommand command, CancellationToken ct = default)
@@ -56,7 +57,8 @@ public sealed class CompleteVisitUseCaseCommandHandler(
             command.ActorUserId,
             null,
             JsonSerializer.Serialize(new { visit.Value.Status, visit.Value.CompletedAt }),
-            ct);
+            ct
+        );
 
         return await ReadVisitAsync(command.VisitId, command.ActorUserId, ct);
     }

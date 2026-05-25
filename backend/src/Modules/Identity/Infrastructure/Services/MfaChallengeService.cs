@@ -26,7 +26,8 @@ public sealed class MfaChallengeService(
         Guid userId,
         string? requestIpAddress,
         string? userAgent,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var user = await dbContext.Set<IdentityUser>()
             .SingleOrDefaultAsync(x => x.Id == userId && x.Status == UserStatusCodes.Active, cancellationToken);
@@ -92,13 +93,15 @@ public sealed class MfaChallengeService(
             entity.FactorType,
             factor.TargetEmail,
             code,
-            entity.ExpiresAt);
+            entity.ExpiresAt
+        );
     }
 
     public async Task<ErrorOr<MfaChallengeVerificationResult>> VerifyEmailOtpChallengeAsync(
         Guid challengeId,
         string code,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (string.IsNullOrWhiteSpace(code))
         {
@@ -158,7 +161,8 @@ public sealed class MfaChallengeService(
     public async Task<ErrorOr<MfaChallengeVerificationResult>> VerifyRecoveryCodeChallengeAsync(
         Guid challengeId,
         string recoveryCode,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var normalizedRecoveryCode = NormalizeRecoveryCode(recoveryCode);
         if (string.IsNullOrWhiteSpace(normalizedRecoveryCode))
@@ -258,7 +262,8 @@ public sealed class MfaChallengeService(
         IdentityMfaChallenge challenge,
         string actionCode,
         string? reason,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return auditTrailService.RecordAsync(
             ModuleCode,
@@ -279,14 +284,16 @@ public sealed class MfaChallengeService(
                 challenge.LastFailedAt,
                 reason
             }),
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     private ValueTask RecordUnknownChallengeAuditAsync(
         Guid challengeId,
         string actionCode,
         string reason,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return auditTrailService.RecordAsync(
             ModuleCode,
@@ -296,14 +303,16 @@ public sealed class MfaChallengeService(
             null,
             null,
             JsonSerializer.Serialize(new { reason }),
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     private ValueTask RecordRecoveryCodeAuditAsync(
         IdentityMfaRecoveryCode recoveryCode,
         string actionCode,
         string? reason,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return auditTrailService.RecordAsync(
             ModuleCode,
@@ -322,6 +331,7 @@ public sealed class MfaChallengeService(
                 recoveryCode.InvalidatedAt,
                 reason
             }),
-            cancellationToken);
+            cancellationToken
+        );
     }
 }

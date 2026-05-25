@@ -37,7 +37,8 @@ public sealed class ClientPortalPetsReadService(AppDbContext dbContext) : IClien
             pet.CoatTypeId is null ? null : coatTypes[pet.CoatTypeId.Value].Code,
             pet.SizeCategoryId is null ? null : sizeCategories[pet.SizeCategoryId.Value].Code,
             pet.Notes,
-            photoMap.GetValueOrDefault(pet.Id))).ToArray();
+            photoMap.GetValueOrDefault(pet.Id))).ToArray(
+        );
     }
 
     public async Task<ClientPetDetailView?> GetMyPetAsync(Guid clientId, Guid petId, CancellationToken cancellationToken)
@@ -72,6 +73,7 @@ public sealed class ClientPortalPetsReadService(AppDbContext dbContext) : IClien
             pet.BirthDate,
             pet.WeightKg,
             pet.Notes,
-            photos);
+            photos
+        );
     }
 }

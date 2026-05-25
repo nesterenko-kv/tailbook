@@ -19,7 +19,8 @@ public sealed class PreviewQuoteEndpoint(BookingQuoteReadService bookingQuoteRea
         var result = await bookingQuoteReadService.PreviewQuoteAsync(
             new PreviewQuoteQuery(req.PetId, req.GroomerId, req.Items.Select(x => new PreviewQuoteItemQuery(x.OfferId, x.ItemType)).ToArray()),
             req.ActorUserId,
-            ct);
+            ct
+        );
 
         if (result.IsError)
         {

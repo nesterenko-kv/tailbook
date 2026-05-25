@@ -7,7 +7,8 @@ namespace Tailbook.Modules.Booking.Api.Public;
 
 public sealed class BuildPublicBookingPlannerEndpoint(
     IClientPortalActorService actorService,
-    PublicBookingReadService queries)
+    PublicBookingReadService queries
+)
     : Endpoint<PublicBookingPlannerRequest, PublicBookingPlannerResponse>
 {
     public override void Configure()
@@ -33,7 +34,8 @@ public sealed class BuildPublicBookingPlannerEndpoint(
                 PublicBookingEndpointMapper.MapPet(req.Pet),
                 localDate,
                 req.Items.Select(x => new PreviewQuoteItemQuery(x.OfferId, x.ItemType)).ToArray()),
-            ct);
+            ct
+        );
 
         if (result.IsError)
         {
@@ -52,7 +54,8 @@ public sealed class BuildPublicBookingPlannerEndpoint(
                 CanTakeRequest = x.CanTakeRequest,
                 ReservedMinutes = x.ReservedMinutes,
                 Reasons = x.Reasons.ToArray(),
-                Slots = x.Slots.Select(PublicBookingEndpointMapper.MapSlot).ToArray()
+                Slots = x.Slots.Select(PublicBookingEndpointMapper.MapSlot).ToArray(
+            )
             }).ToArray()
         }, ct);
     }

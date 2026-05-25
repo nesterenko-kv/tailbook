@@ -4,4 +4,5 @@ public sealed record NotificationJobListQuery(
     string? Status,
     string? EventType,
     DateTimeOffset? CreatedFrom,
-    DateTimeOffset? CreatedTo);
+    DateTimeOffset? CreatedTo
+);

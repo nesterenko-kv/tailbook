@@ -85,11 +85,13 @@ public sealed class BookingManagementReadService(
                     summary?.RequesterPrimaryContact,
                     summary?.PreferredGroomerName,
                     x.CreatedAt,
-                    x.UpdatedAt);
+                    x.UpdatedAt
+                );
             }).ToArray(),
             safePage,
             safePageSize,
-            totalCount);
+            totalCount
+        );
     }
 
     public async Task<BookingRequestDetailView?> GetBookingRequestAsync(Guid bookingRequestId, CancellationToken cancellationToken)
@@ -121,7 +123,8 @@ public sealed class BookingManagementReadService(
             bookingRequest.Notes,
             items.Select(x => new BookingRequestItemView(x.Id, x.OfferId, x.OfferVersionId, x.ItemType, x.RequestedNotes)).ToArray(),
             bookingRequest.CreatedAt,
-            bookingRequest.UpdatedAt);
+            bookingRequest.UpdatedAt
+        );
     }
 
     public async Task<Guid?> GetAppointmentIdByBookingRequestAsync(Guid bookingRequestId, CancellationToken cancellationToken)
@@ -215,7 +218,8 @@ public sealed class BookingManagementReadService(
                 totals.GetValueOrDefault(x.Id, 0m))).ToArray(),
             safePage,
             safePageSize,
-            totalCount);
+            totalCount
+        );
     }
 
     public async Task<AppointmentDetailView?> GetAppointmentAsync(Guid appointmentId, CancellationToken cancellationToken)
@@ -276,7 +280,8 @@ public sealed class BookingManagementReadService(
             appointment.CancellationNotes,
             appointment.CancelledAt,
             appointment.CreatedAt,
-            appointment.UpdatedAt);
+            appointment.UpdatedAt
+        );
     }
 
     private async Task<Dictionary<Guid, BookingRequestSubjectView>> BuildBookingRequestSummariesAsync(IReadOnlyCollection<BookingRequest> bookingRequests, CancellationToken cancellationToken)
@@ -327,7 +332,8 @@ public sealed class BookingManagementReadService(
             requesterDisplayName,
             requesterPrimaryContact,
             preferredGroomerName,
-            guestIntake);
+            guestIntake
+        );
     }
 
     private static IReadOnlyCollection<PreferredTimeWindowView> DeserializePreferredTimes(string? json)

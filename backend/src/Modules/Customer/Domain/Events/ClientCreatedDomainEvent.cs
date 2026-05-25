@@ -20,6 +20,7 @@ public sealed record ClientCreatedDomainEvent(
             ClientId,
             DisplayName,
             Status,
-            Notes);
+            Notes
+        );
     }
 }

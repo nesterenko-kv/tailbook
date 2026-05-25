@@ -8,7 +8,8 @@ namespace Tailbook.Modules.Customer.Api.Admin.GetClientDetail;
 
 public sealed class GetClientDetailEndpoint(
     ICustomerReadService customerReadService,
-    IEntityScopeService entityScopeService)
+    IEntityScopeService entityScopeService
+)
     : Endpoint<GetClientDetailRequest, GetClientDetailResponse>
 {
     public override void Configure()

@@ -25,7 +25,8 @@ public sealed class ImportBatch
         int totalRows,
         IReadOnlyCollection<ImportValidationIssue> issues,
         Guid? actorUserId,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt
+    )
     {
         var errorRowCount = issues.Select(x => x.RowNumber).Distinct().Count();
         return new ImportBatch
@@ -38,7 +39,8 @@ public sealed class ImportBatch
             ValidRows = Math.Max(0, totalRows - errorRowCount),
             ErrorRows = errorRowCount,
             ActorUserId = actorUserId,
-            CreatedAt = createdAt.ToUniversalTime()
+            CreatedAt = createdAt.ToUniversalTime(
+        )
         };
     }
 

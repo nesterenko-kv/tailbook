@@ -24,7 +24,8 @@ public sealed class UpdatePetEndpoint : Endpoint<UpdatePetRequest, UpdatePetResp
             req.SizeCategoryCode,
             req.BirthDate,
             req.WeightKg,
-            req.Notes)
+            req.Notes
+        )
             .ExecuteAsync(ct);
         if (result.IsError)
         {

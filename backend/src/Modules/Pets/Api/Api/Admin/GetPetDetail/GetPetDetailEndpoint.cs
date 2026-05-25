@@ -9,7 +9,8 @@ namespace Tailbook.Modules.Pets.Api.Admin.GetPetDetail;
 public sealed class GetPetDetailEndpoint(
     ICurrentUser currentUser,
     IPetsReadService petsReadService,
-    IEntityScopeService entityScopeService)
+    IEntityScopeService entityScopeService
+)
     : Endpoint<GetPetDetailRequest, GetPetDetailResponse>
 {
     public override void Configure()

@@ -8,15 +8,18 @@ public interface IMfaChallengeService
         Guid userId,
         string? requestIpAddress,
         string? userAgent,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 
     Task<ErrorOr<MfaChallengeVerificationResult>> VerifyEmailOtpChallengeAsync(
         Guid challengeId,
         string code,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 
     Task<ErrorOr<MfaChallengeVerificationResult>> VerifyRecoveryCodeChallengeAsync(
         Guid challengeId,
         string recoveryCode,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 }

@@ -93,7 +93,8 @@ public sealed class IdentityUseCases(AppDbContext dbContext, PasswordHasher pass
             roles,
             permissions,
             user.CreatedAt,
-            user.UpdatedAt);
+            user.UpdatedAt
+        );
     }
 
     public async Task<ErrorOr<UserDetailView>> CreateUserAsync(string email, string displayName, string password, IReadOnlyCollection<string> roleCodes, Guid? assignedByUserId, CancellationToken cancellationToken)
@@ -129,7 +130,8 @@ public sealed class IdentityUseCases(AppDbContext dbContext, PasswordHasher pass
             assignedByUserId,
             null,
             JsonSerializer.Serialize(new { user.Email, user.DisplayName, user.Status }),
-            cancellationToken);
+            cancellationToken
+        );
 
         if (roleCodes.Count > 0)
         {
@@ -199,7 +201,8 @@ public sealed class IdentityUseCases(AppDbContext dbContext, PasswordHasher pass
             assignedByUserId,
             JsonSerializer.Serialize(new { roleCodes = existingRoleCodes }),
             JsonSerializer.Serialize(new { roleCodes = roles.Select(x => x.Code).OrderBy(x => x).ToArray() }),
-            cancellationToken);
+            cancellationToken
+        );
         return await GetUserAsync(userId, cancellationToken);
     }
 
@@ -229,7 +232,8 @@ public sealed class IdentityUseCases(AppDbContext dbContext, PasswordHasher pass
                 dbContext.Set<IdentityRole>(),
                 assignment => assignment.RoleId,
                 role => role.Id,
-                (_, role) => role.Code)
+                (_, role) => role.Code
+            )
             .Distinct()
             .OrderBy(x => x)
             .AsAsyncEnumerable()
@@ -244,12 +248,14 @@ public sealed class IdentityUseCases(AppDbContext dbContext, PasswordHasher pass
                 dbContext.Set<RolePermission>(),
                 assignment => assignment.RoleId,
                 rolePermission => rolePermission.RoleId,
-                (_, rolePermission) => rolePermission.PermissionId)
+                (_, rolePermission) => rolePermission.PermissionId
+            )
             .Join(
                 dbContext.Set<IdentityPermission>(),
                 permissionId => permissionId,
                 permission => permission.Id,
-                (_, permission) => permission.Code)
+                (_, permission) => permission.Code
+            )
             .Distinct()
             .OrderBy(x => x)
             .AsAsyncEnumerable()

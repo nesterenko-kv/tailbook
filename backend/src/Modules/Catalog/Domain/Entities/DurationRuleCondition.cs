@@ -18,7 +18,8 @@ public sealed class DurationRuleCondition
         Guid? breedId,
         Guid? breedGroupId,
         Guid? coatTypeId,
-        Guid? sizeCategoryId)
+        Guid? sizeCategoryId
+    )
     {
         return new DurationRuleCondition
         {

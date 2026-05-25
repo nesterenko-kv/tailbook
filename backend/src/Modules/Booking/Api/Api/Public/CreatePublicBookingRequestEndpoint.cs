@@ -7,7 +7,8 @@ namespace Tailbook.Modules.Booking.Api.Public;
 
 public sealed class CreatePublicBookingRequestEndpoint(
     IClientPortalActorService actorService,
-    PublicBookingReadService publicBookingReadService)
+    PublicBookingReadService publicBookingReadService
+)
     : Endpoint<CreatePublicBookingRequestRequest, BookingRequestDetailView>
 {
     public override void Configure()
@@ -46,7 +47,8 @@ public sealed class CreatePublicBookingRequestEndpoint(
                 req.PreferredGroomerId,
                 req.SelectionMode,
                 PublicBookingEndpointMapper.BuildGuestIntake(req, resolvedPet.Value),
-                req.Pet.PetId.HasValue ? BookingRequestStatusCodes.Submitted : BookingRequestStatusCodes.NeedsReview)
+                req.Pet.PetId.HasValue ? BookingRequestStatusCodes.Submitted : BookingRequestStatusCodes.NeedsReview
+            )
             .ExecuteAsync(ct);
 
         if (result.IsError)

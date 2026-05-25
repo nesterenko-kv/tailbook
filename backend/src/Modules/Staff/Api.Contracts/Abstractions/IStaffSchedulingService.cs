@@ -11,14 +11,16 @@ public interface IStaffSchedulingService
         Guid petId,
         IReadOnlyCollection<Guid> offerIds,
         int baseReservedMinutes,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 
     Task<ErrorOr<ReservedDurationResolution>> ResolveReservedDurationAsync(
         Guid groomerId,
         PetQuoteProfile pet,
         IReadOnlyCollection<Guid> offerIds,
         int baseReservedMinutes,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 
     Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(
         Guid groomerId,
@@ -27,7 +29,8 @@ public interface IStaffSchedulingService
         DateTimeOffset startAt,
         int reservedMinutes,
         Guid? ignoredAppointmentId,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 
     Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(
         Guid groomerId,
@@ -36,12 +39,14 @@ public interface IStaffSchedulingService
         DateTimeOffset startAt,
         int reservedMinutes,
         Guid? ignoredAppointmentId,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 
     Task<IReadOnlyCollection<AvailabilityWindowReadModel>> GetAvailabilityWindowsAsync(
         Guid groomerId,
         DateOnly localDate,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 
     Task<ErrorOr<GroomerAvailableSlotsReadModel>> GetAvailableSlotsAsync(
         Guid groomerId,
@@ -52,25 +57,30 @@ public interface IStaffSchedulingService
         DateTimeOffset earliestStartAt,
         int slotStepMinutes,
         Guid? ignoredAppointmentId,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 }
 
 public sealed record ReservedDurationResolution(
     int BaseReservedMinutes,
     int EffectiveReservedMinutes,
     int ModifierMinutes,
-    IReadOnlyCollection<string> Reasons);
+    IReadOnlyCollection<string> Reasons
+);
 
 public sealed record GroomerAvailabilityCheckResult(
     bool IsAvailable,
     DateTimeOffset EndAt,
     int CheckedReservedMinutes,
-    IReadOnlyCollection<string> Reasons);
+    IReadOnlyCollection<string> Reasons
+);
 
 public sealed record AvailabilityWindowReadModel(
     DateTimeOffset StartAt,
-    DateTimeOffset EndAt);
+    DateTimeOffset EndAt
+);
 
 public sealed record GroomerAvailableSlotsReadModel(
     ReservedDurationResolution Duration,
-    IReadOnlyCollection<AvailabilityWindowReadModel> Slots);
+    IReadOnlyCollection<AvailabilityWindowReadModel> Slots
+);

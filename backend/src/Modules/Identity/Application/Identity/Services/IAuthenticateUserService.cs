@@ -12,5 +12,6 @@ public interface IAuthenticateUserService
         string? requestIpAddress,
         string? userAgent,
         string? deviceTrustToken,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 }

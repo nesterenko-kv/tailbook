@@ -11,7 +11,8 @@ public sealed class CreateAppointmentUseCaseCommandHandler(
     IBookingManagementReadService bookingReadService,
     IBookingSnapshotComposer bookingSnapshotComposer,
     IAuditTrailService auditTrailService,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider
+)
     : ICommandHandler<CreateAppointmentUseCaseCommand, ErrorOr<AppointmentDetailView>>
 {
     public Task<ErrorOr<AppointmentDetailView>> ExecuteAsync(CreateAppointmentUseCaseCommand command, CancellationToken ct = default)
@@ -23,7 +24,8 @@ public sealed class CreateAppointmentUseCaseCommandHandler(
             command.StartAt,
             command.Items.Select(x => new PreviewQuoteItemQuery(x.OfferId, x.ItemType)).ToArray(),
             command.ActorUserId,
-            ct);
+            ct
+        );
     }
 
     public async Task<ErrorOr<AppointmentDetailView>> CreateAppointmentAsync(
@@ -33,7 +35,8 @@ public sealed class CreateAppointmentUseCaseCommandHandler(
         DateTimeOffset startAt,
         IReadOnlyCollection<PreviewQuoteItemQuery> items,
         Guid? actorUserId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var compositionResult = await bookingSnapshotComposer.ComposeAppointmentAsync(
             petId,
@@ -41,7 +44,8 @@ public sealed class CreateAppointmentUseCaseCommandHandler(
             startAt,
             items,
             actorUserId,
-            cancellationToken);
+            cancellationToken
+        );
         if (compositionResult.IsError)
         {
             return compositionResult.Errors;
@@ -71,7 +75,8 @@ public sealed class CreateAppointmentUseCaseCommandHandler(
                 x.PriceSnapshot.Id,
                 x.DurationSnapshot.Id)).ToArray(),
             actorUserId,
-            utcNow);
+            utcNow
+        );
         if (appointmentResult.IsError)
         {
             return appointmentResult.Errors;
@@ -93,7 +98,8 @@ public sealed class CreateAppointmentUseCaseCommandHandler(
             actorUserId,
             null,
             JsonSerializer.Serialize(new { appointment.Status, appointment.VersionNo }),
-            cancellationToken);
+            cancellationToken
+        );
 
         return (await bookingReadService.GetAppointmentAsync(appointment.Id, cancellationToken))!;
     }

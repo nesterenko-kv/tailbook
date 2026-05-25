@@ -11,7 +11,8 @@ public sealed class ConvertBookingRequestToAppointmentUseCaseCommandHandler(
     AppDbContext dbContext,
     CreateAppointmentUseCaseCommandHandler createAppointmentHandler,
     IAuditTrailService auditTrailService,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider
+)
     : ICommandHandler<ConvertBookingRequestToAppointmentUseCaseCommand, ErrorOr<AppointmentDetailView>>
 {
     public async Task<ErrorOr<AppointmentDetailView>> ExecuteAsync(ConvertBookingRequestToAppointmentUseCaseCommand command, CancellationToken ct = default)
@@ -49,7 +50,8 @@ public sealed class ConvertBookingRequestToAppointmentUseCaseCommandHandler(
             command.StartAt,
             requestItems.Select(x => new PreviewQuoteItemQuery(x.OfferId, x.ItemType)).ToArray(),
             command.ActorUserId,
-            ct);
+            ct
+        );
         if (result.IsError)
         {
             return result.Errors;
@@ -69,7 +71,8 @@ public sealed class ConvertBookingRequestToAppointmentUseCaseCommandHandler(
             command.ActorUserId,
             null,
             JsonSerializer.Serialize(new { appointmentId = result.Value.Id }),
-            ct);
+            ct
+        );
 
         return result.Value;
     }

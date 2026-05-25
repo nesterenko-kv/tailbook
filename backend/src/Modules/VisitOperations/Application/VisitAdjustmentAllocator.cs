@@ -4,7 +4,8 @@ public static class VisitAdjustmentAllocator
 {
     public static IReadOnlyDictionary<Guid, decimal> AllocateAdjustmentsPerItem(
         IReadOnlyCollection<VisitItemAdjustment> items,
-        IReadOnlyCollection<VisitAdjustmentFlat> adjustments)
+        IReadOnlyCollection<VisitAdjustmentFlat> adjustments
+    )
     {
         var itemTotals = items.ToDictionary(x => x.ItemId, x => x.TotalAmount);
         var grandTotal = itemTotals.Values.Sum();

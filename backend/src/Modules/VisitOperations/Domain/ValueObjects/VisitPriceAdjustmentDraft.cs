@@ -5,4 +5,5 @@ public sealed record VisitPriceAdjustmentDraft(
     decimal Amount,
     string? ReasonCode,
     string? Note,
-    Guid? TargetItemId = null);
+    Guid? TargetItemId = null
+);

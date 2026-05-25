@@ -20,6 +20,7 @@ public sealed record PriceRuleSetPublishedDomainEvent(
             RuleSetId,
             VersionNo,
             Status,
-            PublishedAt);
+            PublishedAt
+        );
     }
 }

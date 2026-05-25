@@ -5,4 +5,5 @@ public sealed record NotificationDeliveryAttemptView(
     int AttemptNo,
     string Status,
     string? ErrorMessage,
-    DateTimeOffset AttemptedAt);
+    DateTimeOffset AttemptedAt
+);

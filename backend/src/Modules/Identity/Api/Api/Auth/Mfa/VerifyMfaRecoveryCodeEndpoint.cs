@@ -53,7 +53,8 @@ public sealed class VerifyMfaRecoveryCodeEndpoint(
 
         await Send.OkAsync(
             LoginResponseMapper.FromLoginResult(session.Value, browserSession.Value.IncludeRefreshTokenInResponse),
-            cancellation: ct);
+            cancellation: ct
+        );
     }
 }
 

@@ -5,22 +5,26 @@ public sealed record MfaRecoveryCodeGenerationResult(
     Guid BatchId,
     IReadOnlyCollection<string> RecoveryCodes,
     int ActiveCodeCount,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt
+);
 
 public sealed record MfaRecoveryCodeStatus(
     Guid UserId,
     int ActiveCodeCount,
-    DateTimeOffset? LastGeneratedAt);
+    DateTimeOffset? LastGeneratedAt
+);
 
 public sealed record MfaRecoveryCodeConsumptionResult(
     Guid RecoveryCodeId,
     Guid UserId,
     Guid? ChallengeId,
-    DateTimeOffset ConsumedAt);
+    DateTimeOffset ConsumedAt
+);
 
 public sealed record MfaRecoveryResetResult(
     Guid UserId,
     int DisabledFactorCount,
     int InvalidatedRecoveryCodeCount,
     int InvalidatedChallengeCount,
-    DateTimeOffset ResetAt);
+    DateTimeOffset ResetAt
+);

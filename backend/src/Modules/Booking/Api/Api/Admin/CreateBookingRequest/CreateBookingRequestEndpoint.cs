@@ -23,7 +23,8 @@ public sealed class CreateBookingRequestEndpoint : Endpoint<CreateBookingRequest
             req.Notes,
             req.PreferredTimes.Select(x => new PreferredTimeWindowInput(x.StartAt, x.EndAt, x.Label)).ToArray(),
             req.Items.Select(x => new CreateBookingRequestItemInput(x.OfferId, x.ItemType, x.RequestedNotes)).ToArray(),
-            req.ActorUserId)
+            req.ActorUserId
+        )
             .ExecuteAsync(ct);
 
         if (result.IsError)

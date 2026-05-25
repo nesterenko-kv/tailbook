@@ -31,7 +31,8 @@ public sealed class RabbitMqConnectionFactory : IAsyncDisposable
             ClientProvidedName = "tailbook-api",
             AutomaticRecoveryEnabled = true,
             TopologyRecoveryEnabled = true,
-            NetworkRecoveryInterval = TimeSpan.FromSeconds(10)
+            NetworkRecoveryInterval = TimeSpan.FromSeconds(10
+        )
         };
     }
 

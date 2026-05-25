@@ -6,7 +6,8 @@ namespace Tailbook.Modules.Booking.Api.Client;
 
 public sealed class GetMyAppointmentEndpoint(
     IClientPortalActorService actorService,
-    IClientPortalBookingReadService bookingReadService)
+    IClientPortalBookingReadService bookingReadService
+)
     : Endpoint<GetMyAppointmentRequest, ClientAppointmentDetailView>
 {
     public override void Configure()

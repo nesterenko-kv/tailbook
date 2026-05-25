@@ -78,7 +78,8 @@ public sealed class PetsCatalogSeeder : IDataSeeder
                     Code = item.Code,
                     Name = item.Name
                 },
-                cancellationToken);
+                cancellationToken
+            );
         }
     }
 
@@ -204,7 +205,8 @@ public sealed class PetsCatalogSeeder : IDataSeeder
                     Code = item.Code,
                     Name = item.Name
                 },
-                cancellationToken);
+                cancellationToken
+            );
         }
     }
 

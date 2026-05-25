@@ -19,7 +19,8 @@ public sealed class AppointmentVisitService(AppDbContext dbContext, TimeProvider
         DateTimeOffset? from,
         DateTimeOffset? to,
         Guid? groomerId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (appointmentIds.Count == 0)
         {

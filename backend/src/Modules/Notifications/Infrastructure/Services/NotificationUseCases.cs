@@ -223,7 +223,8 @@ public sealed class NotificationUseCases(
         string eventType,
         string payloadJson,
         Guid messageId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var stopwatch = ValueStopwatch.StartNew();
         var utcNow = _timeProvider.GetUtcNow();
@@ -432,7 +433,8 @@ public sealed class NotificationUseCases(
             deadLetterOlder,
             totalDeliveryAttempts,
             successfulDeliveries,
-            successRate);
+            successRate
+        );
     }
 
     public async Task<NotificationProviderHealthView> GetProviderHealthAsync(CancellationToken cancellationToken)
@@ -457,7 +459,8 @@ public sealed class NotificationUseCases(
             lastAttempt?.Status ?? "none",
             lastDayAttempts,
             lastDayFailures,
-            lastAttempt?.ErrorMessage);
+            lastAttempt?.ErrorMessage
+        );
     }
 
     public async Task<NotificationJobDetailView?> GetJobAsync(Guid jobId, CancellationToken cancellationToken)
@@ -490,7 +493,8 @@ public sealed class NotificationUseCases(
             job.SentAt,
             job.NextAttemptAt,
             job.DeadLetteredAt,
-            attempts);
+            attempts
+        );
     }
 
     public async Task<ErrorOr<NotificationJobListItemView>> RequeueJobAsync(Guid jobId, Guid? actorUserId, CancellationToken cancellationToken)
@@ -616,7 +620,8 @@ public sealed class NotificationUseCases(
         NotificationTemplate template,
         string payloadJson,
         DateTimeOffset utcNow,
-        string templateCode)
+        string templateCode
+    )
     {
         if (!IsPasswordResetTemplate(templateCode) && !IsMfaEmailOtpTemplate(templateCode))
         {
@@ -650,14 +655,16 @@ public sealed class NotificationUseCases(
                 template,
                 payloadJson,
                 MfaEmailOtpRedactionReplacements,
-                SensitiveMfaEmailOtpPayloadProperties);
+                SensitiveMfaEmailOtpPayloadProperties
+            );
         }
 
         return RenderTemplate(
             template,
             payloadJson,
             PasswordResetRedactionReplacements,
-            SensitivePasswordResetPayloadProperties);
+            SensitivePasswordResetPayloadProperties
+        );
     }
 
     private TimeSpan CalculateRetryDelay(int attemptCount)
@@ -798,7 +805,8 @@ public sealed class NotificationUseCases(
         string template,
         string payloadJson,
         IReadOnlyDictionary<string, string>? replacements = null,
-        ISet<string>? skippedPayloadProperties = null)
+        ISet<string>? skippedPayloadProperties = null
+    )
     {
         using var document = JsonDocument.Parse(payloadJson);
         var result = template;

@@ -15,4 +15,5 @@ public sealed record BookingRequestDetailView(
     string? Notes,
     IReadOnlyCollection<BookingRequestItemView> Items,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt
+);

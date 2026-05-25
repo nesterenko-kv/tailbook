@@ -34,6 +34,7 @@ public sealed class CreateCatalogOfferCommandHandler(AppDbContext dbContext, Tim
             offer.Value.IsActive,
             [],
             offer.Value.CreatedAt,
-            offer.Value.UpdatedAt);
+            offer.Value.UpdatedAt
+        );
     }
 }

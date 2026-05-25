@@ -10,4 +10,5 @@ public sealed record GroomerAppointmentItemView(
     int Quantity,
     int ServiceMinutes,
     int ReservedMinutes,
-    IReadOnlyCollection<string> ExecutionPlanSummary);
+    IReadOnlyCollection<string> ExecutionPlanSummary
+);

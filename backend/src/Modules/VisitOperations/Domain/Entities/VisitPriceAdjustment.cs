@@ -27,7 +27,8 @@ public sealed class VisitPriceAdjustment
         string? reasonCode,
         string? note,
         Guid? createdByUserId,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt
+    )
     {
         List<Error> errors = [];
 
@@ -72,7 +73,8 @@ public sealed class VisitPriceAdjustment
             ReasonCode = normalizedReasonCode.Value,
             Note = NormalizeOptional(note),
             CreatedByUserId = createdByUserId,
-            CreatedAt = createdAt.ToUniversalTime()
+            CreatedAt = createdAt.ToUniversalTime(
+        )
         };
     }
 

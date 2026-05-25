@@ -34,7 +34,8 @@ public sealed class IdentityMfaChallenge : AggregateRoot
         string? userAgent,
         string email,
         string displayName,
-        string protectedCode)
+        string protectedCode
+    )
     {
         var utcCreatedAt = createdAt.ToUniversalTime();
         var entity = new IdentityMfaChallenge

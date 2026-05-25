@@ -9,7 +9,8 @@ namespace Tailbook.Modules.Catalog.Infrastructure.Services.CommandHandlers;
 public sealed class CreateCatalogDurationRuleCommandHandler(
     AppDbContext dbContext,
     IPetTaxonomyValidationService petTaxonomyValidationService,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider
+)
     : ICommandHandler<CreateCatalogDurationRuleCommand, ErrorOr<DurationRuleView>>
 {
     public async Task<ErrorOr<DurationRuleView>> ExecuteAsync(CreateCatalogDurationRuleCommand command, CancellationToken cancellationToken)

@@ -24,6 +24,7 @@ public sealed record PriceRuleAddedDomainEvent(
             OfferId,
             Priority,
             FixedAmount,
-            Currency);
+            Currency
+        );
     }
 }

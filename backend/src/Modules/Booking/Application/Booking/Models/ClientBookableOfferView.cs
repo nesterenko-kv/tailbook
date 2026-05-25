@@ -7,4 +7,5 @@ public sealed record ClientBookableOfferView(
     string Currency,
     decimal PriceAmount,
     int ServiceMinutes,
-    int ReservedMinutes);
+    int ReservedMinutes
+);

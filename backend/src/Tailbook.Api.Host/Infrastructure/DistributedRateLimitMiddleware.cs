@@ -45,7 +45,8 @@ public sealed class DistributedRateLimitMiddleware(RequestDelegate next, IOption
             await context.Response.WriteAsync(
                 """{"type":"about:blank","title":"Too Many Requests","status":429,"detail":"Rate limit exceeded. Try again later."}""",
                 Encoding.UTF8,
-                context.RequestAborted);
+                context.RequestAborted
+            );
             return;
         }
 

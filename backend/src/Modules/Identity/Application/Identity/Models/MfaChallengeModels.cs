@@ -7,10 +7,12 @@ public sealed record MfaChallengeCreationResult(
     string FactorType,
     string TargetEmail,
     string Code,
-    DateTimeOffset ExpiresAt);
+    DateTimeOffset ExpiresAt
+);
 
 public sealed record MfaChallengeVerificationResult(
     Guid ChallengeId,
     Guid UserId,
     Guid FactorId,
-    DateTimeOffset ConsumedAt);
+    DateTimeOffset ConsumedAt
+);

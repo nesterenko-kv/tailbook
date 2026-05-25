@@ -7,7 +7,8 @@ namespace Tailbook.Modules.Identity.Api.Admin.ResetMfaRecovery;
 
 public sealed class ResetMfaRecoveryEndpoint(
     IMfaRecoveryCodeService mfaRecoveryCodeService,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser
+)
     : EndpointWithoutRequest<ResetMfaRecoveryResponse>
 {
     public override void Configure()

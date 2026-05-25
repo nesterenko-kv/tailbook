@@ -19,7 +19,8 @@ public sealed class NoOpMessageBroker : IMessageBroker
         _logger.LogDebug(
             "NoOp broker: would publish to exchange {Exchange} with routing key {RoutingKey}. " +
             "Configure RabbitMq:Enabled to true to enable actual message broker publishing.",
-            exchange, routingKey);
+            exchange, routingKey
+        );
 
         return Task.CompletedTask;
     }

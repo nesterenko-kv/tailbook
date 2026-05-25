@@ -11,7 +11,8 @@ public sealed class CancelAppointmentUseCaseCommandHandler(
     AppDbContext dbContext,
     IBookingManagementReadService bookingReadService,
     IAuditTrailService auditTrailService,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider
+)
     : ICommandHandler<CancelAppointmentUseCaseCommand, ErrorOr<AppointmentDetailView>>
 {
     public async Task<ErrorOr<AppointmentDetailView>> ExecuteAsync(CancelAppointmentUseCaseCommand command, CancellationToken ct = default)
@@ -57,7 +58,8 @@ public sealed class CancelAppointmentUseCaseCommandHandler(
             command.ActorUserId,
             null,
             JsonSerializer.Serialize(new { appointment.CancellationReasonCode, appointment.VersionNo }),
-            ct);
+            ct
+        );
 
         return (await bookingReadService.GetAppointmentAsync(appointment.Id, ct))!;
     }

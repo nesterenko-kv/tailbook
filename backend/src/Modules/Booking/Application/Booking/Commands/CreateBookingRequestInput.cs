@@ -11,4 +11,5 @@ public sealed record CreateBookingRequestInput(
     Guid? PreferredGroomerId = null,
     string? SelectionMode = null,
     GuestBookingIntakeInput? GuestIntake = null,
-    string? InitialStatus = null);
+    string? InitialStatus = null
+);

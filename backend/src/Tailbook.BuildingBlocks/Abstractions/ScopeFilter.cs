@@ -8,7 +8,8 @@ public static class ScopeFilter
         string resourceType,
         Func<T, string> getResourceId,
         IScopeAuthorizationService scopeAuthorizationService,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var hasGlobal = await scopeAuthorizationService.HasGlobalScopeAsync(actorUserId, cancellationToken);
         if (hasGlobal)

@@ -10,7 +10,8 @@ public sealed class PublicBookingReadService(
     IStaffSchedulingService staffSchedulingService,
     IGroomerProfileReadService groomerProfileReadService,
     IBookingManagementReadService bookingManagementReadService,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider
+)
 {
     private const int SlotStepMinutes = 30;
     private const int MinimumLeadTimeMinutes = 30;
@@ -18,7 +19,8 @@ public sealed class PublicBookingReadService(
     public async Task<ErrorOr<PublicPetResolutionView>> ResolvePetAsync(
         ClientPortalActor? actor,
         PublicPetSelectionQuery command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (command.PetId.HasValue)
         {
@@ -52,7 +54,8 @@ public sealed class PublicBookingReadService(
                 command.BreedId.Value,
                 command.CoatTypeId,
                 command.SizeCategoryId),
-            cancellationToken);
+            cancellationToken
+        );
         if (guestPet.IsError)
         {
             return guestPet.Errors;
@@ -64,7 +67,8 @@ public sealed class PublicBookingReadService(
     public async Task<ErrorOr<IReadOnlyCollection<ClientBookableOfferView>>> ListBookableOffersAsync(
         ClientPortalActor? actor,
         PublicPetSelectionQuery pet,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var resolvedPet = await ResolvePetAsync(actor, pet, cancellationToken);
         if (resolvedPet.IsError)
@@ -87,7 +91,8 @@ public sealed class PublicBookingReadService(
             var resolutionResult = await catalogQuoteResolver.ResolveAsync(
                 resolvedPet.Value.Pet,
                 [new QuotePreviewCatalogItem(offer.Id, offer.OfferType)],
-                cancellationToken);
+                cancellationToken
+            );
             if (resolutionResult.IsError)
             {
                 continue;
@@ -114,7 +119,8 @@ public sealed class PublicBookingReadService(
     public async Task<ErrorOr<QuotePreviewView>> PreviewQuoteAsync(
         ClientPortalActor? actor,
         PublicPreviewQuoteQuery command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var resolvedPet = await ResolvePetAsync(actor, command.Pet, cancellationToken);
         if (resolvedPet.IsError)
@@ -128,7 +134,8 @@ public sealed class PublicBookingReadService(
     public async Task<ErrorOr<PublicBookingPlannerView>> BuildPlannerAsync(
         ClientPortalActor? actor,
         PublicBookingPlannerQuery command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var resolvedPet = await ResolvePetAsync(actor, command.Pet, cancellationToken);
         if (resolvedPet.IsError)
@@ -158,7 +165,8 @@ public sealed class PublicBookingReadService(
                 earliestStartAt,
                 SlotStepMinutes,
                 null,
-                cancellationToken);
+                cancellationToken
+            );
             if (slotResult.IsError)
             {
                 groomerViews.Add(new PublicPlannerGroomerView(
@@ -204,7 +212,8 @@ public sealed class PublicBookingReadService(
     private async Task<ErrorOr<QuotePreviewView>> CreateQuotePreviewAsync(
         PetQuoteProfile pet,
         IReadOnlyCollection<PreviewQuoteItemQuery> items,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (items.Count == 0)
         {
@@ -214,7 +223,8 @@ public sealed class PublicBookingReadService(
         var resolutionResult = await catalogQuoteResolver.ResolveAsync(
             pet,
             items.Select(x => new QuotePreviewCatalogItem(x.OfferId, x.ItemType)).ToArray(),
-            cancellationToken);
+            cancellationToken
+        );
         if (resolutionResult.IsError)
         {
             return resolutionResult.Errors;
@@ -251,7 +261,8 @@ public sealed class PublicBookingReadService(
 
     public async Task<BookingRequestDetailView?> GetBookingRequestStatusAsync(
         Guid bookingRequestId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return await bookingManagementReadService.GetBookingRequestAsync(bookingRequestId, cancellationToken);
     }

@@ -12,7 +12,8 @@ internal static partial class AuditBatchWriterHostedServiceMessages
         this ILogger logger,
         int batchSize,
         int flushIntervalMilliseconds,
-        int maxWriteRetries);
+        int maxWriteRetries
+    );
 
     [LoggerMessage(
         EventId = 9101,
@@ -23,7 +24,8 @@ internal static partial class AuditBatchWriterHostedServiceMessages
         int itemCount,
         int accessAuditCount,
         int auditTrailCount,
-        double durationMilliseconds);
+        double durationMilliseconds
+    );
 
     [LoggerMessage(
         EventId = 9102,
@@ -34,7 +36,8 @@ internal static partial class AuditBatchWriterHostedServiceMessages
         Exception exception,
         int attempt,
         int maxAttempts,
-        int itemCount);
+        int itemCount
+    );
 
     [LoggerMessage(
         EventId = 9103,
@@ -44,7 +47,8 @@ internal static partial class AuditBatchWriterHostedServiceMessages
         this ILogger logger,
         Exception exception,
         int maxAttempts,
-        int itemCount);
+        int itemCount
+    );
 
     [LoggerMessage(
         EventId = 9104,

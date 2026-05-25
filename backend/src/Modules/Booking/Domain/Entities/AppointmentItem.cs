@@ -31,7 +31,8 @@ public sealed class AppointmentItem
         int quantity,
         Guid priceSnapshotId,
         Guid durationSnapshotId,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt
+    )
     {
         List<Error> errors = [];
 
@@ -102,7 +103,8 @@ public sealed class AppointmentItem
             Quantity = quantity,
             PriceSnapshotId = priceSnapshotId,
             DurationSnapshotId = durationSnapshotId,
-            CreatedAt = createdAt.ToUniversalTime()
+            CreatedAt = createdAt.ToUniversalTime(
+        )
         };
     }
 }

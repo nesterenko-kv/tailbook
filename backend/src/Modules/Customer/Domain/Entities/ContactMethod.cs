@@ -28,7 +28,8 @@ public sealed class ContactMethod
         string displayValue,
         bool isPreferred,
         string verificationStatus,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         var timestamp = utcNow.ToUniversalTime();
         var normalizedValue = NormalizeContactValue(methodType, rawValue);

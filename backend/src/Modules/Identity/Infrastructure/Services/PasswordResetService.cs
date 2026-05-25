@@ -46,7 +46,8 @@ public sealed class PasswordResetService(
             utcNow,
             user.Email,
             user.DisplayName,
-            protectedResetLink);
+            protectedResetLink
+        );
 
         dbContext.Set<IdentityPasswordResetToken>().Add(resetToken);
 
@@ -59,7 +60,8 @@ public sealed class PasswordResetService(
             null,
             null,
             JsonSerializer.Serialize(new { expiresAt }),
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public async Task<ErrorOr<Success>> ResetPasswordAsync(string rawToken, string newPassword, CancellationToken cancellationToken)
@@ -118,7 +120,8 @@ public sealed class PasswordResetService(
             null,
             null,
             JsonSerializer.Serialize(new { resetToken.Id, resetToken.UsedAt }),
-            cancellationToken);
+            cancellationToken
+        );
         return Result.Success;
     }
 

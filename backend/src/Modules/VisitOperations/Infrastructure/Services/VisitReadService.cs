@@ -28,7 +28,8 @@ public sealed class VisitReadService(
         Guid? appointmentId,
         int page,
         int pageSize,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var safePage = page <= 0 ? 1 : page;
         var safePageSize = pageSize switch { <= 0 => 20, > 100 => 100, _ => pageSize };
@@ -62,7 +63,8 @@ public sealed class VisitReadService(
             from.HasValue ? from.Value.ToUniversalTime() : null,
             to.HasValue ? to.Value.ToUniversalTime() : null,
             groomerId,
-            cancellationToken);
+            cancellationToken
+        );
         var petIdsBySearchTerm = await SearchPetIdsByTermAsync(searchTerms, cancellationToken);
 
         var filteredVisits = candidateVisits
@@ -211,7 +213,8 @@ public sealed class VisitReadService(
                 .ToArray(),
             adjustments.Select(x => new VisitPriceAdjustmentView(x.Id, x.Sign, x.Amount, x.ReasonCode, x.Note, x.CreatedAt)).ToArray(),
             visit.CreatedAt,
-            visit.UpdatedAt);
+            visit.UpdatedAt
+        );
     }
 
     private static string? NormalizeOptional(string? value)
@@ -234,7 +237,8 @@ public sealed class VisitReadService(
         Visit visit,
         VisitAppointmentInfo appointment,
         IReadOnlyCollection<string> searchTerms,
-        IReadOnlyDictionary<string, Guid[]> petIdsBySearchTerm)
+        IReadOnlyDictionary<string, Guid[]> petIdsBySearchTerm
+    )
     {
         if (searchTerms.Count == 0)
         {

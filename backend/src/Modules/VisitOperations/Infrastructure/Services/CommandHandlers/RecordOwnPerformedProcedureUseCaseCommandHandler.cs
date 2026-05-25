@@ -5,7 +5,8 @@ namespace Tailbook.Modules.VisitOperations.Infrastructure.Services.CommandHandle
 
 public sealed class RecordOwnPerformedProcedureUseCaseCommandHandler(
     IGroomerVisitReadService groomerVisitReadService,
-    RecordPerformedProcedureUseCaseCommandHandler recordPerformedProcedureHandler)
+    RecordPerformedProcedureUseCaseCommandHandler recordPerformedProcedureHandler
+)
     : ICommandHandler<RecordOwnPerformedProcedureUseCaseCommand, ErrorOr<GroomerVisitDetailView>>
 {
     public async Task<ErrorOr<GroomerVisitDetailView>> ExecuteAsync(RecordOwnPerformedProcedureUseCaseCommand command, CancellationToken ct = default)
@@ -23,7 +24,8 @@ public sealed class RecordOwnPerformedProcedureUseCaseCommandHandler(
                 command.ProcedureId,
                 command.Note,
                 command.CurrentUserId),
-            ct);
+            ct
+        );
 
         return result.IsError ? result.Errors : GroomerVisitMapper.Map(result.Value);
     }

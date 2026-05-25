@@ -13,7 +13,8 @@ public sealed class StaffSchedulingService(
     IPetQuoteProfileService petQuoteProfileService,
     SalonTimeZoneProvider salonTimeZoneProvider,
     IAppointmentOverlapReadService appointmentOverlapReadService,
-    IDistributedCache cache)
+    IDistributedCache cache
+)
     : IStaffSchedulingService
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -26,7 +27,8 @@ public sealed class StaffSchedulingService(
         Guid petId,
         IReadOnlyCollection<Guid> offerIds,
         int baseReservedMinutes,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var pet = await petQuoteProfileService.GetPetAsync(petId, cancellationToken);
         if (pet is null)
@@ -42,7 +44,8 @@ public sealed class StaffSchedulingService(
         PetQuoteProfile pet,
         IReadOnlyCollection<Guid> offerIds,
         int baseReservedMinutes,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var groomerData = await LoadGroomerDataAsync(groomerId, cancellationToken);
         if (groomerData is null)
@@ -111,7 +114,8 @@ public sealed class StaffSchedulingService(
         DateTimeOffset startAt,
         int reservedMinutes,
         Guid? ignoredAppointmentId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var pet = await petQuoteProfileService.GetPetAsync(petId, cancellationToken);
         if (pet is null)
@@ -129,7 +133,8 @@ public sealed class StaffSchedulingService(
         DateTimeOffset startAt,
         int reservedMinutes,
         Guid? ignoredAppointmentId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var normalizedStartAt = startAt.ToUniversalTime();
         var durationResolutionResult = await ResolveReservedDurationAsync(groomerId, pet, offerIds, reservedMinutes, cancellationToken);
@@ -180,7 +185,8 @@ public sealed class StaffSchedulingService(
     public async Task<IReadOnlyCollection<AvailabilityWindowReadModel>> GetAvailabilityWindowsAsync(
         Guid groomerId,
         DateOnly localDate,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var groomerData = await LoadGroomerDataAsync(groomerId, cancellationToken);
         if (groomerData is null)
@@ -200,7 +206,8 @@ public sealed class StaffSchedulingService(
         DateTimeOffset earliestStartAt,
         int slotStepMinutes,
         Guid? ignoredAppointmentId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (slotStepMinutes <= 0)
         {
@@ -212,7 +219,8 @@ public sealed class StaffSchedulingService(
             pet,
             offerIds,
             baseReservedMinutes,
-            cancellationToken);
+            cancellationToken
+        );
         if (durationResult.IsError)
         {
             return durationResult.Errors;
@@ -250,7 +258,8 @@ public sealed class StaffSchedulingService(
             slots.Min(x => x.StartAt),
             slots.Max(x => x.EndAt),
             ignoredAppointmentId,
-            cancellationToken);
+            cancellationToken
+        );
 
         var availableSlots = slots
             .Where(slot => !busyIntervals.Any(busy => busy.StartAt < slot.EndAt && busy.EndAt > slot.StartAt))
@@ -262,7 +271,8 @@ public sealed class StaffSchedulingService(
     private async Task<IReadOnlyCollection<AvailabilityWindowReadModel>> GetAvailabilityWindowsCoreAsync(
         Guid groomerId,
         DateOnly localDate,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var timeZone = salonTimeZoneProvider.GetTimeZone();
         var localStart = DateTime.SpecifyKind(localDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Unspecified);
@@ -289,7 +299,8 @@ public sealed class StaffSchedulingService(
         AvailabilityWindowReadModel window,
         int reservedMinutes,
         DateTimeOffset earliestStartAt,
-        int slotStepMinutes)
+        int slotStepMinutes
+    )
     {
         var starts = new List<DateTimeOffset>();
         var latestStartAt = window.EndAt.AddMinutes(-reservedMinutes);
@@ -396,7 +407,8 @@ public sealed class StaffSchedulingService(
         DateTimeOffset from,
         DateTimeOffset to,
         IReadOnlyCollection<CachedWorkingScheduleData> schedules,
-        IReadOnlyCollection<CachedTimeBlockData> timeBlocks)
+        IReadOnlyCollection<CachedTimeBlockData> timeBlocks
+    )
     {
         var timeZone = salonTimeZoneProvider.GetTimeZone();
         var windows = new List<AvailabilityWindowSegment>();
@@ -455,7 +467,8 @@ public sealed class StaffSchedulingService(
         List<AvailabilityWindowSegment> windows,
         DateTimeOffset windowStart,
         DateTimeOffset windowEnd,
-        IReadOnlyCollection<CachedTimeBlockData> timeBlocks)
+        IReadOnlyCollection<CachedTimeBlockData> timeBlocks
+    )
     {
         var cursor = windowStart;
         var overlappingBlocks = timeBlocks
@@ -571,11 +584,14 @@ public sealed class StaffSchedulingService(
     internal sealed record CachedCapabilityData(
         Guid Id, Guid GroomerId, Guid? AnimalTypeId, Guid? BreedId, Guid? BreedGroupId,
         Guid? CoatTypeId, Guid? SizeCategoryId, Guid? OfferId, string CapabilityMode,
-        int ReservedDurationModifierMinutes, string? Notes);
+        int ReservedDurationModifierMinutes, string? Notes
+    );
 
     internal sealed record CachedWorkingScheduleData(
-        Guid Id, Guid GroomerId, int Weekday, TimeSpan StartLocalTime, TimeSpan EndLocalTime);
+        Guid Id, Guid GroomerId, int Weekday, TimeSpan StartLocalTime, TimeSpan EndLocalTime
+    );
 
     internal sealed record CachedTimeBlockData(
-        Guid Id, Guid GroomerId, DateTimeOffset StartAt, DateTimeOffset EndAt, string? ReasonCode);
+        Guid Id, Guid GroomerId, DateTimeOffset StartAt, DateTimeOffset EndAt, string? ReasonCode
+    );
 }

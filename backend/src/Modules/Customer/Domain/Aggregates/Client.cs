@@ -28,7 +28,8 @@ public sealed class Client : AggregateRoot
             Status = ClientStatusCodes.Active,
             Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim(),
             CreatedAt = utcNow.ToUniversalTime(),
-            UpdatedAt = utcNow.ToUniversalTime()
+            UpdatedAt = utcNow.ToUniversalTime(
+        )
         };
 
         client.RaiseDomainEvent(new ClientCreatedDomainEvent(
@@ -48,7 +49,8 @@ public sealed class Client : AggregateRoot
         string? notes,
         string trustLevel,
         bool isActive,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         var contact = ContactPerson.Create(
             Guid.NewGuid(),
@@ -58,7 +60,8 @@ public sealed class Client : AggregateRoot
             notes,
             trustLevel,
             isActive,
-            utcNow);
+            utcNow
+        );
 
         _contacts.Add(contact);
         return contact;

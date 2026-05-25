@@ -7,7 +7,8 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 namespace Tailbook.Modules.Booking.Api.Admin.CreateAppointment;
 
 public sealed class CreateAppointmentEndpoint(
-    IEntityScopeService entityScopeService)
+    IEntityScopeService entityScopeService
+)
     : Endpoint<CreateAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()
@@ -23,7 +24,8 @@ public sealed class CreateAppointmentEndpoint(
             EntityScopeResourceTypes.Pet,
             req.PetId.ToString("D"),
             req.ActorUserId,
-            ct);
+            ct
+        );
         if (scopeResult.IsError)
         {
             await Send.ResultAsync(scopeResult.Errors.ToHttpResult());
@@ -35,7 +37,8 @@ public sealed class CreateAppointmentEndpoint(
             req.GroomerId,
             req.StartAt,
             req.Items.Select(x => new CreateAppointmentItemData(x.OfferId, x.ItemType)).ToArray(),
-            req.ActorUserId)
+            req.ActorUserId
+        )
             .ExecuteAsync(ct);
 
         if (result.IsError)

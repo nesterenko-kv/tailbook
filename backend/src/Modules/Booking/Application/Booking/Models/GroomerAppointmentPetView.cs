@@ -7,4 +7,5 @@ public sealed record GroomerAppointmentPetView(
     string AnimalTypeName,
     string BreedName,
     string? CoatTypeCode,
-    string? SizeCategoryCode);
+    string? SizeCategoryCode
+);

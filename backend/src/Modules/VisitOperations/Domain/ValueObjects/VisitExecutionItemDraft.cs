@@ -10,4 +10,5 @@ public sealed record VisitExecutionItemDraft(
     int Quantity,
     decimal PriceAmountSnapshot,
     int ServiceMinutesSnapshot,
-    int ReservedMinutesSnapshot);
+    int ReservedMinutesSnapshot
+);

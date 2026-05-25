@@ -13,24 +13,29 @@ public static class RabbitMqTelemetry
 
     private static readonly Counter<long> MessagesPublished = Meter.CreateCounter<long>(
         "tailbook.messaging.published",
-        description: "Messages published to the message broker.");
+        description: "Messages published to the message broker."
+    );
 
     private static readonly Counter<long> MessagesConsumed = Meter.CreateCounter<long>(
         "tailbook.messaging.consumed",
-        description: "Messages consumed from the message broker.");
+        description: "Messages consumed from the message broker."
+    );
 
     private static readonly Counter<long> PublishFailures = Meter.CreateCounter<long>(
         "tailbook.messaging.publish.failures",
-        description: "Failed message publish attempts.");
+        description: "Failed message publish attempts."
+    );
 
     private static readonly Counter<long> ConsumeFailures = Meter.CreateCounter<long>(
         "tailbook.messaging.consume.failures",
-        description: "Failed message consume attempts.");
+        description: "Failed message consume attempts."
+    );
 
     private static readonly Histogram<double> PublishDuration = Meter.CreateHistogram<double>(
         "tailbook.messaging.publish.duration",
         "ms",
-        "Message publish duration.");
+        "Message publish duration."
+    );
 
     public static Activity? StartPublishActivity(string exchange, string routingKey)
     {

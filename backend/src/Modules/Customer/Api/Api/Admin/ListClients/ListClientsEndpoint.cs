@@ -7,7 +7,8 @@ namespace Tailbook.Modules.Customer.Api.Admin.ListClients;
 
 public sealed class ListClientsEndpoint(
     ICustomerReadService customerReadService,
-    IScopeAuthorizationService scopeAuthorizationService)
+    IScopeAuthorizationService scopeAuthorizationService
+)
     : Endpoint<ListClientsRequest, ListClientsResponse>
 {
     public override void Configure()
@@ -35,7 +36,8 @@ public sealed class ListClientsEndpoint(
                     EntityScopeResourceTypes.Client,
                     item => item.Id.ToString("D"),
                     scopeAuthorizationService,
-                    ct);
+                    ct
+                );
                 totalCount = filteredItems.Count;
             }
         }

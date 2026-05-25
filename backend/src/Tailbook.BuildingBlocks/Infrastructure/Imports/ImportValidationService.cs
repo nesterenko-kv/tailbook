@@ -4,7 +4,8 @@ public sealed class ImportValidationService
 {
     public ImportValidationResult ValidatePetRows(
         IReadOnlyCollection<PetImportRow> rows,
-        PetTaxonomyReferenceData taxonomy)
+        PetTaxonomyReferenceData taxonomy
+    )
     {
         var issues = new List<ImportValidationIssue>();
         AddDuplicateExternalIdIssues(rows.Select(x => (x.RowNumber, x.ExternalId)), issues);
@@ -145,13 +146,15 @@ public sealed record PetImportRow(
     string? BreedCode,
     string? CoatTypeCode,
     string? SizeCategoryCode,
-    decimal? WeightKg);
+    decimal? WeightKg
+);
 
 public sealed record PetTaxonomyReferenceData(
     IReadOnlySet<string> AnimalTypeCodes,
     IReadOnlySet<string> BreedCodes,
     IReadOnlySet<string> CoatTypeCodes,
-    IReadOnlySet<string> SizeCategoryCodes);
+    IReadOnlySet<string> SizeCategoryCodes
+);
 
 public sealed record CatalogOfferImportRow(
     int RowNumber,
@@ -160,4 +163,5 @@ public sealed record CatalogOfferImportRow(
     string? DisplayName,
     decimal? PriceAmount,
     int? ServiceMinutes,
-    int? ReservedMinutes);
+    int? ReservedMinutes
+);

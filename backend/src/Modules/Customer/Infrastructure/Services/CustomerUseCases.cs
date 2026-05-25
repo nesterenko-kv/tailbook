@@ -85,7 +85,8 @@ public sealed class CustomerUseCases(
             x.Status,
             contactCounts.SingleOrDefault(y => y.ClientId == x.Id)?.Count ?? 0,
             x.CreatedAt,
-            x.UpdatedAt)).ToArray();
+            x.UpdatedAt)).ToArray(
+        );
 
         return new PagedResult<ClientListItemView>(items, safePage, safePageSize, totalCount);
     }
@@ -136,7 +137,8 @@ public sealed class CustomerUseCases(
                 .ToArray(),
             pets,
             client.CreatedAt,
-            client.UpdatedAt);
+            client.UpdatedAt
+        );
     }
 
     public async Task<ClientDetailView> CreateClientAsync(string displayName, string? notes, CancellationToken cancellationToken)
@@ -204,7 +206,8 @@ public sealed class CustomerUseCases(
             effectiveDisplayValue,
             isPreferred,
             effectiveVerificationStatus,
-            utcNow);
+            utcNow
+        );
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -269,7 +272,8 @@ public sealed class CustomerUseCases(
             existing.CanPickUp,
             existing.CanPay,
             existing.ReceivesNotifications,
-            methods);
+            methods
+        );
     }
 
     public async Task<IReadOnlyCollection<PetContactLinkView>?> ListPetContactLinksAsync(Guid petId, Guid? actorUserId, CancellationToken cancellationToken)
@@ -324,7 +328,8 @@ public sealed class CustomerUseCases(
             var x when x.Equals(ContactMethodTypes.Instagram, StringComparison.OrdinalIgnoreCase) => ContactMethodTypes.Instagram,
             var x when x.Equals(ContactMethodTypes.Email, StringComparison.OrdinalIgnoreCase) => ContactMethodTypes.Email,
             var x when x.Equals(ContactMethodTypes.Other, StringComparison.OrdinalIgnoreCase) => ContactMethodTypes.Other,
-            _ => Error.Validation("Customer.UnsupportedContactMethodType", $"Unsupported contact method type '{methodType}'.")
+            _ => Error.Validation("Customer.UnsupportedContactMethodType", $"Unsupported contact method type '{methodType}'."
+        )
         };
     }
 

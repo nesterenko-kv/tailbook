@@ -18,7 +18,8 @@ public sealed class CheckAvailabilityEndpoint(IStaffReadService staffReadService
     {
         var result = await staffReadService.CheckAvailabilityAsync(
             new CheckGroomerAvailabilityQuery(req.GroomerId, req.PetId, req.StartAt, req.ReservedMinutes, req.OfferIds),
-            ct);
+            ct
+        );
 
         if (result.IsError)
         {
@@ -31,7 +32,8 @@ public sealed class CheckAvailabilityEndpoint(IStaffReadService staffReadService
             IsAvailable = result.Value.IsAvailable,
             EndAt = result.Value.EndAt,
             CheckedReservedMinutes = result.Value.CheckedReservedMinutes,
-            Reasons = result.Value.Reasons.ToArray()
+            Reasons = result.Value.Reasons.ToArray(
+        )
         }, cancellation: ct);
     }
 }

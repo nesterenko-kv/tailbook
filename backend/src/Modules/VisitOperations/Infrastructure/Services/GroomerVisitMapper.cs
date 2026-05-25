@@ -11,7 +11,8 @@ internal static class GroomerVisitMapper
             view.Pet.AnimalTypeName,
             view.Pet.BreedName,
             view.Pet.CoatTypeCode,
-            view.Pet.SizeCategoryCode);
+            view.Pet.SizeCategoryCode
+        );
 
         return new GroomerVisitDetailView(
             view.Id,
@@ -62,6 +63,7 @@ internal static class GroomerVisitMapper
                     skipped.Note,
                     skipped.RecordedAt)).ToArray())).ToArray(),
             view.CreatedAt,
-            view.UpdatedAt);
+            view.UpdatedAt
+        );
     }
 }

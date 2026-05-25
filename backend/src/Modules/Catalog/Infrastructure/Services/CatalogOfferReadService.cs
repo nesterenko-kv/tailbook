@@ -7,7 +7,8 @@ namespace Tailbook.Modules.Catalog.Infrastructure.Services;
 public sealed class CatalogOfferReadService(AppDbContext dbContext) : ICatalogOfferReadService
 {
     public async Task<IReadOnlyCollection<CatalogOfferSummary>> ListActiveOffersAsync(
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return await dbContext.Set<CommercialOffer>()
             .AsNoTracking()

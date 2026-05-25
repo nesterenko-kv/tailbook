@@ -29,7 +29,8 @@ public sealed class CatalogVisitReadService(AppDbContext dbContext) : IVisitCata
                 procedure.Name,
                 x.ComponentRole,
                 x.SequenceNo,
-                x.DefaultExpected);
+                x.DefaultExpected
+            );
         }).ToArray();
     }
 
@@ -54,7 +55,8 @@ public sealed class CatalogVisitReadService(AppDbContext dbContext) : IVisitCata
             procedure.Name,
             component.ComponentRole,
             component.SequenceNo,
-            component.DefaultExpected);
+            component.DefaultExpected
+        );
     }
 
     public async Task<ProcedureReadModel?> GetProcedureAsync(Guid procedureId, CancellationToken cancellationToken)

@@ -11,6 +11,7 @@ public sealed record CreateClientPortalProfileInput(
     string? LastName,
     string Email,
     string? Phone,
-    string? Instagram);
+    string? Instagram
+);
 
 public sealed record ClientOnboardingResult(Guid ClientId, Guid ContactPersonId);

@@ -6,4 +6,5 @@ public sealed record ClientAppointmentItemView(
     string OfferDisplayName,
     decimal PriceAmount,
     int ServiceMinutes,
-    int ReservedMinutes);
+    int ReservedMinutes
+);

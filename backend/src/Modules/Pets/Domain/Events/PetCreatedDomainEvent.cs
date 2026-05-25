@@ -32,6 +32,7 @@ public sealed record PetCreatedDomainEvent(
             SizeCategoryId,
             BirthDate,
             WeightKg,
-            Notes);
+            Notes
+        );
     }
 }

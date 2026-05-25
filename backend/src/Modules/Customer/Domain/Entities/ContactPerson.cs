@@ -27,7 +27,8 @@ public sealed class ContactPerson
         string? notes,
         string trustLevel,
         bool isActive,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         var timestamp = utcNow.ToUniversalTime();
 
@@ -51,7 +52,8 @@ public sealed class ContactPerson
         string displayValue,
         bool isPreferred,
         string verificationStatus,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         var method = ContactMethod.Create(
             Guid.NewGuid(),
@@ -61,7 +63,8 @@ public sealed class ContactPerson
             displayValue,
             isPreferred,
             verificationStatus,
-            utcNow);
+            utcNow
+        );
 
         _methods.Add(method);
         return method;

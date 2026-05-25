@@ -54,7 +54,8 @@ public sealed class BrowserSessionService(IOptions<BrowserSessionOptions> option
         string refreshToken,
         DateTimeOffset refreshTokenExpiresAt,
         string? defaultSurface,
-        IReadOnlyCollection<string> allowedSurfaces)
+        IReadOnlyCollection<string> allowedSurfaces
+    )
     {
         if (!_options.UseRefreshCookies)
         {
@@ -86,7 +87,8 @@ public sealed class BrowserSessionService(IOptions<BrowserSessionOptions> option
         HttpContext httpContext,
         string? requestRefreshToken,
         string? defaultSurface,
-        IReadOnlyCollection<string> allowedSurfaces)
+        IReadOnlyCollection<string> allowedSurfaces
+    )
     {
         if (!_options.UseRefreshCookies)
         {
@@ -129,7 +131,8 @@ public sealed class BrowserSessionService(IOptions<BrowserSessionOptions> option
     private ErrorOr<string> ResolveSurface(
         HttpContext httpContext,
         string? defaultSurface,
-        IReadOnlyCollection<string> allowedSurfaces)
+        IReadOnlyCollection<string> allowedSurfaces
+    )
     {
         var surface = httpContext.Request.Headers[_options.SurfaceHeaderName].ToString();
         if (string.IsNullOrWhiteSpace(surface))
@@ -184,7 +187,8 @@ public sealed class BrowserSessionService(IOptions<BrowserSessionOptions> option
             BrowserSessionSurfaces.Admin => _options.AdminRefreshCookieName,
             BrowserSessionSurfaces.Groomer => _options.GroomerRefreshCookieName,
             BrowserSessionSurfaces.Client => _options.ClientRefreshCookieName,
-            _ => throw new InvalidOperationException("Unsupported browser session surface.")
+            _ => throw new InvalidOperationException("Unsupported browser session surface."
+        )
         };
     }
 
@@ -195,7 +199,8 @@ public sealed class BrowserSessionService(IOptions<BrowserSessionOptions> option
             BrowserSessionSurfaces.Admin => _options.AdminCsrfCookieName,
             BrowserSessionSurfaces.Groomer => _options.GroomerCsrfCookieName,
             BrowserSessionSurfaces.Client => _options.ClientCsrfCookieName,
-            _ => throw new InvalidOperationException("Unsupported browser session surface.")
+            _ => throw new InvalidOperationException("Unsupported browser session surface."
+        )
         };
     }
 
@@ -225,7 +230,8 @@ public sealed record BrowserSessionResponseMode(bool IncludeRefreshTokenInRespon
 public sealed record BrowserRefreshTokenResolution(
     string RefreshToken,
     string? Surface,
-    BrowserRefreshTokenSource Source);
+    BrowserRefreshTokenSource Source
+);
 
 public enum BrowserRefreshTokenSource
 {

@@ -8,7 +8,8 @@ internal static class CatalogRuleConditionValidator
     public static async Task<ErrorOr<RuleConditionInput>> ValidateAsync(
         RuleConditionInput condition,
         IPetTaxonomyValidationService petTaxonomyValidationService,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (condition.AnimalTypeId is not null)
         {

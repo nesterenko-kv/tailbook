@@ -189,7 +189,8 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext, TimeProvider ti
             totalReservedMinutes,
             priceLines,
             durationLines,
-            resolvedItems);
+            resolvedItems
+        );
     }
 
     private async Task<(CachedPriceRuleSetData? PriceRuleSet, CachedDurationRuleSetData? DurationRuleSet)> LoadRuleSetsAsync(DateTimeOffset utcNow, CancellationToken cancellationToken)
@@ -239,7 +240,8 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext, TimeProvider ti
             r.FixedAmount, r.Currency, r.CreatedAt,
             new CachedConditionData(
                 r.Condition.AnimalTypeId, r.Condition.BreedId, r.Condition.BreedGroupId,
-                r.Condition.CoatTypeId, r.Condition.SizeCategoryId))).ToList();
+                r.Condition.CoatTypeId, r.Condition.SizeCategoryId))).ToList(
+            );
 
         var priceConditions = priceRules.ToDictionary(r => r.Id, r => r.Condition);
 
@@ -267,7 +269,8 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext, TimeProvider ti
             r.BaseMinutes, r.BufferBeforeMinutes, r.BufferAfterMinutes, r.CreatedAt,
             new CachedConditionData(
                 r.Condition.AnimalTypeId, r.Condition.BreedId, r.Condition.BreedGroupId,
-                r.Condition.CoatTypeId, r.Condition.SizeCategoryId))).ToList();
+                r.Condition.CoatTypeId, r.Condition.SizeCategoryId))).ToList(
+            );
 
         var durationConditions = durationRules.ToDictionary(r => r.Id, r => r.Condition);
 
@@ -350,7 +353,8 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext, TimeProvider ti
         DateTimeOffset ValidFrom,
         DateTimeOffset? ValidTo,
         List<CachedPriceRuleData> PriceRules,
-        Dictionary<Guid, CachedConditionData> PriceConditions)
+        Dictionary<Guid, CachedConditionData> PriceConditions
+    )
     {
         public bool IsValid(DateTimeOffset utcNow)
         {
@@ -364,7 +368,8 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext, TimeProvider ti
         DateTimeOffset ValidFrom,
         DateTimeOffset? ValidTo,
         List<CachedDurationRuleData> DurationRules,
-        Dictionary<Guid, CachedConditionData> DurationConditions)
+        Dictionary<Guid, CachedConditionData> DurationConditions
+    )
     {
         public bool IsValid(DateTimeOffset utcNow)
         {
@@ -381,7 +386,8 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext, TimeProvider ti
         decimal FixedAmount,
         string Currency,
         DateTimeOffset CreatedAt,
-        CachedConditionData Condition);
+        CachedConditionData Condition
+    );
 
     internal sealed record CachedDurationRuleData(
         Guid Id,
@@ -393,12 +399,14 @@ public sealed class CatalogQuoteResolver(AppDbContext dbContext, TimeProvider ti
         int BufferBeforeMinutes,
         int BufferAfterMinutes,
         DateTimeOffset CreatedAt,
-        CachedConditionData Condition);
+        CachedConditionData Condition
+    );
 
     internal sealed record CachedConditionData(
         Guid? AnimalTypeId,
         Guid? BreedId,
         Guid? BreedGroupId,
         Guid? CoatTypeId,
-        Guid? SizeCategoryId);
+        Guid? SizeCategoryId
+    );
 }

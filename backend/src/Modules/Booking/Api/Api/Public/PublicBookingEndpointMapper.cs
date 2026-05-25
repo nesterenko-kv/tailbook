@@ -14,7 +14,8 @@ internal static class PublicBookingEndpointMapper
                 payload.SizeCategoryId,
                 payload.WeightKg,
                 payload.PetName,
-                payload.Notes);
+                payload.Notes
+            );
     }
 
     public static PublicQuotePreviewResponse MapQuote(QuotePreviewView quote)
@@ -53,7 +54,8 @@ internal static class PublicBookingEndpointMapper
         {
             StartAt = slot.StartAt,
             EndAt = slot.EndAt,
-            GroomerIds = slot.GroomerIds.ToArray()
+            GroomerIds = slot.GroomerIds.ToArray(
+        )
         };
     }
 
@@ -102,7 +104,8 @@ internal static class PublicBookingEndpointMapper
     public static async Task<ClientPortalActor?> ResolveActorAsync(
         Guid? userId,
         IClientPortalActorService actorService,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (!userId.HasValue)
         {

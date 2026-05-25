@@ -22,6 +22,7 @@ public sealed record PriceRuleSetCreatedDomainEvent(
             VersionNo,
             Status,
             ValidFrom,
-            ValidTo);
+            ValidTo
+        );
     }
 }

@@ -26,7 +26,8 @@ public sealed class AddCapabilityEndpoint : Endpoint<AddCapabilityRequest, Groom
             req.OfferId,
             req.CapabilityMode,
             req.ReservedDurationModifierMinutes,
-            req.Notes)
+            req.Notes
+        )
             .ExecuteAsync(ct);
 
         if (result.IsError)

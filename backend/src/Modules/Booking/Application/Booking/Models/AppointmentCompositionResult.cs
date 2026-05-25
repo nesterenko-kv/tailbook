@@ -7,4 +7,5 @@ public sealed record AppointmentCompositionResult(
     decimal TotalAmount,
     int ServiceMinutes,
     int ReservedMinutes,
-    IReadOnlyCollection<AppointmentItemComposition> Items);
+    IReadOnlyCollection<AppointmentItemComposition> Items
+);

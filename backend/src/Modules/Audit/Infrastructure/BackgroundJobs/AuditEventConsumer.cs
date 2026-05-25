@@ -22,7 +22,8 @@ public sealed class AuditEventConsumer : BackgroundService
         RabbitMqConnectionFactory connectionFactory,
         IOptions<RabbitMqOptions> rabbitMqOptions,
         IServiceScopeFactory scopeFactory,
-        ILogger<AuditEventConsumer> logger)
+        ILogger<AuditEventConsumer> logger
+    )
     {
         _connectionFactory = connectionFactory;
         _rabbitMqOptions = rabbitMqOptions.Value;
@@ -47,20 +48,23 @@ public sealed class AuditEventConsumer : BackgroundService
             type: ExchangeType.Topic,
             durable: true,
             autoDelete: false,
-            cancellationToken: stoppingToken);
+            cancellationToken: stoppingToken
+        );
 
         await channel.QueueDeclareAsync(
             queue: queue,
             durable: true,
             exclusive: false,
             autoDelete: false,
-            cancellationToken: stoppingToken);
+            cancellationToken: stoppingToken
+        );
 
         await channel.QueueBindAsync(
             queue: queue,
             exchange: exchange,
             routingKey: "#",
-            cancellationToken: stoppingToken);
+            cancellationToken: stoppingToken
+        );
 
         var consumer = new AsyncEventingBasicConsumer(channel);
 
@@ -75,7 +79,8 @@ public sealed class AuditEventConsumer : BackgroundService
             {
                 _logger.LogError(ex,
                     "Failed to process audit event from routing key {RoutingKey}.",
-                    args.RoutingKey);
+                    args.RoutingKey
+                );
                 await channel.BasicNackAsync(args.DeliveryTag, false, true, stoppingToken);
             }
         };
@@ -123,7 +128,8 @@ public sealed class AuditEventConsumer : BackgroundService
             "consumed",
             DateTimeOffset.UtcNow,
             null,
-            innerPayload);
+            innerPayload
+        );
 
         await queue.EnqueueAsync(item, cancellationToken);
 

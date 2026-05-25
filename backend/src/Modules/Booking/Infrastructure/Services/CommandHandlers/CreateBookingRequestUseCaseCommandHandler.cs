@@ -14,7 +14,8 @@ public sealed class CreateBookingRequestUseCaseCommandHandler(
     IContactReferenceValidationService contactReferenceValidationService,
     IOfferReferenceValidationService offerReferenceValidationService,
     IAuditTrailService auditTrailService,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider
+)
     : ICommandHandler<CreateBookingRequestUseCaseCommand, ErrorOr<BookingRequestDetailView>>
 {
     public async Task<ErrorOr<BookingRequestDetailView>> ExecuteAsync(CreateBookingRequestUseCaseCommand command, CancellationToken ct = default)
@@ -102,7 +103,8 @@ public sealed class CreateBookingRequestUseCaseCommandHandler(
             SerializeGuestIntake(command.GuestIntake),
             preferredTimeJson.Value,
             NormalizeOptional(command.Notes),
-            utcNow);
+            utcNow
+        );
 
         dbContext.Set<BookingRequest>().Add(entity);
         dbContext.Set<BookingRequestItem>().AddRange(command.Items.Select(x => new BookingRequestItem
@@ -125,7 +127,8 @@ public sealed class CreateBookingRequestUseCaseCommandHandler(
             command.ActorUserId,
             null,
             JsonSerializer.Serialize(new { entity.Status, entity.Channel, entity.SelectionMode, entity.PetId, entity.ClientId }),
-            ct);
+            ct
+        );
 
         return (await bookingReadService.GetBookingRequestAsync(entity.Id, ct))!;
     }
@@ -143,7 +146,8 @@ public sealed class CreateBookingRequestUseCaseCommandHandler(
             null => fallback,
             _ when BookingRequestStatusCodes.All.Contains(normalized, StringComparer.OrdinalIgnoreCase) =>
                 BookingRequestStatusCodes.All.Single(x => string.Equals(x, normalized, StringComparison.OrdinalIgnoreCase)),
-            _ => Error.Validation("Booking.UnknownBookingRequestStatus", $"Unknown booking request status '{status}'.")
+            _ => Error.Validation("Booking.UnknownBookingRequestStatus", $"Unknown booking request status '{status}'."
+        )
         };
     }
 
@@ -156,7 +160,8 @@ public sealed class CreateBookingRequestUseCaseCommandHandler(
             _ when string.Equals(normalized, BookingRequestSelectionModeCodes.SpecificGroomer, StringComparison.OrdinalIgnoreCase) => BookingRequestSelectionModeCodes.SpecificGroomer,
             _ when string.Equals(normalized, BookingRequestSelectionModeCodes.ExactSlot, StringComparison.OrdinalIgnoreCase) => BookingRequestSelectionModeCodes.ExactSlot,
             _ when string.Equals(normalized, BookingRequestSelectionModeCodes.PreferredWindow, StringComparison.OrdinalIgnoreCase) => BookingRequestSelectionModeCodes.PreferredWindow,
-            _ => Error.Validation("Booking.UnknownSelectionMode", $"Unknown selection mode '{selectionMode}'.")
+            _ => Error.Validation("Booking.UnknownSelectionMode", $"Unknown selection mode '{selectionMode}'."
+        )
         };
     }
 

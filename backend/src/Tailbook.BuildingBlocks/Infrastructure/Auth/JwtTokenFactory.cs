@@ -38,7 +38,8 @@ public sealed class JwtTokenFactory(IOptions<JwtOptions> options, TimeProvider t
             claims,
             now.UtcDateTime,
             expiresAt.UtcDateTime,
-            credentials);
+            credentials
+        );
 
         return new GeneratedToken(new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
     }

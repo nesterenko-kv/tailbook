@@ -8,7 +8,8 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 namespace Tailbook.Modules.VisitOperations.Api.Admin.ApplyVisitAdjustment;
 
 public sealed class ApplyVisitAdjustmentEndpoint(
-    IEntityScopeService entityScopeService)
+    IEntityScopeService entityScopeService
+)
     : Endpoint<ApplyVisitAdjustmentRequest, VisitDetailView>
 {
     public override void Configure()
@@ -24,7 +25,8 @@ public sealed class ApplyVisitAdjustmentEndpoint(
             EntityScopeResourceTypes.Visit,
             req.VisitId.ToString("D"),
             req.ActorUserId,
-            ct);
+            ct
+        );
         if (scopeResult.IsError)
         {
             await Send.ResultAsync(scopeResult.Errors.ToHttpResult());

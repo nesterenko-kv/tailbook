@@ -11,7 +11,8 @@ public static class IntegrationEventVersionPolicy
         if (eventVersion < InitialVersion)
         {
             throw new InvalidOperationException(
-                $"Integration event '{eventType}' has invalid eventVersion '{eventVersion}'. Event versions start at {InitialVersion}.");
+                $"Integration event '{eventType}' has invalid eventVersion '{eventVersion}'. Event versions start at {InitialVersion}."
+            );
         }
     }
 }

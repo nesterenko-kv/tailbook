@@ -11,7 +11,8 @@ public sealed class AppDbContext : DbContext
 
     public AppDbContext(
         DbContextOptions<AppDbContext> options,
-        ModelConfigurationAssemblies modelConfigurationAssemblies)
+        ModelConfigurationAssemblies modelConfigurationAssemblies
+    )
         : base(options)
     {
         ArgumentNullException.ThrowIfNull(modelConfigurationAssemblies);

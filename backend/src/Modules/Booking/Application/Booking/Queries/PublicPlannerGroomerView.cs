@@ -6,4 +6,5 @@ public sealed record PublicPlannerGroomerView(
     bool CanTakeRequest,
     int ReservedMinutes,
     IReadOnlyCollection<string> Reasons,
-    IReadOnlyCollection<PublicPlannerSlotView> Slots);
+    IReadOnlyCollection<PublicPlannerSlotView> Slots
+);

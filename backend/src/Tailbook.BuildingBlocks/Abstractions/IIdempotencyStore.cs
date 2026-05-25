@@ -12,4 +12,5 @@ public sealed record IdempotencyAcquireResult(
     bool IsNew,
     bool IsCompleted,
     int? ExistingStatusCode,
-    string? ExistingResponseBody);
+    string? ExistingResponseBody
+);

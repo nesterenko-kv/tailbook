@@ -12,7 +12,8 @@ public sealed record ClientDetailView(
     IReadOnlyCollection<ContactPersonView> Contacts,
     IReadOnlyCollection<PetAdminSummary> Pets,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt
+);
 public sealed record ContactPersonView(Guid Id, Guid ClientId, string FirstName, string? LastName, string? Notes, string TrustLevel, IReadOnlyCollection<ContactMethodView> Methods);
 public sealed record ContactMethodView(Guid Id, string MethodType, string DisplayValue, bool IsPreferred, string VerificationStatus, string? Notes);
 public sealed record PetContactLinkView(
@@ -25,4 +26,5 @@ public sealed record PetContactLinkView(
     bool CanPickUp,
     bool CanPay,
     bool ReceivesNotifications,
-    IReadOnlyCollection<ContactMethodView> Methods);
+    IReadOnlyCollection<ContactMethodView> Methods
+);

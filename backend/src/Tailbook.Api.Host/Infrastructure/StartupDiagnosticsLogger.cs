@@ -98,5 +98,6 @@ internal static partial class StartupDiagnosticsMessages
         bool telemetryEnabled,
         bool otlpExportConfigured,
         bool otlpLogExportConfigured,
-        string databasePoolName);
+        string databasePoolName
+    );
 }

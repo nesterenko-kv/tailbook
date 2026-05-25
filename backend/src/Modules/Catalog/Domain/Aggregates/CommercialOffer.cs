@@ -48,7 +48,8 @@ public sealed class CommercialOffer
         DateTimeOffset? validTo,
         string? policyText,
         string? changeNote,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         var nextVersionNo = _versions.Count == 0 ? 1 : _versions.Max(x => x.VersionNo) + 1;
         var version = OfferVersion.CreateDraft(
@@ -59,7 +60,8 @@ public sealed class CommercialOffer
             validTo,
             NormalizeOptional(policyText),
             NormalizeOptional(changeNote),
-            utcNow);
+            utcNow
+        );
 
         _versions.Add(version);
         return version;
@@ -71,7 +73,8 @@ public sealed class CommercialOffer
         string componentRole,
         int sequenceNo,
         bool defaultExpected,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         var version = _versions.SingleOrDefault(x => x.Id == versionId);
         if (version is null)
@@ -90,7 +93,8 @@ public sealed class CommercialOffer
             componentRole,
             sequenceNo,
             defaultExpected,
-            utcNow);
+            utcNow
+        );
     }
 
     public ErrorOr<Success> EnsureVersionCanAcceptComponent(Guid versionId)
@@ -124,7 +128,8 @@ public sealed class CommercialOffer
 
         return version.Publish(
             string.Equals(OfferType, OfferTypeCodes.Package, StringComparison.OrdinalIgnoreCase),
-            utcNow);
+            utcNow
+        );
     }
 
     public static ErrorOr<string> NormalizeCode(string code)

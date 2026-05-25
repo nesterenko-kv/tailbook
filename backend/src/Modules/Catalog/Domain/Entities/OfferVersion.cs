@@ -27,7 +27,8 @@ public sealed class OfferVersion
         DateTimeOffset? validTo,
         string? policyText,
         string? changeNote,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         return new OfferVersion
         {
@@ -50,7 +51,8 @@ public sealed class OfferVersion
         string componentRole,
         int sequenceNo,
         bool defaultExpected,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         if (!string.Equals(Status, OfferVersionStatusCodes.Draft, StringComparison.OrdinalIgnoreCase))
         {

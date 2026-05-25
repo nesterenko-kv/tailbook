@@ -5,7 +5,8 @@ namespace Tailbook.Modules.VisitOperations.Infrastructure.Services.CommandHandle
 
 public sealed class RecordOwnSkippedComponentUseCaseCommandHandler(
     IGroomerVisitReadService groomerVisitReadService,
-    RecordSkippedComponentUseCaseCommandHandler recordSkippedComponentHandler)
+    RecordSkippedComponentUseCaseCommandHandler recordSkippedComponentHandler
+)
     : ICommandHandler<RecordOwnSkippedComponentUseCaseCommand, ErrorOr<GroomerVisitDetailView>>
 {
     public async Task<ErrorOr<GroomerVisitDetailView>> ExecuteAsync(RecordOwnSkippedComponentUseCaseCommand command, CancellationToken ct = default)
@@ -24,7 +25,8 @@ public sealed class RecordOwnSkippedComponentUseCaseCommandHandler(
                 command.OmissionReasonCode,
                 command.Note,
                 command.CurrentUserId),
-            ct);
+            ct
+        );
 
         return result.IsError ? result.Errors : GroomerVisitMapper.Map(result.Value);
     }

@@ -27,7 +27,8 @@ public sealed class NotificationIntegrationEventConsumer : BackgroundService
         IOptions<RabbitMqOptions> rabbitMqOptions,
         IOptions<NotificationsOptions> notificationsOptions,
         IServiceScopeFactory scopeFactory,
-        ILogger<NotificationIntegrationEventConsumer> logger)
+        ILogger<NotificationIntegrationEventConsumer> logger
+    )
     {
         _connectionFactory = connectionFactory;
         _rabbitMqOptions = rabbitMqOptions.Value;
@@ -53,20 +54,23 @@ public sealed class NotificationIntegrationEventConsumer : BackgroundService
             type: ExchangeType.Topic,
             durable: true,
             autoDelete: false,
-            cancellationToken: stoppingToken);
+            cancellationToken: stoppingToken
+        );
 
         await channel.QueueDeclareAsync(
             queue: queue,
             durable: true,
             exclusive: false,
             autoDelete: false,
-            cancellationToken: stoppingToken);
+            cancellationToken: stoppingToken
+        );
 
         await channel.QueueBindAsync(
             queue: queue,
             exchange: exchange,
             routingKey: "#",
-            cancellationToken: stoppingToken);
+            cancellationToken: stoppingToken
+        );
 
         var consumer = new AsyncEventingBasicConsumer(channel);
 
@@ -81,7 +85,8 @@ public sealed class NotificationIntegrationEventConsumer : BackgroundService
                 await channel.BasicAckAsync(
                     deliveryTag: args.DeliveryTag,
                     multiple: false,
-                    cancellationToken: stoppingToken);
+                    cancellationToken: stoppingToken
+                );
 
                 RabbitMqTelemetry.RecordConsume(exchange, args.RoutingKey, success: true);
             }
@@ -96,7 +101,8 @@ public sealed class NotificationIntegrationEventConsumer : BackgroundService
                     deliveryTag: args.DeliveryTag,
                     multiple: false,
                     requeue: true,
-                    cancellationToken: stoppingToken);
+                    cancellationToken: stoppingToken
+                );
             }
         };
 
@@ -104,7 +110,8 @@ public sealed class NotificationIntegrationEventConsumer : BackgroundService
             queue: queue,
             autoAck: false,
             consumer: consumer,
-            cancellationToken: stoppingToken);
+            cancellationToken: stoppingToken
+        );
 
         _logger.LogInformation("Notification integration event consumer started on queue {Queue}, exchange {Exchange}.", queue, exchange);
 
@@ -122,7 +129,8 @@ public sealed class NotificationIntegrationEventConsumer : BackgroundService
         ReadOnlyMemory<byte> body,
         string routingKey,
         IReadOnlyBasicProperties? properties,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var payloadJson = Encoding.UTF8.GetString(body.Span);
         using var document = JsonDocument.Parse(payloadJson);

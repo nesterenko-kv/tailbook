@@ -8,7 +8,8 @@ namespace Tailbook.Modules.VisitOperations.Api.Admin.ListVisits;
 
 public sealed class ListVisitsEndpoint(
     IVisitReadService visitReadService,
-    IScopeAuthorizationService scopeAuthorizationService)
+    IScopeAuthorizationService scopeAuthorizationService
+)
     : Endpoint<ListVisitsRequest, PagedResult<VisitListItemView>>
 {
     public override void Configure()
@@ -35,7 +36,8 @@ public sealed class ListVisitsEndpoint(
             req.AppointmentId,
             req.Page,
             req.PageSize,
-            ct);
+            ct
+        );
         if (result.IsError)
         {
             await Send.ResultAsync(result.Errors.ToHttpResult());
@@ -58,7 +60,8 @@ public sealed class ListVisitsEndpoint(
                     EntityScopeResourceTypes.Visit,
                     item => item.Id.ToString("D"),
                     scopeAuthorizationService,
-                    ct);
+                    ct
+                );
                 totalCount = filteredItems.Count;
             }
         }

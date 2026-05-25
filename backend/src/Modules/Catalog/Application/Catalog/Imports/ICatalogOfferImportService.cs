@@ -23,7 +23,8 @@ public sealed record ImportBatchSummaryView(
     int ErrorRows,
     Guid? ActorUserId,
     DateTimeOffset CreatedAt,
-    DateTimeOffset? CommittedAt);
+    DateTimeOffset? CommittedAt
+);
 
 public sealed record ImportBatchView(
     Guid Id,
@@ -36,6 +37,7 @@ public sealed record ImportBatchView(
     Guid? ActorUserId,
     DateTimeOffset CreatedAt,
     DateTimeOffset? CommittedAt,
-    IReadOnlyCollection<ImportRowIssueView> Issues);
+    IReadOnlyCollection<ImportRowIssueView> Issues
+);
 
 public sealed record ImportRowIssueView(int RowNumber, string Field, string Code, string Message);

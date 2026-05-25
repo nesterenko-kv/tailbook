@@ -16,7 +16,8 @@ internal sealed class AuditTrailService(IAuditWriteQueue queue, TimeProvider tim
             actionCode,
             timeProvider.GetUtcNow(),
             beforeJson,
-            afterJson);
+            afterJson
+        );
 
         return queue.EnqueueAsync(item, cancellationToken);
     }

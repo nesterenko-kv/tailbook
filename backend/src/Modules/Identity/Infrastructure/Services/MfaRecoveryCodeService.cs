@@ -20,7 +20,8 @@ public sealed class MfaRecoveryCodeService(
     private const string MfaRecoveryEntityType = "iam_mfa_recovery";
     public async Task<ErrorOr<MfaRecoveryCodeGenerationResult>> GenerateRecoveryCodesAsync(
         Guid userId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var user = await dbContext.Set<IdentityUser>()
             .SingleOrDefaultAsync(x => x.Id == userId && x.Status == UserStatusCodes.Active, cancellationToken);
@@ -70,14 +71,16 @@ public sealed class MfaRecoveryCodeService(
             existingActiveCodes.Count,
             rawCodes.Count,
             utcNow,
-            cancellationToken);
+            cancellationToken
+        );
 
         return new MfaRecoveryCodeGenerationResult(userId, batchId, rawCodes, rawCodes.Count, utcNow);
     }
 
     public async Task<MfaRecoveryCodeStatus> GetRecoveryCodeStatusAsync(
         Guid userId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var codes = await dbContext.Set<IdentityMfaRecoveryCode>()
             .Where(x => x.UserId == userId)
@@ -91,7 +94,8 @@ public sealed class MfaRecoveryCodeService(
         Guid userId,
         string code,
         Guid? challengeId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var normalizedCode = MfaRecoveryCodeHelpers.NormalizeRecoveryCode(code);
         if (string.IsNullOrWhiteSpace(normalizedCode))
@@ -119,7 +123,8 @@ public sealed class MfaRecoveryCodeService(
     public async Task<ErrorOr<MfaRecoveryResetResult>> ResetMfaRecoveryAsync(
         Guid userId,
         Guid actorUserId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (userId == actorUserId)
         {
@@ -168,14 +173,16 @@ public sealed class MfaRecoveryCodeService(
             activeRecoveryCodes.Count,
             outstandingChallenges.Count,
             utcNow,
-            cancellationToken);
+            cancellationToken
+        );
 
         return new MfaRecoveryResetResult(
             userId,
             enabledFactors.Count,
             activeRecoveryCodes.Count,
             outstandingChallenges.Count,
-            utcNow);
+            utcNow
+        );
     }
 
     private static IReadOnlyCollection<string> GenerateUniqueCodes(int count, int length)
@@ -202,7 +209,8 @@ public sealed class MfaRecoveryCodeService(
         int invalidatedCodeCount,
         int generatedCodeCount,
         DateTimeOffset createdAt,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var actionCode = invalidatedCodeCount > 0
             ? "MFA_RECOVERY_CODES_REGENERATED"
@@ -223,7 +231,8 @@ public sealed class MfaRecoveryCodeService(
                 invalidatedCodeCount,
                 createdAt
             }),
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     private ValueTask RecordResetAuditAsync(
@@ -233,7 +242,8 @@ public sealed class MfaRecoveryCodeService(
         int invalidatedRecoveryCodeCount,
         int invalidatedChallengeCount,
         DateTimeOffset resetAt,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return auditTrailService.RecordAsync(
             ModuleCode,
@@ -256,6 +266,7 @@ public sealed class MfaRecoveryCodeService(
                 invalidatedChallengeCount,
                 resetAt
             }),
-            cancellationToken);
+            cancellationToken
+        );
     }
 }

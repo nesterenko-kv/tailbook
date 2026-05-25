@@ -9,4 +9,5 @@ public sealed record GroomerAppointmentListItemView(
     DateTimeOffset EndAt,
     string Status,
     int ReservedMinutes,
-    IReadOnlyCollection<string> ServiceLabels);
+    IReadOnlyCollection<string> ServiceLabels
+);

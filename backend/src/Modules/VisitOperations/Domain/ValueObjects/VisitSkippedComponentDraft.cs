@@ -6,4 +6,5 @@ public sealed record VisitSkippedComponentDraft(
     string ProcedureCodeSnapshot,
     string ProcedureNameSnapshot,
     string? OmissionReasonCode,
-    string? Note);
+    string? Note
+);

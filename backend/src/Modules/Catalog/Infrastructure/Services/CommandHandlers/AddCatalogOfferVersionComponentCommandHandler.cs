@@ -58,7 +58,8 @@ public sealed class AddCatalogOfferVersionComponentCommandHandler(AppDbContext d
             entity.Value.ComponentRole,
             entity.Value.SequenceNo,
             entity.Value.DefaultExpected,
-            entity.Value.CreatedAt);
+            entity.Value.CreatedAt
+        );
     }
 
     private async Task<ErrorOr<CommercialOffer>> LoadOfferAggregateByVersionIdAsync(Guid versionId, CancellationToken cancellationToken)

@@ -11,4 +11,5 @@ public sealed record NotificationJobListItemView(
     DateTimeOffset CreatedAt,
     DateTimeOffset? SentAt,
     DateTimeOffset? NextAttemptAt,
-    DateTimeOffset? DeadLetteredAt);
+    DateTimeOffset? DeadLetteredAt
+);

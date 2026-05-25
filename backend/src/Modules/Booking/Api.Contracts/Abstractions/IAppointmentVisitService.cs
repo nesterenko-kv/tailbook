@@ -10,7 +10,8 @@ public interface IAppointmentVisitService
         DateTimeOffset? from,
         DateTimeOffset? to,
         Guid? groomerId,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
     Task<ErrorOr<Success>> MarkCheckedInAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken);
     Task<ErrorOr<Success>> MarkInProgressAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken);
     Task<ErrorOr<Success>> MarkCompletedAsync(Guid appointmentId, Guid? actorUserId, CancellationToken cancellationToken);
@@ -26,7 +27,8 @@ public sealed record VisitAppointmentInfo(
     DateTimeOffset EndAt,
     string Status,
     int VersionNo,
-    IReadOnlyCollection<VisitAppointmentItemInfo> Items);
+    IReadOnlyCollection<VisitAppointmentItemInfo> Items
+);
 
 public sealed record VisitAppointmentItemInfo(
     Guid AppointmentItemId,
@@ -40,4 +42,5 @@ public sealed record VisitAppointmentItemInfo(
     Guid DurationSnapshotId,
     decimal PriceAmount,
     int ServiceMinutes,
-    int ReservedMinutes);
+    int ReservedMinutes
+);

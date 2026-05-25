@@ -41,7 +41,8 @@ public sealed class LoginEndpoint(
             requestIpAddress: HttpContext.Connection.RemoteIpAddress?.ToString(),
             userAgent: HttpContext.Request.Headers.UserAgent.ToString(),
             deviceTrustToken: deviceTrustToken,
-            cancellationToken: ct);
+            cancellationToken: ct
+        );
         if (result.IsError)
         {
             await loginThrottling.RecordFailureAsync(req.Email, ct);
@@ -62,7 +63,8 @@ public sealed class LoginEndpoint(
 
                 await Send.OkAsync(
                     LoginResponseMapper.FromLoginResult(success.Login, session.Value.IncludeRefreshTokenInResponse),
-                    cancellation: ct);
+                    cancellation: ct
+                );
                 return;
             case AuthenticationMfaRequiredResult challenge:
                 await Send.OkAsync(LoginResponseMapper.FromMfaChallenge(challenge), cancellation: ct);

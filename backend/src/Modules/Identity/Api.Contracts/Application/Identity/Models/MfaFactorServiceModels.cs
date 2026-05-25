@@ -7,4 +7,5 @@ public sealed record MfaFactorView(
     string TargetEmail,
     DateTimeOffset CreatedAt,
     DateTimeOffset? EnabledAt,
-    DateTimeOffset? DisabledAt);
+    DateTimeOffset? DisabledAt
+);

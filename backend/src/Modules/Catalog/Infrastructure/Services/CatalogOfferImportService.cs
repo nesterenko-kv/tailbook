@@ -46,7 +46,8 @@ public sealed class CatalogOfferImportService(
                 BatchId = batch.Id,
                 RowNumber = row.RowNumber,
                 ExternalId = row.ExternalId,
-                PayloadJson = JsonSerializer.Serialize(row, JsonOptions)
+                PayloadJson = JsonSerializer.Serialize(row, JsonOptions
+            )
             });
         }
 
@@ -73,7 +74,8 @@ public sealed class CatalogOfferImportService(
             input.ActorUserId,
             null,
             JsonSerializer.Serialize(new { batch.Domain, batch.Status, batch.TotalRows, batch.ValidRows, batch.ErrorRows }, JsonOptions),
-            cancellationToken);
+            cancellationToken
+        );
 
         return Map(batch);
     }
@@ -131,7 +133,8 @@ public sealed class CatalogOfferImportService(
     private async Task AddExistingCodeIssuesAsync(
         IReadOnlyCollection<CatalogOfferImportRow> rows,
         List<ImportValidationIssue> issues,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var codes = rows
             .Where(x => !string.IsNullOrWhiteSpace(x.Code))

@@ -19,7 +19,8 @@ public sealed class RabbitMqMessageBroker : IMessageBroker, IAsyncDisposable
     public RabbitMqMessageBroker(
         RabbitMqConnectionFactory connectionFactory,
         IOptions<RabbitMqOptions> options,
-        ILogger<RabbitMqMessageBroker> logger)
+        ILogger<RabbitMqMessageBroker> logger
+    )
     {
         _connectionFactory = connectionFactory;
         _options = options.Value;
@@ -50,7 +51,8 @@ public sealed class RabbitMqMessageBroker : IMessageBroker, IAsyncDisposable
                 type: ExchangeType.Topic,
                 durable: true,
                 autoDelete: false,
-                cancellationToken: cancellationToken);
+                cancellationToken: cancellationToken
+            );
 
             var props = new BasicProperties
             {
@@ -70,14 +72,16 @@ public sealed class RabbitMqMessageBroker : IMessageBroker, IAsyncDisposable
                 mandatory: true,
                 basicProperties: props,
                 body: body,
-                cancellationToken: cancellationToken);
+                cancellationToken: cancellationToken
+            );
 
             stopwatch.Stop();
             RabbitMqTelemetry.RecordPublish(exchangeToUse, routingKey, body.Length, stopwatch.Elapsed, success: true);
 
             _logger.LogDebug(
                 "Published message {MessageId} to exchange {Exchange} with routing key {RoutingKey} ({PayloadSize} bytes).",
-                props.MessageId, exchangeToUse, routingKey, body.Length);
+                props.MessageId, exchangeToUse, routingKey, body.Length
+            );
         }
         catch (Exception ex)
         {
@@ -87,7 +91,8 @@ public sealed class RabbitMqMessageBroker : IMessageBroker, IAsyncDisposable
 
             _logger.LogError(ex,
                 "Failed to publish message to exchange {Exchange} with routing key {RoutingKey}.",
-                exchange, routingKey);
+                exchange, routingKey
+            );
 
             throw;
         }

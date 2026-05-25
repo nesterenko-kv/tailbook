@@ -24,7 +24,8 @@ public sealed class VisitSkippedComponent
         Guid visitExecutionItemId,
         VisitSkippedComponentDraft component,
         Guid? recordedByUserId,
-        DateTimeOffset recordedAt)
+        DateTimeOffset recordedAt
+    )
     {
         List<Error> errors = [];
 
@@ -85,7 +86,8 @@ public sealed class VisitSkippedComponent
             OmissionReasonCode = omissionReasonCode.Value,
             Note = NormalizeOptional(component.Note),
             RecordedByUserId = recordedByUserId,
-            RecordedAt = recordedAt.ToUniversalTime()
+            RecordedAt = recordedAt.ToUniversalTime(
+        )
         };
     }
 

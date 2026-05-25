@@ -15,24 +15,30 @@ public static class OutboxTelemetry
 
     private static readonly Counter<long> MessagesStaged = Meter.CreateCounter<long>(
         "tailbook.outbox.messages.staged",
-        description: "Outbox messages staged on the current unit of work.");
+        description: "Outbox messages staged on the current unit of work."
+    );
     private static readonly Histogram<long> PayloadSize = Meter.CreateHistogram<long>(
         "tailbook.outbox.payload.size",
         "By",
-        "Serialized outbox payload size.");
+        "Serialized outbox payload size."
+    );
     private static readonly Counter<long> PublisherFailures = Meter.CreateCounter<long>(
         "tailbook.outbox.publisher.failures",
-        description: "Unhandled integration outbox publisher failures.");
+        description: "Unhandled integration outbox publisher failures."
+    );
 
     private static readonly Counter<long> MessagesPublished = Meter.CreateCounter<long>(
         "tailbook.outbox.messages.published",
-        description: "Outbox messages successfully published to the message broker.");
+        description: "Outbox messages successfully published to the message broker."
+    );
     private static readonly Counter<long> MessagesPoisoned = Meter.CreateCounter<long>(
         "tailbook.outbox.messages.poisoned",
-        description: "Outbox messages moved to dead-letter/poison state.");
+        description: "Outbox messages moved to dead-letter/poison state."
+    );
     private static readonly Histogram<long> RetryDepth = Meter.CreateHistogram<long>(
         "tailbook.outbox.messages.retry_depth",
-        description: "Distribution of retry counts for outbox messages.");
+        description: "Distribution of retry counts for outbox messages."
+    );
 
     private static readonly ConcurrentDictionary<string, double> ModuleLagSeconds = new();
     private static readonly ObservableGauge<double> LagSeconds = Meter.CreateObservableGauge(
@@ -40,19 +46,22 @@ public static class OutboxTelemetry
         () => ModuleLagSeconds.Select(kvp => new Measurement<double>(
             kvp.Value,
             new TagList { { "tailbook.outbox.module", Normalize(kvp.Key) } })),
-        description: "Time between OccurredAt and now for oldest unprocessed message per module.");
+        description: "Time between OccurredAt and now for oldest unprocessed message per module."
+    );
 
     private static double _oldestUnprocessedAgeSeconds;
     private static readonly ObservableGauge<double> OldestUnprocessedAgeSeconds = Meter.CreateObservableGauge(
         "tailbook.outbox.oldest_unprocessed_age_seconds",
         () => _oldestUnprocessedAgeSeconds,
-        description: "Age of the oldest unprocessed (non-poisoned) message in seconds.");
+        description: "Age of the oldest unprocessed (non-poisoned) message in seconds."
+    );
 
     public static Activity? StartMessageStagedActivity(
         string moduleCode,
         string eventType,
         Guid messageId,
-        long payloadSizeBytes)
+        long payloadSizeBytes
+    )
     {
         var activity = ActivitySource.StartActivity(MessageStagedActivityName, ActivityKind.Producer);
         activity?.SetTag("messaging.system", "tailbook.outbox");

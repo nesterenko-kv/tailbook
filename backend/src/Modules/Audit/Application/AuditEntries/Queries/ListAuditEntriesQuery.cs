@@ -5,4 +5,5 @@ public sealed record ListAuditEntriesQuery(
     string? EntityType,
     string? EntityId,
     int Page,
-    int PageSize);
+    int PageSize
+);

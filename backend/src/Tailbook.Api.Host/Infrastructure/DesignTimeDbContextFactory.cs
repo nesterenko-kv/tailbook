@@ -10,7 +10,8 @@ public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<App
     {
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
         optionsBuilder.UseNpgsql(
-            "Host=localhost;Port=5432;Database=tailbook;Username=tailbook;Password=tailbook;Include Error Detail=true");
+            "Host=localhost;Port=5432;Database=tailbook;Username=tailbook;Password=tailbook;Include Error Detail=true"
+        );
         return new AppDbContext(optionsBuilder.Options, ModuleCatalog.PersistenceModelAssemblies);
     }
 }

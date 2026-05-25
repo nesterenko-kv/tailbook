@@ -18,6 +18,7 @@ public sealed record PriceRuleSetArchivedDomainEvent(
         return new PriceRuleSetArchivedIntegrationEvent(
             RuleSetId,
             VersionNo,
-            Status);
+            Status
+        );
     }
 }

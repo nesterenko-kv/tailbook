@@ -12,4 +12,5 @@ public sealed record ClientPortalActor(
     Guid ClientId,
     Guid ContactPersonId,
     string Email,
-    string DisplayName);
+    string DisplayName
+);

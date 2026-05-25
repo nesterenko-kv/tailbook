@@ -20,7 +20,8 @@ public sealed class NotificationInboxHandler(
             eventType,
             payloadJson,
             messageId,
-            ct);
+            ct
+        );
 
         if (result.Outcome == "sent")
         {

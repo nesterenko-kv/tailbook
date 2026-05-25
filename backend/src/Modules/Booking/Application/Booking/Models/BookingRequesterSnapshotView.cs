@@ -5,7 +5,8 @@ public sealed record BookingRequesterSnapshotView(
     string? Phone,
     string? InstagramHandle,
     string? Email,
-    string? PreferredContactMethodCode)
+    string? PreferredContactMethodCode
+)
 {
     public string? PrimaryContactDisplay =>
         !string.IsNullOrWhiteSpace(Phone) ? Phone :

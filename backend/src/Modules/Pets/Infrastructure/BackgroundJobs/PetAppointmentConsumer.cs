@@ -25,7 +25,8 @@ public sealed class PetAppointmentConsumer : BackgroundService
     public PetAppointmentConsumer(
         RabbitMqConnectionFactory connectionFactory,
         IOptions<RabbitMqOptions> rabbitMqOptions,
-        ILogger<PetAppointmentConsumer> logger)
+        ILogger<PetAppointmentConsumer> logger
+    )
     {
         _connectionFactory = connectionFactory;
         _rabbitMqOptions = rabbitMqOptions.Value;
@@ -49,14 +50,16 @@ public sealed class PetAppointmentConsumer : BackgroundService
             type: ExchangeType.Topic,
             durable: true,
             autoDelete: false,
-            cancellationToken: stoppingToken);
+            cancellationToken: stoppingToken
+        );
 
         await channel.QueueDeclareAsync(
             queue: queue,
             durable: true,
             exclusive: false,
             autoDelete: false,
-            cancellationToken: stoppingToken);
+            cancellationToken: stoppingToken
+        );
 
         foreach (var routingKey in PetRoutingKeys)
         {
@@ -64,7 +67,8 @@ public sealed class PetAppointmentConsumer : BackgroundService
                 queue: queue,
                 exchange: exchange,
                 routingKey: routingKey,
-                cancellationToken: stoppingToken);
+                cancellationToken: stoppingToken
+            );
         }
 
         var consumer = new AsyncEventingBasicConsumer(channel);
@@ -80,7 +84,8 @@ public sealed class PetAppointmentConsumer : BackgroundService
             {
                 _logger.LogError(ex,
                     "Failed to process pet appointment event from routing key {RoutingKey}.",
-                    args.RoutingKey);
+                    args.RoutingKey
+                );
                 await channel.BasicNackAsync(args.DeliveryTag, false, true, stoppingToken);
             }
         };

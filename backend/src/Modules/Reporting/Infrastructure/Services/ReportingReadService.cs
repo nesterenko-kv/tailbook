@@ -216,7 +216,8 @@ public sealed class ReportingReadService(AppDbContext dbContext) : IReportingRea
                 estimatedServiceMinutes,
                 estimatedReservedMinutes,
                 actualDurationMinutes,
-                actualDurationMinutes - estimatedServiceMinutes);
+                actualDurationMinutes - estimatedServiceMinutes
+            );
         })
             .OrderByDescending(x => x.ClosedAt)
             .ToArray();
@@ -337,7 +338,8 @@ public sealed class ReportingReadService(AppDbContext dbContext) : IReportingRea
                     closedCount,
                     estimatedRevenue,
                     finalRevenue,
-                    skippedIncludedComponentsCount);
+                    skippedIncludedComponentsCount
+                );
             })
             .OrderByDescending(x => x.BookedCount)
             .ThenBy(x => x.OfferCode)

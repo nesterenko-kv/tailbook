@@ -26,23 +26,29 @@ public static class NotificationTelemetry
     private static readonly Meter Meter = new(MeterName);
     private static readonly Counter<long> NotificationProcessingCycles = Meter.CreateCounter<long>(
         "tailbook.notifications.processing.cycles",
-        description: "Notification processing cycles.");
+        description: "Notification processing cycles."
+    );
     private static readonly Counter<long> NotificationsProcessed = Meter.CreateCounter<long>(
         "tailbook.notifications.processed",
-        description: "Notifications processed by cycle result.");
+        description: "Notifications processed by cycle result."
+    );
     private static readonly Counter<long> NotificationOutcomes = Meter.CreateCounter<long>(
         "tailbook.notifications.outcomes",
-        description: "Notifications handled by outcome.");
+        description: "Notifications handled by outcome."
+    );
     private static readonly Counter<long> DeliveryAttempts = Meter.CreateCounter<long>(
         "tailbook.notifications.delivery.attempts",
-        description: "Notification delivery attempts by status and channel.");
+        description: "Notification delivery attempts by status and channel."
+    );
     private static readonly Counter<long> BackgroundProcessingFailures = Meter.CreateCounter<long>(
         "tailbook.notifications.background.failures",
-        description: "Unhandled notification background processor failures.");
+        description: "Unhandled notification background processor failures."
+    );
     private static readonly Histogram<double> NotificationProcessingDuration = Meter.CreateHistogram<double>(
         "tailbook.notifications.processing.duration",
         "ms",
-        "Notification processing cycle duration.");
+        "Notification processing cycle duration."
+    );
 
     public static Activity? StartNotificationProcessingActivity(string trigger)
     {
@@ -63,7 +69,8 @@ public static class NotificationTelemetry
         int failedCount,
         int deadLetterCount,
         int ignoredCount,
-        int skippedRetryCount)
+        int skippedRetryCount
+    )
     {
         activity?.SetTag("tailbook.notifications.processed_count", processedCount);
         activity?.SetTag("tailbook.notifications.sent_count", sentCount);

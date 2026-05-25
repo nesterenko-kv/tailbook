@@ -19,7 +19,8 @@ public sealed class OfferVersionComponent
         string componentRole,
         int sequenceNo,
         bool defaultExpected,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         var normalizedRole = NormalizeRole(componentRole);
         if (normalizedRole.IsError)
@@ -35,7 +36,8 @@ public sealed class OfferVersionComponent
             ComponentRole = normalizedRole.Value,
             SequenceNo = sequenceNo,
             DefaultExpected = defaultExpected,
-            CreatedAt = utcNow.ToUniversalTime()
+            CreatedAt = utcNow.ToUniversalTime(
+        )
         };
     }
 

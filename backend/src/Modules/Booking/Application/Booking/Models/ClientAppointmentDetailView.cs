@@ -14,4 +14,5 @@ public sealed record ClientAppointmentDetailView(
     int ReservedMinutes,
     string? CancellationReasonCode,
     string? CancellationNotes,
-    DateTimeOffset? CancelledAt);
+    DateTimeOffset? CancelledAt
+);

@@ -11,28 +11,35 @@ public static class ApiDiagnosticsTelemetry
     private static readonly Meter Meter = new(MeterName);
     private static readonly Counter<long> UnhandledExceptions = Meter.CreateCounter<long>(
         "tailbook.api.unhandled_exceptions",
-        description: "Unhandled API exceptions converted to sanitized problem responses.");
+        description: "Unhandled API exceptions converted to sanitized problem responses."
+    );
     private static readonly Counter<long> HttpRequests = Meter.CreateCounter<long>(
         "tailbook.api.http.server.requests",
-        description: "Completed API HTTP requests.");
+        description: "Completed API HTTP requests."
+    );
     private static readonly Histogram<double> HttpRequestDuration = Meter.CreateHistogram<double>(
         "tailbook.api.http.server.duration",
         "ms",
-        "Completed API HTTP request duration.");
+        "Completed API HTTP request duration."
+    );
     private static readonly Counter<long> HealthReports = Meter.CreateCounter<long>(
         "tailbook.health.reports",
-        description: "Published health check reports by status.");
+        description: "Published health check reports by status."
+    );
     private static readonly Counter<long> HealthChecks = Meter.CreateCounter<long>(
         "tailbook.health.checks",
-        description: "Published health check entries by status.");
+        description: "Published health check entries by status."
+    );
     private static readonly Histogram<double> HealthReportDuration = Meter.CreateHistogram<double>(
         "tailbook.health.report.duration",
         "ms",
-        "Published health check report duration.");
+        "Published health check report duration."
+    );
     private static readonly Histogram<double> HealthCheckDuration = Meter.CreateHistogram<double>(
         "tailbook.health.check.duration",
         "ms",
-        "Published health check entry duration.");
+        "Published health check entry duration."
+    );
 
     public static void RecordUnhandledException(string method, string route, string exceptionType)
     {

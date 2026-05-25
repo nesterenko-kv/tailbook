@@ -12,7 +12,8 @@ public sealed record PetQuoteProfileInput(
     Guid AnimalTypeId,
     Guid BreedId,
     Guid? CoatTypeId,
-    Guid? SizeCategoryId);
+    Guid? SizeCategoryId
+);
 
 public sealed record PetQuoteProfile(
     Guid Id,
@@ -31,4 +32,5 @@ public sealed record PetQuoteProfile(
     string? CoatTypeName,
     Guid? SizeCategoryId,
     string? SizeCategoryCode,
-    string? SizeCategoryName);
+    string? SizeCategoryName
+);

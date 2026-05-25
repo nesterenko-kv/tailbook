@@ -26,7 +26,8 @@ public sealed class DurationRule
         Guid? breedGroupId,
         Guid? coatTypeId,
         Guid? sizeCategoryId,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         var condition = DurationRuleCondition.Create(Guid.NewGuid(), id, animalTypeId, breedId, breedGroupId, coatTypeId, sizeCategoryId);
         return new DurationRule

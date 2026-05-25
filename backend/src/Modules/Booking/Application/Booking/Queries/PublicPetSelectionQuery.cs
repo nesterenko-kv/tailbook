@@ -8,4 +8,5 @@ public sealed record PublicPetSelectionQuery(
     Guid? SizeCategoryId,
     decimal? WeightKg,
     string? PetName,
-    string? Notes);
+    string? Notes
+);

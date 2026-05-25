@@ -28,7 +28,8 @@ public class PriceRuleSetResponseBase
             ValidTo = view.ValidTo,
             CreatedAt = view.CreatedAt,
             PublishedAt = view.PublishedAt,
-            Rules = view.Rules.Select(PriceRuleResponseBase.FromView).ToArray()
+            Rules = view.Rules.Select(PriceRuleResponseBase.FromView).ToArray(
+        )
         };
     }
 }

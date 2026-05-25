@@ -37,7 +37,8 @@ public sealed class Appointment : AggregateRoot
         BookingPeriod period,
         IReadOnlyCollection<AppointmentItemDraft> items,
         Guid? actorUserId,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         List<Error> errors = [];
 
@@ -91,7 +92,8 @@ public sealed class Appointment : AggregateRoot
             CreatedByUserId = actorUserId,
             UpdatedByUserId = actorUserId,
             CreatedAt = utcNow.ToUniversalTime(),
-            UpdatedAt = utcNow.ToUniversalTime()
+            UpdatedAt = utcNow.ToUniversalTime(
+        )
         };
 
         foreach (var item in validatedItems)
@@ -283,7 +285,8 @@ public sealed class Appointment : AggregateRoot
             item.Quantity,
             item.PriceSnapshotId,
             item.DurationSnapshotId,
-            utcNow);
+            utcNow
+        );
         if (appointmentItem.IsError)
         {
             return appointmentItem.Errors;

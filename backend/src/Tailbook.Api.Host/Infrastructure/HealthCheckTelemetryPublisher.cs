@@ -28,7 +28,8 @@ public sealed partial class HealthCheckTelemetryPublisher(ILogger<HealthCheckTel
                 entry.Key,
                 entry.Value.Status.ToString(),
                 Math.Round(entry.Value.Duration.TotalMilliseconds, 2),
-                entry.Value.Exception?.GetType().Name ?? "none");
+                entry.Value.Exception?.GetType().Name ?? "none"
+            );
         }
 
         return Task.CompletedTask;

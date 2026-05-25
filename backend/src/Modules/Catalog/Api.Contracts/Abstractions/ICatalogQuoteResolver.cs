@@ -9,7 +9,8 @@ public interface ICatalogQuoteResolver
     Task<ErrorOr<CatalogQuoteResolution>> ResolveAsync(
         PetQuoteProfile pet,
         IReadOnlyCollection<QuotePreviewCatalogItem> items,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 }
 
 public sealed record QuotePreviewCatalogItem(Guid OfferId, string? ItemType);
@@ -23,7 +24,8 @@ public sealed record CatalogQuoteResolution(
     int ReservedMinutes,
     IReadOnlyCollection<CatalogQuotePriceLine> PriceLines,
     IReadOnlyCollection<CatalogQuoteDurationLine> DurationLines,
-    IReadOnlyCollection<CatalogResolvedQuoteItem> Items);
+    IReadOnlyCollection<CatalogResolvedQuoteItem> Items
+);
 
 public sealed record CatalogResolvedQuoteItem(
     Guid OfferId,
@@ -33,7 +35,8 @@ public sealed record CatalogResolvedQuoteItem(
     string DisplayName,
     decimal PriceAmount,
     int ServiceMinutes,
-    int ReservedMinutes);
+    int ReservedMinutes
+);
 
 public sealed record CatalogQuotePriceLine(
     Guid OfferId,
@@ -42,7 +45,8 @@ public sealed record CatalogQuotePriceLine(
     string Label,
     decimal Amount,
     Guid? SourceRuleId,
-    int SequenceNo);
+    int SequenceNo
+);
 
 public sealed record CatalogQuoteDurationLine(
     Guid OfferId,
@@ -51,4 +55,5 @@ public sealed record CatalogQuoteDurationLine(
     string Label,
     int Minutes,
     Guid? SourceRuleId,
-    int SequenceNo);
+    int SequenceNo
+);

@@ -7,7 +7,8 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 namespace Tailbook.Modules.VisitOperations.Api.Admin.CheckInAppointment;
 
 public sealed class CheckInAppointmentEndpoint(
-    IEntityScopeService entityScopeService)
+    IEntityScopeService entityScopeService
+)
     : Endpoint<CheckInAppointmentRequest, VisitDetailView>
 {
     public override void Configure()
@@ -23,7 +24,8 @@ public sealed class CheckInAppointmentEndpoint(
             EntityScopeResourceTypes.Appointment,
             req.AppointmentId.ToString("D"),
             req.ActorUserId,
-            ct);
+            ct
+        );
         if (scopeResult.IsError)
         {
             await Send.ResultAsync(scopeResult.Errors.ToHttpResult());

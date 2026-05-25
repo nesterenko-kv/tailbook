@@ -48,7 +48,8 @@ public sealed class RefreshTokenEndpoint(
 
         await Send.OkAsync(
             LoginResponseMapper.FromLoginResult(result.Value, browserSession.Value.IncludeRefreshTokenInResponse),
-            cancellation: ct);
+            cancellation: ct
+        );
     }
 }
 

@@ -7,7 +7,8 @@ namespace Tailbook.Modules.Pets.Api.Admin.ListPets;
 
 public sealed class ListPetsEndpoint(
     IPetsReadService petsReadService,
-    IScopeAuthorizationService scopeAuthorizationService)
+    IScopeAuthorizationService scopeAuthorizationService
+)
     : Endpoint<ListPetsRequest, PagedResult<PetListItemView>>
 {
     public override void Configure()
@@ -26,7 +27,8 @@ public sealed class ListPetsEndpoint(
             req.BreedId,
             req.Page,
             req.PageSize,
-            ct);
+            ct
+        );
 
         var actorUserIdClaim = User.FindFirst(TailbookClaimTypes.UserId)?.Value;
         IReadOnlyCollection<PetListItemView> filteredItems = result.Items;
@@ -43,7 +45,8 @@ public sealed class ListPetsEndpoint(
                     EntityScopeResourceTypes.Pet,
                     item => item.Id.ToString("D"),
                     scopeAuthorizationService,
-                    ct);
+                    ct
+                );
                 totalCount = filteredItems.Count;
             }
         }

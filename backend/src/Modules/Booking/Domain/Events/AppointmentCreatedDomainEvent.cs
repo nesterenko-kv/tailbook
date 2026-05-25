@@ -28,6 +28,7 @@ public sealed record AppointmentCreatedDomainEvent(
             StartAt,
             EndAt,
             Status,
-            VersionNo);
+            VersionNo
+        );
     }
 }

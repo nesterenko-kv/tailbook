@@ -42,7 +42,8 @@ public sealed class VisitReportingReadService(AppDbContext dbContext) : IVisitRe
                 adjustmentTotal,
                 finalTotal,
                 serviceMinutes,
-                reservedMinutes);
+                reservedMinutes
+            );
         }).ToArray();
     }
 

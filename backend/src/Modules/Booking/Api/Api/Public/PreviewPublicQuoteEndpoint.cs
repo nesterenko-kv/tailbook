@@ -7,7 +7,8 @@ namespace Tailbook.Modules.Booking.Api.Public;
 
 public sealed class PreviewPublicQuoteEndpoint(
     IClientPortalActorService actorService,
-    PublicBookingReadService queries)
+    PublicBookingReadService queries
+)
     : Endpoint<PublicPreviewQuoteRequest, PublicQuotePreviewResponse>
 {
     public override void Configure()
@@ -25,7 +26,8 @@ public sealed class PreviewPublicQuoteEndpoint(
             new PublicPreviewQuoteQuery(
                 PublicBookingEndpointMapper.MapPet(req.Pet),
                 req.Items.Select(x => new PreviewQuoteItemQuery(x.OfferId, x.ItemType)).ToArray()),
-            ct);
+            ct
+        );
 
         if (result.IsError)
         {

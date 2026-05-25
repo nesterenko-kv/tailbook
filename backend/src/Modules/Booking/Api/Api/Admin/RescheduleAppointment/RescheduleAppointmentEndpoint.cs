@@ -7,7 +7,8 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 namespace Tailbook.Modules.Booking.Api.Admin.RescheduleAppointment;
 
 public sealed class RescheduleAppointmentEndpoint(
-    IEntityScopeService entityScopeService)
+    IEntityScopeService entityScopeService
+)
     : Endpoint<RescheduleAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()
@@ -23,7 +24,8 @@ public sealed class RescheduleAppointmentEndpoint(
             EntityScopeResourceTypes.Appointment,
             req.AppointmentId.ToString("D"),
             req.ActorUserId,
-            ct);
+            ct
+        );
         if (scopeResult.IsError)
         {
             await Send.ResultAsync(scopeResult.Errors.ToHttpResult());
@@ -35,7 +37,8 @@ public sealed class RescheduleAppointmentEndpoint(
             req.GroomerId,
             req.StartAt,
             req.ExpectedVersionNo,
-            req.ActorUserId)
+            req.ActorUserId
+        )
             .ExecuteAsync(ct);
 
         if (result.IsError)

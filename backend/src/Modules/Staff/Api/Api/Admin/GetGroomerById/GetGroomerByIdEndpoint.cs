@@ -9,7 +9,8 @@ namespace Tailbook.Modules.Staff.Api.Admin.GetGroomerById;
 
 public sealed class GetGroomerByIdEndpoint(
     IStaffReadService staffReadService,
-    IEntityScopeService entityScopeService)
+    IEntityScopeService entityScopeService
+)
     : Endpoint<GetGroomerByIdRequest, CreateGroomerResponse>
 {
     public override void Configure()

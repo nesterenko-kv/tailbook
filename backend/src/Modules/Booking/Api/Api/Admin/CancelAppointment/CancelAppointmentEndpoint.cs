@@ -7,7 +7,8 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 namespace Tailbook.Modules.Booking.Api.Admin.CancelAppointment;
 
 public sealed class CancelAppointmentEndpoint(
-    IEntityScopeService entityScopeService)
+    IEntityScopeService entityScopeService
+)
     : Endpoint<CancelAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()
@@ -23,7 +24,8 @@ public sealed class CancelAppointmentEndpoint(
             EntityScopeResourceTypes.Appointment,
             req.AppointmentId.ToString("D"),
             req.ActorUserId,
-            ct);
+            ct
+        );
         if (scopeResult.IsError)
         {
             await Send.ResultAsync(scopeResult.Errors.ToHttpResult());

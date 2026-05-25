@@ -28,7 +28,8 @@ public sealed class OfferVersionResponse
             ChangeNote = view.ChangeNote,
             CreatedAt = view.CreatedAt,
             PublishedAt = view.PublishedAt,
-            Components = view.Components.Select(OfferVersionComponentResponse.Map).ToArray()
+            Components = view.Components.Select(OfferVersionComponentResponse.Map).ToArray(
+        )
         };
     }
 }

@@ -10,4 +10,5 @@ public sealed record GroomerAppointmentDetailView(
     IReadOnlyCollection<string> HandlingNotes,
     IReadOnlyCollection<GroomerAppointmentItemView> Items,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt
+);

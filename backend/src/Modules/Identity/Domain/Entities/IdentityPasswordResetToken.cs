@@ -23,7 +23,8 @@ public sealed class IdentityPasswordResetToken : AggregateRoot
         DateTimeOffset createdAt,
         string email,
         string displayName,
-        string protectedResetLink)
+        string protectedResetLink
+    )
     {
         var utcCreatedAt = createdAt.ToUniversalTime();
         var entity = new IdentityPasswordResetToken

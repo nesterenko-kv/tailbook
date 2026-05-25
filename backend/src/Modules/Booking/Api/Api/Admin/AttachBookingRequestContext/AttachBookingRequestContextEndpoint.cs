@@ -7,7 +7,8 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 namespace Tailbook.Modules.Booking.Api.Admin.AttachBookingRequestContext;
 
 public sealed class AttachBookingRequestContextEndpoint(
-    IEntityScopeService entityScopeService)
+    IEntityScopeService entityScopeService
+)
     : Endpoint<AttachBookingRequestContextRequest, BookingRequestDetailView>
 {
     public override void Configure()
@@ -23,7 +24,8 @@ public sealed class AttachBookingRequestContextEndpoint(
             EntityScopeResourceTypes.BookingRequest,
             req.BookingRequestId.ToString("D"),
             req.ActorUserId,
-            ct);
+            ct
+        );
         if (scopeResult.IsError)
         {
             await Send.ResultAsync(scopeResult.Errors.ToHttpResult());
@@ -36,7 +38,8 @@ public sealed class AttachBookingRequestContextEndpoint(
                 req.ClientId,
                 req.PetId,
                 req.RequestedByContactId),
-            req.ActorUserId)
+            req.ActorUserId
+        )
             .ExecuteAsync(ct);
 
         if (result.IsError)

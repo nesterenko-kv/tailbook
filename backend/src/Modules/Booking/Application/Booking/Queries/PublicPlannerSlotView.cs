@@ -3,4 +3,5 @@
 public sealed record PublicPlannerSlotView(
     DateTimeOffset StartAt,
     DateTimeOffset EndAt,
-    IReadOnlyCollection<Guid> GroomerIds);
+    IReadOnlyCollection<Guid> GroomerIds
+);

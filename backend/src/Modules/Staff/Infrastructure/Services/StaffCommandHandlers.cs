@@ -26,7 +26,8 @@ public sealed class StaffCommandHandlers(StaffUseCases useCases)
             command.OfferId,
             command.CapabilityMode,
             command.ReservedDurationModifierMinutes,
-            command.Notes);
+            command.Notes
+        );
 
         return useCases.AddCapabilityAsync(capabilityInput, ct);
     }

@@ -63,7 +63,8 @@ public sealed class PublishCatalogPriceRuleSetCommandHandler(AppDbContext dbCont
             ruleSet.ValidTo,
             ruleSet.CreatedAt,
             ruleSet.PublishedAt,
-            ruleSet.Rules.OrderBy(x => x.Priority)
+            ruleSet.Rules.OrderBy(x => x.Priority
+        )
                 .Select(rule => CatalogRuleViewMapper.ToView(rule, rule.Condition, offers[rule.OfferId]))
                 .ToArray());
     }

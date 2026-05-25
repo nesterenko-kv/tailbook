@@ -12,7 +12,8 @@ public sealed class RefreshTokenService(
     AppDbContext dbContext,
     IDistributedCache cache,
     IOptions<RefreshTokenOptions> optionsAccessor,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider
+)
 {
     public async Task<IssuedRefreshToken> IssueAsync(Guid userId, CancellationToken cancellationToken)
     {
@@ -57,7 +58,8 @@ public sealed class RefreshTokenService(
                 x.TokenHash == tokenHash
                 && x.RevokedAt == null
                 && x.ExpiresAt > utcNow,
-                cancellationToken);
+                cancellationToken
+            );
     }
 
     public async Task<IssuedRefreshToken> RotateAsync(IdentityRefreshToken existingToken, CancellationToken cancellationToken)

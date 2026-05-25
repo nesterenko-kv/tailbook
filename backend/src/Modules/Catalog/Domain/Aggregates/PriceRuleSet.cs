@@ -29,7 +29,8 @@ public sealed class PriceRuleSet : AggregateRoot
             Status = RuleSetStatusCodes.Draft,
             ValidFrom = validFrom.ToUniversalTime(),
             ValidTo = validTo?.ToUniversalTime(),
-            CreatedAt = utcNow.ToUniversalTime()
+            CreatedAt = utcNow.ToUniversalTime(
+        )
         };
 
         ruleSet.RaiseDomainEvent(new PriceRuleSetCreatedDomainEvent(
@@ -54,7 +55,8 @@ public sealed class PriceRuleSet : AggregateRoot
         Guid? breedGroupId,
         Guid? coatTypeId,
         Guid? sizeCategoryId,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         if (!string.Equals(Status, RuleSetStatusCodes.Draft, StringComparison.OrdinalIgnoreCase))
         {
@@ -78,7 +80,8 @@ public sealed class PriceRuleSet : AggregateRoot
             breedGroupId,
             coatTypeId,
             sizeCategoryId,
-            utcNow);
+            utcNow
+        );
         if (rule.IsError)
         {
             return rule.Errors;

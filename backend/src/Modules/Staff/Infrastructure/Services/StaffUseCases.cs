@@ -34,7 +34,8 @@ public sealed class StaffUseCases(
             x.Active,
             capabilityCounts.GetValueOrDefault(x.Id, 0),
             x.CreatedAt,
-            x.UpdatedAt)).ToArray();
+            x.UpdatedAt)).ToArray(
+        );
     }
 
     public async Task<GroomerDetailView?> GetGroomerAsync(Guid groomerId, CancellationToken cancellationToken)
@@ -67,7 +68,8 @@ public sealed class StaffUseCases(
             capabilities.Select(MapCapability).ToArray(),
             schedules.Select(MapSchedule).ToArray(),
             groomer.CreatedAt,
-            groomer.UpdatedAt);
+            groomer.UpdatedAt
+        );
     }
 
     public async Task<ErrorOr<GroomerDetailView>> CreateGroomerAsync(string displayName, Guid? userId, CancellationToken cancellationToken)
@@ -158,7 +160,8 @@ public sealed class StaffUseCases(
             CapabilityMode = normalizedMode.Value,
             ReservedDurationModifierMinutes = command.ReservedDurationModifierMinutes,
             Notes = NormalizeOptional(command.Notes),
-            CreatedAt = timeProvider.GetUtcNow()
+            CreatedAt = timeProvider.GetUtcNow(
+        )
         };
 
         dbContext.Set<GroomerCapability>().Add(entity);
@@ -253,7 +256,8 @@ public sealed class StaffUseCases(
             EndAt = endAt.ToUniversalTime(),
             ReasonCode = normalizedReasonCode.Value,
             Notes = NormalizeOptional(notes),
-            CreatedAt = timeProvider.GetUtcNow()
+            CreatedAt = timeProvider.GetUtcNow(
+        )
         };
 
         dbContext.Set<TimeBlock>().Add(entity);
@@ -297,7 +301,8 @@ public sealed class StaffUseCases(
             to,
             schedules.Select(MapSchedule).ToArray(),
             timeBlocks.Select(MapTimeBlock).ToArray(),
-            windows);
+            windows
+        );
     }
 
     public async Task<ErrorOr<GroomerAvailabilityCheckResult>> CheckAvailabilityAsync(CheckGroomerAvailabilityQuery query, CancellationToken cancellationToken)
@@ -309,7 +314,8 @@ public sealed class StaffUseCases(
             query.StartAt,
             query.ReservedMinutes,
             null,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     private IReadOnlyCollection<AvailabilityWindowView> BuildAvailabilityWindows(DateTimeOffset from, DateTimeOffset to, IReadOnlyCollection<WorkingSchedule> schedules, IReadOnlyCollection<TimeBlock> timeBlocks)

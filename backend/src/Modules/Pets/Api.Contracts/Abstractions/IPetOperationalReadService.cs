@@ -13,4 +13,5 @@ public sealed record PetOperationalReadModel(
     string BreedName,
     string? CoatTypeCode,
     string? SizeCategoryCode,
-    string? Notes);
+    string? Notes
+);

@@ -7,4 +7,5 @@ public sealed record BookingRequestSubjectView(
     string? RequesterDisplayName,
     string? RequesterPrimaryContact,
     string? PreferredGroomerName,
-    GuestBookingIntakeView? GuestIntake);
+    GuestBookingIntakeView? GuestIntake
+);

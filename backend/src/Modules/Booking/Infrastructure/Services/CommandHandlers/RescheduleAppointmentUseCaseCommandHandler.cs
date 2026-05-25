@@ -12,7 +12,8 @@ public sealed class RescheduleAppointmentUseCaseCommandHandler(
     IBookingManagementReadService bookingReadService,
     IStaffSchedulingService staffSchedulingService,
     IAuditTrailService auditTrailService,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider
+)
     : ICommandHandler<RescheduleAppointmentUseCaseCommand, ErrorOr<AppointmentDetailView>>
 {
     public async Task<ErrorOr<AppointmentDetailView>> ExecuteAsync(RescheduleAppointmentUseCaseCommand command, CancellationToken ct = default)
@@ -72,7 +73,8 @@ public sealed class RescheduleAppointmentUseCaseCommandHandler(
             normalizedStartAt,
             baseReservedMinutes,
             appointment.Id,
-            ct);
+            ct
+        );
         if (availabilityResult.IsError)
         {
             return availabilityResult.Errors;
@@ -113,7 +115,8 @@ public sealed class RescheduleAppointmentUseCaseCommandHandler(
             command.ActorUserId,
             null,
             JsonSerializer.Serialize(new { appointment.VersionNo, appointment.StartAt, appointment.EndAt }),
-            ct);
+            ct
+        );
 
         return (await bookingReadService.GetAppointmentAsync(appointment.Id, ct))!;
     }

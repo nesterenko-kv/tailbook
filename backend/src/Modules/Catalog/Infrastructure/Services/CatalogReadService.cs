@@ -33,7 +33,8 @@ public sealed class CatalogReadService(AppDbContext dbContext) : ICatalogReadSer
             versions.Count(v => v.OfferId == x.Id),
             versions.Any(v => v.OfferId == x.Id && v.Status == OfferVersionStatusCodes.Published),
             x.CreatedAt,
-            x.UpdatedAt)).ToArray();
+            x.UpdatedAt)).ToArray(
+        );
     }
 
     public async Task<OfferDetailView?> GetOfferAsync(Guid offerId, CancellationToken cancellationToken)
@@ -90,11 +91,13 @@ public sealed class CatalogReadService(AppDbContext dbContext) : ICatalogReadSer
                             component.ComponentRole,
                             component.SequenceNo,
                             component.DefaultExpected,
-                            component.CreatedAt);
+                            component.CreatedAt
+                        );
                     })
                     .ToArray()))
                 .ToArray(),
             offer.CreatedAt,
-            offer.UpdatedAt);
+            offer.UpdatedAt
+        );
     }
 }

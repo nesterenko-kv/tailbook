@@ -8,7 +8,8 @@ internal sealed record AccessAuditWriteItem(
     string ResourceType,
     string ResourceId,
     string ActionCode,
-    DateTimeOffset HappenedAt) : AuditWriteItem(Id, ActorUserId, HappenedAt);
+    DateTimeOffset HappenedAt) : AuditWriteItem(Id, ActorUserId, HappenedAt
+);
 
 internal sealed record AuditTrailWriteItem(
     Guid Id,
@@ -19,7 +20,8 @@ internal sealed record AuditTrailWriteItem(
     string ActionCode,
     DateTimeOffset HappenedAt,
     string? BeforeJson,
-    string? AfterJson) : AuditWriteItem(Id, ActorUserId, HappenedAt);
+    string? AfterJson) : AuditWriteItem(Id, ActorUserId, HappenedAt
+);
 
 internal static class AuditWriteItemTypes
 {

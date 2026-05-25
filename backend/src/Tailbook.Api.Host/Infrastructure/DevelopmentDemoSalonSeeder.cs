@@ -223,7 +223,8 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
         Dictionary<string, CommercialOffer> offers,
         Dictionary<string, ProcedureCatalogItem> procedures,
         DateTimeOffset utcNow,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var policyText = "Final amount may vary after the visit based on behavior, matting, real effort, and non-standard size. Customer contact data stays admin-only in operational flows.";
         var componentMap = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
@@ -321,7 +322,8 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
         TaxonomyLookup taxonomy,
         Dictionary<string, CommercialOffer> offers,
         DateTimeOffset utcNow,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var ruleSet = await dbContext.Set<PriceRuleSet>()
             .Where(x => x.Status == RuleSetStatusCodes.Published)
@@ -410,7 +412,8 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
         TaxonomyLookup taxonomy,
         Dictionary<string, CommercialOffer> offers,
         DateTimeOffset utcNow,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var ruleSet = await dbContext.Set<DurationRuleSet>()
             .Where(x => x.Status == RuleSetStatusCodes.Published)
@@ -495,7 +498,8 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
         IReadOnlyCollection<PriceRuleCondition> conditions,
         Guid ruleSetId,
         Guid offerId,
-        ResolvedCondition resolved)
+        ResolvedCondition resolved
+    )
     {
         return rules
             .Where(x => x.RuleSetId == ruleSetId && x.OfferId == offerId)
@@ -512,7 +516,8 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
         IReadOnlyCollection<DurationRuleCondition> conditions,
         Guid ruleSetId,
         Guid offerId,
-        ResolvedCondition resolved)
+        ResolvedCondition resolved
+    )
     {
         return rules
             .Where(x => x.RuleSetId == ruleSetId && x.OfferId == offerId)
@@ -638,7 +643,8 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
         IReadOnlyDictionary<string, BreedGroup> BreedGroups,
         IReadOnlyDictionary<string, Breed> Breeds,
         IReadOnlyDictionary<string, CoatType> CoatTypes,
-        IReadOnlyDictionary<string, SizeCategory> SizeCategories)
+        IReadOnlyDictionary<string, SizeCategory> SizeCategories
+    )
     {
         public ResolvedCondition Resolve(string? animalTypeCode, string? breedCode, string? breedGroupCode, string? coatTypeCode, string? sizeCategoryCode)
         {
@@ -666,7 +672,8 @@ public sealed class DevelopmentDemoSalonSeeder(IHostEnvironment environment, Tim
                     Breed breed => breed.Id,
                     CoatType coatType => coatType.Id,
                     SizeCategory sizeCategory => sizeCategory.Id,
-                    _ => throw new InvalidOperationException($"Unsupported taxonomy entity type '{typeof(T).Name}'.")
+                    _ => throw new InvalidOperationException($"Unsupported taxonomy entity type '{typeof(T).Name}'."
+                )
                 }
                 : throw new InvalidOperationException($"Required taxonomy code '{code}' was not found for the development demo seed.");
         }

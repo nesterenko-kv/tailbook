@@ -68,7 +68,8 @@ public sealed class PasswordHasher
         ReadOnlySpan<char> remaining,
         out int iterations,
         out ReadOnlySpan<char> saltBase64,
-        out ReadOnlySpan<char> expectedBase64)
+        out ReadOnlySpan<char> expectedBase64
+    )
     {
         iterations = 0;
         saltBase64 = default;

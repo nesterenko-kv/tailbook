@@ -15,4 +15,5 @@ public sealed record BookingRequestListItemView(
     string? RequesterPrimaryContact,
     string? PreferredGroomerName,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt
+);

@@ -154,7 +154,8 @@ internal static class PetResponseMapper
             CanPay = contact.CanPay,
             ReceivesNotifications = contact.ReceivesNotifications,
             RoleCodes = contact.RoleCodes,
-            Methods = contact.Methods.Select(ToContactMethodResponse).ToArray()
+            Methods = contact.Methods.Select(ToContactMethodResponse).ToArray(
+        )
         };
     }
 

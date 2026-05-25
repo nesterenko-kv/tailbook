@@ -14,11 +14,13 @@ public sealed record PetContactAdminSummary(
     bool CanPay,
     bool ReceivesNotifications,
     IReadOnlyCollection<string> RoleCodes,
-    IReadOnlyCollection<ContactMethodAdminSummary> Methods);
+    IReadOnlyCollection<ContactMethodAdminSummary> Methods
+);
 
 public sealed record ContactMethodAdminSummary(
     Guid Id,
     string MethodType,
     string DisplayValue,
     bool IsPreferred,
-    string VerificationStatus);
+    string VerificationStatus
+);

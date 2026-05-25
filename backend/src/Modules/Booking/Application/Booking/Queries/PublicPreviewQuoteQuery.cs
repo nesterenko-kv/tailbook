@@ -2,4 +2,5 @@
 
 public sealed record PublicPreviewQuoteQuery(
     PublicPetSelectionQuery Pet,
-    IReadOnlyCollection<PreviewQuoteItemQuery> Items);
+    IReadOnlyCollection<PreviewQuoteItemQuery> Items
+);

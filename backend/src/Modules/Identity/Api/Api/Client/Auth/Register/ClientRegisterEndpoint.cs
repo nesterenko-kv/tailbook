@@ -46,7 +46,8 @@ public sealed class ClientRegisterEndpoint(
             requestIpAddress: null,
             userAgent: null,
             deviceTrustToken: null,
-            cancellationToken: ct);
+            cancellationToken: ct
+        );
         if (result.IsError)
         {
             Logger.Log(LogLevel.Warning, "Client portal registration finished without an active login session.");

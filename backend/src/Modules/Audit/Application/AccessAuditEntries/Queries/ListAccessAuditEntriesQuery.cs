@@ -4,4 +4,5 @@ public sealed record ListAccessAuditEntriesQuery(
     string? ResourceType,
     string? ResourceId,
     int Page,
-    int PageSize);
+    int PageSize
+);

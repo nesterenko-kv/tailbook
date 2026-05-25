@@ -15,4 +15,5 @@ public sealed record BookingGuestPetSnapshotView(
     string? SizeCategoryCode,
     string? SizeCategoryName,
     decimal? WeightKg,
-    string? Notes);
+    string? Notes
+);

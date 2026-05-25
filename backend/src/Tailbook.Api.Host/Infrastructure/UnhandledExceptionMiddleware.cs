@@ -36,10 +36,12 @@ public sealed class UnhandledExceptionMiddleware(RequestDelegate next, ILogger<U
                     type = "about:blank",
                     title = "The resource was modified by another request. Reload and retry.",
                     status = StatusCodes.Status409Conflict,
-                    traceId = TraceContext.GetTraceId(context)
+                    traceId = TraceContext.GetTraceId(context
+                )
                 },
                 JsonOptions,
-                context.RequestAborted);
+                context.RequestAborted
+            );
         }
         catch (Exception ex)
         {
@@ -67,7 +69,8 @@ public sealed class UnhandledExceptionMiddleware(RequestDelegate next, ILogger<U
                 StatusCodes.Status500InternalServerError,
                 traceId,
                 spanId ?? string.Empty,
-                exceptionType);
+                exceptionType
+            );
 
             context.Response.Clear();
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
@@ -84,7 +87,8 @@ public sealed class UnhandledExceptionMiddleware(RequestDelegate next, ILogger<U
                     traceId
                 },
                 JsonOptions,
-                context.RequestAborted);
+                context.RequestAborted
+            );
         }
     }
 
@@ -111,7 +115,8 @@ internal static partial class UnhandledExceptionMessages
         int statusCode,
         string traceId,
         string spanId,
-        string exceptionType);
+        string exceptionType
+    );
 
     [LoggerMessage(
         EventId = 1101,

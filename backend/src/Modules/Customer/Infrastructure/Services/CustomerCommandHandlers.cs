@@ -5,7 +5,8 @@ namespace Tailbook.Modules.Customer.Infrastructure.Services;
 
 public sealed class CustomerCommandHandlers(
     CustomerUseCases customerUseCases,
-    ClientPortalCustomerUseCases clientPortalCustomerUseCases)
+    ClientPortalCustomerUseCases clientPortalCustomerUseCases
+)
     : ICommandHandler<CreateCustomerClientCommand, ClientDetailView>,
       ICommandHandler<AddCustomerContactPersonCommand, ContactPersonView?>,
       ICommandHandler<AddCustomerContactMethodCommand, ErrorOr<ContactMethodView>>,
@@ -37,6 +38,7 @@ public sealed class CustomerCommandHandlers(
         return clientPortalCustomerUseCases.UpdateContactPreferencesAsync(
                 command.ContactPersonId,
                 new UpdateClientContactPreferencesInput(command.Methods),
-                cancellationToken);
+                cancellationToken
+            );
     }
 }

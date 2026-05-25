@@ -6,20 +6,24 @@ public interface IMfaRecoveryCodeService
 {
     Task<ErrorOr<MfaRecoveryCodeGenerationResult>> GenerateRecoveryCodesAsync(
         Guid userId,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 
     Task<MfaRecoveryCodeStatus> GetRecoveryCodeStatusAsync(
         Guid userId,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 
     Task<ErrorOr<MfaRecoveryCodeConsumptionResult>> ConsumeRecoveryCodeAsync(
         Guid userId,
         string code,
         Guid? challengeId,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 
     Task<ErrorOr<MfaRecoveryResetResult>> ResetMfaRecoveryAsync(
         Guid userId,
         Guid actorUserId,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 }

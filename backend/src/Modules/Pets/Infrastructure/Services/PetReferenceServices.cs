@@ -64,7 +64,8 @@ public sealed class PetReferenceServices(AppDbContext dbContext, IDistributedCac
                 animalType.Code, animalType.Name,
                 breed.Name,
                 coatType == null ? null : coatType.Code,
-                sizeCategory == null ? null : sizeCategory.Code);
+                sizeCategory == null ? null : sizeCategory.Code
+            );
 
         return await query.SingleOrDefaultAsync(cancellationToken);
     }
@@ -88,7 +89,8 @@ public sealed class PetReferenceServices(AppDbContext dbContext, IDistributedCac
                 animalType.Code, animalType.Name,
                 breed.Name,
                 coatType == null ? null : coatType.Code,
-                sizeCategory == null ? null : sizeCategory.Code);
+                sizeCategory == null ? null : sizeCategory.Code
+            );
 
         return await query.ToArrayAsync(cancellationToken);
     }
@@ -170,7 +172,8 @@ public sealed class PetReferenceServices(AppDbContext dbContext, IDistributedCac
             summary.BreedName,
             summary.CoatTypeCode,
             summary.SizeCategoryCode,
-            notes);
+            notes
+        );
     }
 
     private static readonly JsonSerializerOptions CacheJsonOptions = new(JsonSerializerDefaults.Web);
@@ -205,7 +208,8 @@ public sealed class PetReferenceServices(AppDbContext dbContext, IDistributedCac
             pet.Breed.Id,
             pet.Pet.CoatTypeId,
             pet.Pet.SizeCategoryId,
-            cancellationToken);
+            cancellationToken
+        );
         if (taxonomyResult.IsError)
         {
             return null;
@@ -230,7 +234,8 @@ public sealed class PetReferenceServices(AppDbContext dbContext, IDistributedCac
             taxonomy.CoatType?.Name,
             taxonomy.SizeCategory?.Id,
             taxonomy.SizeCategory?.Code,
-            taxonomy.SizeCategory?.Name);
+            taxonomy.SizeCategory?.Name
+        );
 
         await cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(profile, CacheJsonOptions), PetProfileCacheOptions, cancellationToken);
 
@@ -244,7 +249,8 @@ public sealed class PetReferenceServices(AppDbContext dbContext, IDistributedCac
             input.BreedId,
             input.CoatTypeId,
             input.SizeCategoryId,
-            cancellationToken);
+            cancellationToken
+        );
 
         if (taxonomyResult.IsError)
         {
@@ -270,7 +276,8 @@ public sealed class PetReferenceServices(AppDbContext dbContext, IDistributedCac
             taxonomy.CoatType?.Name,
             taxonomy.SizeCategory?.Id,
             taxonomy.SizeCategory?.Code,
-            taxonomy.SizeCategory?.Name);
+            taxonomy.SizeCategory?.Name
+        );
     }
 
     private async Task<ErrorOr<ResolvedQuoteTaxonomy>> ResolveQuoteTaxonomyAsync(
@@ -278,7 +285,8 @@ public sealed class PetReferenceServices(AppDbContext dbContext, IDistributedCac
         Guid breedId,
         Guid? coatTypeId,
         Guid? sizeCategoryId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var animalType = await dbContext.Set<AnimalType>()
             .AsNoTracking()
@@ -408,7 +416,8 @@ public sealed class PetReferenceServices(AppDbContext dbContext, IDistributedCac
                    animalType.Name,
                    breed.Name,
                    coatType == null ? null : coatType.Code,
-                   sizeCategory == null ? null : sizeCategory.Code);
+                   sizeCategory == null ? null : sizeCategory.Code
+               );
     }
 
     private sealed record ResolvedPetTaxonomy(AnimalType AnimalType, Breed Breed, CoatType? CoatType, SizeCategory? SizeCategory);

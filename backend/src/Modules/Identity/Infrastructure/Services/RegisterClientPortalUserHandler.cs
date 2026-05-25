@@ -13,7 +13,8 @@ public class RegisterClientPortalUserHandler(
 ) : IRegisterClientPortalUserHandler
 {
     public async Task<ErrorOr<Created>> ExecuteResultAsync(RegisterClientPortalUserInput command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var normalizedEmail = IdentityUseCases.NormalizeEmail(command.Email);
         var exists = await dbContext.Set<IdentityUser>()
@@ -32,7 +33,8 @@ public class RegisterClientPortalUserHandler(
                 command.Phone,
                 command.Instagram
             ),
-            cancellationToken);
+            cancellationToken
+        );
 
         var utcNow = timeProvider.GetUtcNow();
         var user = new IdentityUser

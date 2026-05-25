@@ -390,7 +390,8 @@ public sealed class RedisJobProvider(ConnectionMultiplexer redis, TimeProvider t
             DequeueAfter = TryParseDateTime(dict.GetValueOrDefault("DequeueAfter")),
             IsComplete = dict.GetValueOrDefault("IsComplete") == "1",
             CommandJson = dict.GetValueOrDefault("CommandJson") ?? string.Empty,
-            ResultJson = dict.GetValueOrDefault("ResultJson")
+            ResultJson = dict.GetValueOrDefault("ResultJson"
+        )
         };
     }
 

@@ -8,7 +8,8 @@ namespace Tailbook.Modules.Booking.Api.Admin.GetAppointmentDetail;
 
 public sealed class GetAppointmentDetailEndpoint(
     IBookingManagementReadService bookingReadService,
-    IEntityScopeService entityScopeService)
+    IEntityScopeService entityScopeService
+)
     : Endpoint<GetAppointmentDetailRequest, AppointmentDetailView>
 {
     public override void Configure()

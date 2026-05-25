@@ -22,7 +22,8 @@ public sealed class BookingSnapshotComposer(
         var resolutionResult = await catalogQuoteResolver.ResolveAsync(
             pet,
             command.Items.Select(x => new QuotePreviewCatalogItem(x.OfferId, x.ItemType)).ToArray(),
-            cancellationToken);
+            cancellationToken
+        );
         if (resolutionResult.IsError)
         {
             return resolutionResult.Errors;
@@ -106,7 +107,8 @@ public sealed class BookingSnapshotComposer(
         DateTimeOffset startAt,
         IReadOnlyCollection<PreviewQuoteItemQuery> items,
         Guid? actorUserId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var normalizedStartAtResult = BookingTimeInputNormalizer.AssumeUtc(startAt, nameof(startAt));
         if (normalizedStartAtResult.IsError)
@@ -129,7 +131,8 @@ public sealed class BookingSnapshotComposer(
         var overallResolutionResult = await catalogQuoteResolver.ResolveAsync(
             pet,
             items.Select(x => new QuotePreviewCatalogItem(x.OfferId, x.ItemType)).ToArray(),
-            cancellationToken);
+            cancellationToken
+        );
         if (overallResolutionResult.IsError)
         {
             return overallResolutionResult.Errors;
@@ -144,7 +147,8 @@ public sealed class BookingSnapshotComposer(
             normalizedStartAt,
             overallResolution.ReservedMinutes,
             null,
-            cancellationToken);
+            cancellationToken
+        );
         if (availabilityResult.IsError)
         {
             return availabilityResult.Errors;
@@ -163,7 +167,8 @@ public sealed class BookingSnapshotComposer(
             var singleResolutionResult = await catalogQuoteResolver.ResolveAsync(
                 pet,
                 [new QuotePreviewCatalogItem(item.OfferId, item.ItemType)],
-                cancellationToken);
+                cancellationToken
+            );
             if (singleResolutionResult.IsError)
             {
                 return singleResolutionResult.Errors;
@@ -231,7 +236,8 @@ public sealed class BookingSnapshotComposer(
                 PriceSnapshot = priceSnapshot,
                 PriceLines = priceLines.Select(x => new PriceSnapshotLineView(x.LineType, x.Label, x.Amount, x.SourceRuleId, x.SequenceNo)).ToArray(),
                 DurationSnapshot = durationSnapshot,
-                DurationLines = durationLines.Select(x => new DurationSnapshotLineView(x.LineType, x.Label, x.Minutes, x.SourceRuleId, x.SequenceNo)).ToArray()
+                DurationLines = durationLines.Select(x => new DurationSnapshotLineView(x.LineType, x.Label, x.Minutes, x.SourceRuleId, x.SequenceNo)).ToArray(
+            )
             });
         }
 
@@ -260,7 +266,8 @@ public sealed class BookingSnapshotComposer(
                     modifierLineEntity.Label,
                     modifierLineEntity.Minutes,
                     modifierLineEntity.SourceRuleId,
-                    modifierLineEntity.SequenceNo)
+                    modifierLineEntity.SequenceNo
+                )
             ]).ToArray();
         }
 
@@ -273,7 +280,8 @@ public sealed class BookingSnapshotComposer(
             overallResolution.TotalAmount,
             overallResolution.ServiceMinutes,
             availability.CheckedReservedMinutes,
-            perItemCompositions);
+            perItemCompositions
+        );
     }
 
     private async Task<ErrorOr<ResolvedDurationLines>> ResolveDurationAsync(Guid? groomerId, Guid petId, CatalogQuoteResolution resolution, CancellationToken cancellationToken)
@@ -288,7 +296,8 @@ public sealed class BookingSnapshotComposer(
                 petId,
                 resolution.Items.Select(x => x.OfferId).ToArray(),
                 resolution.ReservedMinutes,
-                cancellationToken);
+                cancellationToken
+            );
             if (durationResolutionResult.IsError)
             {
                 return durationResolutionResult.Errors;

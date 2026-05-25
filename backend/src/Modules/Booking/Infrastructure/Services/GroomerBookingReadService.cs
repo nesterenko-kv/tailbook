@@ -150,6 +150,7 @@ public sealed class GroomerBookingReadService(
             string.IsNullOrWhiteSpace(pet.Notes) ? [] : [pet.Notes.Trim()],
             itemViews,
             appointment.CreatedAt,
-            appointment.UpdatedAt);
+            appointment.UpdatedAt
+        );
     }
 }

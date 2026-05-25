@@ -37,7 +37,8 @@ public sealed class CreateCatalogOfferVersionCommandHandler(AppDbContext dbConte
             version.ChangeNote,
             version.CreatedAt,
             version.PublishedAt,
-            []);
+            []
+        );
     }
 
     private async Task<CommercialOffer?> LoadOfferAggregateAsync(Guid offerId, CancellationToken cancellationToken)

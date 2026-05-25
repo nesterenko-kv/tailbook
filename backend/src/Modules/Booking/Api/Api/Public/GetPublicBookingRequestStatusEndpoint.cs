@@ -5,7 +5,8 @@ namespace Tailbook.Modules.Booking.Api.Public;
 
 public sealed class GetPublicBookingRequestStatusEndpoint(
     PublicBookingReadService publicBookingReadService,
-    IBookingManagementReadService bookingManagementReadService)
+    IBookingManagementReadService bookingManagementReadService
+)
     : Endpoint<GetPublicBookingRequestStatusRequest, GetPublicBookingRequestStatusResponse>
 {
     public override void Configure()

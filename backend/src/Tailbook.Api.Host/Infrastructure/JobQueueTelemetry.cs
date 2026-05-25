@@ -15,14 +15,17 @@ public static class JobQueueTelemetry
     private static readonly Meter Meter = new(MeterName);
     private static readonly Counter<long> Operations = Meter.CreateCounter<long>(
         "tailbook.jobs.storage.operations",
-        description: "FastEndpoints job storage operations.");
+        description: "FastEndpoints job storage operations."
+    );
     private static readonly Counter<long> Items = Meter.CreateCounter<long>(
         "tailbook.jobs.storage.items",
-        description: "FastEndpoints job storage items handled by operation.");
+        description: "FastEndpoints job storage items handled by operation."
+    );
     private static readonly Histogram<double> OperationDuration = Meter.CreateHistogram<double>(
         "tailbook.jobs.storage.operation.duration",
         "ms",
-        "FastEndpoints job storage operation duration.");
+        "FastEndpoints job storage operation duration."
+    );
 
     public static Activity? StartStorageOperation(string operation, string? queueId = null)
     {
@@ -40,7 +43,8 @@ public static class JobQueueTelemetry
         string? queueId,
         int itemCount,
         TimeSpan duration,
-        string result)
+        string result
+    )
     {
         var normalizedOperation = Normalize(operation);
         var normalizedQueueId = Normalize(queueId);

@@ -2,4 +2,5 @@
 
 public sealed record GuestBookingIntakeInput(
     GuestBookingRequesterInput? Requester,
-    GuestBookingPetInput? Pet);
+    GuestBookingPetInput? Pet
+);

@@ -15,4 +15,5 @@ public sealed record PetSummaryReadModel(
     string AnimalTypeName,
     string BreedName,
     string? CoatTypeCode,
-    string? SizeCategoryCode);
+    string? SizeCategoryCode
+);

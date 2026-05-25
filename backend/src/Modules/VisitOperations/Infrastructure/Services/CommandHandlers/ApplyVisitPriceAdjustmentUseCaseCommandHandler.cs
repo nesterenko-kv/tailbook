@@ -11,7 +11,8 @@ public sealed class ApplyVisitPriceAdjustmentUseCaseCommandHandler(
     AppDbContext dbContext,
     IVisitReadService visitReadService,
     IAuditTrailService auditTrailService,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider
+)
     : ICommandHandler<ApplyVisitPriceAdjustmentUseCaseCommand, ErrorOr<VisitDetailView>>
 {
     public async Task<ErrorOr<VisitDetailView>> ExecuteAsync(ApplyVisitPriceAdjustmentUseCaseCommand command, CancellationToken ct = default)
@@ -63,7 +64,8 @@ public sealed class ApplyVisitPriceAdjustmentUseCaseCommandHandler(
             command.ActorUserId,
             null,
             JsonSerializer.Serialize(new { adjustment.Value.Sign, adjustment.Value.Amount, adjustment.Value.ReasonCode }),
-            ct);
+            ct
+        );
 
         return await ReadVisitAsync(command.VisitId, command.ActorUserId, ct);
     }

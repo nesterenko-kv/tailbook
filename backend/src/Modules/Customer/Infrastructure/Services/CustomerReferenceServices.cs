@@ -46,7 +46,8 @@ public sealed class CustomerReferenceServices(AppDbContext dbContext, TimeProvid
             x.Link.CanPay,
             x.Link.ReceivesNotifications,
             SplitRoleCodes(x.Link.RoleCodes),
-            methods.Where(m => m.ContactPersonId == x.Person.Id).Select(m => m.Method).ToArray())).ToArray();
+            methods.Where(m => m.ContactPersonId == x.Person.Id).Select(m => m.Method).ToArray())).ToArray(
+        );
     }
 
     public async Task<ClientOnboardingResult> CreateClientPortalProfileAsync(CreateClientPortalProfileInput command, CancellationToken cancellationToken)
@@ -60,7 +61,8 @@ public sealed class CustomerReferenceServices(AppDbContext dbContext, TimeProvid
             "Primary client portal contact.",
             ContactTrustLevels.Standard,
             true,
-            utcNow);
+            utcNow
+        );
 
         contact.AddContactMethod(
             ContactMethodTypes.Email,
@@ -68,7 +70,8 @@ public sealed class CustomerReferenceServices(AppDbContext dbContext, TimeProvid
             command.Email.Trim(),
             true,
             ContactVerificationStatuses.Unverified,
-            utcNow);
+            utcNow
+        );
 
         if (!string.IsNullOrWhiteSpace(command.Phone))
         {
@@ -78,7 +81,8 @@ public sealed class CustomerReferenceServices(AppDbContext dbContext, TimeProvid
                 command.Phone!.Trim(),
                 false,
                 ContactVerificationStatuses.Unverified,
-                utcNow);
+                utcNow
+            );
         }
 
         if (!string.IsNullOrWhiteSpace(command.Instagram))
@@ -89,7 +93,8 @@ public sealed class CustomerReferenceServices(AppDbContext dbContext, TimeProvid
                 command.Instagram!.Trim(),
                 false,
                 ContactVerificationStatuses.Unverified,
-                utcNow);
+                utcNow
+            );
         }
 
         dbContext.Set<Client>().Add(client);

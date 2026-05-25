@@ -11,5 +11,6 @@ public interface IBookingSnapshotComposer
         DateTimeOffset startAt,
         IReadOnlyCollection<PreviewQuoteItemQuery> items,
         Guid? actorUserId,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 }

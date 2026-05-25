@@ -12,4 +12,5 @@ public sealed record PetAdminSummary(
     string AnimalTypeName,
     string BreedName,
     string? CoatTypeCode,
-    string? SizeCategoryCode);
+    string? SizeCategoryCode
+);

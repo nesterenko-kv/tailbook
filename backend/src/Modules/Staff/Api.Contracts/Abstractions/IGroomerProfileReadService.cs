@@ -13,4 +13,5 @@ public sealed record GroomerProfileReadModel(
     Guid GroomerId,
     Guid? UserId,
     string DisplayName,
-    bool Active);
+    bool Active
+);

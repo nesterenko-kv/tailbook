@@ -27,7 +27,8 @@ public sealed class VisitCancellationConsumer : BackgroundService
         RabbitMqConnectionFactory connectionFactory,
         IOptions<RabbitMqOptions> rabbitMqOptions,
         IServiceScopeFactory scopeFactory,
-        ILogger<VisitCancellationConsumer> logger)
+        ILogger<VisitCancellationConsumer> logger
+    )
     {
         _connectionFactory = connectionFactory;
         _rabbitMqOptions = rabbitMqOptions.Value;
@@ -52,20 +53,23 @@ public sealed class VisitCancellationConsumer : BackgroundService
             type: ExchangeType.Topic,
             durable: true,
             autoDelete: false,
-            cancellationToken: stoppingToken);
+            cancellationToken: stoppingToken
+        );
 
         await channel.QueueDeclareAsync(
             queue: queue,
             durable: true,
             exclusive: false,
             autoDelete: false,
-            cancellationToken: stoppingToken);
+            cancellationToken: stoppingToken
+        );
 
         await channel.QueueBindAsync(
             queue: queue,
             exchange: exchange,
             routingKey: AppointmentCancelledRoutingKey,
-            cancellationToken: stoppingToken);
+            cancellationToken: stoppingToken
+        );
 
         var consumer = new AsyncEventingBasicConsumer(channel);
 
@@ -80,7 +84,8 @@ public sealed class VisitCancellationConsumer : BackgroundService
             {
                 _logger.LogError(ex,
                     "Failed to process appointment cancellation from routing key {RoutingKey}.",
-                    args.RoutingKey);
+                    args.RoutingKey
+                );
                 await channel.BasicNackAsync(args.DeliveryTag, false, true, stoppingToken);
             }
         };

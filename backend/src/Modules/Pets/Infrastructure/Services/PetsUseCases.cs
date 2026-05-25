@@ -156,7 +156,8 @@ public sealed class PetsUseCases(
         Guid? breedId,
         int page,
         int pageSize,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var safePage = page <= 0 ? 1 : page;
         var safePageSize = pageSize switch { <= 0 => 20, > 100 => 100, _ => pageSize };
@@ -254,7 +255,8 @@ public sealed class PetsUseCases(
                 x.UpdatedAt)).ToArray(),
             safePage,
             safePageSize,
-            totalCount);
+            totalCount
+        );
     }
 
     public async Task<ErrorOr<PetDetailView>> RegisterPetAsync(RegisterPetInput command, CancellationToken cancellationToken)
@@ -285,7 +287,8 @@ public sealed class PetsUseCases(
             command.BirthDate,
             command.WeightKg,
             command.Notes,
-            utcNow);
+            utcNow
+        );
 
         dbContext.Set<Pet>().Add(pet);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -329,7 +332,8 @@ public sealed class PetsUseCases(
         Guid breedId,
         string? coatTypeCode,
         string? sizeCategoryCode,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var animalType = await dbContext.Set<AnimalType>()
             .SingleOrDefaultAsync(x => x.Code == animalTypeCode, cancellationToken);
@@ -440,7 +444,8 @@ public sealed class PetsUseCases(
             photos,
             [],
             pet.Pet.CreatedAt,
-            pet.Pet.UpdatedAt);
+            pet.Pet.UpdatedAt
+        );
     }
 
     private static string? NormalizeOptional(string? value)
@@ -455,7 +460,8 @@ public sealed class PetsUseCases(
         BreedGroupView[] BreedGroups,
         BreedView[] Breeds,
         CoatTypeView[] CoatTypes,
-        SizeCategoryView[] SizeCategories)
+        SizeCategoryView[] SizeCategories
+    )
     {
         public static CachedPetCatalogView FromView(PetCatalogView view)
         {

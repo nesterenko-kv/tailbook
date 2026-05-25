@@ -16,7 +16,8 @@ public sealed class ClientPortalBookingReadService(
 ) : IClientPortalBookingReadService
 {
     public async Task<IReadOnlyCollection<ClientBookableOfferView>?> ListMyBookableOffersAsync(Guid clientId,
-        Guid petId, CancellationToken cancellationToken)
+        Guid petId, CancellationToken cancellationToken
+    )
     {
         var pet = await petQuoteProfileService.GetPetAsync(petId, cancellationToken);
         if (pet is null || pet.ClientId != clientId) return null;
@@ -32,7 +33,8 @@ public sealed class ClientPortalBookingReadService(
             var resolutionResult = await catalogQuoteResolver.ResolveAsync(
                 pet,
                 [new QuotePreviewCatalogItem(offer.Id, offer.OfferType)],
-                cancellationToken);
+                cancellationToken
+            );
             if (resolutionResult.IsError)
             {
                 continue;
@@ -57,7 +59,8 @@ public sealed class ClientPortalBookingReadService(
     }
 
     public async Task<ErrorOr<QuotePreviewView>> PreviewMyQuoteAsync(ClientPortalActor actor, PreviewQuoteQuery command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var pet = await petQuoteProfileService.GetPetAsync(command.PetId, cancellationToken);
         if (pet is null || pet.ClientId != actor.ClientId)
@@ -69,7 +72,8 @@ public sealed class ClientPortalBookingReadService(
     }
 
     public async Task<IReadOnlyCollection<ClientAppointmentSummaryView>> ListMyAppointmentsAsync(Guid clientId,
-        DateTimeOffset? from, CancellationToken cancellationToken)
+        DateTimeOffset? from, CancellationToken cancellationToken
+    )
     {
         var petMap = (await petSummaryReadService.ListPetSummariesByClientAsync(clientId, cancellationToken))
             .ToDictionary(x => x.Id);
@@ -121,12 +125,14 @@ public sealed class ClientPortalBookingReadService(
                 appointment.StartAt,
                 appointment.EndAt,
                 appointment.Status,
-                itemLabels ?? []);
+                itemLabels ?? []
+            );
         }).ToArray();
     }
 
     public async Task<ClientAppointmentDetailView?> GetMyAppointmentAsync(Guid clientId, Guid appointmentId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var appointment = await bookingManagementReadService.GetAppointmentAsync(appointmentId, cancellationToken);
         if (appointment is null || appointment.Pet.ClientId != clientId) return null;
@@ -146,6 +152,7 @@ public sealed class ClientPortalBookingReadService(
             appointment.ReservedMinutes,
             appointment.CancellationReasonCode,
             appointment.CancellationNotes,
-            appointment.CancelledAt);
+            appointment.CancelledAt
+        );
     }
 }

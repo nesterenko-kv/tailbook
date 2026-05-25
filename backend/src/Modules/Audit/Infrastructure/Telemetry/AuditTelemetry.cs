@@ -21,27 +21,34 @@ public static class AuditTelemetry
     private static readonly Meter Meter = new(MeterName);
     private static readonly Counter<long> QueueEnqueued = Meter.CreateCounter<long>(
         "tailbook.audit.queue.enqueued",
-        description: "Audit write items accepted into the in-memory queue.");
+        description: "Audit write items accepted into the in-memory queue."
+    );
     private static readonly Counter<long> QueueDequeued = Meter.CreateCounter<long>(
         "tailbook.audit.queue.dequeued",
-        description: "Audit write items removed from the in-memory queue by the batch writer.");
+        description: "Audit write items removed from the in-memory queue by the batch writer."
+    );
     private static readonly Histogram<double> EnqueueDuration = Meter.CreateHistogram<double>(
         "tailbook.audit.queue.enqueue.duration",
         "ms",
-        "Audit queue enqueue duration.");
+        "Audit queue enqueue duration."
+    );
     private static readonly Counter<long> BatchWrites = Meter.CreateCounter<long>(
         "tailbook.audit.batch.writes",
-        description: "Audit batch write attempts by result.");
+        description: "Audit batch write attempts by result."
+    );
     private static readonly Counter<long> BatchItems = Meter.CreateCounter<long>(
         "tailbook.audit.batch.items",
-        description: "Audit write items handled by batch result.");
+        description: "Audit write items handled by batch result."
+    );
     private static readonly Counter<long> BatchRetries = Meter.CreateCounter<long>(
         "tailbook.audit.batch.retries",
-        description: "Audit batch write retries.");
+        description: "Audit batch write retries."
+    );
     private static readonly Histogram<double> BatchDuration = Meter.CreateHistogram<double>(
         "tailbook.audit.batch.duration",
         "ms",
-        "Audit batch persistence duration.");
+        "Audit batch persistence duration."
+    );
 
     public static Activity? StartBatchWriteActivity(int itemCount, int accessAuditCount, int auditTrailCount)
     {
@@ -85,7 +92,8 @@ public static class AuditTelemetry
         int accessAuditCount,
         int auditTrailCount,
         TimeSpan duration,
-        string result)
+        string result
+    )
     {
         var itemType = GetBatchItemType(accessAuditCount, auditTrailCount);
         var normalizedResult = Normalize(result);

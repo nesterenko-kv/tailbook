@@ -11,7 +11,8 @@ public sealed class RecordPerformedProcedureUseCaseCommandHandler(
     IVisitReadService visitReadService,
     IAppointmentVisitService appointmentVisitService,
     IVisitCatalogReadService visitCatalogReadService,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider
+)
     : ICommandHandler<RecordPerformedProcedureUseCaseCommand, ErrorOr<VisitDetailView>>
 {
     public async Task<ErrorOr<VisitDetailView>> ExecuteAsync(RecordPerformedProcedureUseCaseCommand command, CancellationToken ct = default)

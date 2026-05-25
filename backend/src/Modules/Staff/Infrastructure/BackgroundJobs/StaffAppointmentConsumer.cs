@@ -30,7 +30,8 @@ public sealed class StaffAppointmentConsumer : BackgroundService
         RabbitMqConnectionFactory connectionFactory,
         IOptions<RabbitMqOptions> rabbitMqOptions,
         IServiceScopeFactory scopeFactory,
-        ILogger<StaffAppointmentConsumer> logger)
+        ILogger<StaffAppointmentConsumer> logger
+    )
     {
         _connectionFactory = connectionFactory;
         _rabbitMqOptions = rabbitMqOptions.Value;
@@ -55,14 +56,16 @@ public sealed class StaffAppointmentConsumer : BackgroundService
             type: ExchangeType.Topic,
             durable: true,
             autoDelete: false,
-            cancellationToken: stoppingToken);
+            cancellationToken: stoppingToken
+        );
 
         await channel.QueueDeclareAsync(
             queue: queue,
             durable: true,
             exclusive: false,
             autoDelete: false,
-            cancellationToken: stoppingToken);
+            cancellationToken: stoppingToken
+        );
 
         foreach (var routingKey in AppointmentRoutingKeys)
         {
@@ -70,7 +73,8 @@ public sealed class StaffAppointmentConsumer : BackgroundService
                 queue: queue,
                 exchange: exchange,
                 routingKey: routingKey,
-                cancellationToken: stoppingToken);
+                cancellationToken: stoppingToken
+            );
         }
 
         var consumer = new AsyncEventingBasicConsumer(channel);
@@ -86,7 +90,8 @@ public sealed class StaffAppointmentConsumer : BackgroundService
             {
                 _logger.LogError(ex,
                     "Failed to process appointment event from routing key {RoutingKey}.",
-                    args.RoutingKey);
+                    args.RoutingKey
+                );
                 await channel.BasicNackAsync(args.DeliveryTag, false, true, stoppingToken);
             }
         };

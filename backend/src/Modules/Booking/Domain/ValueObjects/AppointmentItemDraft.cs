@@ -8,4 +8,5 @@ public sealed record AppointmentItemDraft(
     string OfferDisplayNameSnapshot,
     int Quantity,
     Guid PriceSnapshotId,
-    Guid DurationSnapshotId);
+    Guid DurationSnapshotId
+);

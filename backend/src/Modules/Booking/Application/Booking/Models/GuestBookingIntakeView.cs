@@ -2,4 +2,5 @@
 
 public sealed record GuestBookingIntakeView(
     BookingRequesterSnapshotView? Requester,
-    BookingGuestPetSnapshotView? Pet);
+    BookingGuestPetSnapshotView? Pet
+);

@@ -5,4 +5,5 @@ public sealed record GuestBookingRequesterInput(
     string? Phone,
     string? InstagramHandle,
     string? Email,
-    string? PreferredContactMethodCode);
+    string? PreferredContactMethodCode
+);

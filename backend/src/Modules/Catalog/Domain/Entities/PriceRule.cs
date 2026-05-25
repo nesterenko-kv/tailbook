@@ -27,7 +27,8 @@ public sealed class PriceRule
         Guid? breedGroupId,
         Guid? coatTypeId,
         Guid? sizeCategoryId,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         var normalizedCurrency = NormalizeCurrency(currency);
         if (normalizedCurrency.IsError)

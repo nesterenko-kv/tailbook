@@ -7,7 +7,8 @@ namespace Tailbook.Modules.Booking.Api.Admin.ListBookingRequests;
 
 public sealed class ListBookingRequestsEndpoint(
     IBookingManagementReadService bookingReadService,
-    IScopeAuthorizationService scopeAuthorizationService)
+    IScopeAuthorizationService scopeAuthorizationService
+)
     : Endpoint<ListBookingRequestsRequest, PagedResult<BookingRequestListItemView>>
 {
     public override void Configure()
@@ -36,7 +37,8 @@ public sealed class ListBookingRequestsEndpoint(
                     EntityScopeResourceTypes.BookingRequest,
                     item => item.Id.ToString("D"),
                     scopeAuthorizationService,
-                    ct);
+                    ct
+                );
                 totalCount = filteredItems.Count;
             }
         }

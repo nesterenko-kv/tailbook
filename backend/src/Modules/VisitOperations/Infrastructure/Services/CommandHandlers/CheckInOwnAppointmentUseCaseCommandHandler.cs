@@ -7,7 +7,8 @@ namespace Tailbook.Modules.VisitOperations.Infrastructure.Services.CommandHandle
 public sealed class CheckInOwnAppointmentUseCaseCommandHandler(
     CheckInAppointmentUseCaseCommandHandler checkInAppointmentHandler,
     IAppointmentVisitService appointmentVisitService,
-    IGroomerProfileReadService groomerProfileReadService)
+    IGroomerProfileReadService groomerProfileReadService
+)
     : ICommandHandler<CheckInOwnAppointmentUseCaseCommand, ErrorOr<GroomerVisitDetailView>>
 {
     public async Task<ErrorOr<GroomerVisitDetailView>> ExecuteAsync(CheckInOwnAppointmentUseCaseCommand command, CancellationToken ct = default)
@@ -26,7 +27,8 @@ public sealed class CheckInOwnAppointmentUseCaseCommandHandler(
 
         var result = await checkInAppointmentHandler.ExecuteAsync(
             new CheckInAppointmentUseCaseCommand(command.AppointmentId, command.CurrentUserId),
-            ct);
+            ct
+        );
 
         return result.IsError
             ? result.Errors

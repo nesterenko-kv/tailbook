@@ -34,7 +34,8 @@ public sealed class VisitExecutionItem
         Guid id,
         Guid visitId,
         VisitExecutionItemDraft item,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt
+    )
     {
         List<Error> errors = [];
 
@@ -122,14 +123,16 @@ public sealed class VisitExecutionItem
             PriceAmountSnapshot = item.PriceAmountSnapshot,
             ServiceMinutesSnapshot = item.ServiceMinutesSnapshot,
             ReservedMinutesSnapshot = item.ReservedMinutesSnapshot,
-            CreatedAt = createdAt.ToUniversalTime()
+            CreatedAt = createdAt.ToUniversalTime(
+        )
         };
     }
 
     internal ErrorOr<VisitPerformedProcedure> RecordPerformedProcedure(
         VisitPerformedProcedureDraft procedure,
         Guid? actorUserId,
-        DateTimeOffset recordedAt)
+        DateTimeOffset recordedAt
+    )
     {
         if (procedure is null)
         {
@@ -146,7 +149,8 @@ public sealed class VisitExecutionItem
             Id,
             procedure,
             actorUserId,
-            recordedAt);
+            recordedAt
+        );
         if (performedProcedure.IsError)
         {
             return performedProcedure.Errors;
@@ -159,7 +163,8 @@ public sealed class VisitExecutionItem
     internal ErrorOr<VisitSkippedComponent> RecordSkippedComponent(
         VisitSkippedComponentDraft component,
         Guid? actorUserId,
-        DateTimeOffset recordedAt)
+        DateTimeOffset recordedAt
+    )
     {
         if (component is null)
         {
@@ -176,7 +181,8 @@ public sealed class VisitExecutionItem
             Id,
             component,
             actorUserId,
-            recordedAt);
+            recordedAt
+        );
         if (skippedComponent.IsError)
         {
             return skippedComponent.Errors;

@@ -24,7 +24,8 @@ public sealed class Groomer : AggregateRoot
             DisplayName = displayName.Trim(),
             Active = true,
             CreatedAt = utcNow.ToUniversalTime(),
-            UpdatedAt = utcNow.ToUniversalTime()
+            UpdatedAt = utcNow.ToUniversalTime(
+        )
         };
 
         entity.RaiseDomainEvent(new GroomerCreatedDomainEvent(

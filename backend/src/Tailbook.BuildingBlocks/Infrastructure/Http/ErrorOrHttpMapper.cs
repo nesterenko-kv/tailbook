@@ -16,7 +16,8 @@ public static class ErrorOrHttpMapper
     {
         if (errors.Count == 0)
             return Problem(StatusCodes.Status500InternalServerError, "Unexpected error",
-                "The operation failed without error details.", errors);
+                "The operation failed without error details.", errors
+            );
 
         var firstError = errors[0];
         var description = firstError.Description;
@@ -35,7 +36,8 @@ public static class ErrorOrHttpMapper
                 Problem(StatusCodes.Status403Forbidden, "Forbidden", description, errors),
             ErrorType.Unexpected =>
                 Problem(StatusCodes.Status500InternalServerError, "Unexpected error", description, errors),
-            _ => Problem(StatusCodes.Status400BadRequest, "Request failed", description, errors)
+            _ => Problem(StatusCodes.Status400BadRequest, "Request failed", description, errors
+        )
         };
     }
 
@@ -64,7 +66,8 @@ public static class ErrorOrHttpMapper
                 {
                     error.Code,
                     error.Description,
-                    Type = error.Type.ToString()
+                    Type = error.Type.ToString(
+                )
                 }).ToArray()
             }
         };

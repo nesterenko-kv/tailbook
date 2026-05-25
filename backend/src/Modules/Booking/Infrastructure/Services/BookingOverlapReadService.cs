@@ -20,7 +20,8 @@ public sealed class BookingOverlapReadService(AppDbContext dbContext) : IAppoint
         DateTimeOffset startAt,
         DateTimeOffset endAt,
         Guid? ignoredAppointmentId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var query = dbContext.Set<Appointment>()
             .AsNoTracking()
@@ -41,7 +42,8 @@ public sealed class BookingOverlapReadService(AppDbContext dbContext) : IAppoint
         DateTimeOffset from,
         DateTimeOffset to,
         Guid? ignoredAppointmentId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var query = dbContext.Set<Appointment>()
             .AsNoTracking()

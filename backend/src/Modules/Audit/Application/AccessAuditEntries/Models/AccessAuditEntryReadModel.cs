@@ -6,4 +6,5 @@ public sealed record AccessAuditEntryReadModel(
     string ResourceType,
     string ResourceId,
     string ActionCode,
-    DateTimeOffset HappenedAt);
+    DateTimeOffset HappenedAt
+);

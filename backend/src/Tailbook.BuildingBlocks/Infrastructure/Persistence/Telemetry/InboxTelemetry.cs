@@ -10,23 +10,28 @@ public static class InboxTelemetry
 
     private static readonly Counter<long> MessagesReceived = Meter.CreateCounter<long>(
         "tailbook.inbox.messages.received",
-        description: "Messages received into the inbox.");
+        description: "Messages received into the inbox."
+    );
 
     private static readonly Counter<long> MessagesCompleted = Meter.CreateCounter<long>(
         "tailbook.inbox.messages.completed",
-        description: "Messages successfully processed from the inbox.");
+        description: "Messages successfully processed from the inbox."
+    );
 
     private static readonly Counter<long> MessagesFailed = Meter.CreateCounter<long>(
         "tailbook.inbox.messages.failed",
-        description: "Messages that failed processing from the inbox.");
+        description: "Messages that failed processing from the inbox."
+    );
 
     private static readonly Counter<long> MessagesPoisoned = Meter.CreateCounter<long>(
         "tailbook.inbox.messages.poisoned",
-        description: "Messages moved to poisoned state in the inbox.");
+        description: "Messages moved to poisoned state in the inbox."
+    );
 
     private static readonly Histogram<long> RetryDepth = Meter.CreateHistogram<long>(
         "tailbook.inbox.messages.retry_depth",
-        description: "Distribution of retry counts for inbox messages.");
+        description: "Distribution of retry counts for inbox messages."
+    );
 
     public static void RecordReceived(string consumerName)
     {

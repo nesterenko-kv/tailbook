@@ -12,4 +12,5 @@ public sealed record NotificationJobDetailView(
     DateTimeOffset? SentAt,
     DateTimeOffset? NextAttemptAt,
     DateTimeOffset? DeadLetteredAt,
-    IReadOnlyCollection<NotificationDeliveryAttemptView> Attempts);
+    IReadOnlyCollection<NotificationDeliveryAttemptView> Attempts
+);

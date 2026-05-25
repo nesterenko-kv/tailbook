@@ -14,7 +14,8 @@ public sealed class AttachBookingRequestContextUseCaseCommandHandler(
     IClientReferenceValidationService clientReferenceValidationService,
     IContactReferenceValidationService contactReferenceValidationService,
     IAuditTrailService auditTrailService,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider
+)
     : ICommandHandler<AttachBookingRequestContextUseCaseCommand, ErrorOr<BookingRequestDetailView>>
 {
     public async Task<ErrorOr<BookingRequestDetailView>> ExecuteAsync(AttachBookingRequestContextUseCaseCommand command, CancellationToken ct = default)
@@ -73,7 +74,8 @@ public sealed class AttachBookingRequestContextUseCaseCommandHandler(
             command.ActorUserId,
             null,
             JsonSerializer.Serialize(new { bookingRequest.ClientId, bookingRequest.PetId, bookingRequest.RequestedByContactId, bookingRequest.Status }),
-            ct);
+            ct
+        );
 
         return (await bookingReadService.GetBookingRequestAsync(bookingRequest.Id, ct))!;
     }

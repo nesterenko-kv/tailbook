@@ -23,7 +23,8 @@ internal static class PetCatalogResponseMapper
             BreedGroups = catalog.BreedGroups.Select(ToAdminBreedGroupResponse).ToArray(),
             Breeds = catalog.Breeds.Select(ToAdminBreedResponse).ToArray(),
             CoatTypes = catalog.CoatTypes.Select(ToAdminCoatTypeResponse).ToArray(),
-            SizeCategories = catalog.SizeCategories.Select(ToAdminSizeCategoryResponse).ToArray()
+            SizeCategories = catalog.SizeCategories.Select(ToAdminSizeCategoryResponse).ToArray(
+        )
         };
     }
 
@@ -35,7 +36,8 @@ internal static class PetCatalogResponseMapper
             BreedGroups = catalog.BreedGroups.Select(ToPublicBreedGroupResponse).ToArray(),
             Breeds = catalog.Breeds.Select(ToPublicBreedResponse).ToArray(),
             CoatTypes = catalog.CoatTypes.Select(ToPublicCoatTypeResponse).ToArray(),
-            SizeCategories = catalog.SizeCategories.Select(ToPublicSizeCategoryResponse).ToArray()
+            SizeCategories = catalog.SizeCategories.Select(ToPublicSizeCategoryResponse).ToArray(
+        )
         };
     }
 
@@ -59,7 +61,8 @@ internal static class PetCatalogResponseMapper
             Code = breed.Code,
             Name = breed.Name,
             AllowedCoatTypeIds = breed.AllowedCoatTypeIds.ToArray(),
-            AllowedSizeCategoryIds = breed.AllowedSizeCategoryIds.ToArray()
+            AllowedSizeCategoryIds = breed.AllowedSizeCategoryIds.ToArray(
+        )
         };
     }
 
@@ -93,7 +96,8 @@ internal static class PetCatalogResponseMapper
             Code = breed.Code,
             Name = breed.Name,
             AllowedCoatTypeIds = breed.AllowedCoatTypeIds.ToArray(),
-            AllowedSizeCategoryIds = breed.AllowedSizeCategoryIds.ToArray()
+            AllowedSizeCategoryIds = breed.AllowedSizeCategoryIds.ToArray(
+        )
         };
     }
 

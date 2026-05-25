@@ -18,7 +18,8 @@ public sealed class PetsCommandHandlers(PetsUseCases useCases)
             command.SizeCategoryCode,
             command.BirthDate,
             command.WeightKg,
-            command.Notes);
+            command.Notes
+        );
 
         return useCases.RegisterPetAsync(petCommand, ct);
     }
@@ -33,7 +34,8 @@ public sealed class PetsCommandHandlers(PetsUseCases useCases)
             command.SizeCategoryCode,
             command.BirthDate,
             command.WeightKg,
-            command.Notes);
+            command.Notes
+        );
 
         return useCases.UpdatePetAsync(command.PetId, petInput, ct);
     }

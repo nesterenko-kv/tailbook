@@ -9,4 +9,5 @@ public sealed record AuditEntryReadModel(
     Guid? ActorUserId,
     DateTimeOffset HappenedAt,
     string? BeforeJson,
-    string? AfterJson);
+    string? AfterJson
+);

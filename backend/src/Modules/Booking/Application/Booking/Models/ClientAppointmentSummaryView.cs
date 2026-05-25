@@ -7,4 +7,5 @@ public sealed record ClientAppointmentSummaryView(
     DateTimeOffset StartAt,
     DateTimeOffset EndAt,
     string Status,
-    IReadOnlyCollection<string> ItemLabels);
+    IReadOnlyCollection<string> ItemLabels
+);

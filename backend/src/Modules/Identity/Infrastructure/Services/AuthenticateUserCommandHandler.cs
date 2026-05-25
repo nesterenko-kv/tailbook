@@ -26,7 +26,8 @@ public class AuthenticateUserCommandHandler(
             requestIpAddress: null,
             userAgent: null,
             deviceTrustToken: null,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public async Task<ErrorOr<AuthenticationResult>> AuthenticateAsync(
@@ -37,7 +38,8 @@ public class AuthenticateUserCommandHandler(
         string? requestIpAddress,
         string? userAgent,
         string? deviceTrustToken,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var normalizedEmail = IdentityUseCases.NormalizeEmail(email);
 
@@ -127,7 +129,8 @@ public class AuthenticateUserCommandHandler(
             .AnyAsync(x => x.UserId == userId
                            && x.FactorType == MfaFactorTypes.EmailOtp
                            && x.Status == MfaFactorStatusCodes.Enabled,
-                cancellationToken);
+                cancellationToken
+            );
     }
 
     private async Task<HashSet<string>> GetRoleCodesAsync(Guid userId, CancellationToken cancellationToken)
@@ -139,7 +142,8 @@ public class AuthenticateUserCommandHandler(
                 dbContext.Set<IdentityRole>().AsNoTracking(),
                 assignment => assignment.RoleId,
                 role => role.Id,
-                (_, role) => role.Code)
+                (_, role) => role.Code
+            )
             .Distinct()
             .OrderBy(x => x)
             .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, cancellationToken);
@@ -154,12 +158,14 @@ public class AuthenticateUserCommandHandler(
                 dbContext.Set<RolePermission>().AsNoTracking(),
                 assignment => assignment.RoleId,
                 rolePermission => rolePermission.RoleId,
-                (_, rolePermission) => rolePermission.PermissionId)
+                (_, rolePermission) => rolePermission.PermissionId
+            )
             .Join(
                 dbContext.Set<IdentityPermission>().AsNoTracking(),
                 permissionId => permissionId,
                 permission => permission.Id,
-                (_, permission) => permission.Code)
+                (_, permission) => permission.Code
+            )
             .Distinct()
             .OrderBy(x => x)
             .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, cancellationToken: cancellationToken);
@@ -226,7 +232,8 @@ public class AuthenticateUserCommandHandler(
             UpdatedAt: reader.GetFieldValue<DateTimeOffset>(10),
             RoleCodes: reader.IsDBNull(11) ? [] : reader.GetFieldValue<string[]>(11),
             PermissionCodes: reader.IsDBNull(12) ? [] : reader.GetFieldValue<string[]>(12),
-            HasMfaFactor: reader.GetBoolean(13)
+            HasMfaFactor: reader.GetBoolean(13
+        )
         );
     }
 

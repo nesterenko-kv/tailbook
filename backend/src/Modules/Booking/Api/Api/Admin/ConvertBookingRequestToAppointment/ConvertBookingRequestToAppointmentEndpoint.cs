@@ -7,7 +7,8 @@ using Tailbook.BuildingBlocks.Infrastructure.Http;
 namespace Tailbook.Modules.Booking.Api.Admin.ConvertBookingRequestToAppointment;
 
 public sealed class ConvertBookingRequestToAppointmentEndpoint(
-    IEntityScopeService entityScopeService)
+    IEntityScopeService entityScopeService
+)
     : Endpoint<ConvertBookingRequestToAppointmentRequest, AppointmentDetailView>
 {
     public override void Configure()
@@ -23,7 +24,8 @@ public sealed class ConvertBookingRequestToAppointmentEndpoint(
             EntityScopeResourceTypes.BookingRequest,
             req.BookingRequestId.ToString("D"),
             req.ActorUserId,
-            ct);
+            ct
+        );
         if (scopeResult.IsError)
         {
             await Send.ResultAsync(scopeResult.Errors.ToHttpResult());

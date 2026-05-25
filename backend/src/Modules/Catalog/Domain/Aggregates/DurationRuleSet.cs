@@ -24,7 +24,8 @@ public sealed class DurationRuleSet
             Status = RuleSetStatusCodes.Draft,
             ValidFrom = validFrom.ToUniversalTime(),
             ValidTo = validTo?.ToUniversalTime(),
-            CreatedAt = utcNow.ToUniversalTime()
+            CreatedAt = utcNow.ToUniversalTime(
+        )
         };
     }
 
@@ -39,7 +40,8 @@ public sealed class DurationRuleSet
         Guid? breedGroupId,
         Guid? coatTypeId,
         Guid? sizeCategoryId,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow
+    )
     {
         if (!string.Equals(Status, RuleSetStatusCodes.Draft, StringComparison.OrdinalIgnoreCase))
         {
@@ -64,7 +66,8 @@ public sealed class DurationRuleSet
             breedGroupId,
             coatTypeId,
             sizeCategoryId,
-            utcNow);
+            utcNow
+        );
 
         _rules.Add(rule);
         return rule;

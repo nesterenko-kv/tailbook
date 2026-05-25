@@ -27,7 +27,8 @@ public static class ModuleCatalog
         new StaffModule(),
         new NotificationsModule(),
         new AuditModule(),
-        new ReportingModule()
+        new ReportingModule(
+    )
     ];
 
     public static readonly Assembly[] ModuleAssemblies = Modules.Select(x => x.GetType().Assembly).ToArray();

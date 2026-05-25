@@ -87,7 +87,8 @@ public sealed class IntegrationOutboxPublisherBackgroundService(
                     routingKey,
                     new { message.EventType, message.PayloadJson, MessageId = message.Id },
                     messageId: message.Id.ToString("D"),
-                    cancellationToken);
+                    cancellationToken
+                );
 
                 message.ProcessedAt = utcNow;
                 logger.IntegrationOutboxMessagePublished(message.Id, message.EventType);
@@ -111,7 +112,8 @@ public sealed class IntegrationOutboxPublisherBackgroundService(
                     OutboxTelemetry.RecordRetryDepth(message.ModuleCode, message.RetryCount);
                     logger.IntegrationOutboxMessageRetrying(
                         message.Id, message.EventType, message.RetryCount,
-                        currentOptions.MaxRetryAttempts, message.NextRetryAt, message.LastError);
+                        currentOptions.MaxRetryAttempts, message.NextRetryAt, message.LastError
+                    );
                 }
             }
         }

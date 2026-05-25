@@ -14,7 +14,8 @@ public sealed record VisitEstimateAccuracyRow(
     decimal AdjustmentAmount,
     decimal FinalAmount,
     int ServiceMinutes,
-    int ReservedMinutes);
+    int ReservedMinutes
+);
 
 public sealed record VisitPackagePerformanceRow(
     Guid VisitId,
@@ -27,4 +28,5 @@ public sealed record VisitPackagePerformanceRow(
     int Quantity,
     decimal EstimatedRevenue,
     int PerformedProcedures,
-    int SkippedComponents);
+    int SkippedComponents
+);

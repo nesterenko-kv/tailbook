@@ -54,7 +54,8 @@ public sealed class IdempotencyMiddleware(RequestDelegate next, ILogger<Idempote
             await context.Response.WriteAsync(
                 """{"type":"about:blank","title":"A request with this idempotency key is already in progress.","status":409}""",
                 Encoding.UTF8,
-                context.RequestAborted);
+                context.RequestAborted
+            );
             return;
         }
 

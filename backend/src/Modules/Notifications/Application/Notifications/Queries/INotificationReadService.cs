@@ -20,7 +20,8 @@ public sealed record NotificationDashboardView(
     int DeadLetterOlder,
     int TotalDeliveryAttempts,
     int SuccessfulDeliveries,
-    double SuccessRate);
+    double SuccessRate
+);
 
 public sealed record NotificationProviderHealthView(
     string ProviderType,
@@ -28,5 +29,6 @@ public sealed record NotificationProviderHealthView(
     string LastDeliveryStatus,
     int LastDeliveryAttempts,
     int LastDeliveryFailures,
-    string? LastErrorMessage);
+    string? LastErrorMessage
+);
 
