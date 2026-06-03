@@ -1,5 +1,6 @@
 using FastEndpoints;
 using Tailbook.BuildingBlocks.Infrastructure.Http;
+using Tailbook.Modules.Booking.Api.Contracts.Admin.BulkCancelAppointments;
 
 namespace Tailbook.Modules.Booking.Api.Admin.BulkCancelAppointments;
 

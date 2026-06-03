@@ -13,7 +13,12 @@ namespace Tailbook.BuildingBlocks.Tests;
 
 public sealed class RabbitMqMessageBrokerIntegrationTests : IAsyncLifetime
 {
+    private const string RabbitMqUsername = "testuser";
+    private const string RabbitMqPassword = "testpass";
+
     private readonly RabbitMqContainer _container = new RabbitMqBuilder("rabbitmq:4.1-management-alpine")
+        .WithEnvironment("RABBITMQ_DEFAULT_USER", RabbitMqUsername)
+        .WithEnvironment("RABBITMQ_DEFAULT_PASS", RabbitMqPassword)
         .WithCleanUp(true)
         .Build();
 
@@ -30,14 +35,18 @@ public sealed class RabbitMqMessageBrokerIntegrationTests : IAsyncLifetime
             Enabled = true,
             Host = _container.Hostname,
             Port = _container.GetMappedPublicPort(5672),
-            Username = "guest",
-            Password = "guest",
+            Username = RabbitMqUsername,
+            Password = RabbitMqPassword,
             Exchange = "tailbook.test.events"
         };
 
         _connectionFactory = new RabbitMqConnectionFactory(
             Options.Create(_options),
             NullLogger<RabbitMqConnectionFactory>.Instance);
+
+        var channel = await _connectionFactory.CreateChannelAsync();
+        await channel.ExchangeDeclareAsync(_options.Exchange, "topic", durable: true, autoDelete: false);
+        await channel.CloseAsync();
 
         _broker = new RabbitMqMessageBroker(
             _connectionFactory,

@@ -71,7 +71,8 @@ public sealed class ClientPortalCustomerUseCases(AppDbContext dbContext, TimePro
             var existing = contact.GetMethod(methodType, rawValue);
             if (existing is null)
             {
-                contact.AddContactMethod(methodType, rawValue, displayValue, effectiveIsPreferred, ContactVerificationStatuses.Unverified, utcNow);
+                var newMethod = contact.AddContactMethod(methodType, rawValue, displayValue, effectiveIsPreferred, ContactVerificationStatuses.Unverified, utcNow);
+                dbContext.Set<ContactMethod>().Add(newMethod);
             }
             else
             {

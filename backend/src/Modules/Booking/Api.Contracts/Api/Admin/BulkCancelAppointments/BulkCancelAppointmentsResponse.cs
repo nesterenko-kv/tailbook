@@ -1,4 +1,4 @@
-namespace Tailbook.Modules.Booking.Api.Admin.BulkCancelAppointments;
+namespace Tailbook.Modules.Booking.Api.Contracts.Admin.BulkCancelAppointments;
 
 public sealed class BulkCancelAppointmentsResponse
 {

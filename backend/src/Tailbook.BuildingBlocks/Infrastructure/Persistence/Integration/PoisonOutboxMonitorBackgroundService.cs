@@ -27,6 +27,10 @@ public sealed class PoisonOutboxMonitorBackgroundService(
             {
                 break;
             }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to monitor outbox for poisoned/stuck messages.");
+            }
         }
     }
 

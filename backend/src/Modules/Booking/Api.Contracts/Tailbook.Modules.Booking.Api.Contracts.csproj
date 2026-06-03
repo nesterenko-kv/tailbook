@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AssemblyName>Tailbook.Modules.Booking.Api.Contracts</AssemblyName>
-    <RootNamespace>Tailbook.Modules.Booking</RootNamespace>
+    <RootNamespace>Tailbook.Modules.Booking.Api.Contracts</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

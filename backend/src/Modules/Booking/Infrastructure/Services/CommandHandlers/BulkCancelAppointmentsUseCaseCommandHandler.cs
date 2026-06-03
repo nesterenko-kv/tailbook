@@ -1,7 +1,7 @@
 using System.Text.Json;
 using ErrorOr;
 using FastEndpoints;
-using Tailbook.Modules.Booking.Api.Admin.BulkCancelAppointments;
+using Tailbook.Modules.Booking.Api.Contracts.Admin.BulkCancelAppointments;
 
 namespace Tailbook.Modules.Booking.Infrastructure.Services.CommandHandlers;
 

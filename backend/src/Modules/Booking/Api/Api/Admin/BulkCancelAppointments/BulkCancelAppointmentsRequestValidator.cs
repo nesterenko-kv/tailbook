@@ -1,5 +1,6 @@
 using FastEndpoints;
 using FluentValidation;
+using Tailbook.Modules.Booking.Api.Contracts.Admin.BulkCancelAppointments;
 
 namespace Tailbook.Modules.Booking.Api.Admin.BulkCancelAppointments;
 

@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -6,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Identity.Domain;
@@ -14,40 +16,52 @@ using Tailbook.Modules.Identity.Domain.Entities;
 using Tailbook.Modules.Identity.Infrastructure.Services;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
-using Xunit;
 
 namespace Tailbook.Api.Tests.Factories;
 
-public sealed class RealDbWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public sealed class RealDbWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private PostgreSqlContainer _postgres = null!;
-    private RedisContainer _redis = null!;
+    private PostgreSqlContainer? _postgres;
+    private RedisContainer? _redis;
     private readonly string _databaseName = $"tailbook_test_{Guid.NewGuid():N}";
     public const int TestMaxFailedLoginAttempts = 3;
+    private bool _containersDisposed;
+    private bool _factoryDisposed;
 
-    async Task IAsyncLifetime.InitializeAsync()
+    private async Task EnsureContainersAsync()
     {
+        if (_containersDisposed || _postgres is not null)
+            return;
         _postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
         _redis = new RedisBuilder("redis:7-alpine").Build();
         await Task.WhenAll(_postgres.StartAsync(), _redis.StartAsync());
-        await _postgres.ExecScriptAsync($@"CREATE DATABASE ""{_databaseName}""");
+        await _postgres.ExecScriptAsync($"""
+                                         CREATE DATABASE "{_databaseName}"
+                                         """);
     }
 
-    async Task IAsyncLifetime.DisposeAsync()
+    private async Task DisposeContainersAsync()
     {
-        await Task.WhenAll(
-            _postgres.DisposeAsync().AsTask(),
-            _redis.DisposeAsync().AsTask());
-        Dispose();
+        if (_containersDisposed)
+            return;
+        _containersDisposed = true;
+        var pg = _postgres;
+        var r = _redis;
+        if (pg is not null || r is not null)
+        {
+            await Task.WhenAll(
+                (pg?.DisposeAsync().AsTask() ?? Task.CompletedTask),
+                (r?.DisposeAsync().AsTask() ?? Task.CompletedTask));
+        }
     }
 
-    public string RedisConnectionString => _redis.GetConnectionString();
+    public string RedisConnectionString => _redis!.GetConnectionString();
 
     public string PostgresConnectionString
     {
         get
         {
-            var builder = new NpgsqlConnectionStringBuilder(_postgres.GetConnectionString())
+            var builder = new NpgsqlConnectionStringBuilder(_postgres!.GetConnectionString())
             {
                 Database = _databaseName
             };
@@ -57,8 +71,9 @@ public sealed class RealDbWebApplicationFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        EnsureContainersAsync().GetAwaiter().GetResult();
         var pgConnectionString = PostgresConnectionString;
-        var redisConnectionString = _redis.GetConnectionString();
+        var redisConnectionString = RedisConnectionString;
 
         builder.UseEnvironment("Testing");
 
@@ -90,6 +105,9 @@ public sealed class RealDbWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
+            services.Configure<HostOptions>(o =>
+                o.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore);
+
             services.RemoveAll<NpgsqlDataSource>();
 
             services.AddSingleton<NpgsqlDataSource>(_ =>
@@ -167,6 +185,23 @@ public sealed class RealDbWebApplicationFactory : WebApplicationFactory<Program>
     public static void SetBearer(HttpClient client, string accessToken)
     {
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        if (_factoryDisposed)
+            return;
+        _factoryDisposed = true;
+        await base.DisposeAsync();
+        await DisposeContainersAsync();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (_factoryDisposed)
+            return;
+        _factoryDisposed = true;
+        base.Dispose(disposing);
     }
 
     private sealed class LoginResponseEnvelope

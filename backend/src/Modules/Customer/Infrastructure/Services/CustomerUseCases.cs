@@ -1,4 +1,5 @@
 ﻿using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Infrastructure.Search;
 
 namespace Tailbook.Modules.Customer.Infrastructure.Services;
@@ -178,6 +179,7 @@ public sealed class CustomerUseCases(
         var utcNow = timeProvider.GetUtcNow();
         var effectiveTrustLevel = string.IsNullOrWhiteSpace(trustLevel) ? ContactTrustLevels.Standard : trustLevel.Trim();
         var contact = client.AddContactPerson(firstName, lastName, notes, effectiveTrustLevel, true, utcNow);
+        dbContext.Set<ContactPerson>().Add(contact);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -223,6 +225,7 @@ public sealed class CustomerUseCases(
             effectiveVerificationStatus,
             utcNow
         );
+        dbContext.Set<ContactMethod>().Add(methodEntity);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
