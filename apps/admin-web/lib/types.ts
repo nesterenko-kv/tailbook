@@ -483,6 +483,12 @@ export type AppointmentListItem = {
     totalAmount: number;
 };
 
+export type BulkCancelAppointmentsResponse = {
+    succeeded: number;
+    failed: number;
+    errors: Array<{ appointmentId: string; errorMessage: string }>;
+};
+
 export type AppointmentDetail = {
     id: string;
     bookingRequestId?: string | null;

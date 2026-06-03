@@ -5,7 +5,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { apiRequest, ApiError } from "@/lib/api";
 import { formatDateTime, formatMoney } from "@/lib/format";
 import { unwrapItems } from "@/lib/contracts";
-import type { AppointmentListItem, ClientDetail, GroomerListItem, GroomerListResponse, OfferListItem, PagedResult } from "@/lib/types";
+import type { AppointmentListItem, BulkCancelAppointmentsResponse, ClientDetail, GroomerListItem, GroomerListResponse, OfferListItem, PagedResult } from "@/lib/types";
 import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, PageHeader, PrimaryButton, SecondaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
 import { Pagination } from "@/components/pagination";
 import { SortControl } from "@/components/sort-control";
@@ -24,6 +24,7 @@ export default function AppointmentsPage() {
   const [bulkReasonCode, setBulkReasonCode] = useState("CUSTOMER_REQUEST");
   const [bulkNotes, setBulkNotes] = useState("");
   const [isBulkCancelling, setIsBulkCancelling] = useState(false);
+  const [createdAppointmentId, setCreatedAppointmentId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,25 +82,24 @@ export default function AppointmentsPage() {
     setIsBulkCancelling(true);
     setError(null);
     setSuccess(null);
-    let cancelled = 0;
-    let failed = 0;
-    for (const id of selectedIds) {
-      try {
-        await apiRequest(`/api/admin/appointments/${id}/cancel`, {
-          method: "POST",
-          body: JSON.stringify({ reasonCode: bulkReasonCode, notes: bulkNotes || null, expectedVersionNo: 1 })
-        });
-        cancelled++;
-      } catch {
-        failed++;
+    try {
+      const result = await apiRequest<BulkCancelAppointmentsResponse>("/api/admin/appointments/bulk/cancel", {
+        method: "POST",
+        body: JSON.stringify({
+          appointmentIds: Array.from(selectedIds),
+          reasonCode: bulkReasonCode,
+          notes: bulkNotes || null
+        })
+      });
+      setSelectedIds(new Set());
+      setBulkCancelOpen(false);
+      if (result.failed === 0) {
+        setSuccess(`${result.succeeded} appointment${result.succeeded === 1 ? "" : "s"} cancelled.`);
+      } else {
+        setError(`${result.succeeded} cancelled, ${result.failed} failed.`);
       }
-    }
-    setSelectedIds(new Set());
-    setBulkCancelOpen(false);
-    if (failed === 0) {
-      setSuccess(`${cancelled} appointment${cancelled === 1 ? "" : "s"} cancelled.`);
-    } else {
-      setError(`${cancelled} cancelled, ${failed} failed.`);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to cancel appointments.");
     }
     await loadBase();
     setIsBulkCancelling(false);
@@ -111,7 +111,7 @@ export default function AppointmentsPage() {
     setError(null); setSuccess(null);
     setIsSubmitting(true);
     try {
-      await apiRequest("/api/admin/appointments", {
+      const created = await apiRequest<{ id: string }>("/api/admin/appointments", {
         method: "POST",
         body: JSON.stringify({
           petId: form.petId,
@@ -120,6 +120,7 @@ export default function AppointmentsPage() {
           items: form.offerId ? [{ offerId: form.offerId, itemType: null, requestedNotes: null }] : []
         })
       });
+      setCreatedAppointmentId(created.id);
       setSuccess("Appointment created.");
       await loadBase();
     } catch (err) { setError(err instanceof ApiError ? err.message : "Failed to create appointment."); }
@@ -130,7 +131,7 @@ export default function AppointmentsPage() {
     <div className="flex flex-col gap-6 px-2 py-2">
       <PageHeader eyebrow="Appointments" title="Appointments" description="Create direct appointments and manage the confirmed reservation queue." />
       <ErrorBanner message={error} />
-      <SuccessBanner message={success} />
+      <SuccessBanner message={success} action={createdAppointmentId ? { label: "View →", onClick: () => window.open(`/appointments/${createdAppointmentId}`, "_self") } : undefined} />
       <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
         <Card title="Appointment list">
           <SortControl

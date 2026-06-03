@@ -1,8 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Tailbook.BuildingBlocks.Abstractions;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-
-namespace Tailbook.Modules.Booking.Infrastructure.Services;
+﻿namespace Tailbook.Modules.Booking.Infrastructure.Services;
 
 public sealed class BookingOverlapReadService(AppDbContext dbContext) : IAppointmentOverlapReadService
 {

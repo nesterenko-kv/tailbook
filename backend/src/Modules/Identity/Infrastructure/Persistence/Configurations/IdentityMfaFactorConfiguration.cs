@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace Tailbook.Modules.Identity.Infrastructure.Persistence.Configurations;
+﻿namespace Tailbook.Modules.Identity.Infrastructure.Persistence.Configurations;
 
 public sealed class IdentityMfaFactorConfiguration : IEntityTypeConfiguration<IdentityMfaFactor>
 {

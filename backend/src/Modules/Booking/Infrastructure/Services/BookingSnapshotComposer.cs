@@ -1,6 +1,4 @@
 ﻿using ErrorOr;
-using Tailbook.BuildingBlocks.Abstractions;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
 namespace Tailbook.Modules.Booking.Infrastructure.Services;
 

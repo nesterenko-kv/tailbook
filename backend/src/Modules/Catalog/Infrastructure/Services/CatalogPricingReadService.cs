@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-
-namespace Tailbook.Modules.Catalog.Infrastructure.Services;
+﻿namespace Tailbook.Modules.Catalog.Infrastructure.Services;
 
 public sealed class CatalogPricingReadService(AppDbContext dbContext) : ICatalogPricingReadService
 {

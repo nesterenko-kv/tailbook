@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace Tailbook.Modules.Pets.Infrastructure.Persistence.Configurations;
+﻿namespace Tailbook.Modules.Pets.Infrastructure.Persistence.Configurations;
 
 public sealed class AnimalTypeConfiguration : IEntityTypeConfiguration<AnimalType>
 {

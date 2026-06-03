@@ -2,8 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RabbitMQ.Client;
-using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Messaging;
 using Tailbook.BuildingBlocks.Infrastructure.Persistence.Telemetry;
 using Tailbook.Modules.Notifications.Infrastructure.Options;

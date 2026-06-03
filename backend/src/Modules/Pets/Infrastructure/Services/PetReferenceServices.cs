@@ -1,10 +1,7 @@
 ﻿using System.Text.Json;
 using ErrorOr;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
-using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.BuildingBlocks.Infrastructure.Search;
 
 namespace Tailbook.Modules.Pets.Infrastructure.Services;

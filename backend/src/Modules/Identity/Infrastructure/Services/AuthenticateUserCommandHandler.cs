@@ -2,8 +2,6 @@
 using System.Data.Common;
 using ErrorOr;
 using FastEndpoints;
-using Microsoft.EntityFrameworkCore;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Identity.Infrastructure.Persistence;
 
 namespace Tailbook.Modules.Identity.Infrastructure.Services;

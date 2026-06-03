@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace Tailbook.Modules.Staff.Infrastructure.Persistence.Configurations;
+﻿namespace Tailbook.Modules.Staff.Infrastructure.Persistence.Configurations;
 
 public sealed class WorkingScheduleConfiguration : IEntityTypeConfiguration<WorkingSchedule>
 {

@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.Audit.Application.AuditEntries.Models;
+﻿using Tailbook.Modules.Audit.Application.AuditEntries.Models;
 using Tailbook.Modules.Audit.Application.AuditEntries.Queries;
 using Tailbook.Modules.Audit.Application.Common.Pagination;
 

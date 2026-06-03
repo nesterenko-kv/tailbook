@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-
-namespace Tailbook.Modules.Notifications.Infrastructure.Seeding;
+﻿namespace Tailbook.Modules.Notifications.Infrastructure.Seeding;
 
 public sealed class NotificationTemplateSeeder(TimeProvider timeProvider) : IDataSeeder
 {

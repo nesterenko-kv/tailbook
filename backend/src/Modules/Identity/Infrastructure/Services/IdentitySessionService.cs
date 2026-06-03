@@ -1,7 +1,5 @@
 ﻿using ErrorOr;
-using Microsoft.EntityFrameworkCore;
 using Tailbook.BuildingBlocks.Infrastructure.Auth;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
 namespace Tailbook.Modules.Identity.Infrastructure.Services;
 

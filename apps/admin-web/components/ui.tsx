@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import { type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes, useEffect, useState } from "react";
 
 function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
@@ -46,9 +46,25 @@ export function ErrorBanner({ message }: { message?: string | null }) {
   return <div className="rounded-2xl border border-rose-700/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{message}</div>;
 }
 
-export function SuccessBanner({ message }: { message?: string | null }) {
-  if (!message) return null;
-  return <div className="rounded-2xl border border-emerald-700/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">{message}</div>;
+export function SuccessBanner({ message, action }: { message?: string | null; action?: { label: string; onClick: () => void } }) {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    setVisible(true);
+    if (!message) return;
+    const timer = setTimeout(() => setVisible(false), 6000);
+    return () => clearTimeout(timer);
+  }, [message]);
+  if (!message || !visible) return null;
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-700/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+      <span>{message}</span>
+      {action ? (
+        <button type="button" onClick={action.onClick} className="whitespace-nowrap font-medium text-emerald-300 underline underline-offset-2 hover:text-emerald-100">
+          {action.label}
+        </button>
+      ) : null}
+    </div>
+  );
 }
 
 export function Field({ label, hint, children, className }: { label: string; hint?: string; children: ReactNode; className?: string }) {

@@ -1,12 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
 using ErrorOr;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Abstractions.Security;
 using Tailbook.BuildingBlocks.Infrastructure.Diagnostics;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Notifications.Infrastructure.Options;
 using Tailbook.Modules.Notifications.Infrastructure.Telemetry;
 using IntegrationEventMessage = Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration.OutboxMessage;

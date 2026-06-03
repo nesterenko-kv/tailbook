@@ -10,91 +10,78 @@ using RabbitMQ.Client.Events;
 
 namespace Tailbook.BuildingBlocks.Infrastructure.Messaging;
 
-public abstract class IntegrationEventConsumerBase : BackgroundService
+public abstract class IntegrationEventConsumerBase(
+    RabbitMqConnectionFactory connectionFactory,
+    IOptions<RabbitMqOptions> rabbitMqOptions,
+    IServiceScopeFactory scopeFactory,
+    ILogger logger
+)
+    : BackgroundService
 {
-    private readonly RabbitMqConnectionFactory _connectionFactory;
-    private readonly RabbitMqOptions _options;
-    private readonly ILogger _logger;
+    private readonly RabbitMqOptions _options = rabbitMqOptions.Value;
 
-    protected IServiceScopeFactory ScopeFactory { get; }
+    protected IServiceScopeFactory ScopeFactory { get; } = scopeFactory;
 
     protected abstract string QueueName { get; }
     protected abstract string[] RoutingKeys { get; }
 
     protected virtual bool IsConsumerEnabled => true;
 
-    protected IntegrationEventConsumerBase(
-        RabbitMqConnectionFactory connectionFactory,
-        IOptions<RabbitMqOptions> rabbitMqOptions,
-        IServiceScopeFactory scopeFactory,
-        ILogger logger)
-    {
-        _connectionFactory = connectionFactory;
-        _options = rabbitMqOptions.Value;
-        ScopeFactory = scopeFactory;
-        _logger = logger;
-    }
-
     protected sealed override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        if (!_options.Enabled || !IsConsumerEnabled)
-        {
-            return;
-        }
+        if (!_options.Enabled || !IsConsumerEnabled) return;
 
-        var exchange = _options.Exchange;
-        var channel = await _connectionFactory.CreateChannelAsync(stoppingToken);
+        string exchange = _options.Exchange;
+        IChannel channel = await connectionFactory.CreateChannelAsync(stoppingToken);
 
         await channel.ExchangeDeclareAsync(
-            exchange: exchange,
-            type: ExchangeType.Topic,
-            durable: true,
-            autoDelete: false,
+            exchange,
+            ExchangeType.Topic,
+            true,
+            false,
             cancellationToken: stoppingToken
         );
 
         await channel.QueueDeclareAsync(
-            queue: QueueName,
-            durable: true,
-            exclusive: false,
-            autoDelete: false,
+            QueueName,
+            true,
+            false,
+            false,
             cancellationToken: stoppingToken
         );
 
-        foreach (var routingKey in RoutingKeys)
-        {
+        foreach (string routingKey in RoutingKeys)
             await channel.QueueBindAsync(
-                queue: QueueName,
-                exchange: exchange,
-                routingKey: routingKey,
+                QueueName,
+                exchange,
+                routingKey,
                 cancellationToken: stoppingToken
             );
-        }
 
         var consumer = new AsyncEventingBasicConsumer(channel);
 
         consumer.ReceivedAsync += async (_, args) =>
         {
-            using var activity = StartConsumerActivity(exchange, args.RoutingKey);
+            using Activity? activity = StartConsumerActivity(exchange, args.RoutingKey);
 
             try
             {
                 await ProcessWithEnvelopeAsync(args.Body, args.RoutingKey, stoppingToken);
-                await channel.BasicAckAsync(args.DeliveryTag, multiple: false, cancellationToken: stoppingToken);
-                RecordConsumerResult(exchange, args.RoutingKey, success: true);
+                await channel.BasicAckAsync(args.DeliveryTag, false, stoppingToken);
+                RecordConsumerResult(exchange, args.RoutingKey, true);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to process event from routing key {RoutingKey}.", args.RoutingKey);
-                RecordConsumerResult(exchange, args.RoutingKey, success: false);
+                logger.LogError(ex, "Failed to process event from routing key {RoutingKey}.", args.RoutingKey);
+                RecordConsumerResult(exchange, args.RoutingKey, false);
                 activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-                await channel.BasicNackAsync(args.DeliveryTag, multiple: false, requeue: true, cancellationToken: stoppingToken);
+                await channel.BasicNackAsync(args.DeliveryTag, false, true, stoppingToken);
             }
         };
 
-        await channel.BasicConsumeAsync(QueueName, autoAck: false, consumer: consumer, cancellationToken: stoppingToken);
+        await channel.BasicConsumeAsync(QueueName, false, consumer, stoppingToken);
 
-        _logger.ConsumerStarted(QueueName, exchange, RoutingKeys.Length);
+        logger.ConsumerStarted(QueueName, exchange, RoutingKeys.Length);
 
         try
         {
@@ -102,23 +89,24 @@ public abstract class IntegrationEventConsumerBase : BackgroundService
         }
         catch (OperationCanceledException)
         {
-            _logger.ConsumerStopped(QueueName);
+            logger.ConsumerStopped(QueueName);
         }
     }
 
-    private async Task ProcessWithEnvelopeAsync(ReadOnlyMemory<byte> body, string routingKey, CancellationToken cancellationToken)
+    private async Task ProcessWithEnvelopeAsync(ReadOnlyMemory<byte> body, string routingKey,
+        CancellationToken cancellationToken)
     {
-        var payloadJson = Encoding.UTF8.GetString(body.Span);
+        string payloadJson = Encoding.UTF8.GetString(body.Span);
         using var document = JsonDocument.Parse(payloadJson);
-        var root = document.RootElement;
+        JsonElement root = document.RootElement;
 
-        var eventType = root.TryGetProperty("eventType", out var et) ? et.GetString() : null;
-        var messageId = root.TryGetProperty("messageId", out var mid) ? mid.GetGuid() : (Guid?)null;
-        var innerPayload = root.TryGetProperty("payloadJson", out var pj) ? pj.GetString() : null;
+        string? eventType = root.TryGetProperty("eventType", out JsonElement et) ? et.GetString() : null;
+        Guid? messageId = root.TryGetProperty("messageId", out JsonElement mid) ? mid.GetGuid() : null;
+        string? innerPayload = root.TryGetProperty("payloadJson", out JsonElement pj) ? pj.GetString() : null;
 
         if (string.IsNullOrWhiteSpace(eventType) || string.IsNullOrWhiteSpace(innerPayload))
         {
-            _logger.LogWarning("Received malformed event from routing key {RoutingKey}.", routingKey);
+            logger.LogWarning("Received malformed event from routing key {RoutingKey}.", routingKey);
             return;
         }
 
@@ -132,7 +120,10 @@ public abstract class IntegrationEventConsumerBase : BackgroundService
         string routingKey,
         CancellationToken cancellationToken);
 
-    protected virtual Activity? StartConsumerActivity(string exchange, string routingKey) => null;
+    protected virtual Activity? StartConsumerActivity(string exchange, string routingKey)
+    {
+        return null;
+    }
 
     protected virtual void RecordConsumerResult(string exchange, string routingKey, bool success)
     {

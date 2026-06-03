@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tailbook.BuildingBlocks.Infrastructure.Diagnostics;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Audit.Infrastructure.Telemetry;
 
 namespace Tailbook.Modules.Audit.Infrastructure.WriteBuffering;

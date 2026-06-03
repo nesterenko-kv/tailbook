@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace Tailbook.Modules.Notifications.Infrastructure.Persistence.Configurations;
+﻿namespace Tailbook.Modules.Notifications.Infrastructure.Persistence.Configurations;
 
 public sealed class NotificationTemplateConfiguration : IEntityTypeConfiguration<NotificationTemplate>
 {

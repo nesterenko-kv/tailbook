@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Tailbook.BuildingBlocks.Infrastructure.Messaging;
+﻿namespace Tailbook.BuildingBlocks.Infrastructure.Messaging;
 
 public sealed class RabbitMqOptions
 {

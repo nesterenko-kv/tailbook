@@ -1,6 +1,4 @@
-﻿using Tailbook.BuildingBlocks.Abstractions;
-
-namespace Tailbook.Modules.Booking.Api.Public;
+﻿namespace Tailbook.Modules.Booking.Api.Public;
 
 internal static class PublicBookingEndpointMapper
 {

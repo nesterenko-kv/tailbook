@@ -47,6 +47,8 @@ export default function ClientsPage() {
         void loadClients(undefined, 1, sortBy, sortDirection);
     }, [sortBy, sortDirection]);
 
+    const [createdClientId, setCreatedClientId] = useState<string | null>(null);
+
     async function createClient(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setIsSaving(true);
@@ -54,12 +56,13 @@ export default function ClientsPage() {
         setSuccess(null);
 
         try {
-            await apiRequest("/api/admin/clients", {
+            const result = await apiRequest<{ id: string }>("/api/admin/clients", {
                 method: "POST",
                 body: JSON.stringify({ displayName, notes: notes || null })
             });
             setDisplayName("");
             setNotes("");
+            setCreatedClientId(result.id);
             setSuccess("Client created.");
             await loadClients(search, 1, sortBy, sortDirection);
         } catch (err) {
@@ -78,7 +81,7 @@ export default function ClientsPage() {
             />
 
             <ErrorBanner message={error} />
-            <SuccessBanner message={success} />
+            <SuccessBanner message={success} action={createdClientId ? { label: "View →", onClick: () => window.open(`/clients/${createdClientId}`, "_self") } : undefined} />
             <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
                 <Card title="Client list" description="Search and open client profiles.">
                     <div className="mb-4 flex gap-3">

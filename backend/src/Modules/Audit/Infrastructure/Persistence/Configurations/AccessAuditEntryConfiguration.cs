@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace Tailbook.Modules.Audit.Infrastructure.Persistence.Configurations;
+﻿namespace Tailbook.Modules.Audit.Infrastructure.Persistence.Configurations;
 
 public sealed class AccessAuditEntryConfiguration : IEntityTypeConfiguration<AccessAuditEntry>
 {

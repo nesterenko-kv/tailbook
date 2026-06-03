@@ -1,8 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
+﻿using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Pets.Infrastructure.Services;
 
 namespace Tailbook.Modules.Pets.Infrastructure.Seeding;

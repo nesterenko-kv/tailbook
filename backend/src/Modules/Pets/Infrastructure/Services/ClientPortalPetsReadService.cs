@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-
-namespace Tailbook.Modules.Pets.Infrastructure.Services;
+﻿namespace Tailbook.Modules.Pets.Infrastructure.Services;
 
 public sealed class ClientPortalPetsReadService(AppDbContext dbContext) : IClientPortalPetsReadService
 {

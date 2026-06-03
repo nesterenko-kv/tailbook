@@ -2,10 +2,7 @@
 using System.Text;
 using System.Text.Json;
 using ErrorOr;
-using Microsoft.EntityFrameworkCore;
-using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.BuildingBlocks.Infrastructure.Imports;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
 namespace Tailbook.Modules.Catalog.Infrastructure.Services;
 

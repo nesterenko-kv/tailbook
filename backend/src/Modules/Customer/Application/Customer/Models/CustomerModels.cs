@@ -1,6 +1,4 @@
-﻿using Tailbook.BuildingBlocks.Abstractions;
-
-namespace Tailbook.Modules.Customer.Application.Customer.Models;
+﻿namespace Tailbook.Modules.Customer.Application.Customer.Models;
 
 public sealed record PagedResult<T>(IReadOnlyCollection<T> Items, int Page, int PageSize, int TotalCount);
 public sealed record ClientListItemView(Guid Id, string DisplayName, string Status, int ContactCount, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt);

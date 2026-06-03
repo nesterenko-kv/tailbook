@@ -1,9 +1,6 @@
 ﻿using System.Text.Json;
 using ErrorOr;
 using FastEndpoints;
-using Microsoft.EntityFrameworkCore;
-using Tailbook.BuildingBlocks.Abstractions;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
 namespace Tailbook.Modules.VisitOperations.Infrastructure.Services.CommandHandlers;
 

@@ -1,8 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Tailbook.BuildingBlocks.Abstractions;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-
-namespace Tailbook.Modules.Customer.Infrastructure.Services;
+﻿namespace Tailbook.Modules.Customer.Infrastructure.Services;
 
 public sealed class CustomerReferenceServices(AppDbContext dbContext, TimeProvider timeProvider)
     : IClientReferenceValidationService,

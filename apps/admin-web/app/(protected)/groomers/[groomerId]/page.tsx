@@ -17,6 +17,7 @@ import {
   Field,
   Input,
   LinkButton,
+  LoadingState,
   PageHeader,
   PrimaryButton,
   Select,
@@ -243,7 +244,7 @@ export default function GroomerDetailPage() {
       <SuccessBanner message={success} />
 
       {!groomer ? (
-        <div className="text-sm text-slate-300">Loading groomer…</div>
+        <LoadingState label="Loading groomer…" />
       ) : (
         <div className="grid gap-6 xl:grid-cols-2">
           <Card title="Capabilities">

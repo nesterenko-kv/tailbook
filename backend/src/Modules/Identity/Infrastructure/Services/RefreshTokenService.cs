@@ -1,9 +1,7 @@
 ﻿using System.Security.Cryptography;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using Tailbook.BuildingBlocks.Infrastructure;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Identity.Infrastructure.Options;
 
 namespace Tailbook.Modules.Identity.Infrastructure.Services;

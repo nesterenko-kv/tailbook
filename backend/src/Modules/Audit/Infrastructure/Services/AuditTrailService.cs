@@ -1,5 +1,4 @@
-﻿using Tailbook.BuildingBlocks.Abstractions;
-using Tailbook.Modules.Audit.Infrastructure.WriteBuffering;
+﻿using Tailbook.Modules.Audit.Infrastructure.WriteBuffering;
 
 namespace Tailbook.Modules.Audit.Infrastructure.Services;
 

@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Npgsql;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
+﻿using Npgsql;
 
 namespace Tailbook.Modules.Reporting.Infrastructure.Services;
 

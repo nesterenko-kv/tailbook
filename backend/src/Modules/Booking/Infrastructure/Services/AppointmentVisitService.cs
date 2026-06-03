@@ -1,8 +1,5 @@
 ﻿using System.Collections.Immutable;
 using ErrorOr;
-using Microsoft.EntityFrameworkCore;
-using Tailbook.BuildingBlocks.Abstractions;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
 namespace Tailbook.Modules.Booking.Infrastructure.Services;
 

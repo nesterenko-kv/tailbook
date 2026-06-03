@@ -1,8 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Tailbook.BuildingBlocks.Abstractions;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-
-namespace Tailbook.Modules.VisitOperations.Infrastructure.Services;
+﻿namespace Tailbook.Modules.VisitOperations.Infrastructure.Services;
 
 public sealed class VisitReportingReadService(AppDbContext dbContext) : IVisitReportingReadService
 {

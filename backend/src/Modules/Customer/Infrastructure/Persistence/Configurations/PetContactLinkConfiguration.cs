@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace Tailbook.Modules.Customer.Infrastructure.Persistence.Configurations;
+﻿namespace Tailbook.Modules.Customer.Infrastructure.Persistence.Configurations;
 
 public sealed class PetContactLinkConfiguration : IEntityTypeConfiguration<PetContactLink>
 {

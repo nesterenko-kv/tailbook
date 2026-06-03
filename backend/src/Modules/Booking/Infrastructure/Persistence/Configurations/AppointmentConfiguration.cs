@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace Tailbook.Modules.Booking.Infrastructure.Persistence.Configurations;
+﻿namespace Tailbook.Modules.Booking.Infrastructure.Persistence.Configurations;
 
 public sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
 {

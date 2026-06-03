@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { apiRequest, ApiError } from "@/lib/api";
 import type { Offer, ProcedureItem } from "@/lib/types";
-import { Badge, Card, ErrorBanner, LinkButton, Field, Input, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
+import { Badge, Card, EmptyState, ErrorBanner, LinkButton, Field, Input, LoadingState, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
 
 export default function OfferDetailPage() {
     const params = useParams<{ offerId: string }>();
@@ -13,10 +13,12 @@ export default function OfferDetailPage() {
     const [procedures, setProcedures] = useState<ProcedureItem[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [versionForm, setVersionForm] = useState({ validFrom: "", validTo: "", policyText: "", changeNote: "" });
     const [componentForm, setComponentForm] = useState({ versionId: "", procedureId: "", componentRole: "Included", sequenceNo: "1", defaultExpected: true });
 
     async function load() {
+        setIsLoading(true);
         try {
             const [offerResponse, procedureResponse] = await Promise.all([
                 apiRequest<Offer>(`/api/admin/catalog/offers/${offerId}`),
@@ -33,6 +35,8 @@ export default function OfferDetailPage() {
             }));
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Failed to load offer.");
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -105,7 +109,7 @@ export default function OfferDetailPage() {
             <PageHeader eyebrow="Catalog detail" title={offer?.displayName ?? "Offer detail"} description="Version package composition and publish immutable offer versions." action={<LinkButton href="/catalog/offers">Back to offers</LinkButton>} />
             <ErrorBanner message={error} />
             <SuccessBanner message={success} />
-            {offer ? (
+            {isLoading ? <LoadingState label="Loading offer…" /> : !offer ? <EmptyState title="Offer not found" description="The requested offer could not be loaded." /> : (
                 <>
                     <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
                         <Card title="Offer summary">
@@ -167,7 +171,7 @@ export default function OfferDetailPage() {
                         </Card>
                     </div>
                 </>
-            ) : null}
+            )}
         </div>
     );
 }

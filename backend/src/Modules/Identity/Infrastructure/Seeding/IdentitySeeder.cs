@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
+﻿using Microsoft.Extensions.Options;
 using Tailbook.Modules.Identity.Infrastructure.Options;
 using Tailbook.Modules.Identity.Infrastructure.Services;
 

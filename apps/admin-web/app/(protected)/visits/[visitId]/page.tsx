@@ -6,7 +6,7 @@ import { apiRequest, ApiError } from "@/lib/api";
 import { addRecentVisitId } from "@/lib/recent";
 import { formatDateTime, formatMoney } from "@/lib/format";
 import type { VisitDetail } from "@/lib/types";
-import { Badge, Card, ErrorBanner, Field, Input, LinkButton, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
+import { Badge, Card, ErrorBanner, Field, Input, LinkButton, LoadingState, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 
 export default function VisitDetailPage() {
@@ -90,7 +90,7 @@ export default function VisitDetailPage() {
       <PageHeader eyebrow="Visit detail" title={visit?.id ?? "Visit detail"} description="Record execution truth, signed final adjustments, and close the visit." action={<LinkButton href="/visits">Back to visits</LinkButton>} />
       <ErrorBanner message={error} />
       <SuccessBanner message={success} />
-      {!visit ? <div className="text-sm text-slate-300">Loading visit…</div> : (
+      {!visit ? <LoadingState label="Loading visit…" /> : (
         <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
           <Card title="Visit summary">
             <div className="grid gap-2 text-sm text-slate-300">

@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace Tailbook.Modules.VisitOperations.Infrastructure.Persistence.Configurations;
+﻿namespace Tailbook.Modules.VisitOperations.Infrastructure.Persistence.Configurations;
 
 public sealed class VisitSkippedComponentConfiguration : IEntityTypeConfiguration<VisitSkippedComponent>
 {

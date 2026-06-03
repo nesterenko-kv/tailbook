@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Tailbook.BuildingBlocks.Abstractions;
 using Tailbook.Modules.Notifications.Infrastructure.Services;
 
 namespace Tailbook.Modules.Notifications.Infrastructure.BackgroundJobs;

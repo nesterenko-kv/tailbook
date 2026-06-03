@@ -7,7 +7,7 @@ import { apiRequest, ApiError } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import { addRecentPetId } from "@/lib/recent";
 import type { ClientDetail, PetCatalog, PetDetail } from "@/lib/types";
-import { Badge, Card, ErrorBanner, Field, Input, LinkButton, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
+import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LinkButton, LoadingState, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
 
 const roleOptions = ["owner", "primary_contact", "pickup_allowed", "payer", "emergency_contact", "booking_requester", "notification_recipient"];
 
@@ -19,11 +19,13 @@ export default function PetDetailPage() {
     const [client, setClient] = useState<ClientDetail | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const previousBreedIdRef = useRef<string>("");
     const [updateForm, setUpdateForm] = useState({ animalTypeCode: "", breedId: "", coatTypeCode: "", sizeCategoryCode: "", birthDate: "", weightKg: "", notes: "" });
     const [linkForm, setLinkForm] = useState({ contactId: "", roleCodes: ["owner"] as string[], isPrimary: false, canPickUp: true, canPay: false, receivesNotifications: true });
 
     async function load() {
+        setIsLoading(true);
         setError(null);
         try {
             const [petResponse, catalogResponse] = await Promise.all([
@@ -55,6 +57,8 @@ export default function PetDetailPage() {
             }
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "Failed to load pet.");
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -189,7 +193,7 @@ export default function PetDetailPage() {
             <ErrorBanner message={error} />
             <SuccessBanner message={success} />
 
-            {pet ? (
+            {isLoading ? <LoadingState label="Loading pet…" /> : !pet ? <EmptyState title="Pet not found" description="The requested pet record could not be loaded." /> : (
                 <>
                     <div className="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
                         <Card title="Pet profile">
@@ -267,7 +271,7 @@ export default function PetDetailPage() {
                         </Card>
                     </div>
                 </>
-            ) : null}
+            )}
         </div>
     );
 }

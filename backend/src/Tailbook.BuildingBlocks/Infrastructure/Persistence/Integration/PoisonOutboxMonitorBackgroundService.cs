@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 
 namespace Tailbook.BuildingBlocks.Infrastructure.Persistence.Integration;
 

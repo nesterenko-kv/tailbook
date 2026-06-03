@@ -1,9 +1,6 @@
 ﻿using System.Text.Json;
 using ErrorOr;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Tailbook.BuildingBlocks.Abstractions;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
 using Tailbook.Modules.Identity.Infrastructure.Options;
 
 namespace Tailbook.Modules.Identity.Infrastructure.Services;

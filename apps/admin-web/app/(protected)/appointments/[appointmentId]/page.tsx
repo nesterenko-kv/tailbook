@@ -7,7 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import { apiRequest, ApiError } from "@/lib/api";
 import { addRecentVisitId } from "@/lib/recent";
 import { formatDateTime, formatMoney } from "@/lib/format";
-import { Badge, Card, ErrorBanner, Field, Input, LinkButton, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
+import { Badge, Card, ErrorBanner, Field, Input, LinkButton, LoadingState, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 
 export default function AppointmentDetailPage() {
@@ -80,7 +80,7 @@ export default function AppointmentDetailPage() {
       <PageHeader eyebrow="Appointment detail" title={appointment?.id ?? "Appointment detail"} description="Reschedule, cancel, or check in to open a visit." action={<LinkButton href="/appointments">Back to appointments</LinkButton>} />
       <ErrorBanner message={error} />
       <SuccessBanner message={success} />
-      {!appointment ? <div className="text-sm text-slate-300">Loading appointment…</div> : (
+      {!appointment ? <LoadingState label="Loading appointment…" /> : (
         <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
           <Card title="Reservation summary">
             <div className="grid gap-2 text-sm text-slate-300">

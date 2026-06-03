@@ -5,7 +5,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { apiRequest, ApiError } from "@/lib/api";
 import type { ClientDetail } from "@/lib/types";
-import { Badge, Card, ErrorBanner, Field, Input, LinkButton, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
+import { Badge, Card, EmptyState, ErrorBanner, Field, Input, LinkButton, LoadingState, PageHeader, PrimaryButton, Select, SuccessBanner, TextArea } from "@/components/ui";
 
 export default function ClientDetailPage() {
     const params = useParams<{ clientId: string }>();
@@ -109,9 +109,7 @@ export default function ClientDetailPage() {
 
             <ErrorBanner message={error} />
             <SuccessBanner message={success} />
-            {isLoading ? <p className="text-sm text-slate-300">Loading client…</p> : null}
-
-            {client ? (
+            {isLoading ? <LoadingState label="Loading client…" /> : !client ? <EmptyState title="Client not found" description="The requested client record could not be loaded." /> : (
                 <>
                     <div className="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
                         <Card title="Client profile">
@@ -189,7 +187,7 @@ export default function ClientDetailPage() {
                         </Card>
                     </div>
                 </>
-            ) : null}
+            )}
         </div>
     );
 }

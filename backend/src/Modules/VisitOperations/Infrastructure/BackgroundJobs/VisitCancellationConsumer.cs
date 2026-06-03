@@ -1,12 +1,8 @@
 ﻿using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RabbitMQ.Client;
 using Tailbook.BuildingBlocks.Infrastructure.Messaging;
-using Tailbook.BuildingBlocks.Infrastructure.Persistence;
-using Tailbook.Modules.VisitOperations.Domain.Aggregates;
 using static Tailbook.Modules.VisitOperations.Domain.VisitStatusCodes;
 
 namespace Tailbook.Modules.VisitOperations.Infrastructure.BackgroundJobs;

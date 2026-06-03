@@ -1,6 +1,5 @@
 ﻿using ErrorOr;
 using FastEndpoints;
-using Tailbook.BuildingBlocks.Abstractions;
 
 namespace Tailbook.Modules.VisitOperations.Infrastructure.Services.CommandHandlers;
 
