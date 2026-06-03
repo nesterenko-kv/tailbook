@@ -183,6 +183,7 @@ jobs:
             --enableExperimental
 
       - name: Upload Dependency-Check report
+        if: always()
         uses: actions/upload-artifact@v6
         with:
           name: owasp-dependency-check-report
