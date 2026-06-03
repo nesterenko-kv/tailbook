@@ -1,14 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
   <!--
-    CVE-2026-39883 affects OpenTelemetry-Go SDK (BSD/Solaris PATH hijacking via kenv command).
-    Dependency-Check incorrectly matches this CVE against .NET OpenTelemetry NuGet packages
-    via the CPE cpe:2.3:a:opentelemetry:opentelemetry. This is a false positive for .NET projects.
+    CVE-2026-39882 and CVE-2026-39883 affect OpenTelemetry-Go SDK.
+    Dependency-Check incorrectly matches these CVEs against .NET OpenTelemetry NuGet packages
+    via the CPE cpe:2.3:a:opentelemetry:opentelemetry. These are false positives for .NET projects.
   -->
+  <suppress>
+    <notes><![CDATA[False positive: CVE-2026-39882 affects OpenTelemetry Go SDK only, not .NET packages]]></notes>
+    <packageUrl regex="true">pkg:nuget/OpenTelemetry.*@.*</packageUrl>
+    <cve>CVE-2026-39882</cve>
+  </suppress>
   <suppress>
     <notes><![CDATA[False positive: CVE-2026-39883 affects OpenTelemetry Go SDK only, not .NET packages]]></notes>
     <packageUrl regex="true">pkg:nuget/OpenTelemetry.*@.*</packageUrl>
     <cve>CVE-2026-39883</cve>
+  </suppress>
+  <!--
+    CVE-2026-40891, CVE-2026-40894, and CVE-2026-40182 affect OpenTelemetry .NET SDK/API packages
+    (OpenTelemetry.Api, OpenTelemetry.Exporter.OpenTelemetryProtocol). Dependency-Check incorrectly
+    matches these CVEs against OpenTelemetry.Instrumentation.* packages via the broad CPE
+    cpe:2.3:a:opentelemetry:opentelemetry. The transitive SDK dependencies are already resolved to
+    fixed versions (OpenTelemetry.Api 1.15.3, OpenTelemetry.Exporter.OpenTelemetryProtocol 1.15.3).
+  -->
+  <suppress>
+    <notes><![CDATA[False positive: CVE-2026-40891 affects OTLP gRPC exporter - transitive deps already at fixed version 1.15.3]]></notes>
+    <packageUrl regex="true">pkg:nuget/OpenTelemetry.Instrumentation.*@.*</packageUrl>
+    <cve>CVE-2026-40891</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[False positive: CVE-2026-40894 affects OpenTelemetry.Api - transitive dep already at fixed version 1.15.3]]></notes>
+    <packageUrl regex="true">pkg:nuget/OpenTelemetry.Instrumentation.*@.*</packageUrl>
+    <cve>CVE-2026-40894</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[False positive: CVE-2026-40182 affects OTLP exporter - transitive dep already at fixed version 1.15.3]]></notes>
+    <packageUrl regex="true">pkg:nuget/OpenTelemetry.Instrumentation.*@.*</packageUrl>
+    <cve>CVE-2026-40182</cve>
   </suppress>
 
   <!--
@@ -26,111 +53,43 @@
   <!--
     Testcontainers.PostgreSql is a .NET library for managing PostgreSQL Docker containers.
     All PostgreSQL server CVEs matched against it are false positives - the library does
-    not ship or bundle the PostgreSQL server.
+    not ship or bundle the PostgreSQL server. This suppression uses CPE regex to catch
+    all current and future PostgreSQL server CVEs incorrectly matched against this package.
   -->
   <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
+    <notes><![CDATA[False positive: All PostgreSQL server CVEs matched against Testcontainers.PostgreSql .NET library are server-side vulnerabilities, not client library issues]]></notes>
     <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2015-0241</cve>
+    <cpe regex="true">cpe:/a:postgresql:postgresql:.*</cpe>
   </suppress>
   <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
+    <notes><![CDATA[False positive: All www-sql-project CVEs matched against Testcontainers.PostgreSql .NET library are server-side vulnerabilities, not client library issues]]></notes>
     <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2015-0242</cve>
+    <cpe regex="true">cpe:/a:www-sql_project:www-sql:.*</cpe>
   </suppress>
+
+  <!--
+    brace-expansion@5.0.5 is a transitive dev dependency of the eslint toolchain
+    (eslint-config-next -> typescript-eslint -> @typescript-eslint/typescript-estree -> minimatch).
+    GHSA-jxxr-4gwj-5jf2 is a DoS vulnerability that requires passing attacker-controlled patterns.
+    eslint uses brace-expansion internally for config file globbing, not with user input.
+    This is a dev-only dependency, not shipped to production.
+  -->
   <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2015-0243</cve>
+    <notes><![CDATA[Low risk: brace-expansion@5.0.5 is a dev-only transitive dep of eslint toolchain, not exploitable in this context]]></notes>
+    <packageUrl regex="true">pkg:npm/brace-expansion@.*</packageUrl>
+    <ghsa>GHSA-jxxr-4gwj-5jf2</ghsa>
   </suppress>
+
+  <!--
+    postcss@8.4.31 is bundled internally by next.js (build tool) for CSS processing at build time.
+    GHSA-qx2v-qp2m-jg93 is an XSS vulnerability that requires re-stringifying user-submitted CSS
+    into HTML <style> tags. Next.js uses postcss internally at build time, not for serving user
+    content. This cannot be independently upgraded - it's bundled within next.js package.
+    The direct postcss dependency in each app's package.json is already at 8.5.14 (fixed).
+  -->
   <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2015-0244</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2015-3166</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2015-3167</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2016-0768</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2016-0773</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2016-5423</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2016-5424</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2016-7048</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2017-7484</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2017-14798</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2018-1115</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2019-10127</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2019-10128</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2019-10210</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2019-10211</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2020-25694</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2020-25695</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[False positive: PostgreSQL server CVE matched against Testcontainers.PostgreSql .NET library]]></notes>
-    <packageUrl regex="true">pkg:nuget/Testcontainers.PostgreSql@.*</packageUrl>
-    <cve>CVE-2021-23214</cve>
+    <notes><![CDATA[Low risk: postcss@8.4.31 is bundled inside next.js build tool, not independently upgradable; direct dep is at 8.5.14 (fixed)]]></notes>
+    <packageUrl regex="true">pkg:npm/postcss@.*</packageUrl>
+    <ghsa>GHSA-qx2v-qp2m-jg93</ghsa>
   </suppress>
 </suppressions>

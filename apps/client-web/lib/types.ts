@@ -79,9 +79,11 @@ export type ClientAppointmentDetail = {
     bookingRequestId?: string | null;
     petId: string;
     breedName: string;
+    groomerId: string;
     startAt: string;
     endAt: string;
     status: string;
+    versionNo: number;
     items: { id: string; itemType: string; offerDisplayName: string; priceAmount: number; serviceMinutes: number; reservedMinutes: number }[];
     totalAmount: number;
     serviceMinutes: number;
